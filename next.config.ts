@@ -1,7 +1,7 @@
-const nextConfig = {
-  experimental: {
-    serverExternalPackages: ["firebase"],
-  },
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  serverExternalPackages: ["firebase"],
 };
 
 export default nextConfig;
