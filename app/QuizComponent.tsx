@@ -22,7 +22,23 @@ export default function QuizComponent({ student, onFinish }: { student: any, onF
   const [showSummary, setShowSummary] = useState(false);
   const [timeLeft, setTimeLeft] = useState(15);
   
-  const SET_SIZE = 10;
+  const SET_SIZE = 10;const submitScore = async (score: number) => {
+  try {
+    await fetch('/api/submit-score', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        firstName: student.firstName,
+        lastName: student.lastName,
+        room: student.room,
+        studentNo: student.studentNo,
+        score: score,
+      }),
+    });
+  } catch (error) {
+    console.error('Failed to submit score:', error);
+  }
+};
   const TIME_LIMIT = 15;
 
   const generateNewSet = () => {
