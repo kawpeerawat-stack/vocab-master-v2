@@ -1,12 +1,20 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 
+interface ScoreEntry {
+  firstName: string;
+  lastName: string;
+  room: string;
+  studentNo: string;
+  score: number;
+}
+
 export default function Leaderboard() {
-  const [scores, setScores] = useState([]);
+  const [scores, setScores] = useState<ScoreEntry[]>([]);
 
   useEffect(() => {
     const data = JSON.parse(localStorage.getItem('vocabLeaderboard') || '[]');
-    const [scores, setScores] = useState<ScoreEntry[]>([]);
+    setScores(data.sort((a: any, b: any) => b.score - a.score).slice(0, 10));
   }, []);
 
   return (
@@ -17,7 +25,7 @@ export default function Leaderboard() {
           <thead className="bg-blue-600 text-white">
             <tr>
               <th className="p-4 text-center">อันดับ</th>
-              <th className="p-4">นักเรียน</th>
+              <th className="p-4">ชื่อนักเรียน</th>
               <th className="p-4 text-center">ห้อง</th>
               <th className="p-4 text-center">คะแนน</th>
             </tr>
