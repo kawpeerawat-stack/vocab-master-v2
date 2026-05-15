@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 
-export default function Registration({ onStartQuiz }: { onStartQuiz: () => void }) {
+export default function Registration({ onStartQuiz }: { onStartQuiz: (info: { firstName: string; lastName: string; studentNo: string; room: string }) => void }) {
   const [info, setInfo] = useState({ firstName: '', lastName: '', studentNo: '', room: '' });
 
   const handleSubmit = (e: React.FormEvent) => {
