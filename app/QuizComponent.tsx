@@ -152,7 +152,10 @@ export default function QuizComponent({ student, onFinish }: { student: any, onF
         setSelectedAnswer(null);
         setIsAnswered(false);
         setTimeLeft(TIME_LIMIT);
-      } else { setShowSummary(true); }
+      } else { 
+  setShowSummary(true); 
+  submitScore(correctCount);
+}
     }, 1200);
   };
 
