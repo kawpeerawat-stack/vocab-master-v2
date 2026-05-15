@@ -6,7 +6,7 @@ export default function Leaderboard() {
 
   useEffect(() => {
     const data = JSON.parse(localStorage.getItem('vocabLeaderboard') || '[]');
-    setScores(data.sort((a: any, b: any) => b.score - a.score).slice(0, 10));
+    const [scores, setScores] = useState<ScoreEntry[]>([]);
   }, []);
 
   return (
