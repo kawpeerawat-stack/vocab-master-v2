@@ -1,6 +1,6 @@
 const nextConfig = {
   experimental: {
-    serverComponentsExternalPackages: ["firebase"],
+    serverExternalPackages: ["firebase"],
   },
 };
 
