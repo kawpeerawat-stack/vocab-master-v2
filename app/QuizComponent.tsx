@@ -47,15 +47,44 @@ export default function QuizComponent({ student, onFinish }: { student: any, onF
     const all = vocabData as VocabItem[];
     const wrongQueue = JSON.parse(localStorage.getItem('wrongWordsQueue') || '[]');
     const wrongItems = all.filter(v => wrongQueue.includes(v.word));
-    const pickedWrong = wrongItems.sort(() => 0.5 - Math.random()).slice(0, 4);
+    
+    // 1. ดึงคำที่เคยตอบผิดมาทวน (ลดเหลือ 3 คำ เพื่อไม่ให้เด็กรู้สึกว่าโดนซ้ำเติมมากไป)
+    const pickedWrong = wrongItems.sort(() => 0.5 - Math.random()).slice(0, 3);
     const remainingCount = SET_SIZE - pickedWrong.length;
+    
     const unusedWords = all.filter(v => !wrongQueue.includes(v.word));
+    
+    // 2. แยกหมวดหมู่คำศัพท์ตามระดับความยาก
     const b1 = unusedWords.filter(v => v.level === 'B1').sort(() => 0.5 - Math.random());
-    const b2 = unusedWords.filter(v => (v.level === 'B2' || !v.level)).sort(() => 0.5 - Math.random());
+    const b2 = unusedWords.filter(v => (v.level === 'B2' || !v.level)).sort(() => 0.5 - Math.random()); // ถ้าไม่มีเลเวลระบุ จะตีเป็น B2 (กลางๆ)
     const c1 = unusedWords.filter(v => v.level === 'C1').sort(() => 0.5 - Math.random());
-    const pickedNew = [...b1.slice(0, 2), ...b2.slice(0, 2), ...c1.slice(0, 2), ...b2.slice(2)].slice(0, remainingCount);
-    const selectedWords = [...pickedWrong, ...pickedNew].sort(() => 0.5 - Math.random());
-    const set = selectedWords.map((q, index) => formatQuestion(q, (index % 6) + 1));
+    
+    // 3. ปรับสัดส่วนใหม่ (เน้น B1 ลด C1)
+    let newWords: VocabItem[] = [];
+    newWords.push(...b1.slice(0, 4)); // เอา B1 มา 4 คำ (สร้างฐานความมั่นใจ)
+    newWords.push(...b2.slice(0, 2)); // เอา B2 มา 2 คำ
+    newWords.push(...c1.slice(0, 1)); // เอา C1 มาแค่ 1 คำ (เป็นข้อบอสท้ายด่าน)
+    
+    // ถ้าคำศัพท์ในคลังของกลุ่มไหนถูกใช้จนหมด ให้เอาคำที่เหลือมาเติมให้เต็มโควต้า
+    const restWords = [...b1.slice(4), ...b2.slice(2), ...c1.slice(1)].sort(() => 0.5 - Math.random());
+    if (newWords.length < remainingCount) {
+      newWords.push(...restWords.slice(0, remainingCount - newWords.length));
+    }
+    
+    // 4. มัดรวมคำศัพท์ทั้งหมด (คำที่ผิดรอบเก่า + คำใหม่)
+    let selectedWords = [...pickedWrong, ...newWords.slice(0, remainingCount)];
+    
+    // 5. 🎯 ไฮไลท์: จัดเรียงข้อสอบจาก "ง่ายไปยาก" (B1 -> B2 -> C1)
+    const levelWeight: Record<string, number> = { 'A1': 1, 'A2': 2, 'B1': 3, 'B2': 4, 'C1': 5, 'C2': 6 };
+    selectedWords.sort((a, b) => {
+      const weightA = levelWeight[a.level] || 4; 
+      const weightB = levelWeight[b.level] || 4;
+      return weightA - weightB; // เรียงจากค่าน้อย (B1) ไปหามาก (C1)
+    });
+    
+    // 6. สุ่มรูปแบบคำถาม (ประเภท 1-6) เพื่อไม่ให้เด็กเดาทางได้
+    const set = selectedWords.map(q => formatQuestion(q, Math.floor(Math.random() * 6) + 1));
+    
     setQuestions(set);
     setCurrentIdx(0);
     setCorrectCount(0);
