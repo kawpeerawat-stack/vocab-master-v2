@@ -21,49 +21,40 @@ export default function QuizComponent({ student, onFinish }: { student: any, onF
   const [reviewData, setReviewData] = useState<any[]>([]);
   const [showSummary, setShowSummary] = useState(false);
   const [timeLeft, setTimeLeft] = useState(15);
-  
-  const SET_SIZE = 10;const submitScore = async (score: number) => {
-  try {
-    await fetch('/api/submit-score', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        firstName: student.firstName,
-        lastName: student.lastName,
-        room: student.room,
-        studentNo: student.studentNo,
-        score: score,
-      }),
-    });
-  } catch (error) {
-    console.error('Failed to submit score:', error);
-  }
-};
+
+  const SET_SIZE = 10;
   const TIME_LIMIT = 15;
+
+  const submitScore = async (score: number) => {
+    try {
+      await fetch('/api/submit-score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          lastName: student.lastName,
+          room: student.room,
+          studentNo: student.studentNo,
+          score: score,
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to submit score:', error);
+    }
+  };
 
   const generateNewSet = () => {
     const all = vocabData as VocabItem[];
-    
-    // 1. ดึงคิวคำที่เคยตอบผิดมาจากรอบก่อนๆ
     const wrongQueue = JSON.parse(localStorage.getItem('wrongWordsQueue') || '[]');
     const wrongItems = all.filter(v => wrongQueue.includes(v.word));
-
-    // 2. จัดสรรโควตา (เอาคำที่เคยผิดมา 4 ข้อ, คำใหม่ 6 ข้อ เพื่อความสมดุล)
     const pickedWrong = wrongItems.sort(() => 0.5 - Math.random()).slice(0, 4);
     const remainingCount = SET_SIZE - pickedWrong.length;
-
-    // 3. สุ่มคำใหม่โดยผสมระดับ B1-C1
     const unusedWords = all.filter(v => !wrongQueue.includes(v.word));
     const b1 = unusedWords.filter(v => v.level === 'B1').sort(() => 0.5 - Math.random());
     const b2 = unusedWords.filter(v => (v.level === 'B2' || !v.level)).sort(() => 0.5 - Math.random());
     const c1 = unusedWords.filter(v => v.level === 'C1').sort(() => 0.5 - Math.random());
-
     const pickedNew = [...b1.slice(0, 2), ...b2.slice(0, 2), ...c1.slice(0, 2), ...b2.slice(2)].slice(0, remainingCount);
-
     const selectedWords = [...pickedWrong, ...pickedNew].sort(() => 0.5 - Math.random());
-    
     const set = selectedWords.map((q, index) => formatQuestion(q, (index % 6) + 1));
-
     setQuestions(set);
     setCurrentIdx(0);
     setCorrectCount(0);
@@ -80,9 +71,8 @@ export default function QuizComponent({ student, onFinish }: { student: any, onF
     let correctAnswer = "";
     let options: string[] = [];
     const all = vocabData as VocabItem[];
-
     switch(type) {
-      case 1: questionText = `"${item.word}"`; subText = "Meaning?"; correctAnswer = item.thai_meaning; 
+      case 1: questionText = `"${item.word}"`; subText = "Meaning?"; correctAnswer = item.thai_meaning;
               options = [item.thai_meaning, ...all.filter(v => v.thai_meaning !== item.thai_meaning).sort(() => 0.5 - Math.random()).slice(0, 3).map(v => v.thai_meaning)]; break;
       case 2: questionText = `"${item.thai_meaning}"`; subText = "English word?"; correctAnswer = item.word;
               options = [item.word, ...all.filter(v => v.word !== item.word).sort(() => 0.5 - Math.random()).slice(0, 3).map(v => v.word)]; break;
@@ -93,7 +83,7 @@ export default function QuizComponent({ student, onFinish }: { student: any, onF
       case 5: questionText = item.eng_definition; subText = "Identify word"; correctAnswer = item.word;
               options = [item.word, ...all.filter(v => v.word !== item.word).sort(() => 0.5 - Math.random()).slice(0, 3).map(v => v.word)]; break;
       case 6: if (item.antonym) { questionText = `"${item.word}"`; subText = "Antonym?"; correctAnswer = item.antonym;
-              options = [item.antonym, ...all.filter(v => v.word !== item.word).sort(() => 0.5 - Math.random()).slice(0, 3).map(v => v.word)]; } 
+              options = [item.antonym, ...all.filter(v => v.word !== item.word).sort(() => 0.5 - Math.random()).slice(0, 3).map(v => v.word)]; }
               else { return formatQuestion(item, 1); } break;
     }
     return { ...item, type, questionText, subText, correctAnswer, options: options.sort(() => 0.5 - Math.random()), isRepeat: false };
@@ -119,28 +109,27 @@ export default function QuizComponent({ student, onFinish }: { student: any, onF
     const mastered = JSON.parse(localStorage.getItem('masteredWords') || '[]');
     const wrongQueue = JSON.parse(localStorage.getItem('wrongWordsQueue') || '[]');
 
+    // คำนวณ finalScore ก่อน setState เพื่อแก้ stale state bug
+    const thisAnswerCounts = isCorrect && !q.isRepeat && !wrongQueue.includes(q.word);
+    const finalScore = thisAnswerCounts ? correctCount + 1 : correctCount;
+
     if (isCorrect) {
-      // --- กฎใหม่: ต้องถูกในรอบแรกเท่านั้น ถึงจะนับความก้าวหน้า ---
-      if (!q.isRepeat && !wrongQueue.includes(q.word)) {
-        setCorrectCount(prev => prev + 1);
+      if (thisAnswerCounts) {
+        setCorrectCount(finalScore);
         if (!mastered.includes(q.word)) {
           mastered.push(q.word);
           localStorage.setItem('masteredWords', JSON.stringify(mastered));
         }
       }
-      // ถ้าตอบถูกแล้ว ให้เอาออกจากคิวคำที่เคยผิด
       const updatedWrongQueue = wrongQueue.filter((w: string) => w !== q.word);
       localStorage.setItem('wrongWordsQueue', JSON.stringify(updatedWrongQueue));
     } else {
-      // --- ถ้าตอบผิด: ตัดออกจาก Mastered และใส่เข้าคิว Wrong ---
       const updatedMastered = mastered.filter((m: string) => m !== q.word);
       localStorage.setItem('masteredWords', JSON.stringify(updatedMastered));
-
       if (!wrongQueue.includes(q.word)) {
         wrongQueue.push(q.word);
         localStorage.setItem('wrongWordsQueue', JSON.stringify(wrongQueue));
       }
-      // วนซ่อมในเซตนี้
       setQuestions(prev => [...prev, { ...q, isRepeat: true }]);
     }
 
@@ -152,11 +141,10 @@ export default function QuizComponent({ student, onFinish }: { student: any, onF
         setSelectedAnswer(null);
         setIsAnswered(false);
         setTimeLeft(TIME_LIMIT);
-      } else { 
-  setShowSummary(true);
- const finalScore = thisAnswerCounts ? correctCount + 1 : correctCount;
-submitScore(finalScore)
-}
+      } else {
+        setShowSummary(true);
+        submitScore(finalScore); // ใช้ finalScore ที่คำนวณไว้แล้ว (ไม่ stale)
+      }
     }, 1200);
   };
 
@@ -167,7 +155,10 @@ submitScore(finalScore)
         <div className="space-y-3 max-h-[50vh] overflow-y-auto px-2 mb-8">
           {reviewData.map((item, i) => (
             <div key={i} className={`p-4 rounded-xl border-2 ${item.isCorrect ? 'border-green-100 bg-green-50' : 'border-red-100 bg-red-50'}`}>
-              <div className="flex justify-between items-center"><h4 className="font-bold text-gray-800">{item.word}</h4><span className={`text-[10px] font-bold ${item.isCorrect ? 'text-green-600' : 'text-red-600'}`}>{item.isCorrect ? 'PASSED' : 'RETRY ADDED'}</span></div>
+              <div className="flex justify-between items-center">
+                <h4 className="font-bold text-gray-800">{item.word}</h4>
+                <span className={`text-[10px] font-bold ${item.isCorrect ? 'text-green-600' : 'text-red-600'}`}>{item.isCorrect ? 'PASSED' : 'RETRY ADDED'}</span>
+              </div>
               <p className="text-xs text-gray-600 mt-1">Answer: {item.correct}</p>
             </div>
           ))}
@@ -182,13 +173,18 @@ submitScore(finalScore)
 
   return (
     <div className="max-w-xl mx-auto bg-white p-8 rounded-[2.5rem] shadow-xl border border-blue-50 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-2 bg-gray-100"><div className={`h-full transition-all duration-1000 linear ${timeLeft <= 5 ? 'bg-red-500' : 'bg-blue-600'}`} style={{ width: `${(timeLeft / TIME_LIMIT) * 100}%` }}></div></div>
-      <div className="flex justify-between items-center mb-8 mt-4 font-bold text-[10px] text-blue-900 uppercase"><span>Cleared: {correctCount}/10</span><span>Time: {timeLeft}s</span></div>
+      <div className="absolute top-0 left-0 w-full h-2 bg-gray-100">
+        <div className={`h-full transition-all duration-1000 linear ${timeLeft <= 5 ? 'bg-red-500' : 'bg-blue-600'}`} style={{ width: `${(timeLeft / TIME_LIMIT) * 100}%` }}></div>
+      </div>
+      <div className="flex justify-between items-center mb-8 mt-4 font-bold text-[10px] text-blue-900 uppercase">
+        <span>Cleared: {correctCount}/10</span>
+        <span>Time: {timeLeft}s</span>
+      </div>
       <div className="text-center mb-8">
         <p className="text-blue-600 font-black text-[10px] uppercase mb-2">{questions[currentIdx]?.subText}</p>
         <div className="flex justify-center gap-2 mb-4">
-           <span className="bg-slate-800 text-white px-2 py-0.5 rounded text-[9px] font-black uppercase">Level {questions[currentIdx]?.level}</span>
-           {questions[currentIdx]?.isRepeat && <span className="bg-orange-500 text-white px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter">Reviewing</span>}
+          <span className="bg-slate-800 text-white px-2 py-0.5 rounded text-[9px] font-black uppercase">Level {questions[currentIdx]?.level}</span>
+          {questions[currentIdx]?.isRepeat && <span className="bg-orange-500 text-white px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter">Reviewing</span>}
         </div>
         <h3 className={`font-black text-gray-800 tracking-tighter italic ${questions[currentIdx]?.type === 4 || questions[currentIdx]?.type === 5 ? 'text-xl px-4' : 'text-4xl'}`}>{questions[currentIdx]?.questionText}</h3>
       </div>
