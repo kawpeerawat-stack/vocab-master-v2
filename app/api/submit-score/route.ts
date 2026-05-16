@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 // ฝังลิงก์ Google Apps Script ของคุณครูลงไปโดยตรงเพื่อแก้ปัญหา Vercel หาลิงก์ไม่เจอ
-const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycby4W4DvZVWfNhE1dLIPKaWCxd7qJ64aLBjDo_LvbXY2v815i-Z-jkx2TaSyo4KsTfb-CQ/exec";
+const WEBHOOK_URL = https://script.google.com/macros/s/AKfycby4W4DvZVWfNhE1dLIPKaWCxd7qJ64aLBjDo_LvbXY2v815i-Z-jkx2TaSyo4KsTfb-CQ/exec;
 
 export async function POST(req: Request) {
   try {
