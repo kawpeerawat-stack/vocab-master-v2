@@ -154,7 +154,8 @@ export default function QuizComponent({ student, onFinish }: { student: any, onF
         setTimeLeft(TIME_LIMIT);
       } else { 
   setShowSummary(true);
-  submitScore(correctCount);
+ const finalScore = thisAnswerCounts ? correctCount + 1 : correctCount;
+submitScore(finalScore)
 }
     }, 1200);
   };
