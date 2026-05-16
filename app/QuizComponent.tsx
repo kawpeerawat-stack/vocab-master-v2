@@ -31,6 +31,7 @@ export default function QuizComponent({ student, onFinish }: { student: any, onF
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          firstName: student.firstName, // 🎯 เพิ่มตัวการที่หายไปตรงนี้แล้วครับ!
           lastName: student.lastName,
           room: student.room,
           studentNo: student.studentNo,
