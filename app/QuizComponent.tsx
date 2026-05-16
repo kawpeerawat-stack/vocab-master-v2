@@ -95,27 +95,51 @@ export default function QuizComponent({ student, onFinish }: { student: any, onF
     setIsAnswered(false);
   };
 
-  function formatQuestion(item: VocabItem, type: number) {
+ function formatQuestion(item: VocabItem, type: number) {
     let questionText = "";
     let subText = "";
     let correctAnswer = "";
     let options: string[] = [];
     const all = vocabData as VocabItem[];
+    
     switch(type) {
-      case 1: questionText = `"${item.word}"`; subText = "Meaning?"; correctAnswer = item.thai_meaning;
-              options = [item.thai_meaning, ...all.filter(v => v.thai_meaning !== item.thai_meaning).sort(() => 0.5 - Math.random()).slice(0, 3).map(v => v.thai_meaning)]; break;
-      case 2: questionText = `"${item.thai_meaning}"`; subText = "English word?"; correctAnswer = item.word;
-              options = [item.word, ...all.filter(v => v.word !== item.word).sort(() => 0.5 - Math.random()).slice(0, 3).map(v => v.word)]; break;
-      case 3: questionText = `"${item.word}"`; subText = "Synonym?"; correctAnswer = item.synonym || item.word;
-              options = [correctAnswer, ...all.filter(v => v.word !== item.word).sort(() => 0.5 - Math.random()).slice(0, 3).map(v => v.word)]; break;
-      case 4: questionText = item.example_sentence.replace(item.word, "_______"); subText = "Fill in context"; correctAnswer = item.word;
-              options = [item.word, ...all.filter(v => v.word !== item.word).sort(() => 0.5 - Math.random()).slice(0, 3).map(v => v.word)]; break;
-      case 5: questionText = item.eng_definition; subText = "Identify word"; correctAnswer = item.word;
-              options = [item.word, ...all.filter(v => v.word !== item.word).sort(() => 0.5 - Math.random()).slice(0, 3).map(v => v.word)]; break;
-      case 6: if (item.antonym) { questionText = `"${item.word}"`; subText = "Antonym?"; correctAnswer = item.antonym;
-              options = [item.antonym, ...all.filter(v => v.word !== item.word).sort(() => 0.5 - Math.random()).slice(0, 3).map(v => v.word)]; }
-              else { return formatQuestion(item, 1); } break;
+      case 1: 
+        questionText = `"${item.word}"`; subText = "Meaning?"; correctAnswer = item.thai_meaning;
+        options = [item.thai_meaning, ...all.filter(v => v.thai_meaning !== item.thai_meaning).sort(() => 0.5 - Math.random()).slice(0, 3).map(v => v.thai_meaning)]; 
+        break;
+      case 2: 
+        questionText = `"${item.thai_meaning}"`; subText = "English word?"; correctAnswer = item.word;
+        options = [item.word, ...all.filter(v => v.word !== item.word).sort(() => 0.5 - Math.random()).slice(0, 3).map(v => v.word)]; 
+        break;
+      case 3: 
+        questionText = `"${item.word}"`; subText = "Synonym?"; correctAnswer = item.synonym || item.word;
+        // 🎯 แก้ไข: ดึงกลุ่มคำ Synonym ของคำอื่นๆ มาเป็นตัวลวง เพื่อให้ความยาวเนียนกลมกลืนกัน
+        let falseSynonyms = all.filter(v => v.synonym && v.synonym !== correctAnswer).map(v => v.synonym as string);
+        if (falseSynonyms.length < 3) falseSynonyms = [...falseSynonyms, ...all.map(v => v.word)]; // เผื่อกรณีหาดึงไม่พอ
+        options = [correctAnswer, ...falseSynonyms.sort(() => 0.5 - Math.random()).slice(0, 3)]; 
+        break;
+      case 4: 
+        questionText = item.example_sentence.replace(item.word, "_______"); subText = "Fill in context"; correctAnswer = item.word;
+        options = [item.word, ...all.filter(v => v.word !== item.word).sort(() => 0.5 - Math.random()).slice(0, 3).map(v => v.word)]; 
+        break;
+      case 5: 
+        questionText = item.eng_definition; subText = "Identify word"; correctAnswer = item.word;
+        options = [item.word, ...all.filter(v => v.word !== item.word).sort(() => 0.5 - Math.random()).slice(0, 3).map(v => v.word)]; 
+        break;
+      case 6: 
+        if (item.antonym) { 
+          questionText = `"${item.word}"`; subText = "Antonym?"; correctAnswer = item.antonym;
+          // 🎯 แก้ไข: ดึงกลุ่มคำ Antonym ของคำอื่นๆ มาเป็นตัวลวง เดาจากความยาวไม่ได้แล้ว!
+          let falseAntonyms = all.filter(v => v.antonym && v.antonym !== correctAnswer).map(v => v.antonym as string);
+          if (falseAntonyms.length < 3) falseAntonyms = [...falseAntonyms, ...all.map(v => v.word)];
+          options = [correctAnswer, ...falseAntonyms.sort(() => 0.5 - Math.random()).slice(0, 3)]; 
+        } else { 
+          return formatQuestion(item, 1); 
+        } 
+        break;
     }
+    
+    // สลับตำแหน่งตัวเลือกไม่ให้ข้อถูกอยู่ตำแหน่งเดิม
     return { ...item, type, questionText, subText, correctAnswer, options: options.sort(() => 0.5 - Math.random()), isRepeat: false };
   }
 
