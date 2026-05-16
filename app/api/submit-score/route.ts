@@ -42,10 +42,14 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Submit score error:", error);
+  } catch (error: any) {
+    // ชั่วคราว: return error message เพื่อ debug
     return NextResponse.json(
-      { error: "เกิดข้อผิดพลาดในการบันทึกคะแนน" },
+      { 
+        error: "เกิดข้อผิดพลาด",
+        detail: error?.message || String(error),
+        code: error?.code,
+      },
       { status: 500 }
     );
   }
