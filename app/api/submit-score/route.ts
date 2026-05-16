@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 // นำลิงก์ที่ก๊อปปี้มาใหม่ วางแทนที่คำว่า วางลิงก์ใหม่ของคุณครูที่นี่ (อย่าลบเครื่องหมาย " " ออกนะครับ)
-const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxhNP-LY21qKSXJ_PGjg-eUDFlOjZ7khR_Ta6hDM9lJacH9H79IdmNhbGWRVXwlQYxh1g/exec";
+const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycby9QCscdOQ6WrgHII8PMl8uDyHlcx7AzFxPUUk95XDqaxdIMM7WgLFfcldxyu0YfY-KQw/exec";
 
 export async function POST(req: Request) {
   try {
