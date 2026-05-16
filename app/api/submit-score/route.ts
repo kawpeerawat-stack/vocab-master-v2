@@ -6,15 +6,13 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { lastName, room, studentNo, score } = body;
 
-    // Validate required fields
     if (!lastName || !room || !studentNo || score === undefined) {
       return NextResponse.json(
-        { error: "กรุณากรอกข้อมูลให้ครบ: lastName, room, studentNo, score" },
+        { error: "กรุณากรอกข้อมูลให้ครบ" },
         { status: 400 }
       );
     }
 
-    // Auth with Google
     const auth = new google.auth.GoogleAuth({
       credentials: {
         client_email: process.env.GOOGLE_CLIENT_EMAIL,
@@ -25,7 +23,6 @@ export async function POST(req: NextRequest) {
 
     const sheets = google.sheets({ version: "v4", auth });
 
-    // Format date (Thailand timezone)
     const timestamp = new Date().toLocaleString("th-TH", {
       timeZone: "Asia/Bangkok",
       day: "2-digit",
@@ -35,7 +32,6 @@ export async function POST(req: NextRequest) {
       minute: "2-digit",
     });
 
-    // Append row: วัน | นามสกุล | ห้อง | เลขที่ | คะแนน
     await sheets.spreadsheets.values.append({
       spreadsheetId: process.env.GOOGLE_SHEET_ID,
       range: "ชีต1!A:E",
