@@ -1,14 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-const WEBHOOK_URL = process.env.GOOGLE_SHEET_WEBHOOK_URL!;
+// ฝังลิงก์ Google Apps Script ของคุณครูลงไปโดยตรงเพื่อแก้ปัญหา Vercel หาลิงก์ไม่เจอ
+const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycby4W4DvZVWfNhE1dLIPKaWCxd7qJ64aLBjDo_LvbXY2v815i-Z-jkx2TaSyo4KsTfb-CQ/exec";
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // Debug: log URL ที่ใช้
-    console.log("Webhook URL:", WEBHOOK_URL);
+    // ป้องกันกรณีที่ลิงก์มีปัญหา
+    if (!WEBHOOK_URL) {
+      throw new Error("Webhook URL is missing!");
+    }
 
+    // ส่งข้อมูลไปที่ Google Sheet
     const res = await fetch(WEBHOOK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -16,7 +20,7 @@ export async function POST(req: NextRequest) {
       redirect: "follow",
     });
 
-    const text = await res.text(); // อ่านเป็น text ก่อน
+    const text = await res.text(); 
     console.log("Apps Script response:", text);
 
     try {
