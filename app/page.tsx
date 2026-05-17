@@ -2,34 +2,31 @@
 
 import React, { useState, useEffect } from 'react';
 
-type WordItem = {
-  word: string;
-  thai_meaning: string;
-  eng_definition: string;
-  synonym: string;
-  antonym: string;
-  example_sentence: string;
-  level: string;
-};
-
-type QuizQuestion = WordItem & {
-  questionType: 'SENTENCE' | 'SYNONYM' | 'ANTONYM';
+// โครงสร้างข้อมูล Grammar ที่ปรับให้เข้ากับฐานข้อมูลใหม่
+type GrammarItem = {
+  id: string;
+  exam_type: string;
+  grammar_topic: string;
+  question_format: string;
+  question: string;
+  options: string[];
+  correct_answer: string;
+  trap_explanation: string;
 };
 
 export default function Home() {
-  const [gameState, setGameState] = useState<'START' | 'QUIZ' | 'END'>('START');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // สเตตัสการควบคุมหน้าจอ: 'START' | 'DASHBOARD' | 'QUIZ' | 'END'
+  const [gameState, setGameState] = useState<'START' | 'DASHBOARD' | 'QUIZ' | 'END'>('START');
   
   const [studentName, setStudentName] = useState('');
   const [email, setEmail] = useState('');
   
-  const [masteredWords, setMasteredWords] = useState<string[]>([]);
-  const [vocabData, setVocabData] = useState<WordItem[]>([]);
-  const [currentQuestions, setCurrentQuestions] = useState<QuizQuestion[]>([]);
+  const [grammarData, setGrammarData] = useState<GrammarItem[]>([]);
+  const [currentQuestions, setCurrentQuestions] = useState<GrammarItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [options, setOptions] = useState<string[]>([]);
   
-  const [wrongAnswers, setWrongAnswers] = useState<{question: QuizQuestion, selected: string}[]>([]);
+  const [selectedTopic, setSelectedTopic] = useState<string>('Mix');
+  const [wrongAnswers, setWrongAnswers] = useState<{question: GrammarItem, selected: string}[]>([]);
   
   const [score, setScore] = useState(0);
   const QUIZ_TIME_LIMIT = 30; 
@@ -38,35 +35,24 @@ export default function Home() {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // ✨ ตัวแปรเก็บจำนวนครั้งที่แอบออกนอกหน้าจอ
   const [cheatWarnings, setCheatWarnings] = useState(0);
 
   const TOTAL_QUESTIONS_PER_ROUND = 10; 
   
-  // 🔗 ใส่ URL ของ Google Apps Script Web App ที่นี่
-  const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwMmvxMfZZkIFsgeNndqMr7AmQVNADqR0SjywuccdiINPWgK4HafiJZoqmKTssEsCTGuA/exec";
+  // 🔗 ใส่ URL ของ Google Apps Script (ไฟล์ใหม่สำหรับ Grammar) ที่นี่
+  const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbxicdDloyqLpks5v2zu_Lg4bm-v5zjgD1gdZmJCAxOvpqbweyosvfwQSNFlRb7ImKSaGw/exec";
 
   useEffect(() => {
-    fetch('/vocab.json')
+    fetch('/grammar.json')
       .then((res) => {
-        if (!res.ok) throw new Error("หาไฟล์ vocab.json ไม่เจอ");
+        if (!res.ok) throw new Error("หาไฟล์ grammar.json ไม่เจอ");
         return res.json();
       })
-      .then((data) => setVocabData(data))
-      .catch((err) => console.error("Error loading vocab.json:", err));
-
-    const savedMastered = localStorage.getItem('vocab_mastered_progress');
-    if (savedMastered) {
-      try {
-        setMasteredWords(JSON.parse(savedMastered));
-      } catch (e) {
-        console.error(e);
-      }
-    }
+      .then((data) => setGrammarData(data))
+      .catch((err) => console.error("Error loading grammar.json:", err));
   }, []);
 
-  // ✨ ระบบ Anti-Cheat: ตรวจจับการสลับแท็บ (Tab Switching)
+  // ระบบ Anti-Cheat จับตาการสลับแท็บ
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && gameState === 'QUIZ') {
@@ -74,11 +60,8 @@ export default function Home() {
         setCheatWarnings(prev => prev + 1);
       }
     };
-
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [gameState]);
 
   useEffect(() => {
@@ -96,74 +79,50 @@ export default function Home() {
   const handleStudentLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (studentName.trim() && email.trim() && email.includes('@')) {
-      setIsLoggedIn(true);
+      setGameState('DASHBOARD');
     }
   };
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
     setStudentName('');
     setEmail('');
     setGameState('START');
   };
 
-  const startNewQuizRound = () => {
-    if (vocabData.length === 0) {
-      alert("⚠️ ระบบยังโหลดคลังคำศัพท์ไม่สำเร็จ กรุณาตรวจสอบไฟล์ vocab.json ในโฟลเดอร์ public");
+  // ฟังก์ชันเริ่มทำข้อสอบโดยกรองตามหมวดหมู่ที่เลือก
+  const startNewQuizRound = (topic: string) => {
+    if (grammarData.length === 0) {
+      alert("⚠️ ระบบยังโหลดคลังข้อสอบไม่สำเร็จ กรุณาตรวจสอบไฟล์ grammar.json ในโฟลเดอร์ public");
       return;
     }
 
-    const unmasteredWords = vocabData.filter(w => !masteredWords.includes(w.word));
-    const poolToUse = unmasteredWords.length >= 10 ? unmasteredWords : vocabData;
-
-    const b1Words = poolToUse.filter(w => w.level === 'B1');
-    const b2Words = poolToUse.filter(w => w.level === 'B2');
-    const c1Words = poolToUse.filter(w => w.level === 'C1');
-
-    const shuffleAndPick = (array: WordItem[], count: number) => {
-      const shuffled = [...array].sort(() => 0.5 - Math.random());
-      return shuffled.slice(0, count);
-    };
-
-    let selectedRoundWords = [
-      ...shuffleAndPick(b1Words.length > 0 ? b1Words : poolToUse, 4),
-      ...shuffleAndPick(b2Words.length > 0 ? b2Words : poolToUse, 4),
-      ...shuffleAndPick(c1Words.length > 0 ? c1Words : poolToUse, 2)
-    ];
-
-    if (selectedRoundWords.length < 10) {
-       const pickedWords = selectedRoundWords.map(w => w.word);
-       const leftovers = poolToUse.filter(w => !pickedWords.includes(w.word));
-       selectedRoundWords = [...selectedRoundWords, ...shuffleAndPick(leftovers, 10 - selectedRoundWords.length)];
+    let poolToUse = grammarData;
+    if (topic !== 'Mix') {
+      poolToUse = grammarData.filter(q => q.grammar_topic === topic);
     }
 
-    const formattedQuestions: QuizQuestion[] = selectedRoundWords.map(item => {
-      const availableTypes: ('SENTENCE' | 'SYNONYM' | 'ANTONYM')[] = ['SENTENCE'];
-      if (item.synonym && item.synonym !== "-" && item.synonym.trim() !== "") availableTypes.push('SYNONYM');
-      if (item.antonym && item.antonym !== "-" && item.antonym.trim() !== "") availableTypes.push('ANTONYM');
-      
-      const randomType = availableTypes[Math.floor(Math.random() * availableTypes.length)];
-      return { ...item, questionType: randomType };
-    });
+    if (poolToUse.length === 0) {
+      alert(`ยังไม่มีข้อสอบในหมวด ${topic} ครับ ระบบจะสุ่มหมวดหมู่รวมให้แทน`);
+      poolToUse = grammarData;
+    }
 
-    setCurrentQuestions(formattedQuestions);
+    const shuffled = [...poolToUse].sort(() => 0.5 - Math.random());
+    const selectedRoundQuestions = shuffled.slice(0, Math.min(TOTAL_QUESTIONS_PER_ROUND, shuffled.length));
+
+    // สุ่มสลับตำแหน่งตัวเลือก (Options) ในแต่ละข้อ
+    const questionsWithOptionsShuffled = selectedRoundQuestions.map(q => ({
+      ...q,
+      options: [...q.options].sort(() => 0.5 - Math.random())
+    }));
+
+    setSelectedTopic(topic);
+    setCurrentQuestions(questionsWithOptionsShuffled);
     setCurrentIndex(0);
     setScore(0);
-    setCheatWarnings(0); // รีเซ็ตการแจ้งเตือนเมื่อเริ่มใหม่
+    setCheatWarnings(0);
     setWrongAnswers([]); 
-    generateOptionsForQuestion(formattedQuestions[0], vocabData);
     resetTimerAndQuestionState();
     setGameState('QUIZ');
-  };
-
-  const generateOptionsForQuestion = (correctItem: WordItem, allItems: WordItem[]) => {
-    let wrongOptionsPool = allItems.filter(item => item.word !== correctItem.word && item.level === correctItem.level);
-    if (wrongOptionsPool.length < 3) {
-      wrongOptionsPool = allItems.filter(item => item.word !== correctItem.word);
-    }
-    const shuffledWrong = wrongOptionsPool.sort(() => 0.5 - Math.random()).slice(0, 3);
-    const finalChoices = [correctItem.word, ...shuffledWrong.map(item => item.word)];
-    setOptions(finalChoices.sort(() => 0.5 - Math.random()));
   };
 
   const resetTimerAndQuestionState = () => {
@@ -178,18 +137,9 @@ export default function Home() {
     setIsAnswered(true);
 
     const currentQ = currentQuestions[currentIndex];
-    const correctWord = currentQ.word;
     
-    if (answer === correctWord) {
+    if (answer === currentQ.correct_answer) {
       setScore((prev) => prev + 1);
-      setMasteredWords((prev) => {
-        if (!prev.includes(correctWord)) {
-          const updated = [...prev, correctWord];
-          localStorage.setItem('vocab_mastered_progress', JSON.stringify(updated));
-          return updated;
-        }
-        return prev;
-      });
     } else {
       setWrongAnswers((prev) => [...prev, { question: currentQ, selected: answer }]);
     }
@@ -199,7 +149,6 @@ export default function Home() {
     const nextIndex = currentIndex + 1;
     if (nextIndex < currentQuestions.length) {
       setCurrentIndex(nextIndex);
-      generateOptionsForQuestion(currentQuestions[nextIndex], vocabData);
       resetTimerAndQuestionState();
     } else {
       setGameState('END');
@@ -209,7 +158,7 @@ export default function Home() {
 
   const submitScoreToGoogleSheet = async () => {
     setIsSubmitting(true);
-    const progressPercentage = ((score / TOTAL_QUESTIONS_PER_ROUND) * 100).toFixed(0) + "%";
+    const progressPercentage = ((score / currentQuestions.length) * 100).toFixed(0) + "%";
 
     try {
       await fetch(GOOGLE_SHEET_WEBAPP_URL, {
@@ -221,6 +170,7 @@ export default function Home() {
         body: JSON.stringify({
           name: studentName,
           email: email, 
+          topic: selectedTopic,
           score: score,
           progress: progressPercentage
         }),
@@ -232,23 +182,21 @@ export default function Home() {
     }
   };
 
-  const isVocabLoading = vocabData.length === 0;
-  const overallPercentage = vocabData.length > 0 
-    ? ((masteredWords.length / vocabData.length) * 100).toFixed(1) 
-    : "0.0";
+  // ดึงรายการ Topic ทั้งหมดที่มีในระบบเพื่อมาสร้างปุ่มในหน้า Dashboard อัตโนมัติ
+  const availableTopics = Array.from(new Set(grammarData.map(q => q.grammar_topic)));
 
   return (
-    // ✨ ป้องกันการคลุมดำ (select-none)
     <div 
-      className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 font-sans text-gray-800 select-none"
-      onContextMenu={(e) => e.preventDefault()} // ✨ บล็อกการคลิกขวา
+      className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 font-sans text-gray-800 select-none"
+      onContextMenu={(e) => e.preventDefault()} 
     >
       <div className="w-full max-w-2xl bg-white shadow-xl rounded-2xl p-6 md:p-8 border border-gray-100">
         
-        {gameState === 'START' && !isLoggedIn && (
+        {/* 1. หน้าแรกล็อกอิน */}
+        {gameState === 'START' && (
           <form onSubmit={handleStudentLogin} className="text-center animate-fadeIn">
-            <h1 className="text-3xl font-extrabold text-blue-600 mb-2">Vocab Master 2.0</h1>
-            <p className="text-gray-500 mb-6 text-sm md:text-base">Please enter your information to access the dashboard</p>
+            <h1 className="text-3xl font-extrabold text-indigo-600 mb-2">Grammar Master</h1>
+            <p className="text-gray-500 mb-6 text-sm md:text-base">Advanced English Grammar & Syntax Analysis</p>
             
             <div className="text-left space-y-4 mb-6">
               <div>
@@ -258,7 +206,7 @@ export default function Home() {
                   placeholder="ตัวอย่าง: นายสมชาย รักเรียน เลขที่ 1"
                   value={studentName}
                   onChange={(e) => setStudentName(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
               </div>
@@ -270,7 +218,7 @@ export default function Home() {
                   placeholder="ตัวอย่าง: student.name@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
               </div>
@@ -278,112 +226,90 @@ export default function Home() {
 
             <button
               type="submit"
-              disabled={isVocabLoading || !studentName.trim() || !email.trim() || !email.includes('@')}
-              className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition duration-200 text-lg"
+              disabled={grammarData.length === 0 || !studentName.trim() || !email.trim() || !email.includes('@')}
+              className="w-full py-4 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition duration-200 text-lg"
             >
-              {isVocabLoading ? "⏳ Loading Vocabulary..." : "Login to Dashboard"}
+              {grammarData.length === 0 ? "⏳ Loading Grammar Database..." : "Login to Dashboard"}
             </button>
           </form>
         )}
 
-        {gameState === 'START' && isLoggedIn && (
+        {/* 2. หน้า Dashboard เลือกหมวดหมู่ไวยากรณ์ */}
+        {gameState === 'DASHBOARD' && (
           <div className="text-center animate-fadeIn">
-            <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold border border-blue-100">
-              🎓
+            <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold border border-indigo-100">
+              🎯
             </div>
-            <h1 className="text-2xl font-black text-gray-900 mb-1">Student Dashboard</h1>
-            <p className="text-gray-500 text-sm mb-5">Track your holistic language progress</p>
+            <h1 className="text-2xl font-black text-gray-900 mb-1">Select Topic</h1>
+            <p className="text-gray-500 text-sm mb-5">Choose a grammar topic to practice</p>
             
-            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5 text-left mb-6">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Holistic Vocab Mastery</span>
-                <span className="text-sm font-extrabold text-blue-600">{overallPercentage}%</span>
-              </div>
-              
-              <div className="w-full bg-gray-200 h-3 rounded-full mb-2 overflow-hidden border border-gray-300/30">
-                <div 
-                  className="bg-gradient-to-r from-blue-500 to-indigo-600 h-full transition-all duration-500 ease-out"
-                  style={{ width: `${overallPercentage}%` }}
-                ></div>
-              </div>
-              <div className="text-xs text-gray-500 font-medium">
-                You have mastered <span className="text-gray-800 font-bold">{masteredWords.length}</span> out of <span className="text-gray-800 font-bold">{vocabData.length}</span> words in total.
-              </div>
-            </div>
-
-            <div className="bg-blue-50/40 border border-blue-100 rounded-xl p-3 text-left mb-6 text-sm text-gray-700">
-              👤 <strong>Account:</strong> {studentName} ({email})
+            <div className="bg-indigo-50/40 border border-indigo-100 rounded-xl p-3 text-left mb-6 text-sm text-gray-700 flex justify-between items-center">
+              <span>👤 <strong>{studentName}</strong></span>
+              <button onClick={handleLogout} className="text-indigo-600 hover:underline text-xs font-bold">Switch Account</button>
             </div>
 
             <div className="space-y-3">
               <button
-                onClick={startNewQuizRound}
-                className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl shadow-md hover:bg-blue-700 transition duration-150 text-lg flex items-center justify-center gap-2"
+                onClick={() => startNewQuizRound('Mix')}
+                className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl shadow-md hover:opacity-90 transition duration-150 text-lg flex items-center justify-center gap-2"
               >
-                🚀 Start New Training Round
+                🌟 Mixed Topics (จำลองสอบจริง)
               </button>
               
-              <button
-                onClick={handleLogout}
-                className="w-full py-2.5 bg-white text-gray-500 font-medium rounded-xl hover:bg-gray-50 border border-gray-200 transition duration-150 text-sm"
-              >
-                🔄 Switch Account
-              </button>
+              <div className="pt-2 pb-1 border-b border-gray-100 text-left text-sm font-bold text-gray-400">TARGETED DRILLS</div>
+              
+              <div className="grid grid-cols-1 gap-2">
+                {availableTopics.map(topic => (
+                  <button
+                    key={topic}
+                    onClick={() => startNewQuizRound(topic)}
+                    className="w-full py-3 bg-white text-indigo-700 font-bold rounded-xl border border-indigo-200 hover:bg-indigo-50 transition duration-150 text-md text-left px-4 flex justify-between items-center"
+                  >
+                    <span>📘 {topic}</span>
+                    <span className="text-xs font-normal text-indigo-400">Drill</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
 
+        {/* 3. หน้าทำข้อสอบ */}
         {gameState === 'QUIZ' && currentQuestions.length > 0 && (
           <div className="animate-fadeIn">
             <div className="flex justify-between items-center mb-2 pb-2">
               <span className="text-sm font-bold px-3 py-1 bg-gray-100 rounded-full text-gray-600">
                 Question {currentIndex + 1} / {currentQuestions.length}
               </span>
-              <span className={`text-base font-extrabold px-4 py-1 rounded-full ${timeLeft <= 5 ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-blue-50 text-blue-600'}`}>
+              <span className={`text-base font-extrabold px-4 py-1 rounded-full ${timeLeft <= 5 ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-indigo-50 text-indigo-600'}`}>
                 ⏱️ {timeLeft} s
               </span>
             </div>
 
             <div className="w-full bg-gray-100 h-2.5 rounded-full mb-4 overflow-hidden border border-gray-200/50">
               <div 
-                className="bg-gradient-to-r from-blue-500 to-blue-600 h-full transition-all duration-300 ease-out"
+                className="bg-gradient-to-r from-indigo-500 to-purple-600 h-full transition-all duration-300 ease-out"
                 style={{ width: `${((currentIndex + 1) / currentQuestions.length) * 100}%` }}
               ></div>
             </div>
 
-            <div className="flex gap-2 mb-2">
-              <span className={`text-xs font-bold px-2 py-0.5 rounded ${
-                currentQuestions[currentIndex].level === 'C1' ? 'bg-purple-100 text-purple-700' :
-                currentQuestions[currentIndex].level === 'B2' ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'
-              }`}>
-                Level: {currentQuestions[currentIndex].level}
+            <div className="flex gap-2 mb-4">
+              <span className="text-xs font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 uppercase">
+                {currentQuestions[currentIndex].grammar_topic}
               </span>
-              
-              <span className="text-xs font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700 uppercase">
-                Type: {currentQuestions[currentIndex].questionType}
+              <span className="text-xs font-bold px-2 py-0.5 rounded bg-gray-100 text-gray-600">
+                {currentQuestions[currentIndex].exam_type} Style
               </span>
             </div>
 
-            <h2 className="text-xl md:text-2xl font-bold mb-2 text-gray-900 leading-snug">
-              {currentQuestions[currentIndex].questionType === 'SENTENCE' && (
-                currentQuestions[currentIndex].example_sentence
-              )}
-              {currentQuestions[currentIndex].questionType === 'SYNONYM' && (
-                <span>Which word is a <span className="text-blue-600 underline">SYNONYM</span> for: "{currentQuestions[currentIndex].synonym}"?</span>
-              )}
-              {currentQuestions[currentIndex].questionType === 'ANTONYM' && (
-                <span>Which word is an <span className="text-red-600 underline">ANTONYM</span> for: "{currentQuestions[currentIndex].antonym}"?</span>
-              )}
+            <h2 className="text-xl md:text-2xl font-bold mb-6 text-gray-900 leading-relaxed">
+              {currentQuestions[currentIndex].question}
             </h2>
-            
-            <p className="text-sm text-gray-500 italic mb-6">
-              Definition: {currentQuestions[currentIndex].eng_definition}
-            </p>
 
             <div className="grid grid-cols-1 gap-3">
-              {options.map((option, idx) => {
-                const isCorrectChoice = option === currentQuestions[currentIndex].word;
-                let btnStyle = "border-gray-200 hover:border-blue-500 hover:bg-blue-50 text-gray-800";
+              {currentQuestions[currentIndex].options.map((option, idx) => {
+                const isCorrectChoice = option === currentQuestions[currentIndex].correct_answer;
+                let btnStyle = "border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 text-gray-800";
 
                 if (isAnswered) {
                   if (isCorrectChoice) {
@@ -419,74 +345,75 @@ export default function Home() {
           </div>
         )}
 
+        {/* 4. หน้าสรุปคะแนน พร้อมเฉลยกลลวง (Trap Explanation) */}
         {gameState === 'END' && (
           <div className="text-center animate-fadeIn">
-            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-4xl">🎉</span>
             </div>
             <h2 className="text-2xl font-extrabold text-gray-900 mb-1">Round Completed!</h2>
-            <p className="text-gray-600 font-medium mb-4">{studentName}</p>
+            <p className="text-gray-600 font-medium mb-4">Topic: {selectedTopic}</p>
             
-            {/* ✨ แสดงจำนวนครั้งที่แอบออกนอกหน้าจอ (ถ้ามี) */}
             {cheatWarnings > 0 && (
               <div className="bg-red-100 text-red-700 p-3 rounded-lg text-sm font-bold mb-4 border border-red-200">
                 ⚠️ Warning: Switched tabs {cheatWarnings} times during quiz.
               </div>
             )}
             
-            <div className="bg-gray-50 rounded-2xl p-6 border mb-6">
-              <div className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-1">Your Round Score</div>
-              <div className="text-5xl font-black text-blue-600 mb-2">
+            <div className="bg-slate-50 rounded-2xl p-6 border mb-6">
+              <div className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-1">Your Score</div>
+              <div className="text-5xl font-black text-indigo-600 mb-2">
                 {score} <span className="text-2xl text-gray-400">/ {currentQuestions.length}</span>
-              </div>
-              <div className="text-sm text-gray-500">
-                Round Accuracy: {((score / currentQuestions.length) * 100).toFixed(0)}%
               </div>
             </div>
 
+            {/* ส่วนแสดงเฉลยข้อที่ผิด พร้อมคำอธิบายจุดหลอก! */}
             <div className="text-left border-t border-gray-200 pt-6 mb-6">
               <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                📝 Review Mistakes <span className="text-sm font-normal text-gray-500">(เฉลยข้อที่ผิด)</span>
+                📝 Analysis & Feedback <span className="text-sm font-normal text-gray-500">(วิเคราะห์ข้อที่พลาด)</span>
               </h3>
               
               {wrongAnswers.length > 0 ? (
                 <div className="space-y-4 max-h-80 overflow-y-auto pr-2 rounded-xl">
                   {wrongAnswers.map((item, idx) => (
                     <div key={idx} className="bg-red-50/50 border border-red-100 rounded-xl p-4">
-                      <div className="text-xs font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700 uppercase inline-block mb-2">
-                        {item.question.questionType}
+                      <div className="flex gap-2 mb-2">
+                        <span className="text-xs font-bold px-2 py-0.5 rounded bg-indigo-100 text-indigo-700 uppercase">
+                          {item.question.grammar_topic}
+                        </span>
                       </div>
-                      <h4 className="text-gray-900 font-bold mb-2 leading-snug">
-                        {item.question.questionType === 'SENTENCE' && item.question.example_sentence}
-                        {item.question.questionType === 'SYNONYM' && `Which word is a SYNONYM for: "${item.question.synonym}"?`}
-                        {item.question.questionType === 'ANTONYM' && `Which word is an ANTONYM for: "${item.question.antonym}"?`}
+                      <h4 className="text-gray-900 font-bold mb-3 leading-snug">
+                        {item.question.question}
                       </h4>
-                      <div className="text-sm space-y-1.5 mt-3">
-                        <p className="text-red-500 line-through">❌ Your Answer: {item.selected === "Time Out" ? "Time Out (หมดเวลา)" : item.selected}</p>
-                        <p className="text-green-600 font-bold">✅ Correct Answer: {item.question.word}</p>
-                        <p className="text-gray-600 text-xs mt-2 bg-white p-2 rounded border border-gray-100">
-                          <span className="font-semibold text-gray-700">Definition:</span> {item.question.eng_definition}
-                        </p>
+                      <div className="text-sm space-y-1.5">
+                        <p className="text-red-500 line-through">❌ You answered: {item.selected === "Time Out" ? "Time Out" : item.selected}</p>
+                        <p className="text-green-600 font-bold">✅ Correct Answer: {item.question.correct_answer}</p>
+                        
+                        {/* ไฮไลต์ฟีเจอร์: แสดงคำอธิบายกลลวงของข้อสอบ */}
+                        <div className="mt-3 bg-white p-3 rounded-lg border border-orange-200 shadow-sm">
+                          <p className="text-orange-700 text-xs font-bold uppercase mb-1">💡 Teacher's Note (จุดหลอก)</p>
+                          <p className="text-gray-700 text-sm leading-relaxed">{item.question.trap_explanation}</p>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className="bg-green-50 border border-green-100 rounded-xl p-4 text-green-700 font-bold text-center">
-                  🌟 Perfect Score! You made no mistakes.
+                  🌟 Flawless Mastery! You understood the traps perfectly.
                 </div>
               )}
             </div>
 
             {isSubmitting ? (
-              <p className="text-orange-600 font-semibold animate-pulse mb-6">⏳ Saving round score to cloud...</p>
+              <p className="text-orange-600 font-semibold animate-pulse mb-6">⏳ Saving score...</p>
             ) : (
-              <p className="text-green-600 font-semibold mb-6">✅ Score saved successfully.</p>
+              <p className="text-green-600 font-semibold mb-6">✅ Score saved.</p>
             )}
 
             <button
-              onClick={() => setGameState('START')}
-              className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition duration-150 text-lg shadow-md"
+              onClick={() => setGameState('DASHBOARD')}
+              className="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition duration-150 text-lg shadow-md"
             >
               Back to Dashboard ⬅️
             </button>
