@@ -47,7 +47,7 @@ export default function Home() {
   const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwMmvxMfZZkIFsgeNndqMr7AmQVNADqR0SjywuccdiINPWgK4HafiJZoqmKTssEsCTGuA/exec";
 
   // โลโก้โรงเรียนอนุกูลนารี
-  const SCHOOL_LOGO_URL = "https://files.oai.pulseservice.ai/m/660f5803-b0e2-4573-a55e-58133502919d";
+  const SCHOOL_LOGO_URL = "/logo.png";
 
   useEffect(() => {
     fetch('/vocab.json')
