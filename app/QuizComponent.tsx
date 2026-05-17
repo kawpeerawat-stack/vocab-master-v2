@@ -20,10 +20,10 @@ export default function QuizComponent({ student, onFinish }: { student: any, onF
   const [isAnswered, setIsAnswered] = useState(false);
   const [reviewData, setReviewData] = useState<any[]>([]);
   const [showSummary, setShowSummary] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(15);
+  const [timeLeft, setTimeLeft] = useState(30);
 
   const SET_SIZE = 10;
-  const TIME_LIMIT = 15;
+  const TIME_LIMIT = 30;
 
   const submitScore = async (score: number) => {
     try {
