@@ -37,11 +37,14 @@ export default function Home() {
   const TOTAL_QUESTIONS_PER_ROUND = 10; 
   
   // 🔗 ใส่ URL ของ Google Apps Script Web App ที่นี่
-  const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwMmvxMfZZkIFsgeNndqMr7AmQVNADqR0SjywuccdiINPWgK4HafiJZoqmKTssEsCTGuA/exec";
+  const GOOGLE_SHEET_WEBAPP_URL = "URL_GOOGLE_APPS_SCRIPT_ของคุณครู";
 
   useEffect(() => {
     fetch('/vocab.json')
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error("หาไฟล์ vocab.json ไม่เจอ");
+        return res.json();
+      })
       .then((data) => setVocabData(data))
       .catch((err) => console.error("Error loading vocab.json:", err));
   }, []);
@@ -59,7 +62,10 @@ export default function Home() {
   }, [timeLeft, gameState, isAnswered]);
 
   const startNewQuizRound = () => {
-    if (vocabData.length === 0) return;
+    if (vocabData.length === 0) {
+      alert("⚠️ ระบบยังโหลดคลังคำศัพท์ไม่สำเร็จ กรุณาตรวจสอบไฟล์ vocab.json ในโฟลเดอร์ public");
+      return;
+    }
 
     const b1Words = vocabData.filter(w => w.level === 'B1');
     const b2Words = vocabData.filter(w => w.level === 'B2');
@@ -139,13 +145,15 @@ export default function Home() {
           progress: progressPercentage
         }),
       });
-      console.log("Score and Progress sent successfully.");
     } catch (error) {
       console.error("Error submitting score:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // เช็คว่าระบบดึงคำศัพท์มาได้หรือยัง
+  const isVocabLoading = vocabData.length === 0;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 font-sans text-gray-800">
@@ -182,10 +190,10 @@ export default function Home() {
 
             <button
               onClick={startNewQuizRound}
-              disabled={!studentName.trim() || !email.trim() || !email.includes('@')}
+              disabled={isVocabLoading || !studentName.trim() || !email.trim() || !email.includes('@')}
               className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition duration-200 text-lg"
             >
-              เริ่มทำข้อสอบ
+              {isVocabLoading ? "⏳ กำลังโหลดคลังคำศัพท์..." : "เริ่มทำข้อสอบ"}
             </button>
           </div>
         )}
