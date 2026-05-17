@@ -32,20 +32,22 @@ export default function Home() {
   const [wrongAnswers, setWrongAnswers] = useState<{question: QuizQuestion, selected: string}[]>([]);
   
   const [score, setScore] = useState(0);
-  const QUIZ_TIME_LIMIT = 30; 
+  const QUIZ_TIME_LIMIT = 20; // ปรับเวลาเป็น 20 วินาทีตามที่อาจารย์ต้องการ
   const [timeLeft, setTimeLeft] = useState(QUIZ_TIME_LIMIT);
   
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // ✨ ตัวแปรเก็บจำนวนครั้งที่แอบออกนอกหน้าจอ
   const [cheatWarnings, setCheatWarnings] = useState(0);
 
   const TOTAL_QUESTIONS_PER_ROUND = 10; 
   
-  // 🔗 ใส่ URL ของ Google Apps Script Web App ที่นี่
+  // 🔗 ใส่ URL ของ Google Apps Script Web App ของอาจารย์ที่นี่
   const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwMmvxMfZZkIFsgeNndqMr7AmQVNADqR0SjywuccdiINPWgK4HafiJZoqmKTssEsCTGuA/exec";
+
+  // โลโก้โรงเรียนอนุกูลนารี
+  const SCHOOL_LOGO_URL = "https://files.oai.pulseservice.ai/m/660f5803-b0e2-4573-a55e-58133502919d";
 
   useEffect(() => {
     fetch('/vocab.json')
@@ -66,11 +68,10 @@ export default function Home() {
     }
   }, []);
 
-  // ✨ ระบบ Anti-Cheat: ตรวจจับการสลับแท็บ (Tab Switching)
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && gameState === 'QUIZ') {
-        alert("⚠️ คำเตือน! ตรวจพบการออกนอกหน้าจอข้อสอบ กรุณาอย่าสลับหน้าต่างขณะทำข้อสอบครับ");
+        alert("⚠️ Warning! ตรวจพบการออกนอกหน้าจอข้อสอบ กรุณาทำข้อสอบให้เสร็จก่อนสลับหน้าต่างครับ");
         setCheatWarnings(prev => prev + 1);
       }
     };
@@ -149,7 +150,7 @@ export default function Home() {
     setCurrentQuestions(formattedQuestions);
     setCurrentIndex(0);
     setScore(0);
-    setCheatWarnings(0); // รีเซ็ตการแจ้งเตือนเมื่อเริ่มใหม่
+    setCheatWarnings(0); 
     setWrongAnswers([]); 
     generateOptionsForQuestion(formattedQuestions[0], vocabData);
     resetTimerAndQuestionState();
@@ -215,9 +216,7 @@ export default function Home() {
       await fetch(GOOGLE_SHEET_WEBAPP_URL, {
         method: 'POST',
         mode: 'no-cors',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: studentName,
           email: email, 
@@ -238,39 +237,47 @@ export default function Home() {
     : "0.0";
 
   return (
-    // ✨ ป้องกันการคลุมดำ (select-none)
     <div 
-      className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 font-sans text-gray-800 select-none"
-      onContextMenu={(e) => e.preventDefault()} // ✨ บล็อกการคลิกขวา
+      className="min-h-screen bg-[#f8f9fa] flex flex-col items-center justify-center p-4 font-sans text-gray-800 select-none"
+      onContextMenu={(e) => e.preventDefault()} 
     >
-      <div className="w-full max-w-2xl bg-white shadow-xl rounded-2xl p-6 md:p-8 border border-gray-100">
+      <div className="w-full max-w-2xl bg-white shadow-2xl rounded-3xl p-6 md:p-10 border-t-[12px] border-[#003399] relative overflow-hidden">
         
+        {/* สีทองตัดขอบบนตามธีมโรงเรียน */}
+        <div className="absolute top-0 left-0 w-full h-2 bg-[#FFD700]"></div>
+
         {gameState === 'START' && !isLoggedIn && (
-          <form onSubmit={handleStudentLogin} className="text-center animate-fadeIn">
-            <h1 className="text-3xl font-extrabold text-blue-600 mb-2">Vocab Master 2.0</h1>
-            <p className="text-gray-500 mb-6 text-sm md:text-base">Please enter your information to access the dashboard</p>
+          <form onSubmit={handleStudentLogin} className="text-center animate-fadeIn mt-2">
+            <div className="flex flex-col items-center justify-center mb-8">
+              <img src={SCHOOL_LOGO_URL} alt="Anukoolnaree Logo" className="w-32 h-32 mb-4 object-contain" />
+              <h2 className="text-sm md:text-base font-bold text-[#003399] uppercase tracking-widest mb-1">Anukoolnaree School</h2>
+              <h1 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight">Vocabulary Essential</h1>
+              <div className="h-1 w-20 bg-[#FFD700] mt-2 rounded-full"></div>
+            </div>
             
-            <div className="text-left space-y-4 mb-6">
+            <p className="text-gray-500 mb-8 text-sm md:text-base italic">"Anukoolnaree students, let's master English for your future."</p>
+            
+            <div className="text-left space-y-5 mb-8">
               <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-1">ชื่อ - นามสกุล / เลขที่</label>
+                <label className="block text-sm font-bold text-[#003399] mb-2 uppercase tracking-wide">Full Name & Student ID</label>
                 <input
                   type="text"
-                  placeholder="ตัวอย่าง: นายสมชาย รักเรียน เลขที่ 1"
+                  placeholder="Example: Somchai Rakdee No.1 M.6/1"
                   value={studentName}
                   onChange={(e) => setStudentName(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-4 border-2 border-gray-100 rounded-2xl focus:outline-none focus:border-[#FFD700] focus:ring-2 focus:ring-[#FFD700]/20 bg-gray-50/50 transition-all font-medium"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-600 mb-1">ระบุ Gmail ของนักเรียน</label>
+                <label className="block text-sm font-bold text-[#003399] mb-2 uppercase tracking-wide">Email (Gmail Only)</label>
                 <input
                   type="email"
-                  placeholder="ตัวอย่าง: student.name@gmail.com"
+                  placeholder="Example: anukoolnaree.student@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-4 border-2 border-gray-100 rounded-2xl focus:outline-none focus:border-[#FFD700] focus:ring-2 focus:ring-[#FFD700]/20 bg-gray-50/50 transition-all font-medium"
                   required
                 />
               </div>
@@ -279,55 +286,62 @@ export default function Home() {
             <button
               type="submit"
               disabled={isVocabLoading || !studentName.trim() || !email.trim() || !email.includes('@')}
-              className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition duration-200 text-lg"
+              className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-xl hover:bg-[#002266] disabled:bg-gray-300 disabled:text-gray-500 transition-all duration-300 text-xl uppercase tracking-widest"
             >
-              {isVocabLoading ? "⏳ Loading Vocabulary..." : "Login to Dashboard"}
+              {isVocabLoading ? "⏳ Loading..." : "Enter Dashboard"}
             </button>
           </form>
         )}
 
         {gameState === 'START' && isLoggedIn && (
-          <div className="text-center animate-fadeIn">
-            <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold border border-blue-100">
-              🎓
+          <div className="text-center animate-fadeIn mt-2">
+            <div className="flex flex-col items-center justify-center mb-6">
+              <img src={SCHOOL_LOGO_URL} alt="Anukoolnaree Logo" className="w-20 h-20 mb-3 object-contain" />
+              <h1 className="text-2xl font-black text-gray-900 mb-1">Grade 12 Mastery Hub</h1>
+              <p className="text-[#003399] font-bold text-sm tracking-widest uppercase">Anukoolnaree Vocabulary Essential</p>
             </div>
-            <h1 className="text-2xl font-black text-gray-900 mb-1">Student Dashboard</h1>
-            <p className="text-gray-500 text-sm mb-5">Track your holistic language progress</p>
             
-            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5 text-left mb-6">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Holistic Vocab Mastery</span>
-                <span className="text-sm font-extrabold text-blue-600">{overallPercentage}%</span>
+            <div className="bg-[#003399]/5 border-2 border-[#003399]/10 rounded-3xl p-6 text-left mb-6 shadow-sm">
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-xs font-black text-[#003399] uppercase tracking-wider">Overall Lexical Progress</span>
+                <span className="text-sm font-black text-[#003399] bg-[#FFD700] px-3 py-1 rounded-full shadow-sm">{overallPercentage}%</span>
               </div>
               
-              <div className="w-full bg-gray-200 h-3 rounded-full mb-2 overflow-hidden border border-gray-300/30">
+              <div className="w-full bg-white h-4 rounded-full mb-3 overflow-hidden border border-[#003399]/10">
                 <div 
-                  className="bg-gradient-to-r from-blue-500 to-indigo-600 h-full transition-all duration-500 ease-out"
+                  className="bg-gradient-to-r from-[#003399] to-[#0055ff] h-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(0,51,153,0.3)]"
                   style={{ width: `${overallPercentage}%` }}
                 ></div>
               </div>
-              <div className="text-xs text-gray-500 font-medium">
-                You have mastered <span className="text-gray-800 font-bold">{masteredWords.length}</span> out of <span className="text-gray-800 font-bold">{vocabData.length}</span> words in total.
+              <div className="text-xs text-gray-600 font-bold flex justify-between">
+                <span>Mastered: <span className="text-[#003399]">{masteredWords.length}</span></span>
+                <span>Total: <span className="text-[#003399]">{vocabData.length} Words</span></span>
               </div>
             </div>
 
-            <div className="bg-blue-50/40 border border-blue-100 rounded-xl p-3 text-left mb-6 text-sm text-gray-700">
-              👤 <strong>Account:</strong> {studentName} ({email})
+            <div className="bg-white border-2 border-gray-100 rounded-2xl p-4 text-left mb-8 flex items-center gap-4 shadow-sm">
+              <div className="w-12 h-12 bg-[#003399] text-[#FFD700] rounded-full flex items-center justify-center text-xl font-black">
+                {studentName.charAt(0)}
+              </div>
+              <div>
+                <div className="text-sm font-black text-gray-800">{studentName}</div>
+                <div className="text-xs text-blue-600 font-bold">{email}</div>
+              </div>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               <button
                 onClick={startNewQuizRound}
-                className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl shadow-md hover:bg-blue-700 transition duration-150 text-lg flex items-center justify-center gap-2"
+                className="w-full py-5 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 text-xl uppercase tracking-widest flex items-center justify-center gap-3"
               >
-                🚀 Start New Training Round
+                🚀 Start Training Round
               </button>
               
               <button
                 onClick={handleLogout}
-                className="w-full py-2.5 bg-white text-gray-500 font-medium rounded-xl hover:bg-gray-50 border border-gray-200 transition duration-150 text-sm"
+                className="w-full py-3 bg-white text-gray-400 font-bold rounded-xl hover:text-[#003399] transition-all duration-150 text-sm uppercase"
               >
-                🔄 Switch Account
+                🔄 Switch Student Account
               </button>
             </div>
           </div>
@@ -335,63 +349,64 @@ export default function Home() {
 
         {gameState === 'QUIZ' && currentQuestions.length > 0 && (
           <div className="animate-fadeIn">
-            <div className="flex justify-between items-center mb-2 pb-2">
-              <span className="text-sm font-bold px-3 py-1 bg-gray-100 rounded-full text-gray-600">
-                Question {currentIndex + 1} / {currentQuestions.length}
+            <div className="flex justify-between items-center mb-3 pb-3 border-b-2 border-gray-50">
+              <span className="text-sm font-black px-4 py-2 bg-[#003399] rounded-xl text-[#FFD700] shadow-sm">
+                Q {currentIndex + 1} / {currentQuestions.length}
               </span>
-              <span className={`text-base font-extrabold px-4 py-1 rounded-full ${timeLeft <= 5 ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-blue-50 text-blue-600'}`}>
+              <span className={`text-base font-black px-5 py-2 rounded-xl border-2 ${timeLeft <= 5 ? 'bg-red-50 text-red-600 border-red-200 animate-pulse' : 'bg-blue-50 text-[#003399] border-[#003399]/20'}`}>
                 ⏱️ {timeLeft} s
               </span>
             </div>
 
-            <div className="w-full bg-gray-100 h-2.5 rounded-full mb-4 overflow-hidden border border-gray-200/50">
+            <div className="w-full bg-gray-100 h-2.5 rounded-full mb-6 overflow-hidden">
               <div 
-                className="bg-gradient-to-r from-blue-500 to-blue-600 h-full transition-all duration-300 ease-out"
+                className="bg-[#003399] h-full transition-all duration-300 ease-out"
                 style={{ width: `${((currentIndex + 1) / currentQuestions.length) * 100}%` }}
               ></div>
             </div>
 
-            <div className="flex gap-2 mb-2">
-              <span className={`text-xs font-bold px-2 py-0.5 rounded ${
-                currentQuestions[currentIndex].level === 'C1' ? 'bg-purple-100 text-purple-700' :
-                currentQuestions[currentIndex].level === 'B2' ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'
+            <div className="flex gap-2 mb-4">
+              <span className={`text-[10px] font-black px-3 py-1 rounded-lg shadow-sm border ${
+                currentQuestions[currentIndex].level === 'C1' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                currentQuestions[currentIndex].level === 'B2' ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-green-50 text-green-700 border-green-200'
               }`}>
-                Level: {currentQuestions[currentIndex].level}
+                LEVEL: {currentQuestions[currentIndex].level}
               </span>
-              
-              <span className="text-xs font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700 uppercase">
-                Type: {currentQuestions[currentIndex].questionType}
+              <span className="text-[10px] font-black px-3 py-1 rounded-lg bg-[#FFD700]/20 text-[#003399] border border-[#FFD700]/30 uppercase shadow-sm">
+                TYPE: {currentQuestions[currentIndex].questionType}
               </span>
             </div>
 
-            <h2 className="text-xl md:text-2xl font-bold mb-2 text-gray-900 leading-snug">
-              {currentQuestions[currentIndex].questionType === 'SENTENCE' && (
-                currentQuestions[currentIndex].example_sentence
-              )}
-              {currentQuestions[currentIndex].questionType === 'SYNONYM' && (
-                <span>Which word is a <span className="text-blue-600 underline">SYNONYM</span> for: "{currentQuestions[currentIndex].synonym}"?</span>
-              )}
-              {currentQuestions[currentIndex].questionType === 'ANTONYM' && (
-                <span>Which word is an <span className="text-red-600 underline">ANTONYM</span> for: "{currentQuestions[currentIndex].antonym}"?</span>
-              )}
-            </h2>
-            
-            <p className="text-sm text-gray-500 italic mb-6">
-              Definition: {currentQuestions[currentIndex].eng_definition}
-            </p>
+            <div className="bg-[#fcfcfc] rounded-3xl p-6 border-2 border-gray-50 mb-6 shadow-sm min-h-[140px] flex flex-col justify-center">
+              <h2 className="text-xl md:text-2xl font-black mb-4 text-gray-900 leading-relaxed text-center">
+                {currentQuestions[currentIndex].questionType === 'SENTENCE' && (
+                  currentQuestions[currentIndex].example_sentence
+                )}
+                {currentQuestions[currentIndex].questionType === 'SYNONYM' && (
+                  <span>Select the <span className="text-[#003399] underline decoration-[#FFD700] decoration-4">SYNONYM</span> for: <br/>"{currentQuestions[currentIndex].synonym}"</span>
+                )}
+                {currentQuestions[currentIndex].questionType === 'ANTONYM' && (
+                  <span>Select the <span className="text-red-600 underline decoration-[#FFD700] decoration-4">ANTONYM</span> for: <br/>"{currentQuestions[currentIndex].antonym}"</span>
+                )}
+              </h2>
+              <div className="h-0.5 w-12 bg-[#FFD700] mx-auto mb-3"></div>
+              <p className="text-xs text-gray-400 italic text-center font-medium">
+                {currentQuestions[currentIndex].eng_definition}
+              </p>
+            </div>
 
             <div className="grid grid-cols-1 gap-3">
               {options.map((option, idx) => {
                 const isCorrectChoice = option === currentQuestions[currentIndex].word;
-                let btnStyle = "border-gray-200 hover:border-blue-500 hover:bg-blue-50 text-gray-800";
+                let btnStyle = "border-gray-100 hover:border-[#003399] hover:bg-[#003399]/5 text-gray-800 bg-white font-bold shadow-sm";
 
                 if (isAnswered) {
                   if (isCorrectChoice) {
-                    btnStyle = "bg-green-500 text-white border-green-500 font-bold";
+                    btnStyle = "bg-green-600 text-white border-green-600 font-black shadow-lg scale-[1.02]";
                   } else if (selectedAnswer === option) {
-                    btnStyle = "bg-red-500 text-white border-red-500";
+                    btnStyle = "bg-red-600 text-white border-red-600 shadow-lg opacity-90";
                   } else {
-                    btnStyle = "bg-gray-50 text-gray-400 border-gray-100 cursor-not-allowed";
+                    btnStyle = "bg-gray-50 text-gray-300 border-gray-100 opacity-50 cursor-not-allowed";
                   }
                 }
 
@@ -400,9 +415,10 @@ export default function Home() {
                     key={idx}
                     onClick={() => handleAnswerSelection(option)}
                     disabled={isAnswered}
-                    className={`w-full p-4 border rounded-xl text-left text-base md:text-lg transition-all duration-150 flex items-center justify-between ${btnStyle}`}
+                    className={`w-full p-4 border-2 rounded-2xl text-left text-base md:text-lg transition-all duration-200 flex items-center justify-between ${btnStyle}`}
                   >
-                    <span className="font-medium">{option}</span>
+                    <span>{option}</span>
+                    {isAnswered && isCorrectChoice && <span className="text-[#FFD700]">✓</span>}
                   </button>
                 );
               })}
@@ -411,9 +427,9 @@ export default function Home() {
             {isAnswered && (
               <button
                 onClick={handleNextQuestion}
-                className="w-full mt-6 py-3 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition duration-150 text-center text-lg"
+                className="w-full mt-8 py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl hover:bg-[#002266] transition-all duration-150 text-center text-lg shadow-xl uppercase tracking-widest"
               >
-                {currentIndex + 1 === currentQuestions.length ? "View Summary" : "Next Question ➡️"}
+                {currentIndex + 1 === currentQuestions.length ? "Finish & Review" : "Next Question ➡️"}
               </button>
             )}
           </div>
@@ -421,72 +437,74 @@ export default function Home() {
 
         {gameState === 'END' && (
           <div className="text-center animate-fadeIn">
-            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-4xl">🎉</span>
+            <div className="w-24 h-24 bg-[#FFD700]/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <img src={SCHOOL_LOGO_URL} alt="Logo" className="w-16 h-16 object-contain" />
             </div>
-            <h2 className="text-2xl font-extrabold text-gray-900 mb-1">Round Completed!</h2>
-            <p className="text-gray-600 font-medium mb-4">{studentName}</p>
+            <h2 className="text-3xl font-black text-gray-900 mb-2">Round Finished!</h2>
+            <p className="text-[#003399] font-black mb-6 bg-[#003399]/5 py-2 px-6 rounded-full inline-block">{studentName}</p>
             
-            {/* ✨ แสดงจำนวนครั้งที่แอบออกนอกหน้าจอ (ถ้ามี) */}
             {cheatWarnings > 0 && (
-              <div className="bg-red-100 text-red-700 p-3 rounded-lg text-sm font-bold mb-4 border border-red-200">
-                ⚠️ Warning: Switched tabs {cheatWarnings} times during quiz.
+              <div className="bg-red-50 text-red-700 p-4 rounded-2xl text-sm font-black mb-6 border-2 border-red-100 animate-bounce">
+                ⚠️ SECURITY ALERT: Switched tabs {cheatWarnings} times.
               </div>
             )}
             
-            <div className="bg-gray-50 rounded-2xl p-6 border mb-6">
-              <div className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-1">Your Round Score</div>
-              <div className="text-5xl font-black text-blue-600 mb-2">
-                {score} <span className="text-2xl text-gray-400">/ {currentQuestions.length}</span>
+            <div className="bg-[#003399] rounded-[2.5rem] p-8 mb-8 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
+              <div className="text-xs font-black text-[#FFD700]/80 uppercase tracking-[0.3em] mb-2">Final Score</div>
+              <div className="text-7xl font-black text-white mb-2 drop-shadow-lg">
+                {score}<span className="text-2xl text-[#FFD700]/60">/10</span>
               </div>
-              <div className="text-sm text-gray-500">
-                Round Accuracy: {((score / currentQuestions.length) * 100).toFixed(0)}%
+              <div className="text-sm text-[#FFD700] font-black bg-white/10 py-2 px-6 rounded-full inline-block backdrop-blur-sm">
+                ACCURACY: {((score / 10) * 100).toFixed(0)}%
               </div>
             </div>
 
-            <div className="text-left border-t border-gray-200 pt-6 mb-6">
-              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                📝 Review Mistakes <span className="text-sm font-normal text-gray-500">(เฉลยข้อที่ผิด)</span>
+            <div className="text-left border-t-4 border-double border-gray-100 pt-8 mb-8">
+              <h3 className="text-xl font-black text-gray-800 mb-5 flex items-center gap-3">
+                <span className="bg-[#FFD700] text-[#003399] p-2 rounded-xl text-lg">📝</span> MISTAKE ANALYSIS
               </h3>
               
               {wrongAnswers.length > 0 ? (
-                <div className="space-y-4 max-h-80 overflow-y-auto pr-2 rounded-xl">
+                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                   {wrongAnswers.map((item, idx) => (
-                    <div key={idx} className="bg-red-50/50 border border-red-100 rounded-xl p-4">
-                      <div className="text-xs font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700 uppercase inline-block mb-2">
+                    <div key={idx} className="bg-white border-2 border-red-50 rounded-3xl p-5 shadow-sm">
+                      <div className="text-[10px] font-black px-3 py-1 rounded bg-red-50 text-red-600 uppercase inline-block mb-3 tracking-widest">
                         {item.question.questionType}
                       </div>
-                      <h4 className="text-gray-900 font-bold mb-2 leading-snug">
+                      <h4 className="text-gray-900 font-bold mb-3 leading-snug">
                         {item.question.questionType === 'SENTENCE' && item.question.example_sentence}
-                        {item.question.questionType === 'SYNONYM' && `Which word is a SYNONYM for: "${item.question.synonym}"?`}
-                        {item.question.questionType === 'ANTONYM' && `Which word is an ANTONYM for: "${item.question.antonym}"?`}
+                        {item.question.questionType === 'SYNONYM' && `Synonym for: "${item.question.synonym}"`}
+                        {item.question.questionType === 'ANTONYM' && `Antonym for: "${item.question.antonym}"`}
                       </h4>
-                      <div className="text-sm space-y-1.5 mt-3">
-                        <p className="text-red-500 line-through">❌ Your Answer: {item.selected === "Time Out" ? "Time Out (หมดเวลา)" : item.selected}</p>
-                        <p className="text-green-600 font-bold">✅ Correct Answer: {item.question.word}</p>
-                        <p className="text-gray-600 text-xs mt-2 bg-white p-2 rounded border border-gray-100">
-                          <span className="font-semibold text-gray-700">Definition:</span> {item.question.eng_definition}
-                        </p>
+                      <div className="text-sm space-y-2 mt-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                        <p className="text-red-500 font-bold">❌ Your Pick: <span className="line-through">{item.selected === "Time Out" ? "Time Out" : item.selected}</span></p>
+                        <p className="text-green-600 font-black">✅ Correct: {item.question.word}</p>
+                        <div className="pt-2 mt-2 border-t border-gray-200">
+                          <p className="text-gray-500 text-[11px] leading-relaxed">
+                            <span className="font-bold text-gray-700">MEANING:</span> {item.question.thai_meaning}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="bg-green-50 border border-green-100 rounded-xl p-4 text-green-700 font-bold text-center">
-                  🌟 Perfect Score! You made no mistakes.
+                <div className="bg-green-50 border-2 border-green-200 rounded-3xl p-8 text-green-700 font-black text-center shadow-sm">
+                  🌟 AMAZING! PERFECT SCORE!<br/>ANUKOOLNAREE PRIDE!
                 </div>
               )}
             </div>
 
             {isSubmitting ? (
-              <p className="text-orange-600 font-semibold animate-pulse mb-6">⏳ Saving round score to cloud...</p>
+              <p className="text-[#003399] font-black animate-pulse mb-6 bg-blue-50 py-3 rounded-2xl">⏳ SYNCING DATA TO CLOUD...</p>
             ) : (
-              <p className="text-green-600 font-semibold mb-6">✅ Score saved successfully.</p>
+              <p className="text-green-600 font-black mb-6 bg-green-50 py-3 rounded-2xl">✅ DATA SECURED SUCCESSFULLY</p>
             )}
 
             <button
               onClick={() => setGameState('START')}
-              className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition duration-150 text-lg shadow-md"
+              className="w-full py-5 bg-[#FFD700] text-[#003399] font-black rounded-2xl hover:bg-[#e6c200] transition-all duration-300 text-xl shadow-xl uppercase tracking-widest"
             >
               Back to Dashboard ⬅️
             </button>
@@ -494,6 +512,7 @@ export default function Home() {
         )}
 
       </div>
+      <p className="mt-8 text-[10px] text-gray-400 font-bold tracking-[0.3em] uppercase">© Anukoolnaree School | Vocabulary Essential M.6</p>
     </div>
   );
 }
