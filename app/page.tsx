@@ -29,6 +29,9 @@ export default function Home() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [options, setOptions] = useState<string[]>([]);
   
+  // ✨ ระบบเก็บข้อมูลข้อที่ตอบผิดเพื่อนำไปแสดงเฉลย
+  const [wrongAnswers, setWrongAnswers] = useState<{question: QuizQuestion, selected: string}[]>([]);
+  
   const [score, setScore] = useState(0);
   const QUIZ_TIME_LIMIT = 30; 
   const [timeLeft, setTimeLeft] = useState(QUIZ_TIME_LIMIT);
@@ -40,7 +43,7 @@ export default function Home() {
   const TOTAL_QUESTIONS_PER_ROUND = 10; 
   
   // 🔗 ใส่ URL ของ Google Apps Script Web App ที่นี่
-  const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwMmvxMfZZkIFsgeNndqMr7AmQVNADqR0SjywuccdiINPWgK4HafiJZoqmKTssEsCTGuA/exec";
+  const GOOGLE_SHEET_WEBAPP_URL = "URL_GOOGLE_APPS_SCRIPT_ของคุณครู";
 
   useEffect(() => {
     fetch('/vocab.json')
@@ -64,7 +67,8 @@ export default function Home() {
   useEffect(() => {
     if (gameState !== 'QUIZ' || isAnswered) return;
     if (timeLeft === 0) {
-      handleAnswerSelection(""); 
+      // หากปล่อยให้เวลาหมด จะถือว่าตอบผิดและบันทึกข้อความ "Time Out"
+      handleAnswerSelection("Time Out"); 
       return;
     }
     const timer = setInterval(() => {
@@ -93,10 +97,7 @@ export default function Home() {
       return;
     }
 
-    // ✨ ฟีเจอร์ใหม่: คัดกรองคำศัพท์ที่เด็กตอบถูกไปแล้วออกจากการสุ่มครั้งนี้
     const unmasteredWords = vocabData.filter(w => !masteredWords.includes(w.word));
-    
-    // (เผื่อกรณีเด็กเก่งจัด ตอบถูกครบ 1,000 คำแล้ว ระบบจะดึงคำทั้งหมดมาสุ่มใหม่เพื่อทบทวน)
     const poolToUse = unmasteredWords.length >= 10 ? unmasteredWords : vocabData;
 
     const b1Words = poolToUse.filter(w => w.level === 'B1');
@@ -114,7 +115,6 @@ export default function Home() {
       ...shuffleAndPick(c1Words.length > 0 ? c1Words : poolToUse, 2)
     ];
 
-    // หากหมวดหมู่อื่นๆ หมดแล้ว จะสุ่มคำศัพท์ที่เหลือมาเติมให้ครบ 10 ข้อพอดี
     if (selectedRoundWords.length < 10) {
        const pickedWords = selectedRoundWords.map(w => w.word);
        const leftovers = poolToUse.filter(w => !pickedWords.includes(w.word));
@@ -133,7 +133,7 @@ export default function Home() {
     setCurrentQuestions(formattedQuestions);
     setCurrentIndex(0);
     setScore(0);
-    // ✨ ชอยส์ลวง ยังคงดึงมาจากศัพท์ทั้งคลัง 1,040 คำ เพื่อความเนียนสมจริง
+    setWrongAnswers([]); // ล้างข้อมูลเฉลยเก่าเมื่อเริ่มรอบใหม่
     generateOptionsForQuestion(formattedQuestions[0], vocabData);
     resetTimerAndQuestionState();
     setGameState('QUIZ');
@@ -160,11 +160,11 @@ export default function Home() {
     setSelectedAnswer(answer);
     setIsAnswered(true);
 
-    const correctWord = currentQuestions[currentIndex].word;
+    const currentQ = currentQuestions[currentIndex];
+    const correctWord = currentQ.word;
+    
     if (answer === correctWord) {
       setScore((prev) => prev + 1);
-      
-      // ✨ หากตอบถูก จะบันทึกคำศัพท์นั้นลงในคลังสมอง (จะไม่ออกซ้ำในรอบถัดๆ ไป)
       setMasteredWords((prev) => {
         if (!prev.includes(correctWord)) {
           const updated = [...prev, correctWord];
@@ -173,6 +173,9 @@ export default function Home() {
         }
         return prev;
       });
+    } else {
+      // ✨ หากตอบผิด หรือปล่อยหมดเวลา ให้เก็บโจทย์ข้อนี้และคำตอบที่เลือกลงในคลังเฉลย
+      setWrongAnswers((prev) => [...prev, { question: currentQ, selected: answer }]);
     }
   };
 
@@ -220,7 +223,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 font-sans text-gray-800">
-      <div className="w-full max-w-xl bg-white shadow-xl rounded-2xl p-6 md:p-8 border border-gray-100">
+      <div className="w-full max-w-2xl bg-white shadow-xl rounded-2xl p-6 md:p-8 border border-gray-100">
         
         {gameState === 'START' && !isLoggedIn && (
           <form onSubmit={handleStudentLogin} className="text-center animate-fadeIn">
@@ -396,6 +399,7 @@ export default function Home() {
           </div>
         )}
 
+        {/* 4. หน้าสรุปคะแนน พร้อมเฉลยข้อที่ผิด */}
         {gameState === 'END' && (
           <div className="text-center animate-fadeIn">
             <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -412,6 +416,41 @@ export default function Home() {
               <div className="text-sm text-gray-500">
                 Round Accuracy: {((score / currentQuestions.length) * 100).toFixed(0)}%
               </div>
+            </div>
+
+            {/* ✨ ส่วนแสดงเฉลยข้อที่ผิด (Review Mistakes) */}
+            <div className="text-left border-t border-gray-200 pt-6 mb-6">
+              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                📝 Review Mistakes <span className="text-sm font-normal text-gray-500">(เฉลยข้อที่ผิด)</span>
+              </h3>
+              
+              {wrongAnswers.length > 0 ? (
+                <div className="space-y-4 max-h-80 overflow-y-auto pr-2 rounded-xl">
+                  {wrongAnswers.map((item, idx) => (
+                    <div key={idx} className="bg-red-50/50 border border-red-100 rounded-xl p-4">
+                      <div className="text-xs font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700 uppercase inline-block mb-2">
+                        {item.question.questionType}
+                      </div>
+                      <h4 className="text-gray-900 font-bold mb-2 leading-snug">
+                        {item.question.questionType === 'SENTENCE' && item.question.example_sentence}
+                        {item.question.questionType === 'SYNONYM' && `Which word is a SYNONYM for: "${item.question.synonym}"?`}
+                        {item.question.questionType === 'ANTONYM' && `Which word is an ANTONYM for: "${item.question.antonym}"?`}
+                      </h4>
+                      <div className="text-sm space-y-1.5 mt-3">
+                        <p className="text-red-500 line-through">❌ Your Answer: {item.selected === "Time Out" ? "Time Out (หมดเวลา)" : item.selected}</p>
+                        <p className="text-green-600 font-bold">✅ Correct Answer: {item.question.word}</p>
+                        <p className="text-gray-600 text-xs mt-2 bg-white p-2 rounded border border-gray-100">
+                          <span className="font-semibold text-gray-700">Definition:</span> {item.question.eng_definition}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-green-50 border border-green-100 rounded-xl p-4 text-green-700 font-bold text-center">
+                  🌟 Perfect Score! You made no mistakes. (เก่งมากครับ ไม่มีข้อผิดเลย!)
+                </div>
+              )}
             </div>
 
             {isSubmitting ? (
