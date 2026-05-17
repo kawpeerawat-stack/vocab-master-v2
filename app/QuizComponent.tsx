@@ -1,256 +1,318 @@
-'use client';
 import React, { useState, useEffect } from 'react';
-import vocabData from './vocab.json';
 
-interface VocabItem {
+type WordItem = {
   word: string;
   thai_meaning: string;
   eng_definition: string;
+  synonym: string;
+  antonym: string;
   example_sentence: string;
   level: string;
-  synonym?: string;
-  antonym?: string;
-}
+};
 
-export default function QuizComponent({ student, onFinish }: { student: any, onFinish: (s: number) => void }) {
-  const [questions, setQuestions] = useState<any[]>([]);
-  const [currentIdx, setCurrentIdx] = useState(0);
-  const [correctCount, setCorrectCount] = useState(0);
+export default function QuizComponent() {
+  // สเตตัสการควบคุมหน้าจอ: 'START' | 'QUIZ' | 'END'
+  const [gameState, setGameState] = useState<'START' | 'QUIZ' | 'END'>('START');
+  
+  // ข้อมูลฟอร์มลงทะเบียนนักเรียน
+  const [studentName, setStudentName] = useState('');
+  const [email, setEmail] = useState('');
+  
+  // ข้อมูลคลังคำศัพท์และคำถาม
+  const [vocabData, setVocabData] = useState<WordItem[]>([]);
+  const [currentQuestions, setCurrentQuestions] = useState<WordItem[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [options, setOptions] = useState<string[]>([]);
+  
+  // สเตตัสการเล่นและการจับเวลา
+  const [score, setScore] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(20); // ⏱️ ตั้งค่าเริ่มต้น 20 วินาทีตามต้องการ
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
-  const [reviewData, setReviewData] = useState<any[]>([]);
-  const [showSummary, setShowSummary] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(30);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const SET_SIZE = 10;
-  const TIME_LIMIT = 30;
+  const TIME_LIMIT = 20; // ⏱️ ขีดจำกัดเวลาสูงสุด 20 วินาที
+  const TOTAL_QUESTIONS_PER_ROUND = 10; // จำนวนข้อต่อรอบการเล่น
+  
+  // 🔗 ใส่ URL ของ Google Apps Script Web App ที่นี่
+  const GOOGLE_SHEET_WEBAPP_URL = "URL_GOOGLE_APPS_SCRIPT_ของคุณครู";
 
-  const submitScore = async (score: number) => {
-    try {
-      await fetch('/api/submit-score', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          firstName: student.firstName, // 🎯 เพิ่มตัวการที่หายไปตรงนี้แล้วครับ!
-          lastName: student.lastName,
-          room: student.room,
-          studentNo: student.studentNo,
-          score: score,
-        }),
-      });
-    } catch (error) {
-      console.error('Failed to submit score:', error);
+  // โหลดข้อมูลจากไฟล์ vocab.json เมื่อเปิดแอปพลิเคชัน
+  useEffect(() => {
+    fetch('/vocab.json')
+      .then((res) => res.json())
+      .then((data) => setVocabData(data))
+      .catch((err) => console.error("Error loading vocab.json:", err));
+  }, []);
+
+  // ตัวจับเวลาถอยหลัง 20 วินาที
+  useEffect(() => {
+    if (gameState !== 'QUIZ' || isAnswered) return;
+
+    if (timeLeft === 0) {
+      handleAnswerSelection(""); // หมดเวลาถือว่าตอบผิด
+      return;
     }
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timeLeft, gameState, isAnswered]);
+
+  // ฟังก์ชันสุ่มข้อสอบแบบไต่ระดับ (B1 -> B2 -> C1)
+  const startNewQuizRound = () => {
+    if (vocabData.length === 0) return;
+
+    // แยกคลังศัพท์ตามระดับความยาก
+    const b1Words = vocabData.filter(w => w.level === 'B1');
+    const b2Words = vocabData.filter(w => w.level === 'B2');
+    const c1Words = vocabData.filter(w => w.level === 'C1');
+
+    // ฟังก์ชันช่วยสุ่มดึงคำศัพท์ตามจำนวนที่ต้องการ
+    const shuffleAndPick = (array: WordItem[], count: number) => {
+      const shuffled = [...array].sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, count);
+    };
+
+    // จัดเซ็ต 10 ข้อ: ข้อ 1-4 (B1), ข้อ 5-8 (B2), ข้อ 9-10 (C1)
+    const selectedRoundWords = [
+      ...shuffleAndPick(b1Words.length > 0 ? b1Words : vocabData, 4),
+      ...shuffleAndPick(b2Words.length > 0 ? b2Words : vocabData, 4),
+      ...shuffleAndPick(c1Words.length > 0 ? c1Words : vocabData, 2)
+    ];
+
+    setCurrentQuestions(selectedRoundWords);
+    setCurrentIndex(0);
+    setScore(0);
+    generateOptionsForQuestion(selectedRoundWords[0], vocabData);
+    resetTimerAndQuestionState();
+    setGameState('QUIZ');
   };
 
-  const generateNewSet = () => {
-    const all = vocabData as VocabItem[];
-    const wrongQueue = JSON.parse(localStorage.getItem('wrongWordsQueue') || '[]');
-    const wrongItems = all.filter(v => wrongQueue.includes(v.word));
-    
-    // 1. ดึงคำที่เคยตอบผิดมาทวน (ลดเหลือ 3 คำ เพื่อไม่ให้เด็กรู้สึกว่าโดนซ้ำเติมมากไป)
-    const pickedWrong = wrongItems.sort(() => 0.5 - Math.random()).slice(0, 3);
-    const remainingCount = SET_SIZE - pickedWrong.length;
-    
-    const unusedWords = all.filter(v => !wrongQueue.includes(v.word));
-    
-    // 2. แยกหมวดหมู่คำศัพท์ตามระดับความยาก
-    const b1 = unusedWords.filter(v => v.level === 'B1').sort(() => 0.5 - Math.random());
-    const b2 = unusedWords.filter(v => (v.level === 'B2' || !v.level)).sort(() => 0.5 - Math.random()); // ถ้าไม่มีเลเวลระบุ จะตีเป็น B2 (กลางๆ)
-    const c1 = unusedWords.filter(v => v.level === 'C1').sort(() => 0.5 - Math.random());
-    
-    // 3. ปรับสัดส่วนใหม่ (เน้น B1 ลด C1)
-    let newWords: VocabItem[] = [];
-    newWords.push(...b1.slice(0, 4)); // เอา B1 มา 4 คำ (สร้างฐานความมั่นใจ)
-    newWords.push(...b2.slice(0, 2)); // เอา B2 มา 2 คำ
-    newWords.push(...c1.slice(0, 1)); // เอา C1 มาแค่ 1 คำ (เป็นข้อบอสท้ายด่าน)
-    
-    // ถ้าคำศัพท์ในคลังของกลุ่มไหนถูกใช้จนหมด ให้เอาคำที่เหลือมาเติมให้เต็มโควต้า
-    const restWords = [...b1.slice(4), ...b2.slice(2), ...c1.slice(1)].sort(() => 0.5 - Math.random());
-    if (newWords.length < remainingCount) {
-      newWords.push(...restWords.slice(0, remainingCount - newWords.length));
+  // สร้างชอยส์ตัวเลือกข้อสอบ (1 ข้อถูก + 3 ข้อลวงที่เป็นระดับเดียวกัน)
+  const generateOptionsForQuestion = (correctItem: WordItem, allItems: WordItem[]) => {
+    // พยายามหาตัวลวงที่เป็นคำศัพท์ในระดับเดียวกันก่อนเพื่อความเนียน
+    let wrongOptionsPool = allItems.filter(item => item.word !== correctItem.word && item.level === correctItem.level);
+    if (wrongOptionsPool.length < 3) {
+      wrongOptionsPool = allItems.filter(item => item.word !== correctItem.word);
     }
+
+    const shuffledWrong = wrongOptionsPool.sort(() => 0.5 - Math.random()).slice(0, 3);
+    const finalChoices = [correctItem.thai_meaning, ...shuffledWrong.map(item => item.thai_meaning)];
     
-    // 4. มัดรวมคำศัพท์ทั้งหมด (คำที่ผิดรอบเก่า + คำใหม่)
-    let selectedWords = [...pickedWrong, ...newWords.slice(0, remainingCount)];
-    
-    // 5. 🎯 ไฮไลท์: จัดเรียงข้อสอบจาก "ง่ายไปยาก" (B1 -> B2 -> C1)
-    const levelWeight: Record<string, number> = { 'A1': 1, 'A2': 2, 'B1': 3, 'B2': 4, 'C1': 5, 'C2': 6 };
-    selectedWords.sort((a, b) => {
-      const weightA = levelWeight[a.level] || 4; 
-      const weightB = levelWeight[b.level] || 4;
-      return weightA - weightB; // เรียงจากค่าน้อย (B1) ไปหามาก (C1)
-    });
-    
-    // 6. สุ่มรูปแบบคำถาม (ประเภท 1-6) เพื่อไม่ให้เด็กเดาทางได้
-    const set = selectedWords.map(q => formatQuestion(q, Math.floor(Math.random() * 6) + 1));
-    
-    setQuestions(set);
-    setCurrentIdx(0);
-    setCorrectCount(0);
-    setReviewData([]);
-    setShowSummary(false);
+    // สลับตำแหน่งสุ่มชอยส์ก้อนสุดท้าย
+    setOptions(finalChoices.sort(() => 0.5 - Math.random()));
+  };
+
+  const resetTimerAndQuestionState = () => {
     setTimeLeft(TIME_LIMIT);
     setSelectedAnswer(null);
     setIsAnswered(false);
   };
 
- function formatQuestion(item: VocabItem, type: number) {
-    let questionText = "";
-    let subText = "";
-    let correctAnswer = "";
-    let options: string[] = [];
-    const all = vocabData as VocabItem[];
-    
-    switch(type) {
-      case 1: 
-        questionText = `"${item.word}"`; subText = "Meaning?"; correctAnswer = item.thai_meaning;
-        options = [item.thai_meaning, ...all.filter(v => v.thai_meaning !== item.thai_meaning).sort(() => 0.5 - Math.random()).slice(0, 3).map(v => v.thai_meaning)]; 
-        break;
-      case 2: 
-        questionText = `"${item.thai_meaning}"`; subText = "English word?"; correctAnswer = item.word;
-        options = [item.word, ...all.filter(v => v.word !== item.word).sort(() => 0.5 - Math.random()).slice(0, 3).map(v => v.word)]; 
-        break;
-      case 3: 
-        questionText = `"${item.word}"`; subText = "Synonym?"; correctAnswer = item.synonym || item.word;
-        // 🎯 แก้ไข: ดึงกลุ่มคำ Synonym ของคำอื่นๆ มาเป็นตัวลวง เพื่อให้ความยาวเนียนกลมกลืนกัน
-        let falseSynonyms = all.filter(v => v.synonym && v.synonym !== correctAnswer).map(v => v.synonym as string);
-        if (falseSynonyms.length < 3) falseSynonyms = [...falseSynonyms, ...all.map(v => v.word)]; // เผื่อกรณีหาดึงไม่พอ
-        options = [correctAnswer, ...falseSynonyms.sort(() => 0.5 - Math.random()).slice(0, 3)]; 
-        break;
-      case 4: 
-        questionText = item.example_sentence.replace(item.word, "_______"); subText = "Fill in context"; correctAnswer = item.word;
-        options = [item.word, ...all.filter(v => v.word !== item.word).sort(() => 0.5 - Math.random()).slice(0, 3).map(v => v.word)]; 
-        break;
-      case 5: 
-        questionText = item.eng_definition; subText = "Identify word"; correctAnswer = item.word;
-        options = [item.word, ...all.filter(v => v.word !== item.word).sort(() => 0.5 - Math.random()).slice(0, 3).map(v => v.word)]; 
-        break;
-      case 6: 
-        if (item.antonym) { 
-          questionText = `"${item.word}"`; subText = "Antonym?"; correctAnswer = item.antonym;
-          // 🎯 แก้ไข: ดึงกลุ่มคำ Antonym ของคำอื่นๆ มาเป็นตัวลวง เดาจากความยาวไม่ได้แล้ว!
-          let falseAntonyms = all.filter(v => v.antonym && v.antonym !== correctAnswer).map(v => v.antonym as string);
-          if (falseAntonyms.length < 3) falseAntonyms = [...falseAntonyms, ...all.map(v => v.word)];
-          options = [correctAnswer, ...falseAntonyms.sort(() => 0.5 - Math.random()).slice(0, 3)]; 
-        } else { 
-          return formatQuestion(item, 1); 
-        } 
-        break;
-    }
-    
-    // สลับตำแหน่งตัวเลือกไม่ให้ข้อถูกอยู่ตำแหน่งเดิม
-    return { ...item, type, questionText, subText, correctAnswer, options: options.sort(() => 0.5 - Math.random()), isRepeat: false };
-  }
-
-  useEffect(() => { generateNewSet(); }, []);
-
-  useEffect(() => {
-    if (showSummary || isAnswered || questions.length === 0) return;
-    if (timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    } else { handleAnswer(null); }
-  }, [timeLeft, isAnswered, showSummary, questions]);
-
-  const handleAnswer = (ans: string | null) => {
+  // ตรวจสอบเมื่อกดเลือกคำตอบ
+  const handleAnswerSelection = (answer: string) => {
     if (isAnswered) return;
-    const q = questions[currentIdx];
-    const isCorrect = ans === q.correctAnswer;
-    setSelectedAnswer(ans);
+    setSelectedAnswer(answer);
     setIsAnswered(true);
 
-    const mastered = JSON.parse(localStorage.getItem('masteredWords') || '[]');
-    const wrongQueue = JSON.parse(localStorage.getItem('wrongWordsQueue') || '[]');
-
-    const thisAnswerCounts = isCorrect && !q.isRepeat && !wrongQueue.includes(q.word);
-    const finalScore = thisAnswerCounts ? correctCount + 1 : correctCount;
-
-    if (isCorrect) {
-      if (thisAnswerCounts) {
-        setCorrectCount(finalScore);
-        if (!mastered.includes(q.word)) {
-          mastered.push(q.word);
-          localStorage.setItem('masteredWords', JSON.stringify(mastered));
-        }
-      }
-      const updatedWrongQueue = wrongQueue.filter((w: string) => w !== q.word);
-      localStorage.setItem('wrongWordsQueue', JSON.stringify(updatedWrongQueue));
-    } else {
-      const updatedMastered = mastered.filter((m: string) => m !== q.word);
-      localStorage.setItem('masteredWords', JSON.stringify(updatedMastered));
-      if (!wrongQueue.includes(q.word)) {
-        wrongQueue.push(q.word);
-        localStorage.setItem('wrongWordsQueue', JSON.stringify(wrongQueue));
-      }
-      setQuestions(prev => [...prev, { ...q, isRepeat: true }]);
+    const currentCorrectAnswer = currentQuestions[currentIndex].thai_meaning;
+    if (answer === currentCorrectAnswer) {
+      setScore((prev) => prev + 1);
     }
-
-    setReviewData(prev => [...prev, { word: q.word, correct: q.correctAnswer, ans: ans || "TIMEOUT", isCorrect, def: q.eng_definition, ex: q.example_sentence }]);
-
-    setTimeout(() => {
-      if (currentIdx + 1 < questions.length) {
-        setCurrentIdx(currentIdx + 1);
-        setSelectedAnswer(null);
-        setIsAnswered(false);
-        setTimeLeft(TIME_LIMIT);
-      } else {
-        setShowSummary(true);
-        submitScore(finalScore);
-      }
-    }, 1200);
   };
 
-  if (showSummary) {
-    return (
-      <div className="max-w-2xl mx-auto bg-white p-8 rounded-[2.5rem] shadow-2xl border-t-8 border-blue-900">
-        <h2 className="text-2xl font-black text-center text-blue-900 mb-6 uppercase">Mastery Review</h2>
-        <div className="space-y-3 max-h-[50vh] overflow-y-auto px-2 mb-8">
-          {reviewData.map((item, i) => (
-            <div key={i} className={`p-4 rounded-xl border-2 ${item.isCorrect ? 'border-green-100 bg-green-50' : 'border-red-100 bg-red-50'}`}>
-              <div className="flex justify-between items-center">
-                <h4 className="font-bold text-gray-800">{item.word}</h4>
-                <span className={`text-[10px] font-bold ${item.isCorrect ? 'text-green-600' : 'text-red-600'}`}>{item.isCorrect ? 'PASSED' : 'RETRY ADDED'}</span>
-              </div>
-              <p className="text-xs text-gray-600 mt-1">Answer: {item.correct}</p>
-            </div>
-          ))}
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <button onClick={generateNewSet} className="bg-green-500 text-white font-bold py-4 rounded-2xl shadow-lg transition transform hover:scale-105">Next Set</button>
-          <button onClick={() => onFinish(correctCount)} className="bg-blue-900 text-white font-bold py-4 rounded-2xl">Dashboard</button>
-        </div>
-      </div>
-    );
-  }
+  // ไปยังข้อถัดไป หรือสรุปคะแนนเมื่อทำครบ
+  const handleNextQuestion = () => {
+    const nextIndex = currentIndex + 1;
+    if (nextIndex < currentQuestions.length) {
+      setCurrentIndex(nextIndex);
+      generateOptionsForQuestion(currentQuestions[nextIndex], vocabData);
+      resetTimerAndQuestionState();
+    } else {
+      setGameState('END');
+      submitScoreToGoogleSheet();
+    }
+  };
+
+  // 🚀 ฟังก์ชันยิงคะแนนและข้อมูลความก้าวหน้าผ่านระบบ Email เข้า Google Sheet
+  const submitScoreToGoogleSheet = async () => {
+    setIsSubmitting(true);
+    const progressPercentage = ((score / TOTAL_QUESTIONS_PER_ROUND) * 100).toFixed(0) + "%";
+
+    try {
+      await fetch(GOOGLE_SHEET_WEBAPP_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: studentName,
+          email: email, // 📧 ส่งอีเมลตามที่กรอกลงไป
+          score: score,
+          progress: progressPercentage
+        }),
+      });
+      console.log("Score and Progress sent successfully via Email identification.");
+    } catch (error) {
+      console.error("Error submitting score to Google Sheet:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <div className="max-w-xl mx-auto bg-white p-8 rounded-[2.5rem] shadow-xl border border-blue-50 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-2 bg-gray-100">
-        <div className={`h-full transition-all duration-1000 linear ${timeLeft <= 5 ? 'bg-red-500' : 'bg-blue-600'}`} style={{ width: `${(timeLeft / TIME_LIMIT) * 100}%` }}></div>
-      </div>
-      <div className="flex justify-between items-center mb-8 mt-4 font-bold text-[10px] text-blue-900 uppercase">
-        <span>Cleared: {correctCount}/10</span>
-        <span>Time: {timeLeft}s</span>
-      </div>
-      <div className="text-center mb-8">
-        <p className="text-blue-600 font-black text-[10px] uppercase mb-2">{questions[currentIdx]?.subText}</p>
-        <div className="flex justify-center gap-2 mb-4">
-          <span className="bg-slate-800 text-white px-2 py-0.5 rounded text-[9px] font-black uppercase">Level {questions[currentIdx]?.level}</span>
-          {questions[currentIdx]?.isRepeat && <span className="bg-orange-500 text-white px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter">Reviewing</span>}
-        </div>
-        <h3 className={`font-black text-gray-800 tracking-tighter italic ${questions[currentIdx]?.type === 4 || questions[currentIdx]?.type === 5 ? 'text-xl px-4' : 'text-4xl'}`}>{questions[currentIdx]?.questionText}</h3>
-      </div>
-      <div className="grid grid-cols-1 gap-3">
-        {questions[currentIdx]?.options.map((opt: string, i: number) => {
-          let s = "w-full text-left p-4 rounded-2xl border-2 transition-all font-bold text-sm ";
-          if (isAnswered) {
-            if (opt === questions[currentIdx].correctAnswer) s += "bg-green-500 text-white border-green-600 scale-105 shadow-md";
-            else if (opt === selectedAnswer) s += "bg-red-500 text-white border-red-600";
-            else s += "bg-gray-50 text-gray-200 border-gray-100";
-          } else s += "border-blue-50 text-gray-700 hover:border-blue-500 hover:bg-blue-50";
-          return <button key={i} onClick={() => handleAnswer(opt)} disabled={isAnswered} className={s}>{opt}</button>;
-        })}
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 font-sans text-gray-800">
+      <div className="w-full max-w-xl bg-white shadow-xl rounded-2xl p-6 md:p-8 border border-gray-100">
+        
+        {/* 1. หน้าแรก: ลงทะเบียนเข้าใช้งานด้วยชื่อและ Gmail */}
+        {gameState === 'START' && (
+          <div className="text-center animate-fadeIn">
+            <h1 className="text-3xl font-extrabold text-blue-600 mb-2">Vocab Master 2.0</h1>
+            <p className="text-gray-500 mb-6 text-sm md:text-base">ระบบทดสอบคำศัพท์ ม.6 แบบไต่ระดับความยากอัตโนมัติ</p>
+            
+            <div className="text-left space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-600 mb-1">ชื่อ - นามสกุล / เลขที่</label>
+                <input
+                  type="text"
+                  placeholder="ตัวอย่าง: นายสมชาย รักเรียน เลขที่ 1"
+                  value={studentName}
+                  onChange={(e) => setStudentName(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-600 mb-1">ระบุ Gmail ของนักเรียน (ใช้เพื่อเซฟความก้าวหน้า)</label>
+                <input
+                  type="email"
+                  placeholder="ตัวอย่าง: student.name@gmail.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={startNewQuizRound}
+              disabled={!studentName.trim() || !email.trim() || !email.includes('@')}
+              className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition duration-200 text-lg"
+            >
+              เริ่มทำข้อสอบ
+            </button>
+          </div>
+        )}
+
+        {/* 2. หน้าจอทำข้อสอบพร้อมระบบนับถอยหลัง 20 วินาที */}
+        {gameState === 'QUIZ' && currentQuestions.length > 0 && (
+          <div className="animate-fadeIn">
+            <div className="flex justify-between items-center mb-4 pb-2 border-b">
+              <span className="text-sm font-bold px-3 py-1 bg-gray-100 rounded-full text-gray-600">
+                ข้อที่ {currentIndex + 1} / {currentQuestions.length}
+              </span>
+              <span className={`text-base font-extrabold px-4 py-1 rounded-full ${timeLeft <= 5 ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-blue-50 text-blue-600'}`}>
+                ⏱️ {timeLeft} วินาที
+              </span>
+            </div>
+
+            {/* แสดงระดับความยากของคำถามปัจจุบันให้นักเรียนทราบ */}
+            <div className="mb-2">
+              <span className={`text-xs font-bold px-2 py-0.5 rounded ${
+                currentQuestions[currentIndex].level === 'C1' ? 'bg-purple-100 text-purple-700' :
+                currentQuestions[currentIndex].level === 'B2' ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'
+              }`}>
+                ระดับความยาก: {currentQuestions[currentIndex].level}
+              </span>
+            </div>
+
+            {/* โจทย์ข้อสอบประเภทเติมคำ */}
+            <h2 className="text-xl md:text-2xl font-bold mb-2 text-gray-900">
+              {currentQuestions[currentIndex].example_sentence}
+            </h2>
+            <p className="text-sm text-gray-500 italic mb-6">
+              Definition: {currentQuestions[currentIndex].eng_definition}
+            </p>
+
+            {/* ชอยส์ปุ่มเลือกคำตอบ */}
+            <div className="grid grid-cols-1 gap-3">
+              {options.map((option, idx) => {
+                const isCorrectChoice = option === currentQuestions[currentIndex].thai_meaning;
+                let btnStyle = "border-gray-200 hover:border-blue-500 hover:bg-blue-50 text-gray-800";
+
+                if (isAnswered) {
+                  if (isCorrectChoice) {
+                    btnStyle = "bg-green-500 text-white border-green-500 font-bold";
+                  } else if (selectedAnswer === option) {
+                    btnStyle = "bg-red-500 text-white border-red-500";
+                  } else {
+                    btnStyle = "bg-gray-50 text-gray-400 border-gray-100 cursor-not-allowed";
+                  }
+                }
+
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => handleAnswerSelection(option)}
+                    disabled={isAnswered}
+                    className={`w-full p-4 border rounded-xl text-left text-base md:text-lg transition-all duration-150 flex items-center justify-between ${btnStyle}`}
+                  >
+                    <span>{option}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* ปุ่มนำทางไปข้อถัดไป */}
+            {isAnswered && (
+              <button
+                onClick={handleNextQuestion}
+                className="w-full mt-6 py-3 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition duration-150 text-center text-lg"
+              >
+                {currentIndex + 1 === currentQuestions.length ? "ดูผลสรุปคะแนน" : "ข้อถัดไป ➡️"}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* 3. หน้าสรุปคะแนนและแสดงสถานะความก้าวหน้า */}
+        {gameState === 'END' && (
+          <div className="text-center animate-fadeIn">
+            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-4xl">🎉</span>
+            </div>
+            <h2 className="text-2xl font-extrabold text-gray-900 mb-1">ทำข้อสอบเสร็จสิ้น!</h2>
+            <p className="text-gray-600 font-medium mb-4">{studentName} ({email})</p>
+            
+            <div className="bg-gray-50 rounded-2xl p-6 border mb-6">
+              <div className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-1">คะแนนที่คุณทำได้</div>
+              <div className="text-5xl font-black text-blue-600 mb-2">
+                {score} <span className="text-2xl text-gray-400">/ {currentQuestions.length}</span>
+              </div>
+              <div className="text-sm text-gray-500">
+                เปอร์เซ็นต์ความก้าวหน้าในรอบนี้: {((score / currentQuestions.length) * 100).toFixed(0)}%
+              </div>
+            </div>
+
+            {isSubmitting ? (
+              <p className="text-orange-600 font-semibold animate-pulse mb-6">⏳ กำลังบันทึกคะแนนเข้าสู่ระบบคลาวด์...</p>
+            ) : (
+              <p className="text-green-600 font-semibold mb-6">✅ บันทึกคะแนนและเปอร์เซ็นต์ลง Google Sheet เรียบร้อยแล้ว</p>
+            )}
+
+            <button
+              onClick={() => setGameState('START')}
+              className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition duration-150 text-lg shadow-md"
+            >
+              กลับหน้าแรกเพื่อทดสอบอีกครั้ง
+            </button>
+          </div>
+        )}
+
       </div>
     </div>
   );
