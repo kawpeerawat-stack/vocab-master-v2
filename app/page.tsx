@@ -28,16 +28,19 @@ export default function Home() {
   
   // สเตตัสการเล่นและการจับเวลา
   const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(30);
+  
+  // ⏱️ บรรทัดนี้ตั้งค่าเวลาเริ่มต้นให้นักเรียน (ตอนนี้ปรับเพิ่มเป็น 30 วินาทีให้แล้วครับ)
+  const QUIZ_TIME_LIMIT = 30; 
+  const [timeLeft, setTimeLeft] = useState(QUIZ_TIME_LIMIT);
+  
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const TIME_LIMIT = 30; 
   const TOTAL_QUESTIONS_PER_ROUND = 10; 
   
   // 🔗 ใส่ URL ของ Google Apps Script Web App ที่นี่
-  const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwMmvxMfZZkIFsgeNndqMr7AmQVNADqR0SjywuccdiINPWgK4HafiJZoqmKTssEsCTGuA/exec";
+  const GOOGLE_SHEET_WEBAPP_URL = "URL_GOOGLE_APPS_SCRIPT_ของคุณครู";
 
   useEffect(() => {
     fetch('/vocab.json')
@@ -101,7 +104,7 @@ export default function Home() {
   };
 
   const resetTimerAndQuestionState = () => {
-    setTimeLeft(TIME_LIMIT);
+    setTimeLeft(QUIZ_TIME_LIMIT);
     setSelectedAnswer(null);
     setIsAnswered(false);
   };
@@ -199,13 +202,21 @@ export default function Home() {
 
         {gameState === 'QUIZ' && currentQuestions.length > 0 && (
           <div className="animate-fadeIn">
-            <div className="flex justify-between items-center mb-4 pb-2 border-b">
+            <div className="flex justify-between items-center mb-2 pb-2">
               <span className="text-sm font-bold px-3 py-1 bg-gray-100 rounded-full text-gray-600">
-                ข้อที่ {currentIndex + 1} / {currentQuestions.length}
+                Question {currentIndex + 1} / {currentQuestions.length}
               </span>
               <span className={`text-base font-extrabold px-4 py-1 rounded-full ${timeLeft <= 5 ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-blue-50 text-blue-600'}`}>
-                ⏱️ {timeLeft} วินาที
+                ⏱️ {timeLeft} s
               </span>
+            </div>
+
+            {/* 📊 แถบความก้าวหน้า (Progress Bar) วิ่งตามจำนวนข้อแบบแอนิเมชัน */}
+            <div className="w-full bg-gray-100 h-2.5 rounded-full mb-4 overflow-hidden border border-gray-200/50">
+              <div 
+                className="bg-gradient-to-r from-blue-500 to-blue-600 h-full transition-all duration-300 ease-out"
+                style={{ width: `${((currentIndex + 1) / currentQuestions.length) * 100}%` }}
+              ></div>
             </div>
 
             <div className="mb-2">
@@ -213,16 +224,16 @@ export default function Home() {
                 currentQuestions[currentIndex].level === 'C1' ? 'bg-purple-100 text-purple-700' :
                 currentQuestions[currentIndex].level === 'B2' ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'
               }`}>
-                ระดับความยาก: {currentQuestions[currentIndex].level}
+                Level: {currentQuestions[currentIndex].level}
               </span>
             </div>
 
-            {/* แสดงประโยคโจทย์ภาษาอังกฤษที่มีช่องว่าง */}
+            {/* แสดงโจทย์ประโยคภาษาอังกฤษ */}
             <h2 className="text-xl md:text-2xl font-bold mb-2 text-gray-900">
               {currentQuestions[currentIndex].example_sentence}
             </h2>
             
-            {/* แสดงเฉพาะคำนิยามภาษาอังกฤษล้วน ไม่มีภาษาไทยปน */}
+            {/* แสดงคำนิยามภาษาอังกฤษล้วน */}
             <p className="text-sm text-gray-500 italic mb-6">
               Definition: {currentQuestions[currentIndex].eng_definition}
             </p>
@@ -260,7 +271,7 @@ export default function Home() {
                 onClick={handleNextQuestion}
                 className="w-full mt-6 py-3 bg-gray-900 text-white font-bold rounded-xl hover:bg-gray-800 transition duration-150 text-center text-lg"
               >
-                {currentIndex + 1 === currentQuestions.length ? "ดูผลสรุปคะแนน" : "ข้อถัดไป ➡️"}
+                {currentIndex + 1 === currentQuestions.length ? "View Summary" : "Next Question ➡️"}
               </button>
             )}
           </div>
@@ -271,30 +282,30 @@ export default function Home() {
             <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-4xl">🎉</span>
             </div>
-            <h2 className="text-2xl font-extrabold text-gray-900 mb-1">ทำข้อสอบเสร็จสิ้น!</h2>
+            <h2 className="text-2xl font-extrabold text-gray-900 mb-1">Completed!</h2>
             <p className="text-gray-600 font-medium mb-4">{studentName} ({email})</p>
             
             <div className="bg-gray-50 rounded-2xl p-6 border mb-6">
-              <div className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-1">คะแนนที่คุณทำได้</div>
+              <div className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-1">Your Score</div>
               <div className="text-5xl font-black text-blue-600 mb-2">
                 {score} <span className="text-2xl text-gray-400">/ {currentQuestions.length}</span>
               </div>
               <div className="text-sm text-gray-500">
-                เปอร์เซ็นต์ความก้าวหน้าในรอบนี้: {((score / currentQuestions.length) * 100).toFixed(0)}%
+                Progress Rate: {((score / currentQuestions.length) * 100).toFixed(0)}%
               </div>
             </div>
 
             {isSubmitting ? (
-              <p className="text-orange-600 font-semibold animate-pulse mb-6">⏳ กำลังบันทึกคะแนนเข้าสู่ระบบคลาวด์...</p>
+              <p className="text-orange-600 font-semibold animate-pulse mb-6">⏳ Saving your progress to cloud...</p>
             ) : (
-              <p className="text-green-600 font-semibold mb-6">✅ บันทึกคะแนนลงระบบเรียบร้อยแล้ว</p>
+              <p className="text-green-600 font-semibold mb-6">✅ Score saved successfully.</p>
             )}
 
             <button
               onClick={() => setGameState('START')}
               className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition duration-150 text-lg shadow-md"
             >
-              กลับหน้าแรกเพื่อทดสอบอีกครั้ง
+              Take Quiz Again
             </button>
           </div>
         )}
