@@ -12,34 +12,25 @@ type WordItem = {
   level: string;
 };
 
-// ขยาย Type เพื่อรองรับการสุ่มประเภทโจทย์
 type QuizQuestion = WordItem & {
   questionType: 'SENTENCE' | 'SYNONYM' | 'ANTONYM';
 };
 
 export default function Home() {
-  // สเตตัสการควบคุมหน้าจอ: 'START' | 'QUIZ' | 'END'
   const [gameState, setGameState] = useState<'START' | 'QUIZ' | 'END'>('START');
-  
-  // ระบบจำสถานะการเข้าสู่ระบบ
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   
-  // ข้อมูลฟอร์มลงทะเบียนนักเรียน
   const [studentName, setStudentName] = useState('');
   const [email, setEmail] = useState('');
   
-  // 📊 ระบบสะสมคำศัพท์ที่ตอบถูกเพื่อคำนวณความก้าวหน้าองค์รวม
   const [masteredWords, setMasteredWords] = useState<string[]>([]);
-  
-  // ข้อมูลคลังคำศัพท์และคำถาม
   const [vocabData, setVocabData] = useState<WordItem[]>([]);
   const [currentQuestions, setCurrentQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [options, setOptions] = useState<string[]>([]);
   
-  // สเตตัสการเล่นและการจับเวลา
   const [score, setScore] = useState(0);
-  const QUIZ_TIME_LIMIT = 30; // ตั้งเวลาไว้ที่ 30 วินาทีตามที่คุณครูต้องการ
+  const QUIZ_TIME_LIMIT = 30; 
   const [timeLeft, setTimeLeft] = useState(QUIZ_TIME_LIMIT);
   
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -51,7 +42,6 @@ export default function Home() {
   // 🔗 ใส่ URL ของ Google Apps Script Web App ที่นี่
   const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwMmvxMfZZkIFsgeNndqMr7AmQVNADqR0SjywuccdiINPWgK4HafiJZoqmKTssEsCTGuA/exec";
 
-  // โหลดคลังศัพท์และดึงคำศัพท์สะสมเดิมจากเครื่องนักเรียน
   useEffect(() => {
     fetch('/vocab.json')
       .then((res) => {
@@ -103,23 +93,34 @@ export default function Home() {
       return;
     }
 
-    const b1Words = vocabData.filter(w => w.level === 'B1');
-    const b2Words = vocabData.filter(w => w.level === 'B2');
-    const c1Words = vocabData.filter(w => w.level === 'C1');
+    // ✨ ฟีเจอร์ใหม่: คัดกรองคำศัพท์ที่เด็กตอบถูกไปแล้วออกจากการสุ่มครั้งนี้
+    const unmasteredWords = vocabData.filter(w => !masteredWords.includes(w.word));
+    
+    // (เผื่อกรณีเด็กเก่งจัด ตอบถูกครบ 1,000 คำแล้ว ระบบจะดึงคำทั้งหมดมาสุ่มใหม่เพื่อทบทวน)
+    const poolToUse = unmasteredWords.length >= 10 ? unmasteredWords : vocabData;
+
+    const b1Words = poolToUse.filter(w => w.level === 'B1');
+    const b2Words = poolToUse.filter(w => w.level === 'B2');
+    const c1Words = poolToUse.filter(w => w.level === 'C1');
 
     const shuffleAndPick = (array: WordItem[], count: number) => {
       const shuffled = [...array].sort(() => 0.5 - Math.random());
       return shuffled.slice(0, count);
     };
 
-    // เลือกคำศัพท์คละระดับความยาก
-    const selectedRoundWords = [
-      ...shuffleAndPick(b1Words.length > 0 ? b1Words : vocabData, 4),
-      ...shuffleAndPick(b2Words.length > 0 ? b2Words : vocabData, 4),
-      ...shuffleAndPick(c1Words.length > 0 ? c1Words : vocabData, 2)
+    let selectedRoundWords = [
+      ...shuffleAndPick(b1Words.length > 0 ? b1Words : poolToUse, 4),
+      ...shuffleAndPick(b2Words.length > 0 ? b2Words : poolToUse, 4),
+      ...shuffleAndPick(c1Words.length > 0 ? c1Words : poolToUse, 2)
     ];
 
-    // 🧠 ผสมระบบสุ่มรูปแบบโจทย์ (คละประเภทประโยค เติมคำเหมือน เติมคำตรงข้าม)
+    // หากหมวดหมู่อื่นๆ หมดแล้ว จะสุ่มคำศัพท์ที่เหลือมาเติมให้ครบ 10 ข้อพอดี
+    if (selectedRoundWords.length < 10) {
+       const pickedWords = selectedRoundWords.map(w => w.word);
+       const leftovers = poolToUse.filter(w => !pickedWords.includes(w.word));
+       selectedRoundWords = [...selectedRoundWords, ...shuffleAndPick(leftovers, 10 - selectedRoundWords.length)];
+    }
+
     const formattedQuestions: QuizQuestion[] = selectedRoundWords.map(item => {
       const availableTypes: ('SENTENCE' | 'SYNONYM' | 'ANTONYM')[] = ['SENTENCE'];
       if (item.synonym && item.synonym !== "-" && item.synonym.trim() !== "") availableTypes.push('SYNONYM');
@@ -132,6 +133,7 @@ export default function Home() {
     setCurrentQuestions(formattedQuestions);
     setCurrentIndex(0);
     setScore(0);
+    // ✨ ชอยส์ลวง ยังคงดึงมาจากศัพท์ทั้งคลัง 1,040 คำ เพื่อความเนียนสมจริง
     generateOptionsForQuestion(formattedQuestions[0], vocabData);
     resetTimerAndQuestionState();
     setGameState('QUIZ');
@@ -162,7 +164,7 @@ export default function Home() {
     if (answer === correctWord) {
       setScore((prev) => prev + 1);
       
-      // บันทึกคำศัพท์ที่ตอบถูกลงในคลังองค์รวม
+      // ✨ หากตอบถูก จะบันทึกคำศัพท์นั้นลงในคลังสมอง (จะไม่ออกซ้ำในรอบถัดๆ ไป)
       setMasteredWords((prev) => {
         if (!prev.includes(correctWord)) {
           const updated = [...prev, correctWord];
@@ -212,8 +214,6 @@ export default function Home() {
   };
 
   const isVocabLoading = vocabData.length === 0;
-  
-  // คำนวณเปอร์เซ็นต์องค์รวมรอบด้าน
   const overallPercentage = vocabData.length > 0 
     ? ((masteredWords.length / vocabData.length) * 100).toFixed(1) 
     : "0.0";
@@ -222,7 +222,6 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 font-sans text-gray-800">
       <div className="w-full max-w-xl bg-white shadow-xl rounded-2xl p-6 md:p-8 border border-gray-100">
         
-        {/* 1. หน้าแรกล็อกอินครั้งแรก */}
         {gameState === 'START' && !isLoggedIn && (
           <form onSubmit={handleStudentLogin} className="text-center animate-fadeIn">
             <h1 className="text-3xl font-extrabold text-blue-600 mb-2">Vocab Master 2.0</h1>
@@ -264,7 +263,6 @@ export default function Home() {
           </form>
         )}
 
-        {/* 2. หน้า Dashboard (รองรับแถบเปอร์เซ็นต์สะสมองค์รวมคำศัพท์) */}
         {gameState === 'START' && isLoggedIn && (
           <div className="text-center animate-fadeIn">
             <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold border border-blue-100">
@@ -273,7 +271,6 @@ export default function Home() {
             <h1 className="text-2xl font-black text-gray-900 mb-1">Student Dashboard</h1>
             <p className="text-gray-500 text-sm mb-5">Track your holistic language progress</p>
             
-            {/* 📊 แถบความก้าวหน้าสะสมองค์รวมคำศัพท์จากทั้งหมด 1,000+ คำ */}
             <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5 text-left mb-6">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Holistic Vocab Mastery</span>
@@ -313,7 +310,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* 3. หน้าจอทำข้อสอบคละสไตล์แบบไร้ภาษาไทย */}
         {gameState === 'QUIZ' && currentQuestions.length > 0 && (
           <div className="animate-fadeIn">
             <div className="flex justify-between items-center mb-2 pb-2">
@@ -325,7 +321,6 @@ export default function Home() {
               </span>
             </div>
 
-            {/* แถบข้อสอบในรอบปัจจุบัน (1-10) */}
             <div className="w-full bg-gray-100 h-2.5 rounded-full mb-4 overflow-hidden border border-gray-200/50">
               <div 
                 className="bg-gradient-to-r from-blue-500 to-blue-600 h-full transition-all duration-300 ease-out"
@@ -346,7 +341,6 @@ export default function Home() {
               </span>
             </div>
 
-            {/* 🧠 แสดงโจทย์แบบแปรเปลี่ยนไปตามสไตล์การสุ่มคำถาม */}
             <h2 className="text-xl md:text-2xl font-bold mb-2 text-gray-900 leading-snug">
               {currentQuestions[currentIndex].questionType === 'SENTENCE' && (
                 currentQuestions[currentIndex].example_sentence
@@ -402,7 +396,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* 4. หน้าสรุปคะแนนหลังเล่นจบเพื่อลิงก์วาร์ปกลับ Dashboard */}
         {gameState === 'END' && (
           <div className="text-center animate-fadeIn">
             <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
