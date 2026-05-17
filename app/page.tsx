@@ -28,12 +28,12 @@ export default function Home() {
   
   // สเตตัสการเล่นและการจับเวลา
   const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(20);
+  const [timeLeft, setTimeLeft] = useState(30);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const TIME_LIMIT = 20; 
+  const TIME_LIMIT = 30; 
   const TOTAL_QUESTIONS_PER_ROUND = 10; 
   
   // 🔗 ใส่ URL ของ Google Apps Script Web App ที่นี่
