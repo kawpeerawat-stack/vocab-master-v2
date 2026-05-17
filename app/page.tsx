@@ -37,7 +37,7 @@ export default function Home() {
   const TOTAL_QUESTIONS_PER_ROUND = 10; 
   
   // 🔗 ใส่ URL ของ Google Apps Script Web App ที่นี่
-  const GOOGLE_SHEET_WEBAPP_URL = "URL_GOOGLE_APPS_SCRIPT_ของคุณครู";
+  const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwMmvxMfZZkIFsgeNndqMr7AmQVNADqR0SjywuccdiINPWgK4HafiJZoqmKTssEsCTGuA/exec";
 
   useEffect(() => {
     fetch('/vocab.json')
