@@ -90,13 +90,16 @@ export default function Home() {
     setGameState('QUIZ');
   };
 
+  // ✨ แก้ไขจุดนี้: เปลี่ยนชอยส์ตัวเลือกให้แสดงเป็นคำศัพท์ภาษาอังกฤษ (word)
   const generateOptionsForQuestion = (correctItem: WordItem, allItems: WordItem[]) => {
     let wrongOptionsPool = allItems.filter(item => item.word !== correctItem.word && item.level === correctItem.level);
     if (wrongOptionsPool.length < 3) {
       wrongOptionsPool = allItems.filter(item => item.word !== correctItem.word);
     }
     const shuffledWrong = wrongOptionsPool.sort(() => 0.5 - Math.random()).slice(0, 3);
-    const finalChoices = [correctItem.thai_meaning, ...shuffledWrong.map(item => item.thai_meaning)];
+    
+    // ดึงฟิลด์ .word (ภาษาอังกฤษ) มาทำเป็นชอยส์แทนความหมายภาษาไทย
+    const finalChoices = [correctItem.word, ...shuffledWrong.map(item => item.word)];
     setOptions(finalChoices.sort(() => 0.5 - Math.random()));
   };
 
@@ -106,11 +109,12 @@ export default function Home() {
     setIsAnswered(false);
   };
 
+  // ✨ แก้ไขจุดนี้: เช็คคำตอบที่ถูกต้องกับฟิลด์คำศัพท์ภาษาอังกฤษ (word)
   const handleAnswerSelection = (answer: string) => {
     if (isAnswered) return;
     setSelectedAnswer(answer);
     setIsAnswered(true);
-    if (answer === currentQuestions[currentIndex].thai_meaning) {
+    if (answer === currentQuestions[currentIndex].word) {
       setScore((prev) => prev + 1);
     }
   };
@@ -152,7 +156,6 @@ export default function Home() {
     }
   };
 
-  // เช็คว่าระบบดึงคำศัพท์มาได้หรือยัง
   const isVocabLoading = vocabData.length === 0;
 
   return (
@@ -218,16 +221,23 @@ export default function Home() {
               </span>
             </div>
 
+            {/* แสดงประโยคโจทย์ภาษาอังกฤษ */}
             <h2 className="text-xl md:text-2xl font-bold mb-2 text-gray-900">
               {currentQuestions[currentIndex].example_sentence}
             </h2>
-            <p className="text-sm text-gray-500 italic mb-6">
+            
+            {/* ✨ เพิ่มการแสดงคำแปลภาษาไทยและคำนิยาม เพื่อช่วยใบ้นักเรียนเพิ่มเติม */}
+            <p className="text-sm text-blue-600 font-medium mb-1">
+              ความหมาย: {currentQuestions[currentIndex].thai_meaning}
+            </p>
+            <p className="text-xs text-gray-400 italic mb-6">
               Definition: {currentQuestions[currentIndex].eng_definition}
             </p>
 
             <div className="grid grid-cols-1 gap-3">
               {options.map((option, idx) => {
-                const isCorrectChoice = option === currentQuestions[currentIndex].thai_meaning;
+                // ✨ แก้ไขจุดนี้: เช็คความถูกต้องด้วย .word ภาษาอังกฤษ
+                const isCorrectChoice = option === currentQuestions[currentIndex].word;
                 let btnStyle = "border-gray-200 hover:border-blue-500 hover:bg-blue-50 text-gray-800";
 
                 if (isAnswered) {
@@ -247,7 +257,7 @@ export default function Home() {
                     disabled={isAnswered}
                     className={`w-full p-4 border rounded-xl text-left text-base md:text-lg transition-all duration-150 flex items-center justify-between ${btnStyle}`}
                   >
-                    <span>{option}</span>
+                    <span className="font-medium">{option}</span>
                   </button>
                 );
               })}
