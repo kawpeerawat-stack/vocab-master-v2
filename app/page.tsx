@@ -12,28 +12,34 @@ type WordItem = {
   level: string;
 };
 
+// ขยาย Type เพื่อรองรับการสุ่มประเภทโจทย์
+type QuizQuestion = WordItem & {
+  questionType: 'SENTENCE' | 'SYNONYM' | 'ANTONYM';
+};
+
 export default function Home() {
   // สเตตัสการควบคุมหน้าจอ: 'START' | 'QUIZ' | 'END'
   const [gameState, setGameState] = useState<'START' | 'QUIZ' | 'END'>('START');
   
-  // 🔑 ระบบจำสถานะการเข้าสู่ระบบ (ล็อกอินครั้งเดียว)
+  // ระบบจำสถานะการเข้าสู่ระบบ
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   // ข้อมูลฟอร์มลงทะเบียนนักเรียน
   const [studentName, setStudentName] = useState('');
   const [email, setEmail] = useState('');
   
+  // 📊 ระบบสะสมคำศัพท์ที่ตอบถูกเพื่อคำนวณความก้าวหน้าองค์รวม
+  const [masteredWords, setMasteredWords] = useState<string[]>([]);
+  
   // ข้อมูลคลังคำศัพท์และคำถาม
   const [vocabData, setVocabData] = useState<WordItem[]>([]);
-  const [currentQuestions, setCurrentQuestions] = useState<WordItem[]>([]);
+  const [currentQuestions, setCurrentQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [options, setOptions] = useState<string[]>([]);
   
   // สเตตัสการเล่นและการจับเวลา
   const [score, setScore] = useState(0);
-  
-  // ⏱️ ตั้งค่าเวลาทำข้อสอบ (30 วินาที)
-  const QUIZ_TIME_LIMIT = 30; 
+  const QUIZ_TIME_LIMIT = 30; // ตั้งเวลาไว้ที่ 30 วินาทีตามที่คุณครูต้องการ
   const [timeLeft, setTimeLeft] = useState(QUIZ_TIME_LIMIT);
   
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -45,6 +51,7 @@ export default function Home() {
   // 🔗 ใส่ URL ของ Google Apps Script Web App ที่นี่
   const GOOGLE_SHEET_WEBAPP_URL = "URL_GOOGLE_APPS_SCRIPT_ของคุณครู";
 
+  // โหลดคลังศัพท์และดึงคำศัพท์สะสมเดิมจากเครื่องนักเรียน
   useEffect(() => {
     fetch('/vocab.json')
       .then((res) => {
@@ -53,6 +60,15 @@ export default function Home() {
       })
       .then((data) => setVocabData(data))
       .catch((err) => console.error("Error loading vocab.json:", err));
+
+    const savedMastered = localStorage.getItem('vocab_mastered_progress');
+    if (savedMastered) {
+      try {
+        setMasteredWords(JSON.parse(savedMastered));
+      } catch (e) {
+        console.error(e);
+      }
+    }
   }, []);
 
   useEffect(() => {
@@ -67,7 +83,6 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [timeLeft, gameState, isAnswered]);
 
-  // ฟังก์ชันล็อกอินก้าวเข้าสู่หน้า Dashboard
   const handleStudentLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (studentName.trim() && email.trim() && email.includes('@')) {
@@ -75,7 +90,6 @@ export default function Home() {
     }
   };
 
-  // ฟังก์ชันออกจากระบบเพื่อเปลี่ยนบัญชีนักเรียน
   const handleLogout = () => {
     setIsLoggedIn(false);
     setStudentName('');
@@ -98,16 +112,27 @@ export default function Home() {
       return shuffled.slice(0, count);
     };
 
+    // เลือกคำศัพท์คละระดับความยาก
     const selectedRoundWords = [
       ...shuffleAndPick(b1Words.length > 0 ? b1Words : vocabData, 4),
       ...shuffleAndPick(b2Words.length > 0 ? b2Words : vocabData, 4),
       ...shuffleAndPick(c1Words.length > 0 ? c1Words : vocabData, 2)
     ];
 
-    setCurrentQuestions(selectedRoundWords);
+    // 🧠 ผสมระบบสุ่มรูปแบบโจทย์ (คละประเภทประโยค เติมคำเหมือน เติมคำตรงข้าม)
+    const formattedQuestions: QuizQuestion[] = selectedRoundWords.map(item => {
+      const availableTypes: ('SENTENCE' | 'SYNONYM' | 'ANTONYM')[] = ['SENTENCE'];
+      if (item.synonym && item.synonym !== "-" && item.synonym.trim() !== "") availableTypes.push('SYNONYM');
+      if (item.antonym && item.antonym !== "-" && item.antonym.trim() !== "") availableTypes.push('ANTONYM');
+      
+      const randomType = availableTypes[Math.floor(Math.random() * availableTypes.length)];
+      return { ...item, questionType: randomType };
+    });
+
+    setCurrentQuestions(formattedQuestions);
     setCurrentIndex(0);
     setScore(0);
-    generateOptionsForQuestion(selectedRoundWords[0], vocabData);
+    generateOptionsForQuestion(formattedQuestions[0], vocabData);
     resetTimerAndQuestionState();
     setGameState('QUIZ');
   };
@@ -132,8 +157,20 @@ export default function Home() {
     if (isAnswered) return;
     setSelectedAnswer(answer);
     setIsAnswered(true);
-    if (answer === currentQuestions[currentIndex].word) {
+
+    const correctWord = currentQuestions[currentIndex].word;
+    if (answer === correctWord) {
       setScore((prev) => prev + 1);
+      
+      // บันทึกคำศัพท์ที่ตอบถูกลงในคลังองค์รวม
+      setMasteredWords((prev) => {
+        if (!prev.includes(correctWord)) {
+          const updated = [...prev, correctWord];
+          localStorage.setItem('vocab_mastered_progress', JSON.stringify(updated));
+          return updated;
+        }
+        return prev;
+      });
     }
   };
 
@@ -175,12 +212,17 @@ export default function Home() {
   };
 
   const isVocabLoading = vocabData.length === 0;
+  
+  // คำนวณเปอร์เซ็นต์องค์รวมรอบด้าน
+  const overallPercentage = vocabData.length > 0 
+    ? ((masteredWords.length / vocabData.length) * 100).toFixed(1) 
+    : "0.0";
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 font-sans text-gray-800">
       <div className="w-full max-w-xl bg-white shadow-xl rounded-2xl p-6 md:p-8 border border-gray-100">
         
-        {/* 1. หน้าแรก (กรณีที่ยังไม่ได้ Log In เข้าสู่ระบบ) */}
+        {/* 1. หน้าแรกล็อกอินครั้งแรก */}
         {gameState === 'START' && !isLoggedIn && (
           <form onSubmit={handleStudentLogin} className="text-center animate-fadeIn">
             <h1 className="text-3xl font-extrabold text-blue-600 mb-2">Vocab Master 2.0</h1>
@@ -222,20 +264,35 @@ export default function Home() {
           </form>
         )}
 
-        {/* 2. หน้า Dashboard ส่วนตัว (เมื่อล็อกอินแล้ว และสแตนด์บายรอเริ่มเล่นใหม่) */}
+        {/* 2. หน้า Dashboard (รองรับแถบเปอร์เซ็นต์สะสมองค์รวมคำศัพท์) */}
         {gameState === 'START' && isLoggedIn && (
           <div className="text-center animate-fadeIn">
             <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold border border-blue-100">
-              👤
+              🎓
             </div>
             <h1 className="text-2xl font-black text-gray-900 mb-1">Student Dashboard</h1>
-            <p className="text-gray-500 text-sm mb-4">Welcome back to the training session</p>
+            <p className="text-gray-500 text-sm mb-5">Track your holistic language progress</p>
             
-            {/* กล่องแสดงโปรไฟล์ผู้เข้าสอบปัจจุบัน */}
-            <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-4 text-left mb-6 space-y-1">
-              <div className="text-xs font-bold text-blue-500 uppercase tracking-wider">Current Account</div>
-              <div className="text-base font-bold text-gray-800">Name: {studentName}</div>
-              <div className="text-sm text-gray-600">Email: {email}</div>
+            {/* 📊 แถบความก้าวหน้าสะสมองค์รวมคำศัพท์จากทั้งหมด 1,000+ คำ */}
+            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5 text-left mb-6">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Holistic Vocab Mastery</span>
+                <span className="text-sm font-extrabold text-blue-600">{overallPercentage}%</span>
+              </div>
+              
+              <div className="w-full bg-gray-200 h-3 rounded-full mb-2 overflow-hidden border border-gray-300/30">
+                <div 
+                  className="bg-gradient-to-r from-blue-500 to-indigo-600 h-full transition-all duration-500 ease-out"
+                  style={{ width: `${overallPercentage}%` }}
+                ></div>
+              </div>
+              <div className="text-xs text-gray-500 font-medium">
+                You have mastered <span className="text-gray-800 font-bold">{masteredWords.length}</span> out of <span className="text-gray-800 font-bold">{vocabData.length}</span> words in total.
+              </div>
+            </div>
+
+            <div className="bg-blue-50/40 border border-blue-100 rounded-xl p-3 text-left mb-6 text-sm text-gray-700">
+              👤 <strong>Account:</strong> {studentName} ({email})
             </div>
 
             <div className="space-y-3">
@@ -243,20 +300,20 @@ export default function Home() {
                 onClick={startNewQuizRound}
                 className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl shadow-md hover:bg-blue-700 transition duration-150 text-lg flex items-center justify-center gap-2"
               >
-                🚀 Start New Quiz Round
+                🚀 Start New Training Round
               </button>
               
               <button
                 onClick={handleLogout}
                 className="w-full py-2.5 bg-white text-gray-500 font-medium rounded-xl hover:bg-gray-50 border border-gray-200 transition duration-150 text-sm"
               >
-                🔄 Switch Account (สลับบัญชี)
+                🔄 Switch Account
               </button>
             </div>
           </div>
         )}
 
-        {/* 3. หน้าจอทำข้อสอบพร้อมระบบนับถอยหลังและ Progress Bar */}
+        {/* 3. หน้าจอทำข้อสอบคละสไตล์แบบไร้ภาษาไทย */}
         {gameState === 'QUIZ' && currentQuestions.length > 0 && (
           <div className="animate-fadeIn">
             <div className="flex justify-between items-center mb-2 pb-2">
@@ -268,7 +325,7 @@ export default function Home() {
               </span>
             </div>
 
-            {/* 📊 แถบความก้าวหน้า (Progress Bar) */}
+            {/* แถบข้อสอบในรอบปัจจุบัน (1-10) */}
             <div className="w-full bg-gray-100 h-2.5 rounded-full mb-4 overflow-hidden border border-gray-200/50">
               <div 
                 className="bg-gradient-to-r from-blue-500 to-blue-600 h-full transition-all duration-300 ease-out"
@@ -276,17 +333,30 @@ export default function Home() {
               ></div>
             </div>
 
-            <div className="mb-2">
+            <div className="flex gap-2 mb-2">
               <span className={`text-xs font-bold px-2 py-0.5 rounded ${
                 currentQuestions[currentIndex].level === 'C1' ? 'bg-purple-100 text-purple-700' :
                 currentQuestions[currentIndex].level === 'B2' ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'
               }`}>
                 Level: {currentQuestions[currentIndex].level}
               </span>
+              
+              <span className="text-xs font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700 uppercase">
+                Type: {currentQuestions[currentIndex].questionType}
+              </span>
             </div>
 
-            <h2 className="text-xl md:text-2xl font-bold mb-2 text-gray-900">
-              {currentQuestions[currentIndex].example_sentence}
+            {/* 🧠 แสดงโจทย์แบบแปรเปลี่ยนไปตามสไตล์การสุ่มคำถาม */}
+            <h2 className="text-xl md:text-2xl font-bold mb-2 text-gray-900 leading-snug">
+              {currentQuestions[currentIndex].questionType === 'SENTENCE' && (
+                currentQuestions[currentIndex].example_sentence
+              )}
+              {currentQuestions[currentIndex].questionType === 'SYNONYM' && (
+                <span>Which word is a <span className="text-blue-600 underline">SYNONYM</span> for: "{currentQuestions[currentIndex].synonym}"?</span>
+              )}
+              {currentQuestions[currentIndex].questionType === 'ANTONYM' && (
+                <span>Which word is an <span className="text-red-600 underline">ANTONYM</span> for: "{currentQuestions[currentIndex].antonym}"?</span>
+              )}
             </h2>
             
             <p className="text-sm text-gray-500 italic mb-6">
@@ -332,37 +402,36 @@ export default function Home() {
           </div>
         )}
 
-        {/* 4. หน้าสรุปคะแนนหลังทำข้อสอบเสร็จ */}
+        {/* 4. หน้าสรุปคะแนนหลังเล่นจบเพื่อลิงก์วาร์ปกลับ Dashboard */}
         {gameState === 'END' && (
           <div className="text-center animate-fadeIn">
             <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-4xl">🎉</span>
             </div>
-            <h2 className="text-2xl font-extrabold text-gray-900 mb-1">Completed!</h2>
+            <h2 className="text-2xl font-extrabold text-gray-900 mb-1">Round Completed!</h2>
             <p className="text-gray-600 font-medium mb-4">{studentName}</p>
             
             <div className="bg-gray-50 rounded-2xl p-6 border mb-6">
-              <div className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-1">Your Score</div>
+              <div className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-1">Your Round Score</div>
               <div className="text-5xl font-black text-blue-600 mb-2">
                 {score} <span className="text-2xl text-gray-400">/ {currentQuestions.length}</span>
               </div>
               <div className="text-sm text-gray-500">
-                Progress Rate: {((score / currentQuestions.length) * 100).toFixed(0)}%
+                Round Accuracy: {((score / currentQuestions.length) * 100).toFixed(0)}%
               </div>
             </div>
 
             {isSubmitting ? (
-              <p className="text-orange-600 font-semibold animate-pulse mb-6">⏳ Saving your progress to cloud...</p>
+              <p className="text-orange-600 font-semibold animate-pulse mb-6">⏳ Saving round score to cloud...</p>
             ) : (
               <p className="text-green-600 font-semibold mb-6">✅ Score saved successfully.</p>
             )}
 
-            {/* ✨ สังเกตตรงนี้: เมื่อกดปุ่มนี้ จะพากลับหน้าจอ Dashboard ทันทีโดยไม่ต้องล็อกอินใหม่ */}
             <button
               onClick={() => setGameState('START')}
               className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition duration-150 text-lg shadow-md"
             >
-              Back to Dashboard
+              Back to Dashboard ⬅️
             </button>
           </div>
         )}
