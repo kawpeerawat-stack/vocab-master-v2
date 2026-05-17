@@ -29,7 +29,6 @@ export default function Home() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [options, setOptions] = useState<string[]>([]);
   
-  // ✨ ระบบเก็บข้อมูลข้อที่ตอบผิดเพื่อนำไปแสดงเฉลย
   const [wrongAnswers, setWrongAnswers] = useState<{question: QuizQuestion, selected: string}[]>([]);
   
   const [score, setScore] = useState(0);
@@ -40,10 +39,13 @@ export default function Home() {
   const [isAnswered, setIsAnswered] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // ✨ ตัวแปรเก็บจำนวนครั้งที่แอบออกนอกหน้าจอ
+  const [cheatWarnings, setCheatWarnings] = useState(0);
+
   const TOTAL_QUESTIONS_PER_ROUND = 10; 
   
   // 🔗 ใส่ URL ของ Google Apps Script Web App ที่นี่
-  const GOOGLE_SHEET_WEBAPP_URL = "URL_GOOGLE_APPS_SCRIPT_ของคุณครู";
+  const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwMmvxMfZZkIFsgeNndqMr7AmQVNADqR0SjywuccdiINPWgK4HafiJZoqmKTssEsCTGuA/exec";
 
   useEffect(() => {
     fetch('/vocab.json')
@@ -64,10 +66,24 @@ export default function Home() {
     }
   }, []);
 
+  // ✨ ระบบ Anti-Cheat: ตรวจจับการสลับแท็บ (Tab Switching)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && gameState === 'QUIZ') {
+        alert("⚠️ คำเตือน! ตรวจพบการออกนอกหน้าจอข้อสอบ กรุณาอย่าสลับหน้าต่างขณะทำข้อสอบครับ");
+        setCheatWarnings(prev => prev + 1);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [gameState]);
+
   useEffect(() => {
     if (gameState !== 'QUIZ' || isAnswered) return;
     if (timeLeft === 0) {
-      // หากปล่อยให้เวลาหมด จะถือว่าตอบผิดและบันทึกข้อความ "Time Out"
       handleAnswerSelection("Time Out"); 
       return;
     }
@@ -133,7 +149,8 @@ export default function Home() {
     setCurrentQuestions(formattedQuestions);
     setCurrentIndex(0);
     setScore(0);
-    setWrongAnswers([]); // ล้างข้อมูลเฉลยเก่าเมื่อเริ่มรอบใหม่
+    setCheatWarnings(0); // รีเซ็ตการแจ้งเตือนเมื่อเริ่มใหม่
+    setWrongAnswers([]); 
     generateOptionsForQuestion(formattedQuestions[0], vocabData);
     resetTimerAndQuestionState();
     setGameState('QUIZ');
@@ -174,7 +191,6 @@ export default function Home() {
         return prev;
       });
     } else {
-      // ✨ หากตอบผิด หรือปล่อยหมดเวลา ให้เก็บโจทย์ข้อนี้และคำตอบที่เลือกลงในคลังเฉลย
       setWrongAnswers((prev) => [...prev, { question: currentQ, selected: answer }]);
     }
   };
@@ -222,7 +238,11 @@ export default function Home() {
     : "0.0";
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 font-sans text-gray-800">
+    // ✨ ป้องกันการคลุมดำ (select-none)
+    <div 
+      className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 font-sans text-gray-800 select-none"
+      onContextMenu={(e) => e.preventDefault()} // ✨ บล็อกการคลิกขวา
+    >
       <div className="w-full max-w-2xl bg-white shadow-xl rounded-2xl p-6 md:p-8 border border-gray-100">
         
         {gameState === 'START' && !isLoggedIn && (
@@ -399,7 +419,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* 4. หน้าสรุปคะแนน พร้อมเฉลยข้อที่ผิด */}
         {gameState === 'END' && (
           <div className="text-center animate-fadeIn">
             <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -407,6 +426,13 @@ export default function Home() {
             </div>
             <h2 className="text-2xl font-extrabold text-gray-900 mb-1">Round Completed!</h2>
             <p className="text-gray-600 font-medium mb-4">{studentName}</p>
+            
+            {/* ✨ แสดงจำนวนครั้งที่แอบออกนอกหน้าจอ (ถ้ามี) */}
+            {cheatWarnings > 0 && (
+              <div className="bg-red-100 text-red-700 p-3 rounded-lg text-sm font-bold mb-4 border border-red-200">
+                ⚠️ Warning: Switched tabs {cheatWarnings} times during quiz.
+              </div>
+            )}
             
             <div className="bg-gray-50 rounded-2xl p-6 border mb-6">
               <div className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-1">Your Round Score</div>
@@ -418,7 +444,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* ✨ ส่วนแสดงเฉลยข้อที่ผิด (Review Mistakes) */}
             <div className="text-left border-t border-gray-200 pt-6 mb-6">
               <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                 📝 Review Mistakes <span className="text-sm font-normal text-gray-500">(เฉลยข้อที่ผิด)</span>
@@ -448,7 +473,7 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="bg-green-50 border border-green-100 rounded-xl p-4 text-green-700 font-bold text-center">
-                  🌟 Perfect Score! You made no mistakes. (เก่งมากครับ ไม่มีข้อผิดเลย!)
+                  🌟 Perfect Score! You made no mistakes.
                 </div>
               )}
             </div>
