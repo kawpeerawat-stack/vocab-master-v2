@@ -1,0 +1,32 @@
+[
+  {
+    "id": "G001",
+    "exam_type": "A-Level",
+    "grammar_topic": "Conjunctions",
+    "question_format": "Text completion",
+    "question": "The marketing plan was extremely expensive, ______ it was accepted by the board because it saved a lot of time.",
+    "options": ["so", "but", "because", "or"],
+    "correct_answer": "but",
+    "trap_explanation": "โจทย์ข้อนี้หลอกด้วย Connector ครับ ประโยคหน้ามีความหมายเชิงลบ (expensive) ประโยคหลังมีความหมายเชิงบวก (accepted) จึงต้องใช้คำเชื่อมที่แสดงความขัดแย้ง (but) ชอยส์อื่นผิดตรรกะทั้งหมด"
+  },
+  {
+    "id": "G002",
+    "exam_type": "NETSAT",
+    "grammar_topic": "Non-Finite Verbs",
+    "question_format": "Sentence completion",
+    "question": "All the financial documents need ______ before being submitted to the executive manager.",
+    "options": ["to review", "reviewing", "reviewed", "review"],
+    "correct_answer": "reviewing",
+    "trap_explanation": "ระวัง! นี่คือโจทย์หลอกโครงสร้าง กริยา need + V-ing มีความหมายเป็น Passive Voice (need reviewing = need to be reviewed) แปลว่าเอกสารต้อง 'ถูกตรวจสอบ' ครับ"
+  },
+  {
+    "id": "G003",
+    "exam_type": "TGAT1",
+    "grammar_topic": "Tenses",
+    "question_format": "Sentence completion",
+    "question": "By the time the urgent meeting started, the project manager ______ the incident report.",
+    "options": ["finishes", "has finished", "had finished", "is finishing"],
+    "correct_answer": "had finished",
+    "trap_explanation": "โครงสร้าง 'By the time + Past Simple' (started) ต้องใช้คู่กับ 'Past Perfect' (had + V3) เพื่อแสดงเหตุการณ์ที่จบไปแล้วก่อนอีกเหตุการณ์หนึ่งในอดีตครับ"
+  }
+]
