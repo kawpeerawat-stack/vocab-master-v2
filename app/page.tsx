@@ -67,26 +67,56 @@ export default function Home() {
       }
     }
   }, []);
+// useEffect ที่ 1 (โหลด vocab) — อันเดิม
+useEffect(() => {
+  fetch('/api/vocab')
+    .then((res) => {
+      if (!res.ok) throw new Error("โหลดคลังคำศัพท์ไม่สำเร็จ");
+      return res.json();
+    })
+    .then((data) => setVocabData(data))
+    .catch((err) => console.error("Error loading vocab:", err));
 
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden && gameState === 'QUIZ') {
-        alert("⚠️ Warning! ตรวจพบการออกนอกหน้าจอข้อสอบ กรุณาทำข้อสอบให้เสร็จก่อนสลับหน้าต่างครับ");
-        setCheatWarnings(prev => prev + 1);
-     const blockDevTools = (e: KeyboardEvent) => {
+  const savedMastered = localStorage.getItem('vocab_mastered_progress');
+  if (savedMastered) {
+    try {
+      setMasteredWords(JSON.parse(savedMastered));
+    } catch (e) {
+      console.error(e);
+    }
+  }
+}, []);
+// ↑ ปิด useEffect ที่ 1 ก่อน
+
+// useEffect ที่ 2 (visibility change) — อันเดิม
+useEffect(() => {
+  const handleVisibilityChange = () => {
+    if (document.hidden && gameState === 'QUIZ') {
+      alert("⚠️ Warning! ตรวจพบการออกนอกหน้าจอ");
+      setCheatWarnings(prev => prev + 1);
+    }
+  };
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+  return () => {
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
+  };
+}, [gameState]);
+
+// useEffect ที่ 3 (block DevTools) — อันใหม่ วางต่อจากอันที่ 2
+useEffect(() => {
+  const blockDevTools = (e: KeyboardEvent) => {
     if (
       e.key === 'F12' ||
       (e.ctrlKey && e.shiftKey && e.key === 'I') ||
       (e.ctrlKey && e.shiftKey && e.key === 'J') ||
       (e.ctrlKey && e.key === 'u')
     ) {
-      e.preventDefault()
+      e.preventDefault();
     }
-  }
-  document.addEventListener('keydown', blockDevTools)
-  return () => document.removeEventListener('keydown', blockDevTools)
-}, [])
-   
+  };
+  document.addEventListener('keydown', blockDevTools);
+  return () => document.removeEventListener('keydown', blockDevTools);
+}, []);
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
