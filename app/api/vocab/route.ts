@@ -21,3 +21,15 @@ export async function GET() {
   const filtered = all.filter(w => w.word !== 'คำศัพท์ภาษาอังกฤษ')
   return NextResponse.json(filtered)
 }
+
+export async function GET(request: NextRequest) {
+  // อนุญาตเฉพาะ request จากเว็บตัวเอง
+  const referer = request.headers.get('referer') || ''
+  const host = request.headers.get('host') || ''
+  
+  if (!referer.includes(host)) {
+    return NextResponse.json(
+      { error: 'Unauthorized' }, 
+      { status: 403 }
+    )
+  }
