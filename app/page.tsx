@@ -50,7 +50,7 @@ export default function Home() {
   const SCHOOL_LOGO_URL = "/logo.png";
 
   useEffect(() => {
-    fetch('/vocab.json')
+    fetch('/api/vocab')
       .then((res) => {
         if (!res.ok) throw new Error("หาไฟล์ vocab.json ไม่เจอ");
         return res.json();
