@@ -17,7 +17,7 @@ interface VocabWord {
 function loadVocab(): VocabWord[] {
   const filePath = join(process.cwd(), 'data', 'vocab.json')
   const raw = readFileSync(filePath, 'utf-8')
-  return JSON.parse(raw)
+  const all = JSON.parse(raw)   // ← เปลี่ยน return → const all =
   return all.filter((w: VocabWord) =>
     w.word !== 'คำศัพท์ภาษาอังกฤษ'
   )
