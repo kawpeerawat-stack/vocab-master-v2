@@ -73,8 +73,20 @@ export default function Home() {
       if (document.hidden && gameState === 'QUIZ') {
         alert("⚠️ Warning! ตรวจพบการออกนอกหน้าจอข้อสอบ กรุณาทำข้อสอบให้เสร็จก่อนสลับหน้าต่างครับ");
         setCheatWarnings(prev => prev + 1);
-      }
-    };
+     const blockDevTools = (e: KeyboardEvent) => {
+    if (
+      e.key === 'F12' ||
+      (e.ctrlKey && e.shiftKey && e.key === 'I') ||
+      (e.ctrlKey && e.shiftKey && e.key === 'J') ||
+      (e.ctrlKey && e.key === 'u')
+    ) {
+      e.preventDefault()
+    }
+  }
+  document.addEventListener('keydown', blockDevTools)
+  return () => document.removeEventListener('keydown', blockDevTools)
+}, [])
+   
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
