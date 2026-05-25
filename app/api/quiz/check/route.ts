@@ -9,6 +9,7 @@ interface VocabWord {
   synonym: string
   antonym: string
   example_sentence: string
+  level: string  
 }
 
 function loadVocab(): VocabWord[] {
@@ -17,6 +18,10 @@ function loadVocab(): VocabWord[] {
   return JSON.parse(raw)
 }
 
+return all.filter((w: VocabWord) =>
+    w.word !== 'คำศัพท์ภาษาอังกฤษ'
+  )
+}
 // POST /api/quiz/check
 // body: { wordIndex: number, answer: string }
 export async function POST(request: NextRequest) {
