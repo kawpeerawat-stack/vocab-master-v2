@@ -10,6 +10,7 @@ interface VocabWord {
   synonym: string
   antonym: string
   example_sentence: string
+  level: string
 }
 
 // โหลด vocab จาก data/ (ฝั่ง server เท่านั้น)
@@ -17,6 +18,9 @@ function loadVocab(): VocabWord[] {
   const filePath = join(process.cwd(), 'data', 'vocab.json')
   const raw = readFileSync(filePath, 'utf-8')
   return JSON.parse(raw)
+  return all.filter((w: VocabWord) =>
+    w.word !== 'คำศัพท์ภาษาอังกฤษ'
+  )
 }
 
 // สร้างตัวเลือก 4 ข้อ (ไม่ส่งเฉลย)
