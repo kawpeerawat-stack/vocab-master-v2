@@ -19,44 +19,42 @@ type QuizQuestion = WordItem & {
 export default function Home() {
   const [gameState, setGameState] = useState<'START' | 'QUIZ' | 'END'>('START');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  
+
   const [studentName, setStudentName] = useState('');
   const [email, setEmail] = useState('');
-  
+
   const [masteredWords, setMasteredWords] = useState<string[]>([]);
   const [vocabData, setVocabData] = useState<WordItem[]>([]);
   const [currentQuestions, setCurrentQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [options, setOptions] = useState<string[]>([]);
-  
+
   const [wrongAnswers, setWrongAnswers] = useState<{question: QuizQuestion, selected: string}[]>([]);
-  
+
   const [score, setScore] = useState(0);
-  const QUIZ_TIME_LIMIT = 20; // ปรับเวลาเป็น 20 วินาทีตามที่อาจารย์ต้องการ
+  const QUIZ_TIME_LIMIT = 20;
   const [timeLeft, setTimeLeft] = useState(QUIZ_TIME_LIMIT);
-  
+
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [cheatWarnings, setCheatWarnings] = useState(0);
 
-  const TOTAL_QUESTIONS_PER_ROUND = 10; 
-  
-  // 🔗 ใส่ URL ของ Google Apps Script Web App ของอาจารย์ที่นี่
-  const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwMmvxMfZZkIFsgeNndqMr7AmQVNADqR0SjywuccdiINPWgK4HafiJZoqmKTssEsCTGuA/exec";
+  const TOTAL_QUESTIONS_PER_ROUND = 10;
 
-  // โลโก้โรงเรียนอนุกูลนารี
+  const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwMmvxMfZZkIFsgeNndqMr7AmQVNADqR0SjywuccdiINPWgK4HafiJZoqmKTssEsCTGuA/exec";
   const SCHOOL_LOGO_URL = "/logo.png";
 
+  // ── useEffect 1: โหลด vocab จาก API + โหลด localStorage ──
   useEffect(() => {
     fetch('/api/vocab')
       .then((res) => {
-        if (!res.ok) throw new Error("หาไฟล์ vocab.json ไม่เจอ");
+        if (!res.ok) throw new Error("โหลดคลังคำศัพท์ไม่สำเร็จ");
         return res.json();
       })
       .then((data) => setVocabData(data))
-      .catch((err) => console.error("Error loading vocab.json:", err));
+      .catch((err) => console.error("Error loading vocab:", err));
 
     const savedMastered = localStorage.getItem('vocab_mastered_progress');
     if (savedMastered) {
@@ -67,67 +65,26 @@ export default function Home() {
       }
     }
   }, []);
-// useEffect ที่ 1 (โหลด vocab) — อันเดิม
-useEffect(() => {
-  fetch('/api/vocab')
-    .then((res) => {
-      if (!res.ok) throw new Error("โหลดคลังคำศัพท์ไม่สำเร็จ");
-      return res.json();
-    })
-    .then((data) => setVocabData(data))
-    .catch((err) => console.error("Error loading vocab:", err));
 
-  const savedMastered = localStorage.getItem('vocab_mastered_progress');
-  if (savedMastered) {
-    try {
-      setMasteredWords(JSON.parse(savedMastered));
-    } catch (e) {
-      console.error(e);
-    }
-  }
-}, []);
-// ↑ ปิด useEffect ที่ 1 ก่อน
-
-// useEffect ที่ 2 (visibility change) — อันเดิม
-useEffect(() => {
-  const handleVisibilityChange = () => {
-    if (document.hidden && gameState === 'QUIZ') {
-      alert("⚠️ Warning! ตรวจพบการออกนอกหน้าจอ");
-      setCheatWarnings(prev => prev + 1);
-    }
-  };
-  document.addEventListener("visibilitychange", handleVisibilityChange);
-  return () => {
-    document.removeEventListener("visibilitychange", handleVisibilityChange);
-  };
-}, [gameState]);
-
-// useEffect ที่ 3 (block DevTools) — อันใหม่ วางต่อจากอันที่ 2
-useEffect(() => {
-  const blockDevTools = (e: KeyboardEvent) => {
-    if (
-      e.key === 'F12' ||
-      (e.ctrlKey && e.shiftKey && e.key === 'I') ||
-      (e.ctrlKey && e.shiftKey && e.key === 'J') ||
-      (e.ctrlKey && e.key === 'u')
-    ) {
-      e.preventDefault();
-    }
-  };
-  document.addEventListener('keydown', blockDevTools);
-  return () => document.removeEventListener('keydown', blockDevTools);
-}, []);
-
+  // ── useEffect 2: ตรวจจับการสลับแท็บ ──
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && gameState === 'QUIZ') {
+        alert("⚠️ Warning! ตรวจพบการออกนอกหน้าจอข้อสอบ กรุณาทำข้อสอบให้เสร็จก่อนสลับหน้าต่างครับ");
+        setCheatWarnings(prev => prev + 1);
+      }
+    };
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [gameState]);
 
+  // ── useEffect 3: จับเวลาแต่ละข้อ ──
   useEffect(() => {
     if (gameState !== 'QUIZ' || isAnswered) return;
     if (timeLeft === 0) {
-      handleAnswerSelection("Time Out"); 
+      handleAnswerSelection("Time Out");
       return;
     }
     const timer = setInterval(() => {
@@ -135,6 +92,22 @@ useEffect(() => {
     }, 1000);
     return () => clearInterval(timer);
   }, [timeLeft, gameState, isAnswered]);
+
+  // ── useEffect 4: บล็อก DevTools (F12, Ctrl+Shift+I/J, Ctrl+U) ──
+  useEffect(() => {
+    const blockDevTools = (e: KeyboardEvent) => {
+      if (
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && e.key === 'I') ||
+        (e.ctrlKey && e.shiftKey && e.key === 'J') ||
+        (e.ctrlKey && e.key === 'u')
+      ) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener('keydown', blockDevTools);
+    return () => document.removeEventListener('keydown', blockDevTools);
+  }, []);
 
   const handleStudentLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,7 +125,7 @@ useEffect(() => {
 
   const startNewQuizRound = () => {
     if (vocabData.length === 0) {
-      alert("⚠️ ระบบยังโหลดคลังคำศัพท์ไม่สำเร็จ กรุณาตรวจสอบไฟล์ vocab.json ในโฟลเดอร์ public");
+      alert("⚠️ ระบบยังโหลดคลังคำศัพท์ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บแล้วลองใหม่ครับ");
       return;
     }
 
@@ -171,20 +144,19 @@ useEffect(() => {
     let selectedRoundWords = [
       ...shuffleAndPick(b1Words.length > 0 ? b1Words : poolToUse, 4),
       ...shuffleAndPick(b2Words.length > 0 ? b2Words : poolToUse, 4),
-      ...shuffleAndPick(c1Words.length > 0 ? c1Words : poolToUse, 2)
+      ...shuffleAndPick(c1Words.length > 0 ? c1Words : poolToUse, 2),
     ];
 
     if (selectedRoundWords.length < 10) {
-       const pickedWords = selectedRoundWords.map(w => w.word);
-       const leftovers = poolToUse.filter(w => !pickedWords.includes(w.word));
-       selectedRoundWords = [...selectedRoundWords, ...shuffleAndPick(leftovers, 10 - selectedRoundWords.length)];
+      const pickedWords = selectedRoundWords.map(w => w.word);
+      const leftovers = poolToUse.filter(w => !pickedWords.includes(w.word));
+      selectedRoundWords = [...selectedRoundWords, ...shuffleAndPick(leftovers, 10 - selectedRoundWords.length)];
     }
 
     const formattedQuestions: QuizQuestion[] = selectedRoundWords.map(item => {
       const availableTypes: ('SENTENCE' | 'SYNONYM' | 'ANTONYM')[] = ['SENTENCE'];
       if (item.synonym && item.synonym !== "-" && item.synonym.trim() !== "") availableTypes.push('SYNONYM');
       if (item.antonym && item.antonym !== "-" && item.antonym.trim() !== "") availableTypes.push('ANTONYM');
-      
       const randomType = availableTypes[Math.floor(Math.random() * availableTypes.length)];
       return { ...item, questionType: randomType };
     });
@@ -192,8 +164,8 @@ useEffect(() => {
     setCurrentQuestions(formattedQuestions);
     setCurrentIndex(0);
     setScore(0);
-    setCheatWarnings(0); 
-    setWrongAnswers([]); 
+    setCheatWarnings(0);
+    setWrongAnswers([]);
     generateOptionsForQuestion(formattedQuestions[0], vocabData);
     resetTimerAndQuestionState();
     setGameState('QUIZ');
@@ -222,7 +194,7 @@ useEffect(() => {
 
     const currentQ = currentQuestions[currentIndex];
     const correctWord = currentQ.word;
-    
+
     if (answer === correctWord) {
       setScore((prev) => prev + 1);
       setMasteredWords((prev) => {
@@ -253,7 +225,6 @@ useEffect(() => {
   const submitScoreToGoogleSheet = async () => {
     setIsSubmitting(true);
     const progressPercentage = ((score / TOTAL_QUESTIONS_PER_ROUND) * 100).toFixed(0) + "%";
-
     try {
       await fetch(GOOGLE_SHEET_WEBAPP_URL, {
         method: 'POST',
@@ -261,9 +232,9 @@ useEffect(() => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: studentName,
-          email: email, 
+          email: email,
           score: score,
-          progress: progressPercentage
+          progress: progressPercentage,
         }),
       });
     } catch (error) {
@@ -274,20 +245,20 @@ useEffect(() => {
   };
 
   const isVocabLoading = vocabData.length === 0;
-  const overallPercentage = vocabData.length > 0 
-    ? ((masteredWords.length / vocabData.length) * 100).toFixed(1) 
+  const overallPercentage = vocabData.length > 0
+    ? ((masteredWords.length / vocabData.length) * 100).toFixed(1)
     : "0.0";
 
   return (
-    <div 
+    <div
       className="min-h-screen bg-[#f8f9fa] flex flex-col items-center justify-center p-4 font-sans text-gray-800 select-none"
-      onContextMenu={(e) => e.preventDefault()} 
+      onContextMenu={(e) => e.preventDefault()}
     >
       <div className="w-full max-w-2xl bg-white shadow-2xl rounded-3xl p-6 md:p-10 border-t-[12px] border-[#003399] relative overflow-hidden">
-        
-        {/* สีทองตัดขอบบนตามธีมโรงเรียน */}
+
         <div className="absolute top-0 left-0 w-full h-2 bg-[#FFD700]"></div>
 
+        {/* ── หน้า Login ── */}
         {gameState === 'START' && !isLoggedIn && (
           <form onSubmit={handleStudentLogin} className="text-center animate-fadeIn mt-2">
             <div className="flex flex-col items-center justify-center mb-8">
@@ -296,9 +267,9 @@ useEffect(() => {
               <h1 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight">Vocabulary Essential</h1>
               <div className="h-1 w-20 bg-[#FFD700] mt-2 rounded-full"></div>
             </div>
-            
+
             <p className="text-gray-500 mb-8 text-sm md:text-base italic">"Anukoolnaree students, let's master English for your future."</p>
-            
+
             <div className="text-left space-y-5 mb-8">
               <div>
                 <label className="block text-sm font-bold text-[#003399] mb-2 uppercase tracking-wide">Full Name & Student ID</label>
@@ -311,7 +282,6 @@ useEffect(() => {
                   required
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-bold text-[#003399] mb-2 uppercase tracking-wide">Email (Gmail Only)</label>
                 <input
@@ -335,6 +305,7 @@ useEffect(() => {
           </form>
         )}
 
+        {/* ── หน้า Dashboard ── */}
         {gameState === 'START' && isLoggedIn && (
           <div className="text-center animate-fadeIn mt-2">
             <div className="flex flex-col items-center justify-center mb-6">
@@ -342,15 +313,14 @@ useEffect(() => {
               <h1 className="text-2xl font-black text-gray-900 mb-1">Grade 12 Mastery Hub</h1>
               <p className="text-[#003399] font-bold text-sm tracking-widest uppercase">Anukoolnaree Vocabulary Essential</p>
             </div>
-            
+
             <div className="bg-[#003399]/5 border-2 border-[#003399]/10 rounded-3xl p-6 text-left mb-6 shadow-sm">
               <div className="flex justify-between items-center mb-3">
                 <span className="text-xs font-black text-[#003399] uppercase tracking-wider">Overall Lexical Progress</span>
                 <span className="text-sm font-black text-[#003399] bg-[#FFD700] px-3 py-1 rounded-full shadow-sm">{overallPercentage}%</span>
               </div>
-              
               <div className="w-full bg-white h-4 rounded-full mb-3 overflow-hidden border border-[#003399]/10">
-                <div 
+                <div
                   className="bg-gradient-to-r from-[#003399] to-[#0055ff] h-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(0,51,153,0.3)]"
                   style={{ width: `${overallPercentage}%` }}
                 ></div>
@@ -378,7 +348,6 @@ useEffect(() => {
               >
                 🚀 Start Training Round
               </button>
-              
               <button
                 onClick={handleLogout}
                 className="w-full py-3 bg-white text-gray-400 font-bold rounded-xl hover:text-[#003399] transition-all duration-150 text-sm uppercase"
@@ -389,6 +358,7 @@ useEffect(() => {
           </div>
         )}
 
+        {/* ── หน้า Quiz ── */}
         {gameState === 'QUIZ' && currentQuestions.length > 0 && (
           <div className="animate-fadeIn">
             <div className="flex justify-between items-center mb-3 pb-3 border-b-2 border-gray-50">
@@ -401,7 +371,7 @@ useEffect(() => {
             </div>
 
             <div className="w-full bg-gray-100 h-2.5 rounded-full mb-6 overflow-hidden">
-              <div 
+              <div
                 className="bg-[#003399] h-full transition-all duration-300 ease-out"
                 style={{ width: `${((currentIndex + 1) / currentQuestions.length) * 100}%` }}
               ></div>
@@ -410,7 +380,8 @@ useEffect(() => {
             <div className="flex gap-2 mb-4">
               <span className={`text-[10px] font-black px-3 py-1 rounded-lg shadow-sm border ${
                 currentQuestions[currentIndex].level === 'C1' ? 'bg-purple-50 text-purple-700 border-purple-200' :
-                currentQuestions[currentIndex].level === 'B2' ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-green-50 text-green-700 border-green-200'
+                currentQuestions[currentIndex].level === 'B2' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                'bg-green-50 text-green-700 border-green-200'
               }`}>
                 LEVEL: {currentQuestions[currentIndex].level}
               </span>
@@ -425,10 +396,10 @@ useEffect(() => {
                   currentQuestions[currentIndex].example_sentence
                 )}
                 {currentQuestions[currentIndex].questionType === 'SYNONYM' && (
-                  <span>Select the <span className="text-[#003399] underline decoration-[#FFD700] decoration-4">SYNONYM</span> for: <br/>"{currentQuestions[currentIndex].synonym}"</span>
+                  <span>Select the <span className="text-[#003399] underline decoration-[#FFD700] decoration-4">SYNONYM</span> for: <br/>&quot;{currentQuestions[currentIndex].synonym}&quot;</span>
                 )}
                 {currentQuestions[currentIndex].questionType === 'ANTONYM' && (
-                  <span>Select the <span className="text-red-600 underline decoration-[#FFD700] decoration-4">ANTONYM</span> for: <br/>"{currentQuestions[currentIndex].antonym}"</span>
+                  <span>Select the <span className="text-red-600 underline decoration-[#FFD700] decoration-4">ANTONYM</span> for: <br/>&quot;{currentQuestions[currentIndex].antonym}&quot;</span>
                 )}
               </h2>
               <div className="h-0.5 w-12 bg-[#FFD700] mx-auto mb-3"></div>
@@ -441,7 +412,6 @@ useEffect(() => {
               {options.map((option, idx) => {
                 const isCorrectChoice = option === currentQuestions[currentIndex].word;
                 let btnStyle = "border-gray-100 hover:border-[#003399] hover:bg-[#003399]/5 text-gray-800 bg-white font-bold shadow-sm";
-
                 if (isAnswered) {
                   if (isCorrectChoice) {
                     btnStyle = "bg-green-600 text-white border-green-600 font-black shadow-lg scale-[1.02]";
@@ -451,7 +421,6 @@ useEffect(() => {
                     btnStyle = "bg-gray-50 text-gray-300 border-gray-100 opacity-50 cursor-not-allowed";
                   }
                 }
-
                 return (
                   <button
                     key={idx}
@@ -477,6 +446,7 @@ useEffect(() => {
           </div>
         )}
 
+        {/* ── หน้า สรุปผล ── */}
         {gameState === 'END' && (
           <div className="text-center animate-fadeIn">
             <div className="w-24 h-24 bg-[#FFD700]/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
@@ -484,13 +454,13 @@ useEffect(() => {
             </div>
             <h2 className="text-3xl font-black text-gray-900 mb-2">Round Finished!</h2>
             <p className="text-[#003399] font-black mb-6 bg-[#003399]/5 py-2 px-6 rounded-full inline-block">{studentName}</p>
-            
+
             {cheatWarnings > 0 && (
               <div className="bg-red-50 text-red-700 p-4 rounded-2xl text-sm font-black mb-6 border-2 border-red-100 animate-bounce">
                 ⚠️ SECURITY ALERT: Switched tabs {cheatWarnings} times.
               </div>
             )}
-            
+
             <div className="bg-[#003399] rounded-[2.5rem] p-8 mb-8 shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
               <div className="text-xs font-black text-[#FFD700]/80 uppercase tracking-[0.3em] mb-2">Final Score</div>
@@ -506,7 +476,7 @@ useEffect(() => {
               <h3 className="text-xl font-black text-gray-800 mb-5 flex items-center gap-3">
                 <span className="bg-[#FFD700] text-[#003399] p-2 rounded-xl text-lg">📝</span> MISTAKE ANALYSIS
               </h3>
-              
+
               {wrongAnswers.length > 0 ? (
                 <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                   {wrongAnswers.map((item, idx) => (
