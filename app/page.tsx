@@ -13,7 +13,16 @@ type WordItem = {
 };
 
 type QuizQuestion = WordItem & {
-  questionType: 'SENTENCE' | 'SYNONYM' | 'ANTONYM';
+  questionType: 'SENTENCE' | 'SYNONYM' | 'ANTONYM' | 'WRITE';
+};
+
+// ผลตรวจประโยคจาก AI
+type AiResult = {
+  verdict: 'excellent' | 'good' | 'needs_work';
+  scoreOutOf5: number;
+  feedback_th: string;
+  corrected: string;
+  tip_th: string;
 };
 
 export default function Home() {
@@ -29,7 +38,12 @@ export default function Home() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [options, setOptions] = useState<string[]>([]);
 
-  const [wrongAnswers, setWrongAnswers] = useState<{question: QuizQuestion, selected: string}[]>([]);
+  const [wrongAnswers, setWrongAnswers] = useState<{question: QuizQuestion, selected: string, feedback?: AiResult}[]>([]);
+
+  // ── สเตตสำหรับโหมดแต่งประโยค (WRITE) ──
+  const [studentSentence, setStudentSentence] = useState('');
+  const [aiResult, setAiResult] = useState<AiResult | null>(null);
+  const [aiChecking, setAiChecking] = useState(false);
 
   const [score, setScore] = useState(0);
   const QUIZ_TIME_LIMIT = 20;
@@ -42,6 +56,8 @@ export default function Home() {
   const [cheatWarnings, setCheatWarnings] = useState(0);
 
   const TOTAL_QUESTIONS_PER_ROUND = 10;
+  const WRITE_MODE_QUESTIONS = 2;   // จำนวนข้อ "แต่งประโยค" ต่อรอบ (อยู่ท้ายสุด) — ปรับเลขนี้ได้
+  const WRITE_PASS_SCORE = 3;       // ได้ดาว >= ค่านี้ (จาก 5) ถือว่าตอบถูก
 
   const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwMmvxMfZZkIFsgeNndqMr7AmQVNADqR0SjywuccdiINPWgK4HafiJZoqmKTssEsCTGuA/exec";
   const SCHOOL_LOGO_URL = "/logo.png";
@@ -80,9 +96,10 @@ export default function Home() {
     };
   }, [gameState]);
 
-  // ── useEffect 3: จับเวลาแต่ละข้อ ──
+  // ── useEffect 3: จับเวลาแต่ละข้อ (ข้ามไปถ้าเป็นข้อแต่งประโยค WRITE) ──
   useEffect(() => {
     if (gameState !== 'QUIZ' || isAnswered) return;
+    if (currentQuestions[currentIndex]?.questionType === 'WRITE') return; // ข้อแต่งประโยคไม่จับเวลา
     if (timeLeft === 0) {
       handleAnswerSelection("Time Out");
       return;
@@ -91,7 +108,7 @@ export default function Home() {
       setTimeLeft((prev) => prev - 1);
     }, 1000);
     return () => clearInterval(timer);
-  }, [timeLeft, gameState, isAnswered]);
+  }, [timeLeft, gameState, isAnswered, currentIndex]);
 
   // ── useEffect 4: บล็อก DevTools (F12, Ctrl+Shift+I/J, Ctrl+U) ──
   useEffect(() => {
@@ -153,7 +170,11 @@ export default function Home() {
       selectedRoundWords = [...selectedRoundWords, ...shuffleAndPick(leftovers, 10 - selectedRoundWords.length)];
     }
 
-    const formattedQuestions: QuizQuestion[] = selectedRoundWords.map(item => {
+    const formattedQuestions: QuizQuestion[] = selectedRoundWords.map((item, i) => {
+      // ข้อท้ายสุด WRITE_MODE_QUESTIONS ข้อ ให้เป็นโหมดแต่งประโยค
+      if (i >= selectedRoundWords.length - WRITE_MODE_QUESTIONS) {
+        return { ...item, questionType: 'WRITE' as const };
+      }
       const availableTypes: ('SENTENCE' | 'SYNONYM' | 'ANTONYM')[] = ['SENTENCE'];
       if (item.synonym && item.synonym !== "-" && item.synonym.trim() !== "") availableTypes.push('SYNONYM');
       if (item.antonym && item.antonym !== "-" && item.antonym.trim() !== "") availableTypes.push('ANTONYM');
@@ -185,6 +206,9 @@ export default function Home() {
     setTimeLeft(QUIZ_TIME_LIMIT);
     setSelectedAnswer(null);
     setIsAnswered(false);
+    setStudentSentence('');
+    setAiResult(null);
+    setAiChecking(false);
   };
 
   const handleAnswerSelection = (answer: string) => {
@@ -207,6 +231,48 @@ export default function Home() {
       });
     } else {
       setWrongAnswers((prev) => [...prev, { question: currentQ, selected: answer }]);
+    }
+  };
+
+  // ── ส่งประโยคให้ AI ตรวจ (โหมด WRITE) ──
+  const handleSubmitSentence = async () => {
+    if (isAnswered || aiChecking || !studentSentence.trim()) return;
+    setAiChecking(true);
+    const currentQ = currentQuestions[currentIndex];
+    try {
+      const res = await fetch('/api/check-sentence', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          word: currentQ.word,
+          thai: currentQ.thai_meaning,
+          definition: currentQ.eng_definition,
+          sentence: studentSentence.trim(),
+        }),
+      });
+      const result: AiResult = await res.json();
+      setAiResult(result);
+      setIsAnswered(true);
+
+      const passed = (result.scoreOutOf5 || 0) >= WRITE_PASS_SCORE;
+      if (passed) {
+        setScore((prev) => prev + 1);
+        setMasteredWords((prev) => {
+          if (!prev.includes(currentQ.word)) {
+            const updated = [...prev, currentQ.word];
+            localStorage.setItem('vocab_mastered_progress', JSON.stringify(updated));
+            return updated;
+          }
+          return prev;
+        });
+      } else {
+        setWrongAnswers((prev) => [...prev, { question: currentQ, selected: studentSentence.trim(), feedback: result }]);
+      }
+    } catch (e) {
+      console.error('check-sentence error:', e);
+      alert('⚠️ ตรวจประโยคไม่สำเร็จ กรุณาลองกดส่งใหม่อีกครั้งครับ');
+    } finally {
+      setAiChecking(false);
     }
   };
 
@@ -365,9 +431,15 @@ export default function Home() {
               <span className="text-sm font-black px-4 py-2 bg-[#003399] rounded-xl text-[#FFD700] shadow-sm">
                 Q {currentIndex + 1} / {currentQuestions.length}
               </span>
-              <span className={`text-base font-black px-5 py-2 rounded-xl border-2 ${timeLeft <= 5 ? 'bg-red-50 text-red-600 border-red-200 animate-pulse' : 'bg-blue-50 text-[#003399] border-[#003399]/20'}`}>
-                ⏱️ {timeLeft} s
-              </span>
+              {currentQuestions[currentIndex].questionType === 'WRITE' ? (
+                <span className="text-base font-black px-5 py-2 rounded-xl border-2 bg-[#FFD700]/20 text-[#003399] border-[#FFD700]/40">
+                  ✍️ แต่งประโยค
+                </span>
+              ) : (
+                <span className={`text-base font-black px-5 py-2 rounded-xl border-2 ${timeLeft <= 5 ? 'bg-red-50 text-red-600 border-red-200 animate-pulse' : 'bg-blue-50 text-[#003399] border-[#003399]/20'}`}>
+                  ⏱️ {timeLeft} s
+                </span>
+              )}
             </div>
 
             <div className="w-full bg-gray-100 h-2.5 rounded-full mb-6 overflow-hidden">
@@ -401,6 +473,9 @@ export default function Home() {
                 {currentQuestions[currentIndex].questionType === 'ANTONYM' && (
                   <span>Select the <span className="text-red-600 underline decoration-[#FFD700] decoration-4">ANTONYM</span> for: <br/>&quot;{currentQuestions[currentIndex].antonym}&quot;</span>
                 )}
+                {currentQuestions[currentIndex].questionType === 'WRITE' && (
+                  <span>แต่งประโยคภาษาอังกฤษ 1 ประโยค โดยใช้คำว่า <br/><span className="text-[#003399] underline decoration-[#FFD700] decoration-4">{currentQuestions[currentIndex].word}</span></span>
+                )}
               </h2>
               <div className="h-0.5 w-12 bg-[#FFD700] mx-auto mb-3"></div>
               <p className="text-xs text-gray-400 italic text-center font-medium">
@@ -408,32 +483,93 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-3">
-              {options.map((option, idx) => {
-                const isCorrectChoice = option === currentQuestions[currentIndex].word;
-                let btnStyle = "border-gray-100 hover:border-[#003399] hover:bg-[#003399]/5 text-gray-800 bg-white font-bold shadow-sm";
-                if (isAnswered) {
-                  if (isCorrectChoice) {
-                    btnStyle = "bg-green-600 text-white border-green-600 font-black shadow-lg scale-[1.02]";
-                  } else if (selectedAnswer === option) {
-                    btnStyle = "bg-red-600 text-white border-red-600 shadow-lg opacity-90";
-                  } else {
-                    btnStyle = "bg-gray-50 text-gray-300 border-gray-100 opacity-50 cursor-not-allowed";
-                  }
-                }
-                return (
+            {currentQuestions[currentIndex].questionType === 'WRITE' ? (
+              <div>
+                {/* ช่วยจำ: คำแปลไทย */}
+                <div className="text-center text-sm font-bold text-gray-500 mb-3">
+                  ความหมาย: <span className="text-[#003399]">{currentQuestions[currentIndex].thai_meaning}</span>
+                </div>
+                <textarea
+                  value={studentSentence}
+                  onChange={(e) => setStudentSentence(e.target.value)}
+                  disabled={isAnswered}
+                  rows={3}
+                  maxLength={300}
+                  placeholder={`เช่น: They had to ${currentQuestions[currentIndex].word} ...`}
+                  className="w-full p-4 border-2 border-gray-100 rounded-2xl focus:outline-none focus:border-[#FFD700] focus:ring-2 focus:ring-[#FFD700]/20 bg-gray-50/50 transition-all text-base resize-none disabled:opacity-70"
+                />
+                {!isAnswered && (
                   <button
-                    key={idx}
-                    onClick={() => handleAnswerSelection(option)}
-                    disabled={isAnswered}
-                    className={`w-full p-4 border-2 rounded-2xl text-left text-base md:text-lg transition-all duration-200 flex items-center justify-between ${btnStyle}`}
+                    onClick={handleSubmitSentence}
+                    disabled={aiChecking || !studentSentence.trim()}
+                    className="w-full mt-3 py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl hover:bg-[#002266] disabled:bg-gray-300 disabled:text-gray-500 transition-all duration-150 text-lg uppercase tracking-widest"
                   >
-                    <span>{option}</span>
-                    {isAnswered && isCorrectChoice && <span className="text-[#FFD700]">✓</span>}
+                    {aiChecking ? "⏳ AI กำลังตรวจ..." : "✨ ส่งให้ AI ตรวจ"}
                   </button>
-                );
-              })}
-            </div>
+                )}
+
+                {/* ผลตรวจจาก AI */}
+                {aiResult && (
+                  <div className="mt-4 space-y-3 animate-fadeIn">
+                    <div className={`flex items-center justify-between p-4 rounded-2xl border-2 ${
+                      aiResult.verdict === 'excellent' ? 'bg-green-50 border-green-300 text-green-700' :
+                      aiResult.verdict === 'good' ? 'bg-yellow-50 border-yellow-300 text-yellow-700' :
+                      'bg-red-50 border-red-300 text-red-700'
+                    }`}>
+                      <span className="font-black">
+                        {aiResult.verdict === 'excellent' ? '🌟 ยอดเยี่ยม!' : aiResult.verdict === 'good' ? '👍 ดีแล้ว เกือบสมบูรณ์' : '📝 ลองปรับอีกนิด'}
+                      </span>
+                      <span className="text-lg tracking-tight">
+                        {[1,2,3,4,5].map(n => (
+                          <span key={n} style={{ color: n <= (aiResult.scoreOutOf5 || 0) ? '#FFD700' : '#d1d5db' }}>★</span>
+                        ))}
+                      </span>
+                    </div>
+                    <div className="p-4 rounded-2xl bg-gray-50 text-sm text-gray-700 leading-relaxed">
+                      {aiResult.feedback_th}
+                    </div>
+                    {aiResult.corrected && (
+                      <div className="p-4 rounded-2xl bg-[#003399]/5 border border-[#003399]/10">
+                        <div className="text-[10px] font-black uppercase tracking-wider text-[#003399] mb-1">ประโยคที่ปรับให้ดีขึ้น</div>
+                        <div className="text-base text-gray-800">&quot;{aiResult.corrected}&quot;</div>
+                      </div>
+                    )}
+                    {aiResult.tip_th && (
+                      <div className="p-4 rounded-2xl bg-[#FFD700]/15 border border-[#FFD700]/40 text-sm text-[#92400e]">
+                        💡 {aiResult.tip_th}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-3">
+                {options.map((option, idx) => {
+                  const isCorrectChoice = option === currentQuestions[currentIndex].word;
+                  let btnStyle = "border-gray-100 hover:border-[#003399] hover:bg-[#003399]/5 text-gray-800 bg-white font-bold shadow-sm";
+                  if (isAnswered) {
+                    if (isCorrectChoice) {
+                      btnStyle = "bg-green-600 text-white border-green-600 font-black shadow-lg scale-[1.02]";
+                    } else if (selectedAnswer === option) {
+                      btnStyle = "bg-red-600 text-white border-red-600 shadow-lg opacity-90";
+                    } else {
+                      btnStyle = "bg-gray-50 text-gray-300 border-gray-100 opacity-50 cursor-not-allowed";
+                    }
+                  }
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => handleAnswerSelection(option)}
+                      disabled={isAnswered}
+                      className={`w-full p-4 border-2 rounded-2xl text-left text-base md:text-lg transition-all duration-200 flex items-center justify-between ${btnStyle}`}
+                    >
+                      <span>{option}</span>
+                      {isAnswered && isCorrectChoice && <span className="text-[#FFD700]">✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
             {isAnswered && (
               <button
@@ -488,16 +624,31 @@ export default function Home() {
                         {item.question.questionType === 'SENTENCE' && item.question.example_sentence}
                         {item.question.questionType === 'SYNONYM' && `Synonym for: "${item.question.synonym}"`}
                         {item.question.questionType === 'ANTONYM' && `Antonym for: "${item.question.antonym}"`}
+                        {item.question.questionType === 'WRITE' && `แต่งประโยคด้วยคำว่า "${item.question.word}"`}
                       </h4>
-                      <div className="text-sm space-y-2 mt-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                        <p className="text-red-500 font-bold">❌ Your Pick: <span className="line-through">{item.selected === "Time Out" ? "Time Out" : item.selected}</span></p>
-                        <p className="text-green-600 font-black">✅ Correct: {item.question.word}</p>
-                        <div className="pt-2 mt-2 border-t border-gray-200">
-                          <p className="text-gray-500 text-[11px] leading-relaxed">
-                            <span className="font-bold text-gray-700">MEANING:</span> {item.question.thai_meaning}
-                          </p>
+                      {item.question.questionType === 'WRITE' ? (
+                        <div className="text-sm space-y-2 mt-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                          <p className="text-red-500 font-bold">📝 ประโยคของคุณ: <span className="font-normal text-gray-700">&quot;{item.selected}&quot;</span></p>
+                          {item.feedback?.corrected && (
+                            <p className="text-green-600 font-black">✅ ปรับเป็น: <span className="font-normal">&quot;{item.feedback.corrected}&quot;</span></p>
+                          )}
+                          {item.feedback?.feedback_th && (
+                            <div className="pt-2 mt-2 border-t border-gray-200">
+                              <p className="text-gray-500 text-[11px] leading-relaxed">{item.feedback.feedback_th}</p>
+                            </div>
+                          )}
                         </div>
-                      </div>
+                      ) : (
+                        <div className="text-sm space-y-2 mt-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                          <p className="text-red-500 font-bold">❌ Your Pick: <span className="line-through">{item.selected === "Time Out" ? "Time Out" : item.selected}</span></p>
+                          <p className="text-green-600 font-black">✅ Correct: {item.question.word}</p>
+                          <div className="pt-2 mt-2 border-t border-gray-200">
+                            <p className="text-gray-500 text-[11px] leading-relaxed">
+                              <span className="font-bold text-gray-700">MEANING:</span> {item.question.thai_meaning}
+                            </p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
