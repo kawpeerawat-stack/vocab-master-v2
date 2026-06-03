@@ -10,6 +10,11 @@ import {
   pickRound,
   computeStats,
 } from './lib/srs';
+import {
+  checkTypedAnswer,
+  pickSmartDistractors,
+  chooseQuestionType,
+} from './lib/quiz';
 
 type WordItem = {
   word: string;
@@ -22,7 +27,7 @@ type WordItem = {
 };
 
 type QuizQuestion = WordItem & {
-  questionType: 'SENTENCE' | 'SYNONYM' | 'ANTONYM' | 'WRITE';
+  questionType: 'SENTENCE' | 'SYNONYM' | 'ANTONYM' | 'WRITE' | 'TYPE' | 'LISTEN';
 };
 
 // ผลตรวจประโยคจาก AI
@@ -54,6 +59,9 @@ export default function Home() {
   const [studentSentence, setStudentSentence] = useState('');
   const [aiResult, setAiResult] = useState<AiResult | null>(null);
   const [aiChecking, setAiChecking] = useState(false);
+
+  // ── สเตตสำหรับโหมดพิมพ์คำเอง / ฟังเสียง (TYPE, LISTEN) ──
+  const [typedAnswer, setTypedAnswer] = useState('');
 
   const [score, setScore] = useState(0);
   const QUIZ_TIME_LIMIT = 20;
@@ -97,10 +105,11 @@ export default function Home() {
     };
   }, [gameState]);
 
-  // ── useEffect 3: จับเวลาแต่ละข้อ (ข้ามไปถ้าเป็นข้อแต่งประโยค WRITE) ──
+  // ── useEffect 3: จับเวลาแต่ละข้อ (ข้ามไปถ้าเป็นโหมดนึกเอง: WRITE/TYPE/LISTEN) ──
   useEffect(() => {
     if (gameState !== 'QUIZ' || isAnswered) return;
-    if (currentQuestions[currentIndex]?.questionType === 'WRITE') return; // ข้อแต่งประโยคไม่จับเวลา
+    const qt = currentQuestions[currentIndex]?.questionType;
+    if (qt === 'WRITE' || qt === 'TYPE' || qt === 'LISTEN') return; // โหมดนึกเองไม่จับเวลา
     if (timeLeft === 0) {
       handleAnswerSelection("Time Out");
       return;
@@ -110,6 +119,30 @@ export default function Home() {
     }, 1000);
     return () => clearInterval(timer);
   }, [timeLeft, gameState, isAnswered, currentIndex]);
+
+  // ── อ่านออกเสียงคำ (ใช้เสียงในเบราว์เซอร์ ฟรี) สำหรับโหมดฟังเสียง ──
+  const speakWord = (word: string) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(word);
+      u.lang = 'en-US';
+      u.rate = 0.9;
+      window.speechSynthesis.speak(u);
+    } catch (e) {
+      console.error('speak error:', e);
+    }
+  };
+
+  // ── useEffect: เล่นเสียงอัตโนมัติเมื่อถึงข้อแบบฟังเสียง ──
+  useEffect(() => {
+    if (gameState !== 'QUIZ') return;
+    const q = currentQuestions[currentIndex];
+    if (q?.questionType === 'LISTEN' && !isAnswered) {
+      const t = setTimeout(() => speakWord(q.word), 350);
+      return () => clearTimeout(t);
+    }
+  }, [gameState, currentIndex, currentQuestions, isAnswered]);
 
   // ── useEffect 4: บล็อก DevTools (F12, Ctrl+Shift+I/J, Ctrl+U) ──
   useEffect(() => {
@@ -174,11 +207,13 @@ export default function Home() {
       if (i >= selectedRoundWords.length - WRITE_MODE_QUESTIONS) {
         return { ...item, questionType: 'WRITE' as const };
       }
-      const availableTypes: ('SENTENCE' | 'SYNONYM' | 'ANTONYM')[] = ['SENTENCE'];
-      if (item.synonym && item.synonym !== "-" && item.synonym.trim() !== "") availableTypes.push('SYNONYM');
-      if (item.antonym && item.antonym !== "-" && item.antonym.trim() !== "") availableTypes.push('ANTONYM');
-      const randomType = availableTypes[Math.floor(Math.random() * availableTypes.length)];
-      return { ...item, questionType: randomType };
+      // เลือกชนิดคำถามตามระดับความคุ้นของคำ (กล่อง SRS):
+      // คำใหม่/กล่องต่ำ → เลือกตอบ, คำที่เริ่มจำได้ → พิมพ์เอง/ฟังเสียง
+      const box = srsStore[item.word] ? srsStore[item.word].box : -1;
+      const hasSynonym = Boolean(item.synonym && item.synonym !== "-" && item.synonym.trim() !== "");
+      const hasAntonym = Boolean(item.antonym && item.antonym !== "-" && item.antonym.trim() !== "");
+      const qType = chooseQuestionType(box, { hasSynonym, hasAntonym });
+      return { ...item, questionType: qType };
     });
 
     setCurrentQuestions(formattedQuestions);
@@ -192,12 +227,14 @@ export default function Home() {
   };
 
   const generateOptionsForQuestion = (correctItem: WordItem, allItems: WordItem[]) => {
-    let wrongOptionsPool = allItems.filter(item => item.word !== correctItem.word && item.level === correctItem.level);
-    if (wrongOptionsPool.length < 3) {
-      wrongOptionsPool = allItems.filter(item => item.word !== correctItem.word);
+    // หา pool คำระดับเดียวกันก่อน (ถ้าไม่พอค่อยใช้ทั้งคลัง)
+    let pool = allItems.filter(item => item.word !== correctItem.word && item.level === correctItem.level);
+    if (pool.length < 3) {
+      pool = allItems.filter(item => item.word !== correctItem.word);
     }
-    const shuffledWrong = wrongOptionsPool.sort(() => 0.5 - Math.random()).slice(0, 3);
-    const finalChoices = [correctItem.word, ...shuffledWrong.map(item => item.word)];
+    // เลือกตัวลวงที่ "ชวนสับสน" กับคำตอบ (สะกด/ความยาว/ตัวขึ้นต้นใกล้กัน)
+    const distractors = pickSmartDistractors(correctItem.word, pool.map(p => p.word), 3);
+    const finalChoices = [correctItem.word, ...distractors];
     setOptions(finalChoices.sort(() => 0.5 - Math.random()));
   };
 
@@ -208,6 +245,7 @@ export default function Home() {
     setStudentSentence('');
     setAiResult(null);
     setAiChecking(false);
+    setTypedAnswer('');
   };
 
   const handleAnswerSelection = (answer: string) => {
@@ -225,6 +263,22 @@ export default function Home() {
       // ตอบผิด/หมดเวลา → SRS จะพาคำนี้กลับมาทบทวนเร็ว ๆ
       recordSrsResult(correctWord, false);
       setWrongAnswers((prev) => [...prev, { question: currentQ, selected: answer }]);
+    }
+  };
+
+  // ── ตรวจคำที่นักเรียนพิมพ์เอง (โหมด TYPE / LISTEN) ──
+  const handleSubmitTyped = () => {
+    if (isAnswered || !typedAnswer.trim()) return;
+    const currentQ = currentQuestions[currentIndex];
+    const { correct } = checkTypedAnswer(typedAnswer, currentQ.word);
+    setSelectedAnswer(typedAnswer.trim());
+    setIsAnswered(true);
+    if (correct) {
+      setScore((prev) => prev + 1);
+      recordSrsResult(currentQ.word, true);
+    } else {
+      recordSrsResult(currentQ.word, false);
+      setWrongAnswers((prev) => [...prev, { question: currentQ, selected: typedAnswer.trim() }]);
     }
   };
 
@@ -439,15 +493,23 @@ export default function Home() {
               <span className="text-sm font-black px-4 py-2 bg-[#003399] rounded-xl text-[#FFD700] shadow-sm">
                 Q {currentIndex + 1} / {currentQuestions.length}
               </span>
-              {currentQuestions[currentIndex].questionType === 'WRITE' ? (
-                <span className="text-base font-black px-5 py-2 rounded-xl border-2 bg-[#FFD700]/20 text-[#003399] border-[#FFD700]/40">
-                  ✍️ แต่งประโยค
-                </span>
-              ) : (
-                <span className={`text-base font-black px-5 py-2 rounded-xl border-2 ${timeLeft <= 5 ? 'bg-red-50 text-red-600 border-red-200 animate-pulse' : 'bg-blue-50 text-[#003399] border-[#003399]/20'}`}>
-                  ⏱️ {timeLeft} s
-                </span>
-              )}
+              {(() => {
+                const qt = currentQuestions[currentIndex].questionType;
+                if (qt === 'WRITE') return (
+                  <span className="text-base font-black px-5 py-2 rounded-xl border-2 bg-[#FFD700]/20 text-[#003399] border-[#FFD700]/40">✍️ แต่งประโยค</span>
+                );
+                if (qt === 'TYPE') return (
+                  <span className="text-base font-black px-5 py-2 rounded-xl border-2 bg-[#FFD700]/20 text-[#003399] border-[#FFD700]/40">⌨️ พิมพ์คำ</span>
+                );
+                if (qt === 'LISTEN') return (
+                  <span className="text-base font-black px-5 py-2 rounded-xl border-2 bg-[#FFD700]/20 text-[#003399] border-[#FFD700]/40">🎧 ฟังเสียง</span>
+                );
+                return (
+                  <span className={`text-base font-black px-5 py-2 rounded-xl border-2 ${timeLeft <= 5 ? 'bg-red-50 text-red-600 border-red-200 animate-pulse' : 'bg-blue-50 text-[#003399] border-[#003399]/20'}`}>
+                    ⏱️ {timeLeft} s
+                  </span>
+                );
+              })()}
             </div>
 
             <div className="w-full bg-gray-100 h-2.5 rounded-full mb-6 overflow-hidden">
@@ -484,11 +546,31 @@ export default function Home() {
                 {currentQuestions[currentIndex].questionType === 'WRITE' && (
                   <span>แต่งประโยคภาษาอังกฤษ 1 ประโยค โดยใช้คำว่า <br/><span className="text-[#003399] underline decoration-[#FFD700] decoration-4">{currentQuestions[currentIndex].word}</span></span>
                 )}
+                {currentQuestions[currentIndex].questionType === 'TYPE' && (
+                  <span>พิมพ์คำศัพท์ภาษาอังกฤษที่แปลว่า <br/><span className="text-[#003399] underline decoration-[#FFD700] decoration-4">{currentQuestions[currentIndex].thai_meaning}</span></span>
+                )}
+                {currentQuestions[currentIndex].questionType === 'LISTEN' && (
+                  <span className="flex flex-col items-center gap-3">
+                    <span>ฟังเสียงแล้วพิมพ์คำที่ได้ยิน</span>
+                    <button
+                      type="button"
+                      onClick={() => speakWord(currentQuestions[currentIndex].word)}
+                      className="text-3xl bg-[#003399] text-[#FFD700] w-16 h-16 rounded-full flex items-center justify-center hover:bg-[#002266] transition-all shadow-lg active:scale-95"
+                      aria-label="เล่นเสียงอีกครั้ง"
+                    >🔊</button>
+                    <span className="text-[11px] text-gray-400 font-medium normal-case">กดเพื่อฟังอีกครั้ง</span>
+                  </span>
+                )}
               </h2>
-              <div className="h-0.5 w-12 bg-[#FFD700] mx-auto mb-3"></div>
-              <p className="text-xs text-gray-400 italic text-center font-medium">
-                {currentQuestions[currentIndex].eng_definition}
-              </p>
+              {/* แสดงคำใบ้ความหมายเฉพาะโหมดพิมพ์คำ (โหมดเลือกตอบ/ฟังเสียงซ่อนไว้กันเฉลย) */}
+              {currentQuestions[currentIndex].questionType === 'TYPE' && (
+                <>
+                  <div className="h-0.5 w-12 bg-[#FFD700] mx-auto mb-3"></div>
+                  <p className="text-xs text-gray-400 italic text-center font-medium">
+                    {currentQuestions[currentIndex].eng_definition}
+                  </p>
+                </>
+              )}
             </div>
 
             {currentQuestions[currentIndex].questionType === 'WRITE' ? (
@@ -549,6 +631,42 @@ export default function Home() {
                     )}
                   </div>
                 )}
+              </div>
+            ) : (currentQuestions[currentIndex].questionType === 'TYPE' || currentQuestions[currentIndex].questionType === 'LISTEN') ? (
+              <div>
+                <input
+                  type="text"
+                  value={typedAnswer}
+                  onChange={(e) => setTypedAnswer(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleSubmitTyped(); }}
+                  disabled={isAnswered}
+                  autoFocus
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck={false}
+                  placeholder="พิมพ์คำภาษาอังกฤษ..."
+                  className="w-full p-4 border-2 border-gray-100 rounded-2xl text-center text-2xl font-black tracking-wide focus:outline-none focus:border-[#FFD700] focus:ring-2 focus:ring-[#FFD700]/20 bg-gray-50/50 transition-all disabled:opacity-70"
+                />
+                {!isAnswered && (
+                  <button
+                    onClick={handleSubmitTyped}
+                    disabled={!typedAnswer.trim()}
+                    className="w-full mt-3 py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl hover:bg-[#002266] disabled:bg-gray-300 disabled:text-gray-500 transition-all duration-150 text-lg uppercase tracking-widest"
+                  >
+                    ✅ ส่งคำตอบ
+                  </button>
+                )}
+                {isAnswered && (() => {
+                  const isOk = checkTypedAnswer(selectedAnswer || '', currentQuestions[currentIndex].word).correct;
+                  return (
+                    <div className={`mt-4 p-4 rounded-2xl border-2 animate-fadeIn ${isOk ? 'bg-green-50 border-green-300 text-green-700' : 'bg-red-50 border-red-300 text-red-700'}`}>
+                      <div className="font-black mb-2">{isOk ? '✅ ถูกต้อง!' : '❌ ยังไม่ถูก'}</div>
+                      <div className="text-sm text-gray-700">คำที่ถูกต้องคือ: <span className="font-black text-[#003399]">{currentQuestions[currentIndex].word}</span></div>
+                      <div className="text-xs text-gray-500 mt-1 italic">{currentQuestions[currentIndex].thai_meaning} — {currentQuestions[currentIndex].eng_definition}</div>
+                    </div>
+                  );
+                })()}
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-3">
@@ -633,6 +751,8 @@ export default function Home() {
                         {item.question.questionType === 'SYNONYM' && `Synonym for: "${item.question.synonym}"`}
                         {item.question.questionType === 'ANTONYM' && `Antonym for: "${item.question.antonym}"`}
                         {item.question.questionType === 'WRITE' && `แต่งประโยคด้วยคำว่า "${item.question.word}"`}
+                        {item.question.questionType === 'TYPE' && `พิมพ์คำที่แปลว่า "${item.question.thai_meaning}"`}
+                        {item.question.questionType === 'LISTEN' && `ฟังเสียงแล้วพิมพ์คำ`}
                       </h4>
                       {item.question.questionType === 'WRITE' ? (
                         <div className="text-sm space-y-2 mt-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
