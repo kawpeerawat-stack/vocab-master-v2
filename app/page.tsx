@@ -37,6 +37,7 @@ type AiResult = {
   feedback_th: string;
   corrected: string;
   tip_th: string;
+  unavailable?: boolean; // true = AI ตรวจไม่ได้ (เช่นยังไม่ได้ตั้งค่า API key) → ข้อนี้ไม่นับ
 };
 
 export default function Home() {
@@ -298,6 +299,20 @@ export default function Home() {
           sentence: studentSentence.trim(),
         }),
       });
+      // ถ้า AI ตรวจไม่ได้ (เช่น 500 เพราะยังไม่ได้ตั้งค่า ANTHROPIC_API_KEY)
+      // → ไม่นับคะแนน ไม่ลดกล่อง SRS ไม่นับเป็นข้อผิด
+      if (!res.ok) {
+        setAiResult({
+          verdict: 'needs_work',
+          scoreOutOf5: 0,
+          feedback_th: 'ระบบ AI ตรวจประโยคยังไม่พร้อมใช้งานตอนนี้ ข้อนี้จึงไม่ถูกนับคะแนนและไม่กระทบความก้าวหน้าของคุณ',
+          corrected: '',
+          tip_th: '',
+          unavailable: true,
+        });
+        setIsAnswered(true);
+        return;
+      }
       const result: AiResult = await res.json();
       setAiResult(result);
       setIsAnswered(true);
@@ -599,7 +614,12 @@ export default function Home() {
                 )}
 
                 {/* ผลตรวจจาก AI */}
-                {aiResult && (
+                {aiResult && aiResult.unavailable && (
+                  <div className="mt-4 p-4 rounded-2xl border-2 bg-gray-50 border-gray-200 text-gray-600 text-sm animate-fadeIn">
+                    ⚠️ {aiResult.feedback_th}
+                  </div>
+                )}
+                {aiResult && !aiResult.unavailable && (
                   <div className="mt-4 space-y-3 animate-fadeIn">
                     <div className={`flex items-center justify-between p-4 rounded-2xl border-2 ${
                       aiResult.verdict === 'excellent' ? 'bg-green-50 border-green-300 text-green-700' :
