@@ -74,20 +74,42 @@ Respond with ONLY a JSON object (no markdown, no backticks, no extra text) in ex
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        // ใช้รุ่น Haiku — ถูกและเร็ว เหมาะกับงานตรวจประโยคสั้น ๆ
+        // (อยากได้ผลละเอียดขึ้นเปลี่ยนกลับเป็น "claude-sonnet-4-5" ได้)
+        model: "claude-haiku-4-5-20251001",
         max_tokens: 1000,
         messages: [{ role: "user", content: prompt }],
       }),
     });
 
     const data = await res.json();
+
+    // ถ้า Anthropic ตอบกลับเป็น error (เช่น เครดิตหมด / ชื่อรุ่นผิด / คีย์ไม่ถูก)
+    // ให้ดึงข้อความจริงมาโชว์ใน log + ส่งกลับ จะได้รู้สาเหตุชัด ๆ
+    if (!res.ok || data?.type === "error") {
+      const msg = data?.error?.message || `HTTP ${res.status}`;
+      console.error("Anthropic API error:", res.status, JSON.stringify(data));
+      return NextResponse.json({ error: `เรียก AI ไม่สำเร็จ: ${msg}` }, { status: 502 });
+    }
+
     const text = (data.content || [])
       .map((b: { type: string; text?: string }) => (b.type === "text" ? b.text : ""))
       .join("")
       .trim();
 
-    const clean = text.replace(/```json|```/g, "").trim();
-    const result = JSON.parse(clean);
+    if (!text) {
+      console.error("Anthropic returned empty content:", JSON.stringify(data));
+      return NextResponse.json({ error: "AI ไม่ได้ส่งข้อความกลับ" }, { status: 502 });
+    }
+
+    let result;
+    try {
+      const clean = text.replace(/```json|```/g, "").trim();
+      result = JSON.parse(clean);
+    } catch {
+      console.error("Failed to parse AI JSON. Raw text:", text);
+      return NextResponse.json({ error: "AI ตอบกลับไม่เป็นรูปแบบที่อ่านได้" }, { status: 502 });
+    }
     return NextResponse.json(result);
   } catch (error) {
     console.error("check-sentence error:", error);
