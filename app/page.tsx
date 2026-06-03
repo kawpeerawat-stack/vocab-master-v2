@@ -1,6 +1,15 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import {
+  SrsStore,
+  loadStore,
+  saveStore,
+  migrateLegacyIfNeeded,
+  review as srsReview,
+  pickRound,
+  computeStats,
+} from './lib/srs';
 
 type WordItem = {
   word: string;
@@ -32,7 +41,8 @@ export default function Home() {
   const [studentName, setStudentName] = useState('');
   const [email, setEmail] = useState('');
 
-  const [masteredWords, setMasteredWords] = useState<string[]>([]);
+  // ── คลังความก้าวหน้าแบบ SRS (แทนระบบ masteredWords เดิม) ──
+  const [srsStore, setSrsStore] = useState<SrsStore>({});
   const [vocabData, setVocabData] = useState<WordItem[]>([]);
   const [currentQuestions, setCurrentQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -62,7 +72,7 @@ export default function Home() {
   const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwMmvxMfZZkIFsgeNndqMr7AmQVNADqR0SjywuccdiINPWgK4HafiJZoqmKTssEsCTGuA/exec";
   const SCHOOL_LOGO_URL = "/logo.png";
 
-  // ── useEffect 1: โหลด vocab จาก API + โหลด localStorage ──
+  // ── useEffect 1: โหลด vocab จาก API ──
   useEffect(() => {
     fetch('/api/vocab')
       .then((res) => {
@@ -71,15 +81,6 @@ export default function Home() {
       })
       .then((data) => setVocabData(data))
       .catch((err) => console.error("Error loading vocab:", err));
-
-    const savedMastered = localStorage.getItem('vocab_mastered_progress');
-    if (savedMastered) {
-      try {
-        setMasteredWords(JSON.parse(savedMastered));
-      } catch (e) {
-        console.error(e);
-      }
-    }
   }, []);
 
   // ── useEffect 2: ตรวจจับการสลับแท็บ ──
@@ -129,6 +130,10 @@ export default function Home() {
   const handleStudentLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (studentName.trim() && email.trim() && email.includes('@')) {
+      // โหลดความก้าวหน้า SRS ของนักเรียนคนนี้ (แยกตามอีเมล) + ย้ายข้อมูลระบบเก่าถ้ามี
+      let store = loadStore(email);
+      store = migrateLegacyIfNeeded(email, store);
+      setSrsStore(store);
       setIsLoggedIn(true);
     }
   };
@@ -137,7 +142,17 @@ export default function Home() {
     setIsLoggedIn(false);
     setStudentName('');
     setEmail('');
+    setSrsStore({});
     setGameState('START');
+  };
+
+  // ── บันทึกผลการตอบ 1 ข้อ ลง SRS แล้วเซฟ (ใช้ทั้งข้อเลือกตอบและข้อแต่งประโยค) ──
+  const recordSrsResult = (word: string, correct: boolean) => {
+    setSrsStore((prev) => {
+      const updated = { ...prev, [word]: srsReview(prev[word], correct) };
+      saveStore(email, updated);
+      return updated;
+    });
   };
 
   const startNewQuizRound = () => {
@@ -146,29 +161,13 @@ export default function Home() {
       return;
     }
 
-    const unmasteredWords = vocabData.filter(w => !masteredWords.includes(w.word));
-    const poolToUse = unmasteredWords.length >= 10 ? unmasteredWords : vocabData;
-
-    const b1Words = poolToUse.filter(w => w.level === 'B1');
-    const b2Words = poolToUse.filter(w => w.level === 'B2');
-    const c1Words = poolToUse.filter(w => w.level === 'C1');
-
-    const shuffleAndPick = (array: WordItem[], count: number) => {
-      const shuffled = [...array].sort(() => 0.5 - Math.random());
-      return shuffled.slice(0, count);
-    };
-
-    let selectedRoundWords = [
-      ...shuffleAndPick(b1Words.length > 0 ? b1Words : poolToUse, 4),
-      ...shuffleAndPick(b2Words.length > 0 ? b2Words : poolToUse, 4),
-      ...shuffleAndPick(c1Words.length > 0 ? c1Words : poolToUse, 2),
-    ];
-
-    if (selectedRoundWords.length < 10) {
-      const pickedWords = selectedRoundWords.map(w => w.word);
-      const leftovers = poolToUse.filter(w => !pickedWords.includes(w.word));
-      selectedRoundWords = [...selectedRoundWords, ...shuffleAndPick(leftovers, 10 - selectedRoundWords.length)];
-    }
+    // เลือกคำมาออกข้อสอบด้วย SRS: ผสมคำที่ "ถึงกำหนดทบทวน" + คำใหม่
+    // โดยยังคงบันไดความยาก B1(4) → B2(4) → C1(2) เดิม
+    const roundWords = pickRound(srsStore, vocabData, { total: TOTAL_QUESTIONS_PER_ROUND });
+    const wordMap = new Map(vocabData.map((w) => [w.word, w]));
+    const selectedRoundWords: WordItem[] = roundWords
+      .map((w) => wordMap.get(w))
+      .filter((w): w is WordItem => Boolean(w));
 
     const formattedQuestions: QuizQuestion[] = selectedRoundWords.map((item, i) => {
       // ข้อท้ายสุด WRITE_MODE_QUESTIONS ข้อ ให้เป็นโหมดแต่งประโยค
@@ -221,15 +220,10 @@ export default function Home() {
 
     if (answer === correctWord) {
       setScore((prev) => prev + 1);
-      setMasteredWords((prev) => {
-        if (!prev.includes(correctWord)) {
-          const updated = [...prev, correctWord];
-          localStorage.setItem('vocab_mastered_progress', JSON.stringify(updated));
-          return updated;
-        }
-        return prev;
-      });
+      recordSrsResult(correctWord, true);
     } else {
+      // ตอบผิด/หมดเวลา → SRS จะพาคำนี้กลับมาทบทวนเร็ว ๆ
+      recordSrsResult(correctWord, false);
       setWrongAnswers((prev) => [...prev, { question: currentQ, selected: answer }]);
     }
   };
@@ -257,15 +251,9 @@ export default function Home() {
       const passed = (result.scoreOutOf5 || 0) >= WRITE_PASS_SCORE;
       if (passed) {
         setScore((prev) => prev + 1);
-        setMasteredWords((prev) => {
-          if (!prev.includes(currentQ.word)) {
-            const updated = [...prev, currentQ.word];
-            localStorage.setItem('vocab_mastered_progress', JSON.stringify(updated));
-            return updated;
-          }
-          return prev;
-        });
+        recordSrsResult(currentQ.word, true);
       } else {
+        recordSrsResult(currentQ.word, false);
         setWrongAnswers((prev) => [...prev, { question: currentQ, selected: studentSentence.trim(), feedback: result }]);
       }
     } catch (e) {
@@ -311,8 +299,9 @@ export default function Home() {
   };
 
   const isVocabLoading = vocabData.length === 0;
-  const overallPercentage = vocabData.length > 0
-    ? ((masteredWords.length / vocabData.length) * 100).toFixed(1)
+  const srsStats = computeStats(srsStore, vocabData.map((w) => w.word));
+  const overallPercentage = srsStats.total > 0
+    ? ((srsStats.mastered / srsStats.total) * 100).toFixed(1)
     : "0.0";
 
   return (
@@ -392,8 +381,22 @@ export default function Home() {
                 ></div>
               </div>
               <div className="text-xs text-gray-600 font-bold flex justify-between">
-                <span>Mastered: <span className="text-[#003399]">{masteredWords.length}</span></span>
+                <span>Mastered: <span className="text-[#003399]">{srsStats.mastered}</span></span>
                 <span>Total: <span className="text-[#003399]">{vocabData.length} Words</span></span>
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                <div className="bg-white rounded-xl py-2 border border-[#003399]/10">
+                  <div className="text-lg font-black text-green-600">{srsStats.mastered}</div>
+                  <div className="text-[10px] font-bold text-gray-500 uppercase">จำได้แล้ว</div>
+                </div>
+                <div className="bg-white rounded-xl py-2 border border-[#003399]/10">
+                  <div className="text-lg font-black text-orange-500">{srsStats.learning}</div>
+                  <div className="text-[10px] font-bold text-gray-500 uppercase">กำลังเรียน</div>
+                </div>
+                <div className="bg-white rounded-xl py-2 border border-[#003399]/10">
+                  <div className="text-lg font-black text-[#003399]">{srsStats.dueNow}</div>
+                  <div className="text-[10px] font-bold text-gray-500 uppercase">ถึงกำหนดทวน</div>
+                </div>
               </div>
             </div>
 
@@ -410,9 +413,14 @@ export default function Home() {
             <div className="space-y-4">
               <button
                 onClick={startNewQuizRound}
-                className="w-full py-5 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 text-xl uppercase tracking-widest flex items-center justify-center gap-3"
+                className="w-full py-5 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 text-xl uppercase tracking-widest flex flex-col items-center justify-center gap-1"
               >
-                🚀 Start Training Round
+                <span className="flex items-center gap-3">🚀 Start Training Round</span>
+                {srsStats.dueNow > 0 && (
+                  <span className="text-[11px] font-bold text-[#FFD700]/80 normal-case tracking-normal">
+                    🔁 มี {srsStats.dueNow} คำถึงกำหนดทบทวนวันนี้
+                  </span>
+                )}
               </button>
               <button
                 onClick={handleLogout}
