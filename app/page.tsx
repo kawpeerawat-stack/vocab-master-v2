@@ -15,7 +15,7 @@ import {
   pickSmartDistractors,
   chooseQuestionType,
 } from './lib/quiz';
-import { loadCloudProgress, saveCloudProgress } from './lib/cloud';
+import { loadCloudProgress, saveCloudProgress, loadLeaderboard, LeaderboardEntry } from './lib/cloud';
 import {
   StreakState,
   emptyStreak,
@@ -73,6 +73,10 @@ export default function Home() {
   const [streakState, setStreakState] = useState<StreakState>(emptyStreak());
   // โหมดติว: ทั้งหมด / พื้นฐาน(B1) / ระดับสอบเข้ามหาลัย(B2·C1)
   const [examFocus, setExamFocus] = useState<'all' | 'foundation' | 'exam'>('all');
+  // จัดอันดับคนขยัน
+  const [showRanking, setShowRanking] = useState(false);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[] | null>(null);
+  const [rankingLoading, setRankingLoading] = useState(false);
   const [vocabData, setVocabData] = useState<WordItem[]>([]);
   const [currentQuestions, setCurrentQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -403,6 +407,24 @@ export default function Home() {
     }
   };
 
+  // เปิด/โหลดอันดับคนขยัน (โหลดครั้งแรกที่กดดู)
+  const toggleRanking = async () => {
+    const next = !showRanking;
+    setShowRanking(next);
+    if (next && leaderboard === null && !rankingLoading) {
+      setRankingLoading(true);
+      try {
+        const board = await loadLeaderboard();
+        setLeaderboard(board);
+      } catch (e) {
+        console.error('load leaderboard error:', e);
+        setLeaderboard([]);
+      } finally {
+        setRankingLoading(false);
+      }
+    }
+  };
+
   const handleNextQuestion = () => {
     const nextIndex = currentIndex + 1;
     if (nextIndex < currentQuestions.length) {
@@ -579,6 +601,62 @@ export default function Home() {
                   style={{ width: `${Math.min(100, (streakState.todayCount / Math.max(1, streakState.dailyGoal)) * 100)}%` }}
                 ></div>
               </div>
+            </div>
+
+            {/* ── อันดับคนขยัน ── */}
+            <div className="mb-4">
+              <button
+                type="button"
+                onClick={toggleRanking}
+                className="w-full py-3 rounded-2xl border-2 border-[#003399]/15 bg-white text-[#003399] font-black flex items-center justify-center gap-2 hover:bg-[#003399]/5 transition-all active:scale-[0.99]"
+              >
+                🏆 อันดับคนขยัน {showRanking ? '▲' : '▼'}
+              </button>
+
+              {showRanking && (
+                <div className="mt-3 bg-white border-2 border-gray-100 rounded-2xl p-4 shadow-sm">
+                  {rankingLoading ? (
+                    <div className="text-center text-gray-400 font-bold py-4 animate-pulse">กำลังโหลดอันดับ...</div>
+                  ) : !leaderboard || leaderboard.length === 0 ? (
+                    <div className="text-center text-gray-400 font-bold py-4">ยังไม่มีข้อมูลอันดับ</div>
+                  ) : (
+                    <>
+                      <p className="text-[10px] text-gray-400 text-center mb-3">แต้มสะสมจากความขยัน (ยิ่งเลื่อนคำขึ้นกล่องเยอะ ยิ่งได้แต้ม) — ไม่ใช่คะแนนรอบเดียว</p>
+                      <div className="space-y-1.5">
+                        {leaderboard.slice(0, 10).map((e, i) => {
+                          const isMe = e.email === email.trim().toLowerCase();
+                          const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}`;
+                          return (
+                            <div
+                              key={e.email}
+                              className={`flex items-center gap-3 px-3 py-2 rounded-xl ${isMe ? 'bg-[#FFD700]/20 border-2 border-[#FFD700]' : 'bg-gray-50'}`}
+                            >
+                              <span className="w-7 text-center font-black text-[#003399]">{medal}</span>
+                              <span className="flex-1 font-bold text-gray-800 truncate">{e.name}{isMe && ' (คุณ)'}</span>
+                              {e.streak > 0 && <span className="text-[11px] text-orange-500 font-bold">🔥{e.streak}</span>}
+                              <span className="font-black text-[#003399]">{e.points}<span className="text-[10px] text-gray-400 font-bold"> แต้ม</span></span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {(() => {
+                        const myRank = leaderboard.findIndex((e) => e.email === email.trim().toLowerCase());
+                        if (myRank >= 10) {
+                          return (
+                            <div className="mt-3 pt-3 border-t border-gray-100 text-center text-sm font-black text-[#003399]">
+                              คุณอยู่อันดับที่ {myRank + 1} จาก {leaderboard.length} คน — สู้ ๆ ขยันต่อไปนะ! 💪
+                            </div>
+                          );
+                        }
+                        if (myRank === -1) {
+                          return <div className="mt-3 pt-3 border-t border-gray-100 text-center text-xs text-gray-400">เล่นจบ 1 รอบเพื่อเก็บแต้มเข้าอันดับ</div>;
+                        }
+                        return null;
+                      })()}
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="bg-white border-2 border-gray-100 rounded-2xl p-4 text-left mb-8 flex items-center gap-4 shadow-sm">
