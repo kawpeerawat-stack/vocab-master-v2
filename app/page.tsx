@@ -672,7 +672,17 @@ export default function Home() {
                   <span>Select the <span className="text-red-600 underline decoration-[#FFD700] decoration-4">ANTONYM</span> for: <br/>&quot;{currentQuestions[currentIndex].antonym}&quot;</span>
                 )}
                 {currentQuestions[currentIndex].questionType === 'WRITE' && (
-                  <span>แต่งประโยคภาษาอังกฤษ 1 ประโยค โดยใช้คำว่า <br/><span className="text-[#003399] underline decoration-[#FFD700] decoration-4">{currentQuestions[currentIndex].word}</span></span>
+                  <span>แต่งประโยคภาษาอังกฤษ 1 ประโยค โดยใช้คำว่า <br/>
+                    <span className="inline-flex items-center gap-2 mt-1">
+                      <span className="text-[#003399] underline decoration-[#FFD700] decoration-4">{currentQuestions[currentIndex].word}</span>
+                      <button
+                        type="button"
+                        onClick={() => speakWord(currentQuestions[currentIndex].word)}
+                        className="text-base bg-[#003399]/10 text-[#003399] w-8 h-8 rounded-full inline-flex items-center justify-center hover:bg-[#003399]/20 transition-all active:scale-95 align-middle"
+                        aria-label="ฟังเสียงคำ"
+                      >🔊</button>
+                    </span>
+                  </span>
                 )}
                 {currentQuestions[currentIndex].questionType === 'TYPE' && (
                   <span>พิมพ์คำศัพท์ภาษาอังกฤษที่แปลว่า <br/><span className="text-[#003399] underline decoration-[#FFD700] decoration-4">{currentQuestions[currentIndex].thai_meaning}</span></span>
@@ -795,13 +805,22 @@ export default function Home() {
                   return (
                     <div className={`mt-4 p-4 rounded-2xl border-2 animate-fadeIn ${isOk ? 'bg-green-50 border-green-300 text-green-700' : 'bg-red-50 border-red-300 text-red-700'}`}>
                       <div className="font-black mb-2">{isOk ? '✅ ถูกต้อง!' : '❌ ยังไม่ถูก'}</div>
-                      <div className="text-sm text-gray-700">คำที่ถูกต้องคือ: <span className="font-black text-[#003399]">{currentQuestions[currentIndex].word}</span></div>
+                      <div className="text-sm text-gray-700 flex items-center gap-2">
+                        คำที่ถูกต้องคือ: <span className="font-black text-[#003399]">{currentQuestions[currentIndex].word}</span>
+                        <button
+                          type="button"
+                          onClick={() => speakWord(currentQuestions[currentIndex].word)}
+                          className="text-sm bg-[#003399]/10 text-[#003399] w-7 h-7 rounded-full inline-flex items-center justify-center hover:bg-[#003399]/20 transition-all active:scale-95"
+                          aria-label="ฟังเสียงคำ"
+                        >🔊</button>
+                      </div>
                       <div className="text-xs text-gray-500 mt-1 italic">{currentQuestions[currentIndex].thai_meaning} — {currentQuestions[currentIndex].eng_definition}</div>
                     </div>
                   );
                 })()}
               </div>
             ) : (
+              <>
               <div className="grid grid-cols-1 gap-3">
                 {options.map((option, idx) => {
                   const isCorrectChoice = option === currentQuestions[currentIndex].word;
@@ -828,6 +847,18 @@ export default function Home() {
                   );
                 })}
               </div>
+              {isAnswered && (
+                <div className="mt-3 flex items-center justify-center gap-2 text-sm text-gray-500">
+                  <span>ฟังเสียงคำที่ถูก:</span>
+                  <button
+                    type="button"
+                    onClick={() => speakWord(currentQuestions[currentIndex].word)}
+                    className="bg-[#003399]/10 text-[#003399] px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 font-bold hover:bg-[#003399]/20 transition-all active:scale-95"
+                    aria-label="ฟังเสียงคำ"
+                  >🔊 {currentQuestions[currentIndex].word}</button>
+                </div>
+              )}
+              </>
             )}
 
             {isAnswered && (
@@ -902,7 +933,14 @@ export default function Home() {
                       ) : (
                         <div className="text-sm space-y-2 mt-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
                           <p className="text-red-500 font-bold">❌ Your Pick: <span className="line-through">{item.selected === "Time Out" ? "Time Out" : item.selected}</span></p>
-                          <p className="text-green-600 font-black">✅ Correct: {item.question.word}</p>
+                          <p className="text-green-600 font-black flex items-center gap-2">✅ Correct: {item.question.word}
+                            <button
+                              type="button"
+                              onClick={() => speakWord(item.question.word)}
+                              className="bg-[#003399]/10 text-[#003399] w-7 h-7 rounded-full inline-flex items-center justify-center hover:bg-[#003399]/20 transition-all active:scale-95"
+                              aria-label="ฟังเสียงคำ"
+                            >🔊</button>
+                          </p>
                           <div className="pt-2 mt-2 border-t border-gray-200">
                             <p className="text-gray-500 text-[11px] leading-relaxed">
                               <span className="font-bold text-gray-700">MEANING:</span> {item.question.thai_meaning}
