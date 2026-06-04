@@ -89,7 +89,7 @@ export default function Home() {
   const [typedAnswer, setTypedAnswer] = useState('');
 
   const [score, setScore] = useState(0);
-  const QUIZ_TIME_LIMIT =40;
+  const QUIZ_TIME_LIMIT = 20;
   const [timeLeft, setTimeLeft] = useState(QUIZ_TIME_LIMIT);
 
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -452,9 +452,8 @@ export default function Home() {
 
   const isVocabLoading = vocabData.length === 0;
   const srsStats = computeStats(srsStore, vocabData.map((w) => w.word));
-  const overallPercentage = srsStats.total > 0
-    ? ((srsStats.mastered / srsStats.total) * 100).toFixed(1)
-    : "0.0";
+  // ความก้าวหน้าแบบ "ให้คะแนนบางส่วน" ตามกล่อง SRS (ขยับทุกครั้งที่เลื่อนคำขึ้นกล่อง)
+  const overallPercentage = srsStats.weightedProgress.toFixed(1);
 
   return (
     <div
@@ -536,6 +535,9 @@ export default function Home() {
                 <span>Mastered: <span className="text-[#003399]">{srsStats.mastered}</span></span>
                 <span>Total: <span className="text-[#003399]">{vocabData.length} Words</span></span>
               </div>
+              <p className="text-[10px] text-gray-400 mt-1.5 leading-relaxed">
+                % คิดความคืบหน้าทุกขั้นของการจำ (ยิ่งเลื่อนคำขึ้นกล่อง % ยิ่งเพิ่ม) ส่วน &quot;Mastered&quot; คือคำที่จำได้สมบูรณ์แล้ว
+              </p>
               <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                 <div className="bg-white rounded-xl py-2 border border-[#003399]/10">
                   <div className="text-lg font-black text-green-600">{srsStats.mastered}</div>
