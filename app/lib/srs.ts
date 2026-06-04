@@ -103,25 +103,31 @@ export interface SrsStats {
   mastered: number;    // เชี่ยวชาญจริง
   dueNow: number;      // ถึงกำหนดทบทวนตอนนี้
   newRemaining: number;// คำใหม่ที่ยังไม่เคยเจอ
+  weightedProgress: number; // % ความก้าวหน้าแบบให้คะแนนบางส่วน (ตามกล่อง SRS)
 }
 
 export function computeStats(store: SrsStore, allWords: string[]): SrsStats {
   const t = now();
-  let seen = 0, mastered = 0, dueNow = 0;
+  let seen = 0, mastered = 0, dueNow = 0, boxSum = 0;
   for (const w of allWords) {
     const card = store[w];
     if (!card) continue;
     seen += 1;
+    boxSum += card.box;            // สะสมระดับกล่องของทุกคำ (ให้คะแนนบางส่วน)
     if (isMastered(card)) mastered += 1;
     if (card.due <= t) dueNow += 1;
   }
+  const total = allWords.length;
+  // ความก้าวหน้า = ผลรวมกล่องทั้งหมด / (กล่องสูงสุด × จำนวนคำทั้งคลัง)
+  const weightedProgress = total > 0 ? (boxSum / (MAX_BOX * total)) * 100 : 0;
   return {
-    total: allWords.length,
+    total,
     seen,
     learning: seen - mastered,
     mastered,
     dueNow,
-    newRemaining: allWords.length - seen,
+    newRemaining: total - seen,
+    weightedProgress,
   };
 }
 
