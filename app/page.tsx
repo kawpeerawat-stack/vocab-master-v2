@@ -95,6 +95,9 @@ export default function Home() {
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // หมดเวลา: เป็นกลาง (ไม่นับคะแนน ไม่หักกล่อง SRS ไม่นับเป็นข้อผิด)
+  const [timedOut, setTimedOut] = useState(false);
+  const [timedOutCount, setTimedOutCount] = useState(0);
 
   const [cheatWarnings, setCheatWarnings] = useState(0);
 
@@ -136,7 +139,7 @@ export default function Home() {
     const qt = currentQuestions[currentIndex]?.questionType;
     if (qt === 'WRITE' || qt === 'TYPE' || qt === 'LISTEN') return; // โหมดนึกเองไม่จับเวลา
     if (timeLeft === 0) {
-      handleAnswerSelection("Time Out");
+      handleTimeOut();
       return;
     }
     const timer = setInterval(() => {
@@ -277,6 +280,7 @@ export default function Home() {
     setScore(0);
     setCheatWarnings(0);
     setWrongAnswers([]);
+    setTimedOutCount(0);
     generateOptionsForQuestion(formattedQuestions[0], vocabData);
     resetTimerAndQuestionState();
     setGameState('QUIZ');
@@ -302,6 +306,7 @@ export default function Home() {
     setAiResult(null);
     setAiChecking(false);
     setTypedAnswer('');
+    setTimedOut(false);
   };
 
   const handleAnswerSelection = (answer: string) => {
@@ -320,6 +325,16 @@ export default function Home() {
       recordSrsResult(correctWord, false);
       setWrongAnswers((prev) => [...prev, { question: currentQ, selected: answer }]);
     }
+  };
+
+  // ── หมดเวลา: เป็นกลาง — เฉลยให้ดู แต่ไม่นับคะแนน ไม่หักกล่อง SRS ไม่นับเป็นข้อผิด ──
+  const handleTimeOut = () => {
+    if (isAnswered) return;
+    setSelectedAnswer('');
+    setIsAnswered(true);
+    setTimedOut(true);
+    setTimedOutCount((prev) => prev + 1);
+    // ตั้งใจไม่เรียก recordSrsResult และไม่เพิ่มเข้า wrongAnswers — คงตารางทบทวนเดิมไว้
   };
 
   // ── ตรวจคำที่นักเรียนพิมพ์เอง (โหมด TYPE / LISTEN) ──
@@ -402,7 +417,7 @@ export default function Home() {
 
   const submitScoreToGoogleSheet = async () => {
     setIsSubmitting(true);
-    const progressPercentage = ((score / TOTAL_QUESTIONS_PER_ROUND) * 100).toFixed(0) + "%";
+    const progressPercentage = ((score / Math.max(1, TOTAL_QUESTIONS_PER_ROUND - timedOutCount)) * 100).toFixed(0) + "%";
     try {
       await fetch(GOOGLE_SHEET_WEBAPP_URL, {
         method: 'POST',
@@ -869,6 +884,11 @@ export default function Home() {
                   );
                 })}
               </div>
+              {timedOut && (
+                <div className="mt-4 p-3 rounded-2xl bg-amber-50 border-2 border-amber-200 text-amber-700 text-sm text-center font-bold">
+                  ⏱️ หมดเวลา — ข้อนี้ไม่นับคะแนนและไม่กระทบความก้าวหน้า ลองดูเฉลยด้านล่างได้เลย
+                </div>
+              )}
               {isAnswered && (
                 <div className="mt-3 flex items-center justify-center gap-2 text-sm text-gray-500">
                   <span>ฟังเสียงคำที่ถูก:</span>
@@ -916,11 +936,16 @@ export default function Home() {
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
               <div className="text-xs font-black text-[#FFD700]/80 uppercase tracking-[0.3em] mb-2">Final Score</div>
               <div className="text-7xl font-black text-white mb-2 drop-shadow-lg">
-                {score}<span className="text-2xl text-[#FFD700]/60">/10</span>
+                {score}<span className="text-2xl text-[#FFD700]/60">/{TOTAL_QUESTIONS_PER_ROUND - timedOutCount}</span>
               </div>
               <div className="text-sm text-[#FFD700] font-black bg-white/10 py-2 px-6 rounded-full inline-block backdrop-blur-sm">
-                ACCURACY: {((score / 10) * 100).toFixed(0)}%
+                ACCURACY: {((score / Math.max(1, TOTAL_QUESTIONS_PER_ROUND - timedOutCount)) * 100).toFixed(0)}%
               </div>
+              {timedOutCount > 0 && (
+                <div className="text-[11px] text-white/60 font-bold mt-3">
+                  ⏱️ มี {timedOutCount} ข้อหมดเวลา (ไม่นำมาคิดคะแนน)
+                </div>
+              )}
             </div>
 
             <div className="text-left border-t-4 border-double border-gray-100 pt-8 mb-8">
