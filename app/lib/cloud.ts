@@ -11,6 +11,7 @@
 import { db } from "./firebase";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import type { SrsStore } from "./srs";
+import type { StreakState } from "./streak";
 
 const COLLECTION = "students";
 
@@ -29,6 +30,12 @@ export interface CloudProgress {
   total: number;
   bestScore: number;
   lastScore: number;
+  // ── streak (อาจไม่มีในเอกสารเก่า) ──
+  streak?: number;
+  bestStreak?: number;
+  lastStudyDate?: string;
+  todayCount?: number;
+  dailyGoal?: number;
 }
 
 // ── โหลดความก้าวหน้าจากคลาวด์ (คืน null ถ้ายังไม่มี) ──
@@ -52,8 +59,9 @@ export async function saveCloudProgress(params: {
   srs: SrsStore;
   stats: { mastered: number; learning: number; seen: number; total: number };
   lastScore: number;
+  streak?: StreakState;
 }): Promise<boolean> {
-  const { email, name, srs, stats, lastScore } = params;
+  const { email, name, srs, stats, lastScore, streak } = params;
   if (!email || !db) return false;
   try {
     const ref = doc(db, COLLECTION, emailToId(email));
@@ -84,6 +92,16 @@ export async function saveCloudProgress(params: {
         score: bestScore,
         bestScore,
         lastScore,
+        // streak (ถ้ามี)
+        ...(streak
+          ? {
+              streak: streak.streak,
+              bestStreak: streak.bestStreak,
+              lastStudyDate: streak.lastStudyDate,
+              todayCount: streak.todayCount,
+              dailyGoal: streak.dailyGoal,
+            }
+          : {}),
         updatedAt: serverTimestamp(),
       },
       { merge: true }
