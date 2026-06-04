@@ -34,7 +34,18 @@ type WordItem = {
   antonym: string;
   example_sentence: string;
   level: string;
+  part_of_speech?: string;
 };
+
+// แปลงชนิดคำเป็นป้ายสั้น ๆ สำหรับแสดงผล
+const POS_LABELS: Record<string, string> = {
+  noun: 'n.', verb: 'v.', adjective: 'adj.', adverb: 'adv.',
+  preposition: 'prep.', conjunction: 'conj.', pronoun: 'pron.', determiner: 'det.',
+};
+function posLabel(pos?: string): string {
+  if (!pos) return '';
+  return POS_LABELS[pos] || pos;
+}
 
 type QuizQuestion = WordItem & {
   questionType: 'SENTENCE' | 'SYNONYM' | 'ANTONYM' | 'WRITE' | 'TYPE' | 'LISTEN';
@@ -675,6 +686,9 @@ export default function Home() {
                   <span>แต่งประโยคภาษาอังกฤษ 1 ประโยค โดยใช้คำว่า <br/>
                     <span className="inline-flex items-center gap-2 mt-1">
                       <span className="text-[#003399] underline decoration-[#FFD700] decoration-4">{currentQuestions[currentIndex].word}</span>
+                      {currentQuestions[currentIndex].part_of_speech && (
+                        <span className="text-xs font-bold text-gray-400">({posLabel(currentQuestions[currentIndex].part_of_speech)})</span>
+                      )}
                       <button
                         type="button"
                         onClick={() => speakWord(currentQuestions[currentIndex].word)}
@@ -685,7 +699,12 @@ export default function Home() {
                   </span>
                 )}
                 {currentQuestions[currentIndex].questionType === 'TYPE' && (
-                  <span>พิมพ์คำศัพท์ภาษาอังกฤษที่แปลว่า <br/><span className="text-[#003399] underline decoration-[#FFD700] decoration-4">{currentQuestions[currentIndex].thai_meaning}</span></span>
+                  <span>พิมพ์คำศัพท์ภาษาอังกฤษที่แปลว่า <br/>
+                    {currentQuestions[currentIndex].part_of_speech && (
+                      <span className="text-xs font-bold text-gray-400 align-middle mr-1">({posLabel(currentQuestions[currentIndex].part_of_speech)})</span>
+                    )}
+                    <span className="text-[#003399] underline decoration-[#FFD700] decoration-4">{currentQuestions[currentIndex].thai_meaning}</span>
+                  </span>
                 )}
                 {currentQuestions[currentIndex].questionType === 'LISTEN' && (
                   <span className="flex flex-col items-center gap-3">
@@ -807,6 +826,9 @@ export default function Home() {
                       <div className="font-black mb-2">{isOk ? '✅ ถูกต้อง!' : '❌ ยังไม่ถูก'}</div>
                       <div className="text-sm text-gray-700 flex items-center gap-2">
                         คำที่ถูกต้องคือ: <span className="font-black text-[#003399]">{currentQuestions[currentIndex].word}</span>
+                        {currentQuestions[currentIndex].part_of_speech && (
+                          <span className="text-xs font-bold text-gray-400">({posLabel(currentQuestions[currentIndex].part_of_speech)})</span>
+                        )}
                         <button
                           type="button"
                           onClick={() => speakWord(currentQuestions[currentIndex].word)}
@@ -856,6 +878,9 @@ export default function Home() {
                     className="bg-[#003399]/10 text-[#003399] px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 font-bold hover:bg-[#003399]/20 transition-all active:scale-95"
                     aria-label="ฟังเสียงคำ"
                   >🔊 {currentQuestions[currentIndex].word}</button>
+                  {currentQuestions[currentIndex].part_of_speech && (
+                    <span className="text-xs font-bold text-gray-400">({posLabel(currentQuestions[currentIndex].part_of_speech)})</span>
+                  )}
                 </div>
               )}
               </>
@@ -934,6 +959,9 @@ export default function Home() {
                         <div className="text-sm space-y-2 mt-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
                           <p className="text-red-500 font-bold">❌ Your Pick: <span className="line-through">{item.selected === "Time Out" ? "Time Out" : item.selected}</span></p>
                           <p className="text-green-600 font-black flex items-center gap-2">✅ Correct: {item.question.word}
+                            {item.question.part_of_speech && (
+                              <span className="text-xs font-bold text-gray-400">({posLabel(item.question.part_of_speech)})</span>
+                            )}
                             <button
                               type="button"
                               onClick={() => speakWord(item.question.word)}
