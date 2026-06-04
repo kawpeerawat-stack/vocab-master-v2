@@ -60,6 +60,8 @@ export default function Home() {
   // ── คลังความก้าวหน้าแบบ SRS (แทนระบบ masteredWords เดิม) ──
   const [srsStore, setSrsStore] = useState<SrsStore>({});
   const [streakState, setStreakState] = useState<StreakState>(emptyStreak());
+  // โหมดติว: ทั้งหมด / พื้นฐาน(B1) / ระดับสอบเข้ามหาลัย(B2·C1)
+  const [examFocus, setExamFocus] = useState<'all' | 'foundation' | 'exam'>('all');
   const [vocabData, setVocabData] = useState<WordItem[]>([]);
   const [currentQuestions, setCurrentQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -232,8 +234,14 @@ export default function Home() {
     }
 
     // เลือกคำมาออกข้อสอบด้วย SRS: ผสมคำที่ "ถึงกำหนดทบทวน" + คำใหม่
-    // โดยยังคงบันไดความยาก B1(4) → B2(4) → C1(2) เดิม
-    const roundWords = pickRound(srsStore, vocabData, { total: TOTAL_QUESTIONS_PER_ROUND });
+    // ปรับสัดส่วนระดับตามโหมดติวที่เลือก (ใช้บันได CEFR ที่มีอยู่)
+    const levelPlan =
+      examFocus === 'foundation'
+        ? [{ level: 'B1', count: 10 }]
+        : examFocus === 'exam'
+        ? [{ level: 'B2', count: 7 }, { level: 'C1', count: 3 }]
+        : [{ level: 'B1', count: 4 }, { level: 'B2', count: 4 }, { level: 'C1', count: 2 }];
+    const roundWords = pickRound(srsStore, vocabData, { total: TOTAL_QUESTIONS_PER_ROUND, levelPlan });
     const wordMap = new Map(vocabData.map((w) => [w.word, w]));
     const selectedRoundWords: WordItem[] = roundWords
       .map((w) => wordMap.get(w))
@@ -556,6 +564,35 @@ export default function Home() {
             </div>
 
             <div className="space-y-4">
+              {/* ── เลือกโหมดติว (ใช้บันได CEFR) ── */}
+              <div>
+                <div className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2 text-center">เลือกโหมดติว</div>
+                <div className="grid grid-cols-3 gap-2">
+                  {([
+                    { key: 'all', label: 'ทั้งหมด', sub: 'B1·B2·C1' },
+                    { key: 'foundation', label: 'พื้นฐาน', sub: 'B1' },
+                    { key: 'exam', label: 'ระดับสอบ', sub: 'B2·C1' },
+                  ] as const).map((opt) => (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      onClick={() => setExamFocus(opt.key)}
+                      className={`py-2.5 rounded-xl border-2 text-center transition-all ${
+                        examFocus === opt.key
+                          ? 'bg-[#003399] border-[#003399] text-[#FFD700] shadow-sm'
+                          : 'bg-white border-gray-200 text-gray-600 hover:border-[#003399]/40'
+                      }`}
+                    >
+                      <div className="text-sm font-black">{opt.label}</div>
+                      <div className="text-[9px] font-bold opacity-70">{opt.sub}</div>
+                    </button>
+                  ))}
+                </div>
+                {examFocus === 'exam' && (
+                  <div className="text-[10px] text-gray-400 text-center mt-2">เน้นคำระดับ B2–C1 สำหรับ TGAT / A-Level / NETSAT</div>
+                )}
+              </div>
+
               <button
                 onClick={startNewQuizRound}
                 className="w-full py-5 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 text-xl uppercase tracking-widest flex flex-col items-center justify-center gap-1"
