@@ -16,6 +16,15 @@ import {
   chooseQuestionType,
 } from './lib/quiz';
 import { loadCloudProgress, saveCloudProgress } from './lib/cloud';
+import {
+  StreakState,
+  emptyStreak,
+  loadStreak,
+  saveStreak,
+  normalize as normalizeStreak,
+  applyActivity,
+  goalReached,
+} from './lib/streak';
 
 type WordItem = {
   word: string;
@@ -50,6 +59,7 @@ export default function Home() {
 
   // ── คลังความก้าวหน้าแบบ SRS (แทนระบบ masteredWords เดิม) ──
   const [srsStore, setSrsStore] = useState<SrsStore>({});
+  const [streakState, setStreakState] = useState<StreakState>(emptyStreak());
   const [vocabData, setVocabData] = useState<WordItem[]>([]);
   const [currentQuestions, setCurrentQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -169,6 +179,7 @@ export default function Home() {
       let store = loadStore(email);
       store = migrateLegacyIfNeeded(email, store);
       setSrsStore(store);
+      setStreakState(loadStreak(email));
       setIsLoggedIn(true);
 
       // 2) ดึงจากคลาวด์มาทับถ้ามี (ทำให้ progress ตามข้ามเครื่อง)
@@ -177,6 +188,18 @@ export default function Home() {
         if (cloud && cloud.srs && Object.keys(cloud.srs).length > 0) {
           setSrsStore(cloud.srs);
           saveStore(email, cloud.srs); // เก็บลงเครื่องเป็น cache ด้วย
+        }
+        if (cloud && cloud.lastStudyDate) {
+          const cloudStreak = normalizeStreak({
+            ...emptyStreak(),
+            streak: cloud.streak ?? 0,
+            bestStreak: cloud.bestStreak ?? 0,
+            lastStudyDate: cloud.lastStudyDate ?? '',
+            todayCount: cloud.todayCount ?? 0,
+            dailyGoal: cloud.dailyGoal ?? emptyStreak().dailyGoal,
+          });
+          setStreakState(cloudStreak);
+          saveStreak(email, cloudStreak);
         }
       } catch (err) {
         console.error('cloud load failed:', err);
@@ -189,6 +212,7 @@ export default function Home() {
     setStudentName('');
     setEmail('');
     setSrsStore({});
+    setStreakState(emptyStreak());
     setGameState('START');
   };
 
@@ -376,10 +400,15 @@ export default function Home() {
       console.error("Error submitting score:", error);
     }
 
-    // ซิงก์ความก้าวหน้า (SRS + สถิติ) ขึ้น Firestore — ข้ามเครื่อง + ให้ครูเห็นรายคน
+    // อัปเดต streak + เป้าหมายรายวัน (จบรอบ = ทบทวนไป 1 ชุด)
+    const updatedStreak = applyActivity(streakState, TOTAL_QUESTIONS_PER_ROUND);
+    setStreakState(updatedStreak);
+    saveStreak(email, updatedStreak);
+
+    // ซิงก์ความก้าวหน้า (SRS + สถิติ + streak) ขึ้น Firestore — ข้ามเครื่อง + ให้ครูเห็นรายคน
     try {
       const stats = computeStats(srsStore, vocabData.map((w) => w.word));
-      await saveCloudProgress({ email, name: studentName, srs: srsStore, stats, lastScore: score });
+      await saveCloudProgress({ email, name: studentName, srs: srsStore, stats, lastScore: score, streak: updatedStreak });
     } catch (error) {
       console.error("Error syncing progress to cloud:", error);
     } finally {
@@ -486,6 +515,33 @@ export default function Home() {
                   <div className="text-lg font-black text-[#003399]">{srsStats.dueNow}</div>
                   <div className="text-[10px] font-bold text-gray-500 uppercase">ถึงกำหนดทวน</div>
                 </div>
+              </div>
+            </div>
+
+            {/* ── Streak + เป้าหมายรายวัน ── */}
+            <div className="bg-gradient-to-r from-[#003399] to-[#0044bb] rounded-2xl p-4 mb-4 text-white shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">🔥</span>
+                  <div>
+                    <div className="text-2xl font-black leading-none">{streakState.streak} <span className="text-sm font-bold">วันติด</span></div>
+                    {streakState.bestStreak > streakState.streak && (
+                      <div className="text-[10px] text-[#FFD700]/90 font-bold mt-1">สถิติสูงสุด {streakState.bestStreak} วัน</div>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[10px] font-bold uppercase text-white/60">เป้าหมายวันนี้</div>
+                  <div className="text-sm font-black text-[#FFD700]">
+                    {goalReached(streakState) ? '🎯 สำเร็จแล้ว!' : `${streakState.todayCount}/${streakState.dailyGoal} คำ`}
+                  </div>
+                </div>
+              </div>
+              <div className="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+                <div
+                  className="bg-[#FFD700] h-2 rounded-full transition-all"
+                  style={{ width: `${Math.min(100, (streakState.todayCount / Math.max(1, streakState.dailyGoal)) * 100)}%` }}
+                ></div>
               </div>
             </div>
 
