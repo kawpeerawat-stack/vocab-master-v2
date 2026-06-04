@@ -15,6 +15,7 @@ import {
   pickSmartDistractors,
   chooseQuestionType,
 } from './lib/quiz';
+import { loadCloudProgress, saveCloudProgress } from './lib/cloud';
 
 type WordItem = {
   word: string;
@@ -161,14 +162,25 @@ export default function Home() {
     return () => document.removeEventListener('keydown', blockDevTools);
   }, []);
 
-  const handleStudentLogin = (e: React.FormEvent) => {
+  const handleStudentLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (studentName.trim() && email.trim() && email.includes('@')) {
-      // โหลดความก้าวหน้า SRS ของนักเรียนคนนี้ (แยกตามอีเมล) + ย้ายข้อมูลระบบเก่าถ้ามี
+      // 1) โหลดจากเครื่อง (เร็ว) ให้เห็นทันที
       let store = loadStore(email);
       store = migrateLegacyIfNeeded(email, store);
       setSrsStore(store);
       setIsLoggedIn(true);
+
+      // 2) ดึงจากคลาวด์มาทับถ้ามี (ทำให้ progress ตามข้ามเครื่อง)
+      try {
+        const cloud = await loadCloudProgress(email);
+        if (cloud && cloud.srs && Object.keys(cloud.srs).length > 0) {
+          setSrsStore(cloud.srs);
+          saveStore(email, cloud.srs); // เก็บลงเครื่องเป็น cache ด้วย
+        }
+      } catch (err) {
+        console.error('cloud load failed:', err);
+      }
     }
   };
 
@@ -362,6 +374,14 @@ export default function Home() {
       });
     } catch (error) {
       console.error("Error submitting score:", error);
+    }
+
+    // ซิงก์ความก้าวหน้า (SRS + สถิติ) ขึ้น Firestore — ข้ามเครื่อง + ให้ครูเห็นรายคน
+    try {
+      const stats = computeStats(srsStore, vocabData.map((w) => w.word));
+      await saveCloudProgress({ email, name: studentName, srs: srsStore, stats, lastScore: score });
+    } catch (error) {
+      console.error("Error syncing progress to cloud:", error);
     } finally {
       setIsSubmitting(false);
     }
