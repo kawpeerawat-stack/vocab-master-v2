@@ -9,7 +9,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { db } from "./firebase";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp, collection, getDocs } from "firebase/firestore";
 import type { SrsStore } from "./srs";
 import type { StreakState } from "./streak";
 
@@ -110,5 +110,49 @@ export async function saveCloudProgress(params: {
   } catch (e) {
     console.error("saveCloudProgress error:", e);
     return false;
+  }
+}
+
+// ── จัดอันดับ "คนขยัน" ──
+// แต้มสะสม = ผลรวมระดับกล่อง SRS ของทุกคำ (ยิ่งเลื่อนคำขึ้นกล่องเยอะ ยิ่งได้แต้ม)
+// สะท้อนความขยันสะสมจริง ไม่ใช่คะแนนรอบเดียว
+export interface LeaderboardEntry {
+  email: string;
+  name: string;
+  points: number;
+  mastered: number;
+  streak: number;
+}
+
+export async function loadLeaderboard(): Promise<LeaderboardEntry[]> {
+  if (!db) return [];
+  try {
+    const snap = await getDocs(collection(db, COLLECTION));
+    const entries: LeaderboardEntry[] = [];
+    snap.forEach((d) => {
+      const data = d.data() as {
+        email?: string; name?: string; mastered?: number; streak?: number;
+        srs?: Record<string, { box?: number }>;
+      };
+      let points = 0;
+      if (data.srs) {
+        for (const k in data.srs) {
+          const c = data.srs[k];
+          if (c && typeof c.box === "number") points += c.box;
+        }
+      }
+      entries.push({
+        email: (data.email || d.id).toLowerCase(),
+        name: data.name || "(ไม่มีชื่อ)",
+        points,
+        mastered: data.mastered ?? 0,
+        streak: data.streak ?? 0,
+      });
+    });
+    entries.sort((a, b) => b.points - a.points || b.mastered - a.mastered || b.streak - a.streak);
+    return entries;
+  } catch (e) {
+    console.error("loadLeaderboard error:", e);
+    return [];
   }
 }
