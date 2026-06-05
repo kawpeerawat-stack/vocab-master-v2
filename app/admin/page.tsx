@@ -16,6 +16,7 @@ type StudentDoc = {
   bestScore?: number;
   lastScore?: number;
   score?: number;
+  streak?: number;
   srs?: Record<string, SrsCard>;
 };
 
@@ -93,6 +94,43 @@ export default function AdminDashboard() {
       .map(([word, c]) => ({ word, box: c.box, lapses: c.lapses }));
   };
 
+  // ── ดาวน์โหลดข้อมูลนักเรียนทั้งห้องเป็นไฟล์ CSV (เปิดใน Excel ได้) ──
+  const escapeCsv = (val: string | number) => {
+    const s = String(val ?? "");
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+
+  const downloadCsv = () => {
+    const headers = ["ชื่อ", "อีเมล", "จำได้", "กำลังเรียน", "เคยเจอ", "คะแนนสูงสุด", "วันติด(streak)", "คำที่ยังอ่อน"];
+    const rows = students.map((s) => {
+      const weak = weakWordsOf(s)
+        .map((w) => (vocabMap[w.word] ? `${w.word}(${vocabMap[w.word].thai})` : w.word))
+        .join("; ");
+      return [
+        s.name || "",
+        s.email || s.id,
+        s.mastered ?? 0,
+        s.learning ?? 0,
+        s.seen ?? 0,
+        s.bestScore ?? s.score ?? 0,
+        s.streak ?? 0,
+        weak,
+      ].map(escapeCsv).join(",");
+    });
+    // ใส่ BOM (\uFEFF) เพื่อให้ Excel อ่านภาษาไทยถูกต้อง
+    const csv = "\uFEFF" + [headers.join(","), ...rows].join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const date = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `vocab-master-students-${date}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-neutral-950 flex items-center justify-center text-amber-400 font-bold text-xl animate-pulse">
@@ -109,12 +147,24 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-200 p-6 md:p-10 font-sans">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-200 mb-1 tracking-tight">
-          📊 แดชบอร์ดครู — Vocab Master
-        </h1>
-        <p className="text-neutral-500 font-bold tracking-widest uppercase text-xs mb-8">
-          Student Progress · Live from Cloud
-        </p>
+        <div className="flex items-start justify-between gap-4 mb-8 flex-wrap">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-200 mb-1 tracking-tight">
+              📊 แดชบอร์ดครู — Vocab Master
+            </h1>
+            <p className="text-neutral-500 font-bold tracking-widest uppercase text-xs">
+              Student Progress · Live from Cloud
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={downloadCsv}
+            disabled={students.length === 0}
+            className="bg-amber-400 text-neutral-950 font-black px-5 py-3 rounded-2xl hover:bg-amber-300 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg"
+          >
+            📥 ดาวน์โหลด CSV
+          </button>
+        </div>
 
         {/* สรุปภาพรวม */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
