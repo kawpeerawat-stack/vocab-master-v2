@@ -245,6 +245,41 @@ export default function Home() {
     });
   };
 
+  // สร้างรอบจากรายการคำที่กำหนด (ใช้ร่วมกันทั้งรอบปกติและรอบทบทวนคำที่พลาด)
+  const beginRoundWithWords = (words: WordItem[]) => {
+    const formattedQuestions: QuizQuestion[] = words.map((item, i) => {
+      // ข้อท้ายสุด WRITE_MODE_QUESTIONS ข้อ ให้เป็นโหมดแต่งประโยค
+      if (i >= words.length - WRITE_MODE_QUESTIONS) {
+        return { ...item, questionType: 'WRITE' as const };
+      }
+      const box = srsStore[item.word] ? srsStore[item.word].box : -1;
+      const hasSynonym = Boolean(item.synonym && item.synonym !== "-" && item.synonym.trim() !== "");
+      const hasAntonym = Boolean(item.antonym && item.antonym !== "-" && item.antonym.trim() !== "");
+      const qType = chooseQuestionType(box, { hasSynonym, hasAntonym });
+      return { ...item, questionType: qType };
+    });
+
+    setCurrentQuestions(formattedQuestions);
+    setCurrentIndex(0);
+    setScore(0);
+    setCheatWarnings(0);
+    setWrongAnswers([]);
+    setTimedOutCount(0);
+    generateOptionsForQuestion(formattedQuestions[0], vocabData);
+    resetTimerAndQuestionState();
+    setGameState('QUIZ');
+  };
+
+  // รายการคำที่เด็ก "ยังอ่อน" (กล่องต่ำ ≤1 หรือเคยลืม) เรียงตามควรทบทวนก่อน
+  const getWeakWordList = (): WordItem[] => {
+    const wordMap = new Map(vocabData.map((w) => [w.word, w]));
+    return Object.entries(srsStore)
+      .filter(([, c]) => c && (c.box <= 1 || c.lapses > 0))
+      .sort((a, b) => (b[1].lapses || 0) - (a[1].lapses || 0) || a[1].box - b[1].box)
+      .map(([word]) => wordMap.get(word))
+      .filter((w): w is WordItem => Boolean(w));
+  };
+
   const startNewQuizRound = () => {
     if (vocabData.length === 0) {
       alert("⚠️ ระบบยังโหลดคลังคำศัพท์ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บแล้วลองใหม่ครับ");
@@ -265,29 +300,21 @@ export default function Home() {
       .map((w) => wordMap.get(w))
       .filter((w): w is WordItem => Boolean(w));
 
-    const formattedQuestions: QuizQuestion[] = selectedRoundWords.map((item, i) => {
-      // ข้อท้ายสุด WRITE_MODE_QUESTIONS ข้อ ให้เป็นโหมดแต่งประโยค
-      if (i >= selectedRoundWords.length - WRITE_MODE_QUESTIONS) {
-        return { ...item, questionType: 'WRITE' as const };
-      }
-      // เลือกชนิดคำถามตามระดับความคุ้นของคำ (กล่อง SRS):
-      // คำใหม่/กล่องต่ำ → เลือกตอบ, คำที่เริ่มจำได้ → พิมพ์เอง/ฟังเสียง
-      const box = srsStore[item.word] ? srsStore[item.word].box : -1;
-      const hasSynonym = Boolean(item.synonym && item.synonym !== "-" && item.synonym.trim() !== "");
-      const hasAntonym = Boolean(item.antonym && item.antonym !== "-" && item.antonym.trim() !== "");
-      const qType = chooseQuestionType(box, { hasSynonym, hasAntonym });
-      return { ...item, questionType: qType };
-    });
+    beginRoundWithWords(selectedRoundWords);
+  };
 
-    setCurrentQuestions(formattedQuestions);
-    setCurrentIndex(0);
-    setScore(0);
-    setCheatWarnings(0);
-    setWrongAnswers([]);
-    setTimedOutCount(0);
-    generateOptionsForQuestion(formattedQuestions[0], vocabData);
-    resetTimerAndQuestionState();
-    setGameState('QUIZ');
+  // รอบทบทวนเฉพาะคำที่เด็กยังอ่อน
+  const startReviewRound = () => {
+    if (vocabData.length === 0) {
+      alert("⚠️ ระบบยังโหลดคลังคำศัพท์ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บแล้วลองใหม่ครับ");
+      return;
+    }
+    const weak = getWeakWordList().slice(0, TOTAL_QUESTIONS_PER_ROUND);
+    if (weak.length === 0) {
+      alert("เยี่ยมมาก! ตอนนี้ยังไม่มีคำที่ต้องทบทวนเป็นพิเศษ ลองเล่นรอบปกติเพื่อเก็บคำใหม่ได้เลย 👍");
+      return;
+    }
+    beginRoundWithWords(weak);
   };
 
   const generateOptionsForQuestion = (correctItem: WordItem, allItems: WordItem[]) => {
@@ -476,6 +503,8 @@ export default function Home() {
   const srsStats = computeStats(srsStore, vocabData.map((w) => w.word));
   // ความก้าวหน้าแบบ "ให้คะแนนบางส่วน" ตามกล่อง SRS (ขยับทุกครั้งที่เลื่อนคำขึ้นกล่อง)
   const overallPercentage = srsStats.weightedProgress.toFixed(1);
+  // จำนวนคำที่เด็กยังอ่อน (ไว้โชว์บนปุ่มทบทวนคำที่พลาด)
+  const weakCount = Object.values(srsStore).filter((c) => c && (c.box <= 1 || c.lapses > 0)).length;
 
   return (
     <div
@@ -710,6 +739,15 @@ export default function Home() {
                   </span>
                 )}
               </button>
+              {weakCount > 0 && (
+                <button
+                  onClick={startReviewRound}
+                  className="w-full py-4 bg-rose-50 text-rose-600 font-black rounded-2xl border-2 border-rose-200 hover:bg-rose-100 active:scale-[0.98] transition-all flex flex-col items-center justify-center gap-0.5"
+                >
+                  <span className="flex items-center gap-2">🔁 ทบทวนคำที่ฉันพลาด</span>
+                  <span className="text-[11px] font-bold text-rose-400 normal-case">มี {weakCount} คำที่ยังอ่อน — ฝึกซ้ำเฉพาะคำพวกนี้</span>
+                </button>
+              )}
               <button
                 onClick={handleLogout}
                 className="w-full py-3 bg-white text-gray-400 font-bold rounded-xl hover:text-[#003399] transition-all duration-150 text-sm uppercase"
