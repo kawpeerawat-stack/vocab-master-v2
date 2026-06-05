@@ -24,7 +24,7 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 if (
   typeof window !== "undefined" &&
   RECAPTCHA_SITE_KEY &&
-  RECAPTCHA_SITE_KEY !== "6LcJbQ4tAAAAACrSP9HuwrcEv5_qRCpDi1roFjuM";
+  RECAPTCHA_SITE_KEY !== "6LcJbQ4tAAAAACrSP9HuwrcEv5_qRCpDi1roFjuM"
 ) {
   // ตอนพัฒนาในเครื่อง (localhost) ใช้ debug token เพื่อไม่ให้ App Check บล็อก
   if (process.env.NODE_ENV === "development") {
