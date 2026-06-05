@@ -77,6 +77,7 @@ export default function Home() {
   const [showRanking, setShowRanking] = useState(false);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[] | null>(null);
   const [rankingLoading, setRankingLoading] = useState(false);
+  const [rankingTab, setRankingTab] = useState<'week' | 'all'>('week');
   const [vocabData, setVocabData] = useState<WordItem[]>([]);
   const [currentQuestions, setCurrentQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -93,7 +94,7 @@ export default function Home() {
   const [typedAnswer, setTypedAnswer] = useState('');
 
   const [score, setScore] = useState(0);
-  const QUIZ_TIME_LIMIT = 40;
+  const QUIZ_TIME_LIMIT = 20;
   const [timeLeft, setTimeLeft] = useState(QUIZ_TIME_LIMIT);
 
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -630,42 +631,63 @@ export default function Home() {
                     <div className="text-center text-gray-400 font-bold py-4 animate-pulse">กำลังโหลดอันดับ...</div>
                   ) : !leaderboard || leaderboard.length === 0 ? (
                     <div className="text-center text-gray-400 font-bold py-4">ยังไม่มีข้อมูลอันดับ</div>
-                  ) : (
-                    <>
-                      <p className="text-[10px] text-gray-400 text-center mb-3">แต้มสะสมจากความขยัน (ยิ่งเลื่อนคำขึ้นกล่องเยอะ ยิ่งได้แต้ม) — ไม่ใช่คะแนนรอบเดียว</p>
-                      <div className="space-y-1.5">
-                        {leaderboard.slice(0, 10).map((e, i) => {
-                          const isMe = e.email === email.trim().toLowerCase();
-                          const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}`;
-                          return (
-                            <div
-                              key={e.email}
-                              className={`flex items-center gap-3 px-3 py-2 rounded-xl ${isMe ? 'bg-[#FFD700]/20 border-2 border-[#FFD700]' : 'bg-gray-50'}`}
-                            >
-                              <span className="w-7 text-center font-black text-[#003399]">{medal}</span>
-                              <span className="flex-1 font-bold text-gray-800 truncate">{e.name}{isMe && ' (คุณ)'}</span>
-                              {e.streak > 0 && <span className="text-[11px] text-orange-500 font-bold">🔥{e.streak}</span>}
-                              <span className="font-black text-[#003399]">{e.points}<span className="text-[10px] text-gray-400 font-bold"> แต้ม</span></span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      {(() => {
-                        const myRank = leaderboard.findIndex((e) => e.email === email.trim().toLowerCase());
-                        if (myRank >= 10) {
-                          return (
-                            <div className="mt-3 pt-3 border-t border-gray-100 text-center text-sm font-black text-[#003399]">
-                              คุณอยู่อันดับที่ {myRank + 1} จาก {leaderboard.length} คน — สู้ ๆ ขยันต่อไปนะ! 💪
-                            </div>
-                          );
-                        }
-                        if (myRank === -1) {
-                          return <div className="mt-3 pt-3 border-t border-gray-100 text-center text-xs text-gray-400">เล่นจบ 1 รอบเพื่อเก็บแต้มเข้าอันดับ</div>;
-                        }
-                        return null;
-                      })()}
-                    </>
-                  )}
+                  ) : (() => {
+                    // จัดเรียงตามแท็บที่เลือก
+                    const ranked = [...leaderboard].sort((a, b) =>
+                      rankingTab === 'week'
+                        ? b.weeklyXp - a.weeklyXp || b.points - a.points
+                        : b.points - a.points || b.weeklyXp - a.weeklyXp
+                    );
+                    const valueOf = (e: LeaderboardEntry) => (rankingTab === 'week' ? e.weeklyXp : e.points);
+                    const myRank = ranked.findIndex((e) => e.email === email.trim().toLowerCase());
+                    return (
+                      <>
+                        {/* สลับ สัปดาห์นี้ / ตลอดกาล */}
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                          <button
+                            type="button"
+                            onClick={() => setRankingTab('week')}
+                            className={`py-2 rounded-xl text-sm font-black transition-all ${rankingTab === 'week' ? 'bg-[#003399] text-[#FFD700]' : 'bg-gray-100 text-gray-500'}`}
+                          >📅 สัปดาห์นี้</button>
+                          <button
+                            type="button"
+                            onClick={() => setRankingTab('all')}
+                            className={`py-2 rounded-xl text-sm font-black transition-all ${rankingTab === 'all' ? 'bg-[#003399] text-[#FFD700]' : 'bg-gray-100 text-gray-500'}`}
+                          >🏅 ตลอดกาล</button>
+                        </div>
+                        <p className="text-[10px] text-gray-400 text-center mb-3">
+                          {rankingTab === 'week'
+                            ? 'แต้มจากการตอบถูกในสัปดาห์นี้ — รีเซ็ตทุกวันจันทร์ ทุกคนมีโอกาสลุ้นใหม่'
+                            : 'แต้มสะสมตลอดกาลจากความขยัน (ผลรวมระดับกล่องของทุกคำ)'}
+                        </p>
+                        <div className="space-y-1.5">
+                          {ranked.slice(0, 10).map((e, i) => {
+                            const isMe = e.email === email.trim().toLowerCase();
+                            const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}`;
+                            return (
+                              <div
+                                key={e.email}
+                                className={`flex items-center gap-3 px-3 py-2 rounded-xl ${isMe ? 'bg-[#FFD700]/20 border-2 border-[#FFD700]' : 'bg-gray-50'}`}
+                              >
+                                <span className="w-7 text-center font-black text-[#003399]">{medal}</span>
+                                <span className="flex-1 font-bold text-gray-800 truncate">{e.name}{isMe && ' (คุณ)'}</span>
+                                {e.streak > 0 && <span className="text-[11px] text-orange-500 font-bold">🔥{e.streak}</span>}
+                                <span className="font-black text-[#003399]">{valueOf(e)}<span className="text-[10px] text-gray-400 font-bold"> แต้ม</span></span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        {myRank >= 10 && (
+                          <div className="mt-3 pt-3 border-t border-gray-100 text-center text-sm font-black text-[#003399]">
+                            คุณอยู่อันดับที่ {myRank + 1} จาก {ranked.length} คน — สู้ ๆ ขยันต่อไปนะ! 💪
+                          </div>
+                        )}
+                        {myRank === -1 && (
+                          <div className="mt-3 pt-3 border-t border-gray-100 text-center text-xs text-gray-400">เล่นจบ 1 รอบเพื่อเก็บแต้มเข้าอันดับ</div>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
               )}
             </div>
