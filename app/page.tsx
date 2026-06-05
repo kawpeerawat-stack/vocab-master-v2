@@ -107,7 +107,7 @@ export default function Home() {
   const [typedAnswer, setTypedAnswer] = useState('');
 
   const [score, setScore] = useState(0);
-  const QUIZ_TIME_LIMIT = 20;
+  const QUIZ_TIME_LIMIT = 50;
   const [timeLeft, setTimeLeft] = useState(QUIZ_TIME_LIMIT);
 
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
