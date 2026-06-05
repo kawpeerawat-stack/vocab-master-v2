@@ -99,7 +99,7 @@ export function shuffle<T>(arr: T[]): T[] {
 //   - คำที่จำได้แม่น    → พิมพ์เอง/ฟังเสียง (recall) ยากขึ้น
 // box = -1 หมายถึงยังไม่เคยเจอ (คำใหม่)
 // ─────────────────────────────────────────────────────────────
-export type QType = 'SENTENCE' | 'SYNONYM' | 'ANTONYM' | 'TYPE' | 'LISTEN';
+export type QType = 'SENTENCE' | 'SYNONYM' | 'ANTONYM' | 'TYPE' | 'LISTEN' | 'MEANING';
 
 export interface TypeFlags {
   hasSynonym: boolean;
@@ -111,7 +111,8 @@ function pick<T>(arr: T[]): T {
 }
 
 export function chooseQuestionType(box: number, flags: TypeFlags): QType {
-  const recognition: QType[] = ['SENTENCE'];
+  // โจทย์เลือกตอบ (recognition): บริบท + อังกฤษ→ไทย เป็นฐาน, เติม synonym/antonym ถ้ามี
+  const recognition: QType[] = ['SENTENCE', 'MEANING'];
   if (flags.hasSynonym) recognition.push('SYNONYM');
   if (flags.hasAntonym) recognition.push('ANTONYM');
 
