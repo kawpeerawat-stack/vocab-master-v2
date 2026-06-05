@@ -94,7 +94,7 @@ export default function Home() {
   const [typedAnswer, setTypedAnswer] = useState('');
 
   const [score, setScore] = useState(0);
-  const QUIZ_TIME_LIMIT = 40;
+  const QUIZ_TIME_LIMIT = 20;
   const [timeLeft, setTimeLeft] = useState(QUIZ_TIME_LIMIT);
 
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -1011,22 +1011,54 @@ export default function Home() {
                   ⏱️ หมดเวลา — ข้อนี้ไม่นับคะแนนและไม่กระทบความก้าวหน้า ลองดูเฉลยด้านล่างได้เลย
                 </div>
               )}
-              {isAnswered && (
-                <div className="mt-3 flex items-center justify-center gap-2 text-sm text-gray-500">
-                  <span>ฟังเสียงคำที่ถูก:</span>
-                  <button
-                    type="button"
-                    onClick={() => speakWord(currentQuestions[currentIndex].word)}
-                    className="bg-[#003399]/10 text-[#003399] px-3 py-1.5 rounded-full inline-flex items-center gap-1.5 font-bold hover:bg-[#003399]/20 transition-all active:scale-95"
-                    aria-label="ฟังเสียงคำ"
-                  >🔊 {currentQuestions[currentIndex].word}</button>
-                  {currentQuestions[currentIndex].part_of_speech && (
-                    <span className="text-xs font-bold text-gray-400">({posLabel(currentQuestions[currentIndex].part_of_speech)})</span>
-                  )}
-                </div>
-              )}
               </>
             )}
+
+            {/* ── การ์ดเฉลย & คำอธิบาย (ข้อต่อข้อ) ── */}
+            {isAnswered && (() => {
+              const cq = currentQuestions[currentIndex];
+              const isCorrect = selectedAnswer === cq.word;
+              // ความหมายของคำที่เลือกผิด (เฉพาะถ้าเป็นคำที่อยู่ในคลังศัพท์)
+              const chosen = (!isCorrect && !timedOut && selectedAnswer)
+                ? vocabData.find((w) => w.word === selectedAnswer)
+                : null;
+              return (
+                <div className="mt-5 p-5 rounded-2xl border-2 border-[#003399]/15 bg-[#003399]/[0.03] text-left animate-fadeIn">
+                  <div className="text-sm font-black text-[#003399] mb-3">📖 เฉลย &amp; คำอธิบาย</div>
+                  <div className="flex items-center gap-2 flex-wrap mb-2">
+                    <span className="text-xl font-black text-gray-900">{cq.word}</span>
+                    {cq.part_of_speech && (
+                      <span className="text-xs font-bold text-gray-400">({posLabel(cq.part_of_speech)})</span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => speakWord(cq.word)}
+                      className="bg-[#003399]/10 text-[#003399] w-7 h-7 rounded-full inline-flex items-center justify-center hover:bg-[#003399]/20 transition-all active:scale-95"
+                      aria-label="ฟังเสียงคำ"
+                    >🔊</button>
+                  </div>
+                  <p className="text-base font-bold text-[#003399] mb-1">{cq.thai_meaning}</p>
+                  {cq.eng_definition && (
+                    <p className="text-sm text-gray-600 mb-2">{cq.eng_definition}</p>
+                  )}
+                  {cq.example_sentence && cq.example_sentence.trim() && (
+                    <p className="text-sm text-gray-700 italic border-l-4 border-[#FFD700] pl-3 py-1 mb-1">
+                      &ldquo;{cq.example_sentence}&rdquo;
+                    </p>
+                  )}
+                  {chosen && (
+                    <div className="mt-3 p-3 rounded-xl bg-red-50 border border-red-200 text-sm">
+                      <span className="font-bold text-red-700">คุณเลือก &ldquo;{chosen.word}&rdquo;</span>
+                      <span className="text-red-600"> = {chosen.thai_meaning}</span>
+                      {chosen.part_of_speech && (
+                        <span className="text-xs text-red-400 font-bold"> ({posLabel(chosen.part_of_speech)})</span>
+                      )}
+                      <div className="text-xs text-red-500 mt-1">คนละความหมายกับคำที่ถาม ลองจำให้แม่นนะ</div>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
 
             {isAnswered && (
               <button
