@@ -20,6 +20,14 @@ function emailToId(email: string): string {
   return email.trim().toLowerCase().replace(/\//g, "_");
 }
 
+// รหัสสัปดาห์ = วันที่ของ "วันจันทร์" ของสัปดาห์นั้น (เวลาท้องถิ่น) → อันดับรีเซ็ตทุกวันจันทร์
+export function currentWeekId(d: Date = new Date()): string {
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const day = (x.getDay() + 6) % 7; // จันทร์=0 ... อาทิตย์=6
+  x.setDate(x.getDate() - day);     // ถอยไปวันจันทร์
+  return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}`;
+}
+
 export interface CloudProgress {
   name: string;
   email: string;
@@ -36,6 +44,9 @@ export interface CloudProgress {
   lastStudyDate?: string;
   todayCount?: number;
   dailyGoal?: number;
+  // ── แต้มรายสัปดาห์ (รีเซ็ตทุกวันจันทร์) ──
+  weeklyXp?: number;
+  weekId?: string;
 }
 
 // ── โหลดความก้าวหน้าจากคลาวด์ (คืน null ถ้ายังไม่มี) ──
@@ -66,16 +77,20 @@ export async function saveCloudProgress(params: {
   try {
     const ref = doc(db, COLLECTION, emailToId(email));
 
-    // ดึง bestScore เดิมมาเทียบ เพื่อเก็บคะแนนสูงสุดไว้
+    // ดึง bestScore เดิม + แต้มรายสัปดาห์เดิม มาคำนวณต่อ
+    const weekId = currentWeekId();
     let bestScore = lastScore;
+    let weeklyXp = lastScore; // ค่าเริ่มต้น (สัปดาห์ใหม่ หรือยังไม่มีข้อมูล)
     try {
       const prev = await getDoc(ref);
       if (prev.exists()) {
-        const prevBest = (prev.data() as CloudProgress).bestScore ?? 0;
-        bestScore = Math.max(prevBest, lastScore);
+        const pd = prev.data() as CloudProgress;
+        bestScore = Math.max(pd.bestScore ?? 0, lastScore);
+        // สัปดาห์เดิม → สะสมต่อ, สัปดาห์ใหม่ → เริ่มนับใหม่จากรอบนี้
+        weeklyXp = pd.weekId === weekId ? (pd.weeklyXp ?? 0) + lastScore : lastScore;
       }
     } catch {
-      // อ่านค่าเดิมไม่ได้ก็ใช้ lastScore ไปก่อน
+      // อ่านค่าเดิมไม่ได้ก็ใช้ค่าเริ่มต้นไปก่อน
     }
 
     await setDoc(
@@ -92,6 +107,9 @@ export async function saveCloudProgress(params: {
         score: bestScore,
         bestScore,
         lastScore,
+        // แต้มรายสัปดาห์
+        weeklyXp,
+        weekId,
         // streak (ถ้ามี)
         ...(streak
           ? {
@@ -119,7 +137,8 @@ export async function saveCloudProgress(params: {
 export interface LeaderboardEntry {
   email: string;
   name: string;
-  points: number;
+  points: number;     // แต้มสะสมตลอดกาล (ผลรวมกล่อง SRS)
+  weeklyXp: number;   // แต้มสัปดาห์นี้ (0 ถ้าข้อมูลเป็นของสัปดาห์ก่อน)
   mastered: number;
   streak: number;
 }
@@ -127,11 +146,13 @@ export interface LeaderboardEntry {
 export async function loadLeaderboard(): Promise<LeaderboardEntry[]> {
   if (!db) return [];
   try {
+    const thisWeek = currentWeekId();
     const snap = await getDocs(collection(db, COLLECTION));
     const entries: LeaderboardEntry[] = [];
     snap.forEach((d) => {
       const data = d.data() as {
         email?: string; name?: string; mastered?: number; streak?: number;
+        weeklyXp?: number; weekId?: string;
         srs?: Record<string, { box?: number }>;
       };
       let points = 0;
@@ -145,6 +166,8 @@ export async function loadLeaderboard(): Promise<LeaderboardEntry[]> {
         email: (data.email || d.id).toLowerCase(),
         name: data.name || "(ไม่มีชื่อ)",
         points,
+        // ถ้าแต้มรายสัปดาห์เป็นของสัปดาห์ก่อน ให้นับเป็น 0 (เริ่มใหม่)
+        weeklyXp: data.weekId === thisWeek ? (data.weeklyXp ?? 0) : 0,
         mastered: data.mastered ?? 0,
         streak: data.streak ?? 0,
       });
