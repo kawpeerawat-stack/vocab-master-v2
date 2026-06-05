@@ -47,9 +47,20 @@ function posLabel(pos?: string): string {
   return POS_LABELS[pos] || pos;
 }
 
-type QuizQuestion = WordItem & {
-  questionType: 'SENTENCE' | 'SYNONYM' | 'ANTONYM' | 'WRITE' | 'TYPE' | 'LISTEN';
+// ป้ายชื่อประเภทข้อสอบ(อ่านง่ายขึ้นบน badge)
+const QTYPE_LABELS: Record<string, string> = {
+  SENTENCE: 'CONTEXT CLUE', SYNONYM: 'SYNONYM', ANTONYM: 'ANTONYM',
+  MEANING: 'ENG → THAI', TYPE: 'THAI → ENG', LISTEN: 'LISTENING', WRITE: 'WRITING',
 };
+
+type QuizQuestion = WordItem & {
+  questionType: 'SENTENCE' | 'SYNONYM' | 'ANTONYM' | 'WRITE' | 'TYPE' | 'LISTEN' | 'MEANING';
+};
+
+// คำตอบที่ถูกของแต่ละข้อ: โหมด MEANING ตอบเป็น "ความหมายไทย", โหมดอื่นตอบเป็น "คำอังกฤษ"
+function correctAnswerFor(q: QuizQuestion): string {
+  return q.questionType === 'MEANING' ? q.thai_meaning : q.word;
+}
 
 // ผลตรวจประโยคจาก AI
 type AiResult = {
@@ -73,6 +84,8 @@ export default function Home() {
   const [streakState, setStreakState] = useState<StreakState>(emptyStreak());
   // โหมดติว: ทั้งหมด / พื้นฐาน(B1) / ระดับสอบเข้ามหาลัย(B2·C1)
   const [examFocus, setExamFocus] = useState<'all' | 'foundation' | 'exam'>('all');
+  // เลือกเจาะพาร์ท: null = ผสมทุกแนว, หรือเจาะประเภทเดียว
+  const [focusType, setFocusType] = useState<'SYNONYM' | 'ANTONYM' | 'SENTENCE' | 'MEANING' | 'TYPE' | null>(null);
   // จัดอันดับคนขยัน
   const [showRanking, setShowRanking] = useState(false);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[] | null>(null);
@@ -94,7 +107,7 @@ export default function Home() {
   const [typedAnswer, setTypedAnswer] = useState('');
 
   const [score, setScore] = useState(0);
-  const QUIZ_TIME_LIMIT = 40;
+  const QUIZ_TIME_LIMIT = 20;
   const [timeLeft, setTimeLeft] = useState(QUIZ_TIME_LIMIT);
 
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -230,8 +243,12 @@ export default function Home() {
   };
 
   // สร้างรอบจากรายการคำที่กำหนด (ใช้ร่วมกันทั้งรอบปกติและรอบทบทวนคำที่พลาด)
-  const beginRoundWithWords = (words: WordItem[]) => {
+  // forcedType: ถ้ากำหนด ทุกข้อจะเป็นประเภทเดียวกัน (โหมดเจาะพาร์ท ไม่มีข้อแต่งประโยค)
+  const beginRoundWithWords = (words: WordItem[], forcedType?: QuizQuestion['questionType']) => {
     const formattedQuestions: QuizQuestion[] = words.map((item, i) => {
+      if (forcedType) {
+        return { ...item, questionType: forcedType };
+      }
       // ข้อท้ายสุด WRITE_MODE_QUESTIONS ข้อ ให้เป็นโหมดแต่งประโยค
       if (i >= words.length - WRITE_MODE_QUESTIONS) {
         return { ...item, questionType: 'WRITE' as const };
@@ -301,13 +318,67 @@ export default function Home() {
     beginRoundWithWords(weak);
   };
 
-  const generateOptionsForQuestion = (correctItem: WordItem, allItems: WordItem[]) => {
+  // ── รอบเจาะพาร์ทเดียว (เช่น Synonym ล้วน / อังกฤษ→ไทย ล้วน) ──
+  const startFocusRound = (type: 'SYNONYM' | 'ANTONYM' | 'SENTENCE' | 'MEANING' | 'TYPE') => {
+    if (vocabData.length === 0) {
+      alert("⚠️ ระบบยังโหลดคลังคำศัพท์ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บแล้วลองใหม่ครับ");
+      return;
+    }
+    // คัดเฉพาะคำที่ใช้กับประเภทนี้ได้
+    const eligible = vocabData.filter((w) => {
+      if (type === 'SYNONYM') return Boolean(w.synonym && w.synonym !== '-' && w.synonym.trim());
+      if (type === 'ANTONYM') return Boolean(w.antonym && w.antonym !== '-' && w.antonym.trim());
+      if (type === 'SENTENCE') return Boolean(w.example_sentence && w.example_sentence.trim());
+      return Boolean(w.thai_meaning && w.thai_meaning.trim()); // MEANING / TYPE
+    });
+    if (eligible.length === 0) {
+      alert("ยังไม่มีคำในคลังที่ใช้กับแนวนี้ได้ ลองเลือกแนวอื่นหรือโหมดผสมดูครับ");
+      return;
+    }
+    const levelPlan =
+      examFocus === 'foundation'
+        ? [{ level: 'B1', count: 10 }]
+        : examFocus === 'exam'
+        ? [{ level: 'B2', count: 7 }, { level: 'C1', count: 3 }]
+        : [{ level: 'B1', count: 4 }, { level: 'B2', count: 4 }, { level: 'C1', count: 2 }];
+    const picked = pickRound(srsStore, eligible, { total: TOTAL_QUESTIONS_PER_ROUND, levelPlan });
+    const wordMap = new Map(eligible.map((w) => [w.word, w]));
+    const words: WordItem[] = picked.map((w) => wordMap.get(w)).filter((w): w is WordItem => Boolean(w));
+    if (words.length === 0) {
+      alert("ยังไม่มีคำที่เหมาะกับแนวนี้ในระดับที่เลือก ลองเปลี่ยนโหมดติวเป็น 'ทั้งหมด' ดูครับ");
+      return;
+    }
+    beginRoundWithWords(words, type);
+  };
+
+  // ปุ่ม Start: ถ้าเลือกเจาะพาร์ทก็เล่นแนวนั้นล้วน, ไม่งั้นเล่นแบบผสม
+  const handleStart = () => {
+    if (focusType) startFocusRound(focusType);
+    else startNewQuizRound();
+  };
+
+  const generateOptionsForQuestion = (correctItem: QuizQuestion, allItems: WordItem[]) => {
     // หา pool คำระดับเดียวกันก่อน (ถ้าไม่พอค่อยใช้ทั้งคลัง)
     let pool = allItems.filter(item => item.word !== correctItem.word && item.level === correctItem.level);
     if (pool.length < 3) {
       pool = allItems.filter(item => item.word !== correctItem.word);
     }
-    // เลือกตัวลวงที่ "ชวนสับสน" กับคำตอบ (สะกด/ความยาว/ตัวขึ้นต้นใกล้กัน)
+
+    // โหมด MEANING (อังกฤษ→ไทย): ตัวเลือกเป็น "ความหมายภาษาไทย"
+    if (correctItem.questionType === 'MEANING') {
+      const seen = new Set<string>([correctItem.thai_meaning]);
+      const distractorMeanings: string[] = [];
+      for (const w of [...pool].sort(() => 0.5 - Math.random())) {
+        const m = (w.thai_meaning || '').trim();
+        if (m && !seen.has(m)) { seen.add(m); distractorMeanings.push(m); }
+        if (distractorMeanings.length === 3) break;
+      }
+      const choices = [correctItem.thai_meaning, ...distractorMeanings];
+      setOptions(choices.sort(() => 0.5 - Math.random()));
+      return;
+    }
+
+    // โหมดอื่น: ตัวเลือกเป็น "คำอังกฤษ" (เลือกตัวลวงที่ชวนสับสน)
     const distractors = pickSmartDistractors(correctItem.word, pool.map(p => p.word), 3);
     const finalChoices = [correctItem.word, ...distractors];
     setOptions(finalChoices.sort(() => 0.5 - Math.random()));
@@ -330,14 +401,14 @@ export default function Home() {
     setIsAnswered(true);
 
     const currentQ = currentQuestions[currentIndex];
-    const correctWord = currentQ.word;
+    const correct = correctAnswerFor(currentQ);
 
-    if (answer === correctWord) {
+    if (answer === correct) {
       setScore((prev) => prev + 1);
-      recordSrsResult(correctWord, true);
+      recordSrsResult(currentQ.word, true);
     } else {
       // ตอบผิด/หมดเวลา → SRS จะพาคำนี้กลับมาทบทวนเร็ว ๆ
-      recordSrsResult(correctWord, false);
+      recordSrsResult(currentQ.word, false);
       setWrongAnswers((prev) => [...prev, { question: currentQ, selected: answer }]);
     }
   };
@@ -732,8 +803,42 @@ export default function Home() {
                 )}
               </div>
 
+              {/* ── เลือกแนวข้อสอบ: ผสม หรือ เจาะพาร์ทเดียว ── */}
+              <div>
+                <div className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2 text-center">เลือกแนวข้อสอบ</div>
+                <div className="grid grid-cols-3 gap-2">
+                  {([
+                    { key: null, label: 'ผสม', sub: 'แนะนำ' },
+                    { key: 'SYNONYM', label: 'Synonym', sub: 'คำเหมือน' },
+                    { key: 'ANTONYM', label: 'Antonym', sub: 'คำตรงข้าม' },
+                    { key: 'SENTENCE', label: 'Context', sub: 'เดาจากบริบท' },
+                    { key: 'MEANING', label: 'Eng→Thai', sub: 'เลือกความหมาย' },
+                    { key: 'TYPE', label: 'Thai→Eng', sub: 'พิมพ์คำ' },
+                  ] as const).map((opt) => (
+                    <button
+                      key={opt.label}
+                      type="button"
+                      onClick={() => setFocusType(opt.key)}
+                      className={`py-2 rounded-xl border-2 text-center transition-all ${
+                        focusType === opt.key
+                          ? 'bg-[#003399] border-[#003399] text-[#FFD700] shadow-sm'
+                          : 'bg-white border-gray-200 text-gray-600 hover:border-[#003399]/40'
+                      }`}
+                    >
+                      <div className="text-[13px] font-black">{opt.label}</div>
+                      <div className="text-[9px] font-bold opacity-70">{opt.sub}</div>
+                    </button>
+                  ))}
+                </div>
+                <div className="text-[10px] text-gray-400 text-center mt-2">
+                  {focusType
+                    ? 'ฝึกเจาะแนวนี้ล้วน 10 ข้อ — เหมาะกับการซ้อมจุดอ่อน'
+                    : 'คละทุกแนวใน 1 ชุด — จำได้แม่นและใกล้เคียงข้อสอบจริงที่สุด'}
+                </div>
+              </div>
+
               <button
-                onClick={startNewQuizRound}
+                onClick={handleStart}
                 className="w-full py-5 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 text-xl uppercase tracking-widest flex flex-col items-center justify-center gap-1"
               >
                 <span className="flex items-center gap-3">🚀 Start Training Round</span>
@@ -804,7 +909,7 @@ export default function Home() {
                 LEVEL: {currentQuestions[currentIndex].level}
               </span>
               <span className="text-[10px] font-black px-3 py-1 rounded-lg bg-[#FFD700]/20 text-[#003399] border border-[#FFD700]/30 uppercase shadow-sm">
-                TYPE: {currentQuestions[currentIndex].questionType}
+                {QTYPE_LABELS[currentQuestions[currentIndex].questionType] || currentQuestions[currentIndex].questionType}
               </span>
             </div>
 
@@ -818,6 +923,22 @@ export default function Home() {
                 )}
                 {currentQuestions[currentIndex].questionType === 'ANTONYM' && (
                   <span>Select the <span className="text-red-600 underline decoration-[#FFD700] decoration-4">ANTONYM</span> for: <br/>&quot;{currentQuestions[currentIndex].antonym}&quot;</span>
+                )}
+                {currentQuestions[currentIndex].questionType === 'MEANING' && (
+                  <span>เลือกความหมายภาษาไทยของคำว่า <br/>
+                    <span className="inline-flex items-center gap-2 mt-1">
+                      <span className="text-[#003399] underline decoration-[#FFD700] decoration-4">{currentQuestions[currentIndex].word}</span>
+                      {currentQuestions[currentIndex].part_of_speech && (
+                        <span className="text-xs font-bold text-gray-400">({posLabel(currentQuestions[currentIndex].part_of_speech)})</span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => speakWord(currentQuestions[currentIndex].word)}
+                        className="text-base bg-[#003399]/10 text-[#003399] w-8 h-8 rounded-full inline-flex items-center justify-center hover:bg-[#003399]/20 transition-all active:scale-95 align-middle"
+                        aria-label="ฟังเสียงคำ"
+                      >🔊</button>
+                    </span>
+                  </span>
                 )}
                 {currentQuestions[currentIndex].questionType === 'WRITE' && (
                   <span>แต่งประโยคภาษาอังกฤษ 1 ประโยค โดยใช้คำว่า <br/>
@@ -982,7 +1103,7 @@ export default function Home() {
               <>
               <div className="grid grid-cols-1 gap-3">
                 {options.map((option, idx) => {
-                  const isCorrectChoice = option === currentQuestions[currentIndex].word;
+                  const isCorrectChoice = option === correctAnswerFor(currentQuestions[currentIndex]);
                   let btnStyle = "border-gray-100 hover:border-[#003399] hover:bg-[#003399]/5 text-gray-800 bg-white font-bold shadow-sm";
                   if (isAnswered) {
                     if (isCorrectChoice) {
@@ -1017,10 +1138,12 @@ export default function Home() {
             {/* ── การ์ดเฉลย & คำอธิบาย (ข้อต่อข้อ) ── */}
             {isAnswered && (() => {
               const cq = currentQuestions[currentIndex];
-              const isCorrect = selectedAnswer === cq.word;
-              // ความหมายของคำที่เลือกผิด (เฉพาะถ้าเป็นคำที่อยู่ในคลังศัพท์)
+              const isCorrect = selectedAnswer === correctAnswerFor(cq);
+              // ความหมาย/คำที่เลือกผิด (MEANING: เลือกเป็นความหมาย → หาคำที่เป็นเจ้าของความหมายนั้น)
               const chosen = (!isCorrect && !timedOut && selectedAnswer)
-                ? vocabData.find((w) => w.word === selectedAnswer)
+                ? (cq.questionType === 'MEANING'
+                    ? vocabData.find((w) => w.thai_meaning === selectedAnswer)
+                    : vocabData.find((w) => w.word === selectedAnswer))
                 : null;
               return (
                 <div className="mt-5 p-5 rounded-2xl border-2 border-[#003399]/15 bg-[#003399]/[0.03] text-left animate-fadeIn">
@@ -1048,7 +1171,7 @@ export default function Home() {
                   )}
                   {chosen && (
                     <div className="mt-3 p-3 rounded-xl bg-red-50 border border-red-200 text-sm">
-                      <span className="font-bold text-red-700">คุณเลือก &ldquo;{chosen.word}&rdquo;</span>
+                      <span className="font-bold text-red-700">{cq.questionType === 'MEANING' ? 'ความหมายที่คุณเลือกเป็นของคำว่า ' : 'คุณเลือก '}&ldquo;{chosen.word}&rdquo;</span>
                       <span className="text-red-600"> = {chosen.thai_meaning}</span>
                       {chosen.part_of_speech && (
                         <span className="text-xs text-red-400 font-bold"> ({posLabel(chosen.part_of_speech)})</span>
