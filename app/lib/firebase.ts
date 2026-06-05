@@ -14,18 +14,13 @@ const firebaseConfig = {
 
 // reCAPTCHA v3 site key — เป็น "คีย์สาธารณะ" ใส่ในโค้ดได้ (ความลับคือ secret ที่อยู่ใน Firebase Console)
 // ⚠️ เปลี่ยนค่าด้านล่างเป็น site key จริงของคุณครู (จากขั้นตอนตั้งค่า reCAPTCHA)
-const RECAPTCHA_SITE_KEY: string = "6LcJbQ4tAAAAACrSP9HuwrcEv5_qRCpDi1roFjuM";
+const RECAPTCHA_SITE_KEY = "6LcJbQ4tAAAAACrSP9HuwrcEv5_qRCpDi1roFjuM";
 
 // ป้องกัน initialize ซ้ำ
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
-// ── App Check: อนุญาตเฉพาะคำขอจากแอปจริงของเรา (รันบนเบราว์เซอร์เท่านั้น) ──
-// ตราบใดที่ยังไม่ได้ใส่ site key จริง App Check จะยังไม่เริ่มทำงาน (กันล็อกตัวเองออก)
-if (
-  typeof window !== "undefined" &&
-  RECAPTCHA_SITE_KEY &&
-  RECAPTCHA_SITE_KEY !== "6LcJbQ4tAAAAACrSP9HuwrcEv5_qRCpDi1roFjuM"
-) {
+// ── App Check: อนุญาตเฉพาะคำขอจากแอปจริงของเรา (รันบนเบราว์เซอร์ที่มี site key เท่านั้น) ──
+if (typeof window !== "undefined" && RECAPTCHA_SITE_KEY) {
   // ตอนพัฒนาในเครื่อง (localhost) ใช้ debug token เพื่อไม่ให้ App Check บล็อก
   if (process.env.NODE_ENV === "development") {
     (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN?: boolean }).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
