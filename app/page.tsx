@@ -123,12 +123,11 @@ export default function Home() {
       .catch((err) => console.error("Error loading vocab:", err));
   }, []);
 
-  // ── useEffect 2: ตรวจจับการสลับแท็บ ──
+  // ── useEffect 2: นับการออกนอกหน้าจอระหว่างทำข้อสอบ (แบบเงียบ ๆ ไม่เด้งเตือนกลางคัน) ──
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && gameState === 'QUIZ') {
-        alert("⚠️ Warning! ตรวจพบการออกนอกหน้าจอข้อสอบ กรุณาทำข้อสอบให้เสร็จก่อนสลับหน้าต่างครับ");
-        setCheatWarnings(prev => prev + 1);
+        setCheatWarnings((prev) => prev + 1);
       }
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -175,22 +174,6 @@ export default function Home() {
       return () => clearTimeout(t);
     }
   }, [gameState, currentIndex, currentQuestions, isAnswered]);
-
-  // ── useEffect 4: บล็อก DevTools (F12, Ctrl+Shift+I/J, Ctrl+U) ──
-  useEffect(() => {
-    const blockDevTools = (e: KeyboardEvent) => {
-      if (
-        e.key === 'F12' ||
-        (e.ctrlKey && e.shiftKey && e.key === 'I') ||
-        (e.ctrlKey && e.shiftKey && e.key === 'J') ||
-        (e.ctrlKey && e.key === 'u')
-      ) {
-        e.preventDefault();
-      }
-    };
-    document.addEventListener('keydown', blockDevTools);
-    return () => document.removeEventListener('keydown', blockDevTools);
-  }, []);
 
   const handleStudentLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -509,7 +492,6 @@ export default function Home() {
   return (
     <div
       className="min-h-screen bg-[#f8f9fa] flex flex-col items-center justify-center p-4 font-sans text-gray-800 select-none"
-      onContextMenu={(e) => e.preventDefault()}
     >
       <div className="w-full max-w-2xl bg-white shadow-2xl rounded-3xl p-6 md:p-10 border-t-[12px] border-[#003399] relative overflow-hidden">
 
@@ -1044,9 +1026,9 @@ export default function Home() {
             <h2 className="text-3xl font-black text-gray-900 mb-2">Round Finished!</h2>
             <p className="text-[#003399] font-black mb-6 bg-[#003399]/5 py-2 px-6 rounded-full inline-block">{studentName}</p>
 
-            {cheatWarnings > 0 && (
-              <div className="bg-red-50 text-red-700 p-4 rounded-2xl text-sm font-black mb-6 border-2 border-red-100 animate-bounce">
-                ⚠️ SECURITY ALERT: Switched tabs {cheatWarnings} times.
+            {cheatWarnings >= 3 && (
+              <div className="bg-amber-50 text-amber-700 p-4 rounded-2xl text-sm font-bold mb-6 border-2 border-amber-100">
+                ℹ️ ออกจากหน้าจอข้อสอบ {cheatWarnings} ครั้งระหว่างทำรอบนี้ — โฟกัสอยู่ในจอเดียวจะช่วยให้ทำได้ดีขึ้นนะ
               </div>
             )}
 
