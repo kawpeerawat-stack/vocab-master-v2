@@ -31,9 +31,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
   }
 
-  // คลังคำศัพท์เดิม + คลัง Phrasal verb/Idiom (รวมเป็นคลังเดียว)
+  // คลังคำศัพท์เดิม + Phrasal verb/Idiom + คำศัพท์เสริม (จากบทอ่าน/บทสนทนา) = คลังเดียว
   const words = readJson('vocab.json')
   const phrases = readJson('phrases.json')
-  const all = [...words, ...phrases].filter((w) => w.word !== 'คำศัพท์ภาษาอังกฤษ')
+  const extra = readJson('words_extra.json')
+  const all = [...words, ...phrases, ...extra].filter((w) => w.word !== 'คำศัพท์ภาษาอังกฤษ')
   return NextResponse.json(all)
 }
