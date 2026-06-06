@@ -15,7 +15,12 @@ import {
   pickSmartDistractors,
   chooseQuestionType,
 } from './lib/quiz';
-import { loadCloudProgress, saveCloudProgress, loadLeaderboard, LeaderboardEntry } from './lib/cloud';
+import { loadCloudProgress, saveCloudProgress, loadLeaderboard, LeaderboardEntry, saveReadingProgress, ReadingByType } from './lib/cloud';
+import {
+  ReadingPassage,
+  RQTYPE_LABELS,
+  loadReadingPassages,
+} from './lib/reading';
 import {
   StreakState,
   emptyStreak,
@@ -78,6 +83,18 @@ export default function Home() {
   // ── ห้องที่กำลังเปิดอยู่หลังล็อกอิน (Dashboard) ──
   // HUB = หน้าเลือกห้อง, VOCAB = ห้องคำศัพท์เดิม, READING/CONVERSATION = ห้องใหม่
   const [section, setSection] = useState<'HUB' | 'VOCAB' | 'READING' | 'CONVERSATION'>('HUB');
+  // ── สถานะห้อง Reading ──
+  const [readingPassages, setReadingPassages] = useState<ReadingPassage[]>([]);
+  const [readingLoading, setReadingLoading] = useState(false);
+  const [teacherPreview, setTeacherPreview] = useState(false); // ครูเปิดดูบทที่ยังไม่ตรวจ
+  const [readingView, setReadingView] = useState<'LIST' | 'PLAY' | 'RESULT'>('LIST');
+  const [activePassage, setActivePassage] = useState<ReadingPassage | null>(null);
+  const [rIndex, setRIndex] = useState(0);
+  const [rSelected, setRSelected] = useState<number | null>(null);
+  const [rAnswered, setRAnswered] = useState(false);
+  const [rResults, setRResults] = useState<{ qid: string; type: string; selected: number; correct: boolean }[]>([]);
+  const [rSaving, setRSaving] = useState(false);
+  const [glossWord, setGlossWord] = useState<string | null>(null); // คำใน targetVocab ที่กำลังเปิดดูคำแปล
 
   const [studentName, setStudentName] = useState('');
   const [email, setEmail] = useState('');
@@ -566,6 +583,90 @@ export default function Home() {
   // จำนวนคำที่เด็กยังอ่อน (ไว้โชว์บนปุ่มทบทวนคำที่พลาด)
   const weakCount = Object.values(srsStore).filter((c) => c && (c.box <= 1 || c.lapses > 0)).length;
 
+  // ── โหลดบทอ่านเมื่อเข้าห้อง Reading ครั้งแรก ──
+  useEffect(() => {
+    if (section === 'READING' && readingPassages.length === 0 && !readingLoading) {
+      setReadingLoading(true);
+      loadReadingPassages()
+        .then((ps) => setReadingPassages(ps))
+        .catch((e) => console.error('โหลดบทอ่านไม่สำเร็จ:', e))
+        .finally(() => setReadingLoading(false));
+    }
+  }, [section, readingPassages.length, readingLoading]);
+
+  // แผนที่คำศัพท์ (สำหรับแตะดูคำแปลคำใน targetVocab ของบทอ่าน)
+  const vocabByWord = React.useMemo(() => {
+    const m: Record<string, WordItem> = {};
+    for (const w of vocabData) m[w.word.toLowerCase()] = w;
+    return m;
+  }, [vocabData]);
+
+  // เริ่มทำบทอ่านที่เลือก
+  const startPassage = (p: ReadingPassage) => {
+    setActivePassage(p);
+    setRIndex(0);
+    setRSelected(null);
+    setRAnswered(false);
+    setRResults([]);
+    setGlossWord(null);
+    setReadingView('PLAY');
+  };
+
+  // ตอบคำถามข้อปัจจุบัน
+  const answerReading = (choiceIndex: number) => {
+    if (rAnswered || !activePassage) return;
+    const q = activePassage.questions[rIndex];
+    const correct = choiceIndex === q.answerIndex;
+    setRSelected(choiceIndex);
+    setRAnswered(true);
+    setRResults((prev) => [...prev, { qid: q.id, type: q.type, selected: choiceIndex, correct }]);
+  };
+
+  // สรุปผลเมื่อทำครบทุกข้อ
+  const finishReading = async (allResults: { qid: string; type: string; selected: number; correct: boolean }[]) => {
+    setReadingView('RESULT');
+    if (!activePassage) return;
+    const total = allResults.length;
+    const correct = allResults.filter((r) => r.correct).length;
+    // บันทึกคะแนนเฉพาะบทที่ครูตรวจแล้ว (ไม่บันทึกตอนครูพรีวิวบทที่ยัง verified:false)
+    if (activePassage.verified && email) {
+      const byType: Record<string, ReadingByType> = {};
+      for (const r of allResults) {
+        const b = byType[r.type] ?? { answered: 0, correct: 0 };
+        b.answered += 1;
+        if (r.correct) b.correct += 1;
+        byType[r.type] = b;
+      }
+      const updatedStreak = applyActivity(streakState, total);
+      setStreakState(updatedStreak);
+      saveStreak(email, updatedStreak);
+      setRSaving(true);
+      try {
+        await saveReadingProgress({ email, name: studentName, correct, total, byType, streak: updatedStreak });
+      } catch (e) {
+        console.error('บันทึกผล Reading ไม่สำเร็จ:', e);
+      } finally {
+        setRSaving(false);
+      }
+    }
+  };
+
+  // ไปข้อถัดไป หรือจบรอบถ้าหมดแล้ว
+  const nextReadingQuestion = () => {
+    if (!activePassage) return;
+    if (rIndex + 1 >= activePassage.questions.length) {
+      finishReading(rResults);
+    } else {
+      setRIndex((i) => i + 1);
+      setRSelected(null);
+      setRAnswered(false);
+    }
+  };
+
+  // บทอ่านที่จะแสดง (เด็กเห็นเฉพาะที่ครูตรวจแล้ว / ครูเปิดสวิตช์เพื่อพรีวิวบทที่ยังไม่ตรวจ)
+  const visiblePassages = teacherPreview ? readingPassages : readingPassages.filter((p) => p.verified);
+  const hasUnverified = readingPassages.some((p) => !p.verified);
+
   return (
     <div
       className="min-h-screen bg-[#f8f9fa] flex flex-col items-center justify-center p-4 font-sans text-gray-800 select-none"
@@ -684,20 +785,18 @@ export default function Home() {
           </div>
         )}
 
-        {/* ── ห้อง Reading / Conversation (placeholder — จะสร้างจริงในขั้นถัดไป) ── */}
-        {gameState === 'START' && isLoggedIn && (section === 'READING' || section === 'CONVERSATION') && (
+        {/* ── ห้อง Conversation (placeholder — จะสร้างจริงในขั้นถัดไป) ── */}
+        {gameState === 'START' && isLoggedIn && section === 'CONVERSATION' && (
           <div className="text-center animate-fadeIn mt-2">
             <div className="flex flex-col items-center justify-center mb-6">
-              <span className="text-5xl mb-3">{section === 'READING' ? '📖' : '💬'}</span>
-              <h1 className="text-2xl font-black text-gray-900 mb-1">
-                {section === 'READING' ? 'การอ่าน (Reading)' : 'บทสนทนา (Conversation)'}
-              </h1>
+              <span className="text-5xl mb-3">💬</span>
+              <h1 className="text-2xl font-black text-gray-900 mb-1">บทสนทนา (Conversation)</h1>
               <p className="text-[#003399] font-bold text-sm tracking-widest uppercase">Coming next step</p>
             </div>
             <div className="bg-[#FFD700]/10 border-2 border-[#FFD700]/40 rounded-3xl p-6 mb-6">
               <p className="text-gray-700 font-bold text-sm leading-relaxed">
                 🚧 ห้องนี้กำลังสร้างในขั้นถัดไปครับ
-                <span className="block text-xs text-gray-500 font-medium mt-1">โครงสร้าง Dashboard ทำงานแล้ว — เนื้อหาและแบบฝึกจะตามมา</span>
+                <span className="block text-xs text-gray-500 font-medium mt-1">เมื่อห้อง Reading เรียบร้อย ผมจะก๊อปแพทเทิร์นเดียวกันมาทำ Conversation</span>
               </p>
             </div>
             <button
@@ -707,6 +806,217 @@ export default function Home() {
             >
               ← กลับเมนูหลัก
             </button>
+          </div>
+        )}
+
+        {/* ── ห้อง Reading (จริง) ── */}
+        {gameState === 'START' && isLoggedIn && section === 'READING' && (
+          <div className="animate-fadeIn mt-2">
+            <div className="flex items-center justify-between mb-4">
+              <button
+                type="button"
+                onClick={() => { setSection('HUB'); setReadingView('LIST'); }}
+                className="text-sm font-bold text-[#003399] hover:underline flex items-center gap-1"
+              >
+                ← เมนูหลัก
+              </button>
+              <span className="text-base font-black text-gray-900">📖 การอ่าน (Reading)</span>
+              <span className="w-14" />
+            </div>
+
+            {/* ---- รายการบทอ่าน ---- */}
+            {readingView === 'LIST' && (
+              <div>
+                <label className="flex items-center justify-center gap-2 mb-4 text-xs font-bold text-gray-500 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={teacherPreview}
+                    onChange={(e) => setTeacherPreview(e.target.checked)}
+                    className="w-4 h-4 accent-[#003399]"
+                  />
+                  โหมดครู: แสดงบทที่ยังไม่ได้ตรวจ (สำหรับทดสอบก่อนเปิดให้นักเรียน)
+                </label>
+
+                {readingLoading && (
+                  <p className="text-center text-gray-400 font-bold py-10">⏳ กำลังโหลดบทอ่าน…</p>
+                )}
+
+                {!readingLoading && visiblePassages.length === 0 && (
+                  <div className="bg-[#FFD700]/10 border-2 border-[#FFD700]/40 rounded-3xl p-6 text-center text-sm font-bold text-gray-700 leading-relaxed">
+                    {hasUnverified ? (
+                      <>ยังไม่มีบทที่ครูตรวจแล้ว<span className="block text-xs text-gray-500 font-medium mt-1">เปิด &quot;โหมดครู&quot; ด้านบนเพื่อพรีวิวบทที่ยังไม่ตรวจ — เมื่อแก้ verified เป็น true ในไฟล์ reading.json นักเรียนจะเห็นบทนั้น</span></>
+                    ) : (
+                      'ยังไม่มีบทอ่านในระบบ'
+                    )}
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  {visiblePassages.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => startPassage(p)}
+                      className="w-full text-left p-4 bg-white border-2 border-[#003399]/15 rounded-2xl shadow-sm hover:border-[#003399]/40 active:scale-[0.99] transition-all"
+                    >
+                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                        <span className="text-[10px] font-black bg-[#003399] text-white px-2 py-0.5 rounded-full">{p.level}</span>
+                        <span className="text-[10px] font-black bg-[#003399]/10 text-[#003399] px-2 py-0.5 rounded-full">{p.examStyle}</span>
+                        {p.verified ? (
+                          <span className="text-[10px] font-black bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✓ ครูตรวจแล้ว</span>
+                        ) : (
+                          <span className="text-[10px] font-black bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">⚠ รอครูตรวจ</span>
+                        )}
+                      </div>
+                      <div className="font-black text-gray-900 text-[15px] leading-snug">{p.title}</div>
+                      <div className="text-xs text-gray-500 font-bold mt-1">{p.questions.length} คำถาม · ~{p.wordCount} คำ</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ---- ทำบทอ่าน ---- */}
+            {readingView === 'PLAY' && activePassage && (() => {
+              const q = activePassage.questions[rIndex];
+              return (
+                <div>
+                  {!activePassage.verified && (
+                    <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-3 mb-3 text-[11px] font-bold text-amber-700 text-center">
+                      ⚠ บทนี้ยังไม่ได้ตรวจ (โหมดครู) — คะแนนจะไม่ถูกบันทึก
+                    </div>
+                  )}
+
+                  {/* บทอ่าน */}
+                  <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-3 max-h-64 overflow-y-auto">
+                    <div className="font-black text-gray-900 mb-2 text-[15px]">{activePassage.title}</div>
+                    <p className="text-[14px] text-gray-700 leading-relaxed whitespace-pre-line">{activePassage.passage}</p>
+                  </div>
+
+                  {/* คำศัพท์จากคลัง — แตะดูคำแปล */}
+                  {activePassage.targetVocab.length > 0 && (
+                    <div className="mb-4">
+                      <div className="text-[11px] font-black text-[#003399] uppercase tracking-wide mb-1.5">คำศัพท์ในบทอ่าน (แตะดูคำแปล)</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {activePassage.targetVocab.map((w) => (
+                          <button
+                            key={w}
+                            type="button"
+                            onClick={() => setGlossWord(glossWord === w ? null : w)}
+                            className={`text-[12px] font-bold px-2.5 py-1 rounded-full border transition-all ${glossWord === w ? 'bg-[#003399] text-[#FFD700] border-[#003399]' : 'bg-white text-[#003399] border-[#003399]/30 hover:border-[#003399]'}`}
+                          >
+                            {w}
+                          </button>
+                        ))}
+                      </div>
+                      {glossWord && vocabByWord[glossWord.toLowerCase()] && (
+                        <div className="mt-2 bg-[#003399]/5 border border-[#003399]/15 rounded-xl p-3 text-sm">
+                          <span className="font-black text-[#003399]">{glossWord}</span>
+                          <span className="text-gray-700"> — {vocabByWord[glossWord.toLowerCase()].thai_meaning}</span>
+                          <div className="text-xs text-gray-500 mt-0.5 italic">{vocabByWord[glossWord.toLowerCase()].eng_definition}</div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* คำถาม */}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] font-black bg-[#FFD700] text-[#003399] px-2 py-0.5 rounded-full">{RQTYPE_LABELS[q.type]}</span>
+                    <span className="text-xs font-bold text-gray-400">ข้อ {rIndex + 1} / {activePassage.questions.length}</span>
+                  </div>
+                  <p className="font-black text-gray-900 text-[15px] mb-3 leading-snug">{q.question}</p>
+
+                  <div className="space-y-2">
+                    {q.choices.map((c, idx) => {
+                      const letter = String.fromCharCode(65 + idx);
+                      let cls = 'bg-white border-gray-200 text-gray-700 hover:border-[#003399]/40';
+                      if (rAnswered) {
+                        if (idx === q.answerIndex) cls = 'bg-green-50 border-green-400 text-green-800';
+                        else if (idx === rSelected) cls = 'bg-rose-50 border-rose-400 text-rose-700';
+                        else cls = 'bg-white border-gray-100 text-gray-400';
+                      }
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          disabled={rAnswered}
+                          onClick={() => answerReading(idx)}
+                          className={`w-full text-left p-3 rounded-xl border-2 font-bold text-[14px] transition-all flex gap-2 ${cls}`}
+                        >
+                          <span className="font-black">{letter}.</span>
+                          <span className="flex-1">{c}</span>
+                          {rAnswered && idx === q.answerIndex && <span>✓</span>}
+                          {rAnswered && idx === rSelected && idx !== q.answerIndex && <span>✗</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* เฉลย + คำอธิบาย */}
+                  {rAnswered && (
+                    <div className="mt-3 bg-[#003399]/5 border border-[#003399]/15 rounded-2xl p-4 animate-fadeIn">
+                      <div className="text-xs font-black text-[#003399] uppercase tracking-wide mb-1">💡 คำอธิบาย</div>
+                      <p className="text-[14px] text-gray-700 leading-relaxed">{q.explanation_th}</p>
+                    </div>
+                  )}
+
+                  {rAnswered && (
+                    <button
+                      type="button"
+                      onClick={nextReadingQuestion}
+                      className="w-full mt-4 py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg hover:bg-[#002266] active:scale-[0.98] transition-all uppercase tracking-widest"
+                    >
+                      {rIndex + 1 >= activePassage.questions.length ? 'ดูผลสรุป' : 'ข้อถัดไป →'}
+                    </button>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* ---- สรุปผล ---- */}
+            {readingView === 'RESULT' && activePassage && (() => {
+              const total = activePassage.questions.length;
+              const correct = rResults.filter((r) => r.correct).length;
+              const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+              return (
+                <div className="animate-fadeIn">
+                  <div className="text-center mb-5">
+                    <div className="text-5xl font-black text-[#003399]">{correct}/{total}</div>
+                    <div className="text-sm font-bold text-gray-500 mt-1">ตอบถูก {pct}%</div>
+                    {rSaving && <div className="text-xs text-gray-400 mt-1">⏳ กำลังบันทึกคะแนน…</div>}
+                    {!activePassage.verified && <div className="text-xs text-amber-600 font-bold mt-1">โหมดครู — ไม่บันทึกคะแนน</div>}
+                  </div>
+
+                  <div className="space-y-2 mb-5">
+                    {activePassage.questions.map((q, i) => {
+                      const r = rResults[i];
+                      const ok = r?.correct;
+                      return (
+                        <div key={q.id} className={`p-3 rounded-xl border-2 ${ok ? 'bg-green-50 border-green-200' : 'bg-rose-50 border-rose-200'}`}>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-[10px] font-black bg-white px-2 py-0.5 rounded-full text-gray-500">{RQTYPE_LABELS[q.type]}</span>
+                            <span className={`text-xs font-black ${ok ? 'text-green-700' : 'text-rose-600'}`}>{ok ? '✓ ถูก' : '✗ ผิด'}</span>
+                          </div>
+                          <p className="text-[13px] font-bold text-gray-800 leading-snug">{q.question}</p>
+                          {!ok && r && (
+                            <p className="text-[12px] text-gray-500 mt-1">คุณตอบ: {String.fromCharCode(65 + r.selected)} · เฉลย: {String.fromCharCode(65 + q.answerIndex)}</p>
+                          )}
+                          <p className="text-[12px] text-gray-600 mt-1 leading-relaxed">{q.explanation_th}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => { setReadingView('LIST'); setActivePassage(null); }}
+                    className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg hover:bg-[#002266] active:scale-[0.98] transition-all uppercase tracking-widest"
+                  >
+                    ← เลือกบทอ่านอื่น
+                  </button>
+                </div>
+              );
+            })()}
           </div>
         )}
 
