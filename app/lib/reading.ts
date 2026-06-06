@@ -16,6 +16,13 @@ export type ReadingQuestionType =
 
 export type ExamStyle = "A-LEVEL" | "TGAT" | "NETSAT";
 export type ReadingLevel = "B1" | "B2" | "C1";
+export type ReadingCategory =
+  | "ad"
+  | "review"
+  | "science"
+  | "article"
+  | "story"
+  | "other";
 
 export interface ReadingQuestion {
   id: string;
@@ -31,6 +38,7 @@ export interface ReadingPassage {
   level: ReadingLevel;
   examStyle: ExamStyle;
   genre?: string;
+  category?: ReadingCategory; // หมวดเรื่อง (โฆษณา/รีวิว/วิทยาศาสตร์...) สำหรับจัดกลุ่ม-กรอง
   title: string;
   passage: string;
   wordCount: number;
@@ -50,6 +58,24 @@ export const RQTYPE_LABELS: Record<ReadingQuestionType, string> = {
   PURPOSE_TONE: "จุดประสงค์/น้ำเสียง",
   ORGANIZATION: "การจัดเรียงเนื้อหา",
 };
+
+// หมวดเรื่องของบทอ่าน (ภาษาไทย) สำหรับตัวกรอง/จัดกลุ่ม
+export const CATEGORY_LABELS: Record<string, string> = {
+  ad: "โฆษณา",
+  review: "รีวิวสินค้า",
+  science: "วิทยาศาสตร์ & สิ่งแวดล้อม",
+  article: "บทความ/ความคิดเห็น",
+  story: "เรื่องเล่า & ข่าว",
+  other: "อื่น ๆ",
+};
+export const CATEGORY_ORDER: string[] = [
+  "ad",
+  "review",
+  "science",
+  "article",
+  "story",
+  "other",
+];
 
 // ── โหลดบทอ่านจาก API ──
 //   verifiedOnly = true  → เอาเฉพาะบทที่ครูตรวจแล้ว (ใช้ตอนเปิดให้เด็กจริง)
