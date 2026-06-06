@@ -1,0 +1,203 @@
+{
+  "version": 1,
+  "note": "เนื้อหาทั้งหมดนี้ AI ร่างขึ้น (Claude) — ต้องให้คุณครูตรวจสอบความถูกต้องของบทอ่าน คำถาม เฉลย และคำอธิบายก่อนนำไปใช้จริงกับนักเรียน เมื่อตรวจแล้วให้เปลี่ยน verified เป็น true",
+  "passages": [
+    {
+      "id": "rd-b1-001",
+      "level": "B1",
+      "examStyle": "A-LEVEL",
+      "genre": "news report",
+      "title": "Students Help Protect a Local Mangrove Forest",
+      "passage": "Last weekend, more than fifty students from Anukoolnaree School joined a community project to protect the mangrove forest near their town. The forest had suffered serious damage after a storm, and local fishers worried that fewer fish would be available in the coming year.\n\nBefore the trip, the students spent two afternoons learning how to prepare young mangrove plants. Their teacher explained that healthy mangroves protect the coast from strong waves and provide a home for crabs, fish, and birds.\n\nOn Saturday morning, the group planted almost four hundred trees along the muddy shore. The work required patience, because the soft mud made walking difficult. Still, the students said the effort was worth it.\n\n\"Planting trees is hard, but the benefit is huge,\" said one student. \"In a few years, these mangroves will support our whole community.\"\n\nThe project leader hopes the result will encourage other schools to start similar activities. She believes that small actions, repeated by many people, can slowly bring the damaged forest back to life.",
+      "wordCount": 176,
+      "targetVocab": ["community", "protect", "damage", "available", "prepare", "require", "effort", "benefit", "result"],
+      "verified": false,
+      "source": "AI-generated (Claude) — teacher review required",
+      "questions": [
+        {
+          "id": "rd-b1-001-q1",
+          "type": "MAIN_IDEA",
+          "question": "What is the passage mainly about?",
+          "choices": [
+            "A storm that destroyed a town near the sea",
+            "Students taking part in a project to restore a mangrove forest",
+            "How fishers catch crabs and fish in the mangroves",
+            "A teacher who studies plants at a school"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ทั้งบทเล่าเรื่องนักเรียนที่ไปร่วมโครงการปลูกป่าชายเลนเพื่อฟื้นฟูป่าที่เสียหาย ส่วน A, C, D เป็นรายละเอียดประกอบ ไม่ใช่ใจความหลัก (พายุ การจับปลา และครู ถูกพูดถึงเพียงเล็กน้อย)"
+        },
+        {
+          "id": "rd-b1-001-q2",
+          "type": "SUPPORTING_DETAIL",
+          "question": "How many trees did the students plant?",
+          "choices": [
+            "About fifty",
+            "Two hundred",
+            "Four thousand",
+            "Almost four hundred"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — ย่อหน้าที่ 3 ระบุชัดว่า \"planted almost four hundred trees\" ส่วนเลข fifty (50) คือจำนวนนักเรียน ไม่ใช่จำนวนต้นไม้ จึงเป็นตัวลวง"
+        },
+        {
+          "id": "rd-b1-001-q3",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "In the passage, the word \"available\" is closest in meaning to ___.",
+          "choices": [
+            "able to be found or used",
+            "expensive",
+            "dangerous",
+            "delicious"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — \"available\" แปลว่า \"หาได้ / มีให้ใช้\" ในที่นี้หมายถึงจะมีปลาให้จับได้น้อยลง คำนี้เป็นคำในคลังศัพท์ของเรา (ระดับ B1) นักเรียนแตะคำนี้ในบทอ่านเพื่อทบทวนความหมายเต็มได้"
+        },
+        {
+          "id": "rd-b1-001-q4",
+          "type": "REFERENCE",
+          "question": "In the last paragraph, the word \"She\" refers to ___.",
+          "choices": [
+            "the teacher",
+            "one student",
+            "the project leader",
+            "a local fisher"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ประโยคก่อนหน้าขึ้นต้นว่า \"The project leader hopes...\" แล้วประโยคถัดมาใช้ \"She believes...\" คำสรรพนาม She จึงอ้างถึงหัวหน้าโครงการ (the project leader)"
+        },
+        {
+          "id": "rd-b1-001-q5",
+          "type": "INFERENCE",
+          "question": "What can be inferred about the mangrove forest?",
+          "choices": [
+            "It will never recover from the damage",
+            "It is more important than the students' studies",
+            "It was planted entirely in one weekend",
+            "It can recover if people keep helping over time"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — บทไม่ได้บอกตรง ๆ แต่ประโยคสุดท้าย \"small actions, repeated by many people, can slowly bring the damaged forest back to life\" สื่อเป็นนัยว่าป่าจะฟื้นได้ถ้าคนช่วยกันต่อเนื่อง ส่วน A ขัดกับน้ำเสียงเชิงบวกของบท"
+        },
+        {
+          "id": "rd-b1-001-q6",
+          "type": "PURPOSE_TONE",
+          "question": "What is the overall tone of the passage?",
+          "choices": [
+            "Sad and hopeless",
+            "Positive and encouraging",
+            "Angry and critical",
+            "Funny and joking"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — คำอย่าง \"the benefit is huge\", \"worth it\", และ \"bring the forest back to life\" สื่อโทนบวกและให้กำลังใจ ผู้เขียนต้องการให้ผู้อ่านเห็นคุณค่าของการลงมือทำ"
+        }
+      ]
+    },
+    {
+      "id": "rd-b2-001",
+      "level": "B2",
+      "examStyle": "A-LEVEL",
+      "genre": "feature article",
+      "title": "Can Rooftop Farms Feed Our Cities?",
+      "passage": "As cities grow larger, feeding their populations has become a significant challenge. One idea gaining attention is the rooftop farm: a garden built on top of a building, where vegetables and herbs are grown close to the people who eat them.\n\nSupporters argue that rooftop farms could contribute to a city's food supply in several ways. First, growing food locally reduces the distance it must travel, which lowers pollution from trucks. Second, the plants help enhance air quality and keep buildings cooler in summer. Some farms even generate a small income by selling produce to nearby restaurants.\n\nHowever, rooftop farming is not simple to implement. Roofs must be strong enough to hold soil, water, and workers. Watering systems can be expensive, and not every building receives enough sunlight. If these problems are ignored, the consequence may be a project that costs more than it produces.\n\nResearchers note that the benefits accumulate slowly. A single rooftop farm will not solve a city's food problems. But if many buildings adopt the idea, the combined effect could be meaningful.\n\nFor now, rooftop farms remain a promising experiment rather than a complete solution \u2014 a reminder that even good ideas require careful planning to succeed.",
+      "wordCount": 205,
+      "targetVocab": ["significant", "contribute", "enhance", "generate", "implement", "consequence", "accumulate", "require", "benefit"],
+      "verified": false,
+      "source": "AI-generated (Claude) — teacher review required",
+      "questions": [
+        {
+          "id": "rd-b2-001-q1",
+          "type": "MAIN_IDEA",
+          "question": "What is the main purpose of the passage?",
+          "choices": [
+            "To prove that rooftop farms are useless",
+            "To describe both the promise and the challenges of rooftop farms",
+            "To give step-by-step instructions for building a rooftop farm",
+            "To compare two cities that already use rooftop farms"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — บทนำเสนอทั้งข้อดี (ย่อหน้า 2) และข้อจำกัด (ย่อหน้า 3) ของฟาร์มบนดาดฟ้า แล้วสรุปแบบสมดุล จึงเป็นการ \"อธิบายทั้งโอกาสและความท้าทาย\" ไม่ใช่การชี้ว่าดีล้วนหรือแย่ล้วน"
+        },
+        {
+          "id": "rd-b2-001-q2",
+          "type": "SUPPORTING_DETAIL",
+          "question": "According to the passage, one way rooftop farms help is by ___.",
+          "choices": [
+            "lowering pollution from transporting food",
+            "removing the need for restaurants",
+            "making roofs cheaper to build",
+            "increasing the number of trucks in the city"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ย่อหน้า 2 บอกว่าปลูกอาหารใกล้ผู้บริโภค \"reduces the distance it must travel, which lowers pollution from trucks\" ส่วน D กลับด้านกับเนื้อหา (มลพิษจากรถน้อยลง ไม่ใช่มากขึ้น)"
+        },
+        {
+          "id": "rd-b2-001-q3",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "The word \"implement\" in paragraph 3 is closest in meaning to ___.",
+          "choices": [
+            "imagine",
+            "forbid",
+            "advertise",
+            "put into practice"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — \"implement\" แปลว่า \"นำไปปฏิบัติ / ทำให้เกิดขึ้นจริง\" ประโยคบอกว่าการทำฟาร์มบนดาดฟ้า \"ไม่ง่ายที่จะนำไปทำจริง\" คำนี้อยู่ในคลังศัพท์ของเรา (ระดับ B2) แตะดูความหมายเต็มได้"
+        },
+        {
+          "id": "rd-b2-001-q4",
+          "type": "REFERENCE",
+          "question": "In paragraph 3, the word \"it\" in \"more than it produces\" refers to ___.",
+          "choices": [
+            "the city",
+            "the sunlight",
+            "the project",
+            "the watering system"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — วลีเต็มคือ \"a project that costs more than it produces\" คำว่า it จึงอ้างถึง \"the project\" (โครงการฟาร์มบนดาดฟ้า) ที่อาจมีต้นทุนสูงกว่าผลผลิต"
+        },
+        {
+          "id": "rd-b2-001-q5",
+          "type": "INFERENCE",
+          "question": "What does the writer suggest about a single rooftop farm?",
+          "choices": [
+            "It can completely solve a city's food shortage",
+            "It is a waste of money in every case",
+            "It works only in cold climates",
+            "Its impact is limited on its own but grows when many adopt it"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — ย่อหน้า 4 บอกว่า \"A single rooftop farm will not solve a city's food problems\" แต่ \"if many buildings adopt the idea, the combined effect could be meaningful\" จึงสื่อว่าฟาร์มเดียวผลน้อย แต่จะมีพลังเมื่อมีหลายแห่งรวมกัน"
+        },
+        {
+          "id": "rd-b2-001-q6",
+          "type": "PURPOSE_TONE",
+          "question": "The writer's attitude toward rooftop farms can best be described as ___.",
+          "choices": [
+            "cautiously optimistic",
+            "completely opposed",
+            "uninterested",
+            "angry"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ผู้เขียนเห็นข้อดี (\"promising\") แต่ก็เตือนถึงข้อจำกัดและความจำเป็นต้องวางแผน (\"careful planning\") จึงเป็นน้ำเสียง \"มองในแง่ดีแบบระมัดระวัง\" ไม่ใช่ต่อต้านหรือเฉยเมย"
+        },
+        {
+          "id": "rd-b2-001-q7",
+          "type": "ORGANIZATION",
+          "question": "How is the passage mainly organized?",
+          "choices": [
+            "It tells a story in time order from past to present",
+            "It presents advantages, then difficulties, then a balanced conclusion",
+            "It lists only problems without offering any benefits",
+            "It compares rooftop farms with underground farms"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — โครงเรื่องเรียงเป็น: แนะนำหัวข้อ → ข้อดี (ย่อหน้า 2) → ข้อจำกัด (ย่อหน้า 3) → สรุปแบบสมดุล (ย่อหน้า 4–5) จึงเป็นรูปแบบ \"ข้อดี-ข้อจำกัด-สรุป\""
+        }
+      ]
+    }
+  ]
+}
