@@ -10,8 +10,18 @@
       "title": "Students Help Protect a Local Mangrove Forest",
       "passage": "Last weekend, more than fifty students from Anukoolnaree School joined a community project to protect the mangrove forest near their town. The forest had suffered serious damage after a storm, and local fishers worried that fewer fish would be available in the coming year.\n\nBefore the trip, the students spent two afternoons learning how to prepare young mangrove plants. Their teacher explained that healthy mangroves protect the coast from strong waves and provide a home for crabs, fish, and birds.\n\nOn Saturday morning, the group planted almost four hundred trees along the muddy shore. The work required patience, because the soft mud made walking difficult. Still, the students said the effort was worth it.\n\n\"Planting trees is hard, but the benefit is huge,\" said one student. \"In a few years, these mangroves will support our whole community.\"\n\nThe project leader hopes the result will encourage other schools to start similar activities. She believes that small actions, repeated by many people, can slowly bring the damaged forest back to life.",
       "wordCount": 176,
-      "targetVocab": ["community", "protect", "damage", "available", "prepare", "require", "effort", "benefit", "result"],
-      "verified": false,
+      "targetVocab": [
+        "community",
+        "protect",
+        "damage",
+        "available",
+        "prepare",
+        "require",
+        "effort",
+        "benefit",
+        "result"
+      ],
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -100,10 +110,20 @@
       "examStyle": "A-LEVEL",
       "genre": "feature article",
       "title": "Can Rooftop Farms Feed Our Cities?",
-      "passage": "As cities grow larger, feeding their populations has become a significant challenge. One idea gaining attention is the rooftop farm: a garden built on top of a building, where vegetables and herbs are grown close to the people who eat them.\n\nSupporters argue that rooftop farms could contribute to a city's food supply in several ways. First, growing food locally reduces the distance it must travel, which lowers pollution from trucks. Second, the plants help enhance air quality and keep buildings cooler in summer. Some farms even generate a small income by selling produce to nearby restaurants.\n\nHowever, rooftop farming is not simple to implement. Roofs must be strong enough to hold soil, water, and workers. Watering systems can be expensive, and not every building receives enough sunlight. If these problems are ignored, the consequence may be a project that costs more than it produces.\n\nResearchers note that the benefits accumulate slowly. A single rooftop farm will not solve a city's food problems. But if many buildings adopt the idea, the combined effect could be meaningful.\n\nFor now, rooftop farms remain a promising experiment rather than a complete solution \u2014 a reminder that even good ideas require careful planning to succeed.",
+      "passage": "As cities grow larger, feeding their populations has become a significant challenge. One idea gaining attention is the rooftop farm: a garden built on top of a building, where vegetables and herbs are grown close to the people who eat them.\n\nSupporters argue that rooftop farms could contribute to a city's food supply in several ways. First, growing food locally reduces the distance it must travel, which lowers pollution from trucks. Second, the plants help enhance air quality and keep buildings cooler in summer. Some farms even generate a small income by selling produce to nearby restaurants.\n\nHowever, rooftop farming is not simple to implement. Roofs must be strong enough to hold soil, water, and workers. Watering systems can be expensive, and not every building receives enough sunlight. If these problems are ignored, the consequence may be a project that costs more than it produces.\n\nResearchers note that the benefits accumulate slowly. A single rooftop farm will not solve a city's food problems. But if many buildings adopt the idea, the combined effect could be meaningful.\n\nFor now, rooftop farms remain a promising experiment rather than a complete solution — a reminder that even good ideas require careful planning to succeed.",
       "wordCount": 205,
-      "targetVocab": ["significant", "contribute", "enhance", "generate", "implement", "consequence", "accumulate", "require", "benefit"],
-      "verified": false,
+      "targetVocab": [
+        "significant",
+        "contribute",
+        "enhance",
+        "generate",
+        "implement",
+        "consequence",
+        "accumulate",
+        "require",
+        "benefit"
+      ],
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
