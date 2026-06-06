@@ -75,6 +75,9 @@ type AiResult = {
 export default function Home() {
   const [gameState, setGameState] = useState<'START' | 'QUIZ' | 'END'>('START');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // ── ห้องที่กำลังเปิดอยู่หลังล็อกอิน (Dashboard) ──
+  // HUB = หน้าเลือกห้อง, VOCAB = ห้องคำศัพท์เดิม, READING/CONVERSATION = ห้องใหม่
+  const [section, setSection] = useState<'HUB' | 'VOCAB' | 'READING' | 'CONVERSATION'>('HUB');
 
   const [studentName, setStudentName] = useState('');
   const [email, setEmail] = useState('');
@@ -198,6 +201,7 @@ export default function Home() {
       setSrsStore(store);
       setStreakState(loadStreak(email));
       setIsLoggedIn(true);
+      setSection('HUB');
 
       // 2) ดึงจากคลาวด์มาทับถ้ามี (ทำให้ progress ตามข้ามเครื่อง)
       try {
@@ -226,6 +230,7 @@ export default function Home() {
 
   const handleLogout = () => {
     setIsLoggedIn(false);
+    setSection('HUB');
     setStudentName('');
     setEmail('');
     setSrsStore({});
@@ -616,9 +621,105 @@ export default function Home() {
           </form>
         )}
 
-        {/* ── หน้า Dashboard ── */}
-        {gameState === 'START' && isLoggedIn && (
+        {/* ── หน้า Hub หลัก: เลือกห้องฝึก ── */}
+        {gameState === 'START' && isLoggedIn && section === 'HUB' && (
           <div className="text-center animate-fadeIn mt-2">
+            <div className="flex flex-col items-center justify-center mb-6">
+              <img src={SCHOOL_LOGO_URL} alt="Anukoolnaree Logo" className="w-20 h-20 mb-3 object-contain" />
+              <h1 className="text-2xl font-black text-gray-900 mb-1">Grade 12 Mastery Hub</h1>
+              <p className="text-[#003399] font-bold text-sm tracking-widest uppercase">Choose your practice room</p>
+              <p className="text-gray-500 text-xs mt-1">เลือกห้องที่อยากฝึกวันนี้{studentName ? ` · สวัสดี ${studentName.split(' ')[0]}` : ''}</p>
+            </div>
+
+            <div className="space-y-3 text-left mb-6">
+              {/* ปุ่ม Vocab — เปิดเมนูคำศัพท์เดิม */}
+              <button
+                type="button"
+                onClick={() => setSection('VOCAB')}
+                className="w-full p-5 bg-[#003399] text-white rounded-2xl shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-4"
+              >
+                <span className="text-3xl">📚</span>
+                <span className="flex-1">
+                  <span className="block font-black text-lg text-[#FFD700]">คำศัพท์ (Vocabulary)</span>
+                  <span className="block text-xs text-white/80 font-bold">ฝึกจำคำศัพท์ {vocabData.length} คำ ด้วยระบบ SRS</span>
+                </span>
+                <span className="text-[#FFD700] text-xl">→</span>
+              </button>
+
+              {/* ปุ่ม Reading */}
+              <button
+                type="button"
+                onClick={() => setSection('READING')}
+                className="w-full p-5 bg-white border-2 border-[#003399]/15 rounded-2xl shadow-sm hover:border-[#003399]/40 active:scale-[0.98] transition-all flex items-center gap-4"
+              >
+                <span className="text-3xl">📖</span>
+                <span className="flex-1">
+                  <span className="block font-black text-lg text-[#003399]">การอ่าน (Reading)</span>
+                  <span className="block text-xs text-gray-500 font-bold">บทอ่าน + คำถามแนวข้อสอบ A-Level/TGAT/NETSAT</span>
+                </span>
+                <span className="text-[10px] font-black bg-[#FFD700] text-[#003399] px-2 py-1 rounded-full">ใหม่</span>
+              </button>
+
+              {/* ปุ่ม Conversation */}
+              <button
+                type="button"
+                onClick={() => setSection('CONVERSATION')}
+                className="w-full p-5 bg-white border-2 border-[#003399]/15 rounded-2xl shadow-sm hover:border-[#003399]/40 active:scale-[0.98] transition-all flex items-center gap-4"
+              >
+                <span className="text-3xl">💬</span>
+                <span className="flex-1">
+                  <span className="block font-black text-lg text-[#003399]">บทสนทนา (Conversation)</span>
+                  <span className="block text-xs text-gray-500 font-bold">ฝึกบทสนทนาแนว TGAT / A-Level</span>
+                </span>
+                <span className="text-[10px] font-black bg-[#FFD700] text-[#003399] px-2 py-1 rounded-full">ใหม่</span>
+              </button>
+            </div>
+
+            <button
+              onClick={handleLogout}
+              className="w-full py-3 bg-white text-gray-400 font-bold rounded-xl hover:text-[#003399] transition-all duration-150 text-sm uppercase"
+            >
+              🔄 Switch Student Account
+            </button>
+          </div>
+        )}
+
+        {/* ── ห้อง Reading / Conversation (placeholder — จะสร้างจริงในขั้นถัดไป) ── */}
+        {gameState === 'START' && isLoggedIn && (section === 'READING' || section === 'CONVERSATION') && (
+          <div className="text-center animate-fadeIn mt-2">
+            <div className="flex flex-col items-center justify-center mb-6">
+              <span className="text-5xl mb-3">{section === 'READING' ? '📖' : '💬'}</span>
+              <h1 className="text-2xl font-black text-gray-900 mb-1">
+                {section === 'READING' ? 'การอ่าน (Reading)' : 'บทสนทนา (Conversation)'}
+              </h1>
+              <p className="text-[#003399] font-bold text-sm tracking-widest uppercase">Coming next step</p>
+            </div>
+            <div className="bg-[#FFD700]/10 border-2 border-[#FFD700]/40 rounded-3xl p-6 mb-6">
+              <p className="text-gray-700 font-bold text-sm leading-relaxed">
+                🚧 ห้องนี้กำลังสร้างในขั้นถัดไปครับ
+                <span className="block text-xs text-gray-500 font-medium mt-1">โครงสร้าง Dashboard ทำงานแล้ว — เนื้อหาและแบบฝึกจะตามมา</span>
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSection('HUB')}
+              className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg hover:bg-[#002266] active:scale-[0.98] transition-all uppercase tracking-widest"
+            >
+              ← กลับเมนูหลัก
+            </button>
+          </div>
+        )}
+
+        {/* ── ห้อง Vocabulary (เมนูเดิม) ── */}
+        {gameState === 'START' && isLoggedIn && section === 'VOCAB' && (
+          <div className="text-center animate-fadeIn mt-2">
+            <button
+              type="button"
+              onClick={() => setSection('HUB')}
+              className="mb-4 text-sm font-bold text-[#003399] hover:underline flex items-center gap-1"
+            >
+              ← เมนูหลัก
+            </button>
             <div className="flex flex-col items-center justify-center mb-6">
               <img src={SCHOOL_LOGO_URL} alt="Anukoolnaree Logo" className="w-20 h-20 mb-3 object-contain" />
               <h1 className="text-2xl font-black text-gray-900 mb-1">Grade 12 Mastery Hub</h1>
