@@ -28,6 +28,21 @@ export function currentWeekId(d: Date = new Date()): string {
   return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}`;
 }
 
+// ── สถิติห้อง Reading รายคน (เก็บใน students/{email}.reading) ──
+export interface ReadingByType {
+  answered: number;
+  correct: number;
+}
+export interface ReadingStat {
+  attempts: number; // จำนวนรอบที่ทำเสร็จ
+  totalAnswered: number; // ข้อสะสมที่ตอบทั้งหมด
+  totalCorrect: number; // ข้อสะสมที่ถูก
+  lastCorrect: number; // รอบล่าสุด: ถูกกี่ข้อ
+  lastTotal: number; // รอบล่าสุด: จากกี่ข้อ
+  bestPct: number; // เปอร์เซ็นต์ที่ดีที่สุด
+  byType: Record<string, ReadingByType>; // ความแม่นรายชนิดคำถาม
+}
+
 export interface CloudProgress {
   name: string;
   email: string;
@@ -38,6 +53,8 @@ export interface CloudProgress {
   total: number;
   bestScore: number;
   lastScore: number;
+  // ── สถิติห้องอ่าน (อาจไม่มีในเอกสารเก่า) ──
+  reading?: ReadingStat;
   // ── streak (อาจไม่มีในเอกสารเก่า) ──
   streak?: number;
   bestStreak?: number;
@@ -177,5 +194,91 @@ export async function loadLeaderboard(): Promise<LeaderboardEntry[]> {
   } catch (e) {
     console.error("loadLeaderboard error:", e);
     return [];
+  }
+}
+
+// ── บันทึกผลรอบ Reading (merge) ──
+//   - อัปเดตสถิติสะสมใน field "reading"
+//   - บวกแต้มรายสัปดาห์ (weeklyXp) ด้วย เพื่อให้ "อันดับคนขยันรายสัปดาห์" นับรวมห้องอ่าน
+//   - เขียน streak (ส่งมาจากหน้าจอ) เพื่อให้ streak นับรวมกิจกรรมทุกห้อง
+export async function saveReadingProgress(params: {
+  email: string;
+  name: string;
+  correct: number;
+  total: number;
+  byType: Record<string, ReadingByType>;
+  streak?: StreakState;
+}): Promise<boolean> {
+  const { email, name, correct, total, byType, streak } = params;
+  if (!email || !db) return false;
+  try {
+    const ref = doc(db, COLLECTION, emailToId(email));
+    const weekId = currentWeekId();
+
+    // ดึงค่าเดิมมาคำนวณต่อ
+    let prevReading: ReadingStat | undefined;
+    let prevWeeklyXp = 0;
+    let prevWeekId = "";
+    try {
+      const prev = await getDoc(ref);
+      if (prev.exists()) {
+        const pd = prev.data() as CloudProgress;
+        prevReading = pd.reading;
+        prevWeeklyXp = pd.weeklyXp ?? 0;
+        prevWeekId = pd.weekId ?? "";
+      }
+    } catch {
+      // อ่านค่าเดิมไม่ได้ก็ใช้ค่าเริ่มต้น
+    }
+
+    // รวม byType เดิม + รอบนี้
+    const mergedByType: Record<string, ReadingByType> = { ...(prevReading?.byType ?? {}) };
+    for (const k in byType) {
+      const cur = mergedByType[k] ?? { answered: 0, correct: 0 };
+      mergedByType[k] = {
+        answered: cur.answered + byType[k].answered,
+        correct: cur.correct + byType[k].correct,
+      };
+    }
+
+    const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+    const reading: ReadingStat = {
+      attempts: (prevReading?.attempts ?? 0) + 1,
+      totalAnswered: (prevReading?.totalAnswered ?? 0) + total,
+      totalCorrect: (prevReading?.totalCorrect ?? 0) + correct,
+      lastCorrect: correct,
+      lastTotal: total,
+      bestPct: Math.max(prevReading?.bestPct ?? 0, pct),
+      byType: mergedByType,
+    };
+
+    // แต้มรายสัปดาห์ (สัปดาห์เดิม → บวกต่อ, สัปดาห์ใหม่ → เริ่มจากรอบนี้)
+    const weeklyXp = prevWeekId === weekId ? prevWeeklyXp + correct : correct;
+
+    await setDoc(
+      ref,
+      {
+        name,
+        email: email.trim().toLowerCase(),
+        reading,
+        weeklyXp,
+        weekId,
+        ...(streak
+          ? {
+              streak: streak.streak,
+              bestStreak: streak.bestStreak,
+              lastStudyDate: streak.lastStudyDate,
+              todayCount: streak.todayCount,
+              dailyGoal: streak.dailyGoal,
+            }
+          : {}),
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+    return true;
+  } catch (e) {
+    console.error("saveReadingProgress error:", e);
+    return false;
   }
 }
