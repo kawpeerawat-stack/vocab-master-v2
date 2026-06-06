@@ -11,7 +11,7 @@
       "scenario_th": "เลือกประโยคตอบที่เหมาะสมที่สุดในสถานการณ์ทั่วไป (แนว TGAT ถาม–ตอบ)",
       "dialogue": "",
       "targetVocab": [],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -49,7 +49,7 @@
       "scenario_th": "นักเรียนสอบถามทางที่สถานีรถไฟ — เลือกประโยคเติมช่องว่างให้บทสนทนาสมบูรณ์",
       "dialogue": "A: Excuse me, does this train go to the city center?\nB: _____\nA: Great, thank you! How long does it take?\nB: About twenty minutes.",
       "targetVocab": [],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -82,7 +82,7 @@
         "agree",
         "enjoy"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -138,7 +138,7 @@
         "divide",
         "handle"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated — teacher review required",
       "questions": [
         {
@@ -179,7 +179,7 @@
         "huge",
         "No worries"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated — teacher review required",
       "questions": [
         {
@@ -209,7 +209,7 @@
         "take into account",
         "resilience"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated — teacher review required",
       "questions": [
         {
@@ -252,7 +252,7 @@
         "receipt",
         "in stock"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated — teacher review required",
       "questions": [
         {
