@@ -1,0 +1,120 @@
+{
+  "version": 1,
+  "note": "เนื้อหาทั้งหมดนี้ AI ร่างขึ้น (Claude) — ต้องให้คุณครูตรวจสอบบทสนทนา คำถาม เฉลย และคำอธิบายก่อนนำไปใช้จริง เมื่อตรวจแล้วให้เปลี่ยน verified เป็น true",
+  "sets": [
+    {
+      "id": "cv-b1-qr-001",
+      "level": "B1",
+      "examStyle": "TGAT",
+      "format": "QUESTION_RESPONSE",
+      "title": "Everyday Responses",
+      "scenario_th": "เลือกประโยคตอบที่เหมาะสมที่สุดในสถานการณ์ทั่วไป (แนว TGAT ถาม–ตอบ)",
+      "dialogue": "",
+      "targetVocab": [],
+      "verified": false,
+      "source": "AI-generated (Claude) — teacher review required",
+      "questions": [
+        {
+          "id": "cv-b1-qr-001-q1",
+          "question": "Speaker A: \"Thanks so much for helping me move today.\"\nWhich is the most natural response from Speaker B?",
+          "choices": [
+            "No problem, happy to help.",
+            "Yes, I am a student.",
+            "It's on the table.",
+            "Because it was raining."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — เมื่ออีกฝ่ายกล่าวขอบคุณ การตอบที่เป็นธรรมชาติคือรับคำขอบคุณอย่างสุภาพ เช่น \"No problem, happy to help.\" ส่วน B, C, D ไม่เข้ากับบริบทการขอบคุณ"
+        },
+        {
+          "id": "cv-b1-qr-001-q2",
+          "question": "Speaker A: \"Would you like some coffee or tea?\"\nWhich response is most appropriate?",
+          "choices": [
+            "I went there yesterday.",
+            "Tea, please. Thank you.",
+            "No, it isn't mine.",
+            "He is very tall."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — คำถามให้เลือกระหว่างกาแฟกับชา การตอบที่เหมาะสมคือเลือกอย่างใดอย่างหนึ่งอย่างสุภาพ เช่น \"Tea, please. Thank you.\" ตัวเลือกอื่นไม่ตอบคำถามที่ถูกถาม"
+        }
+      ]
+    },
+    {
+      "id": "cv-b1-short-001",
+      "level": "B1",
+      "examStyle": "TGAT",
+      "format": "SHORT_CONVO",
+      "title": "At the Train Station",
+      "scenario_th": "นักเรียนสอบถามทางที่สถานีรถไฟ — เลือกประโยคเติมช่องว่างให้บทสนทนาสมบูรณ์",
+      "dialogue": "A: Excuse me, does this train go to the city center?\nB: _____\nA: Great, thank you! How long does it take?\nB: About twenty minutes.",
+      "targetVocab": [],
+      "verified": false,
+      "source": "AI-generated (Claude) — teacher review required",
+      "questions": [
+        {
+          "id": "cv-b1-short-001-q1",
+          "question": "What best completes the conversation (the blank)?",
+          "choices": [
+            "Yes, it does. It leaves in five minutes.",
+            "I don't really like trains.",
+            "The weather is very nice today.",
+            "No, I have never been there."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ประโยคถัดมา A พูดว่า \"Great, thank you!\" และถามต่อว่าใช้เวลานานเท่าไร แสดงว่า B ต้องตอบยืนยันว่ารถไฟไปใจกลางเมือง คำตอบ A จึงต่อเนื่องกับบริบทมากที่สุด ส่วนตัวเลือกอื่นทำให้บทสนทนาไม่ปะติดปะต่อ"
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-long-001",
+      "level": "B2",
+      "examStyle": "A-LEVEL",
+      "format": "LONG_CONVO",
+      "title": "Planning a Group Project",
+      "scenario_th": "เพื่อนสองคนคุยกันเรื่องแบ่งงานและกำหนดเวลาโปรเจกต์กลุ่ม",
+      "dialogue": "Maya: Have you thought about how we should divide the history project?\nLiam: A little. I could handle the research if you don't mind doing the slides.\nMaya: That works for me. I actually enjoy designing slides. But we should agree on a deadline.\nLiam: How about we finish our parts by Thursday so we have the weekend to practice?\nMaya: Thursday might be tight for me \u2014 I have a music exam on Wednesday. Could we say Friday instead?\nLiam: Sure, Friday is fine. I'll send you my research notes as soon as they're ready.\nMaya: Perfect. Let's check in on Friday evening to put everything together.",
+      "targetVocab": ["divide", "handle", "research", "design", "agree", "enjoy"],
+      "verified": false,
+      "source": "AI-generated (Claude) — teacher review required",
+      "questions": [
+        {
+          "id": "cv-b2-long-001-q1",
+          "question": "What are Maya and Liam mainly discussing?",
+          "choices": [
+            "How to divide and schedule their group project",
+            "Which history topic is the most interesting",
+            "How to prepare for a music exam",
+            "Where to meet during the weekend"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ทั้งบทสนทนาเป็นการตกลงว่าใครรับผิดชอบส่วนไหนและกำหนดเส้นตาย จึงเป็นเรื่อง \"การแบ่งงานและวางกำหนดการของโปรเจกต์กลุ่ม\" ส่วน C/D เป็นรายละเอียดย่อย"
+        },
+        {
+          "id": "cv-b2-long-001-q2",
+          "question": "What will Liam be responsible for?",
+          "choices": [
+            "Designing the slides",
+            "The research",
+            "The music exam",
+            "Booking a room"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — Liam พูดว่า \"I could handle the research\" ส่วนการออกแบบสไลด์เป็นหน้าที่ของ Maya (\"I actually enjoy designing slides\")"
+        },
+        {
+          "id": "cv-b2-long-001-q3",
+          "question": "Why does Maya suggest Friday instead of Thursday?",
+          "choices": [
+            "She does not want to do the project",
+            "She has a music exam on Wednesday and needs more time",
+            "She will be away during the weekend",
+            "She has already finished her part"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — Maya บอกว่าวันพฤหัสฯ กระชั้นเพราะมีสอบดนตรีวันพุธ จึงขอเลื่อนเป็นวันศุกร์เพื่อให้มีเวลาเตรียมตัวมากขึ้น"
+        }
+      ]
+    }
+  ]
+}
