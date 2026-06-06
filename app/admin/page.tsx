@@ -4,6 +4,23 @@ import React, { useEffect, useState } from "react";
 import { db } from "../lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
 import type { SrsCard } from "../lib/srs";
+import { RQTYPE_LABELS } from "../lib/reading";
+import { CONV_FORMAT_LABELS } from "../lib/conversation";
+
+type ReadingStatRow = {
+  attempts?: number;
+  totalAnswered?: number;
+  totalCorrect?: number;
+  bestPct?: number;
+  byType?: Record<string, { answered: number; correct: number }>;
+};
+type ConversationStatRow = {
+  attempts?: number;
+  totalAnswered?: number;
+  totalCorrect?: number;
+  bestPct?: number;
+  byFormat?: Record<string, { answered: number; correct: number }>;
+};
 
 type StudentDoc = {
   id: string;
@@ -18,6 +35,8 @@ type StudentDoc = {
   score?: number;
   streak?: number;
   srs?: Record<string, SrsCard>;
+  reading?: ReadingStatRow;
+  conversation?: ConversationStatRow;
 };
 
 type VocabMeaning = { thai: string; level: string };
@@ -216,6 +235,8 @@ export default function AdminDashboard() {
                   <th className="p-4 text-center">จำได้</th>
                   <th className="p-4 text-center">กำลังเรียน</th>
                   <th className="p-4 text-center">คะแนนสูงสุด</th>
+                  <th className="p-4 text-center hidden sm:table-cell">อ่าน %</th>
+                  <th className="p-4 text-center hidden sm:table-cell">สนทนา %</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-800/50">
@@ -233,10 +254,12 @@ export default function AdminDashboard() {
                         <td className="p-4 text-center font-black text-green-400">{s.mastered ?? 0}</td>
                         <td className="p-4 text-center font-bold text-amber-400">{s.learning ?? 0}</td>
                         <td className="p-4 text-center font-bold text-neutral-200">{s.bestScore ?? s.score ?? 0}</td>
+                        <td className="p-4 text-center font-bold text-sky-400 hidden sm:table-cell">{s.reading?.bestPct != null ? `${s.reading.bestPct}%` : "–"}</td>
+                        <td className="p-4 text-center font-bold text-purple-400 hidden sm:table-cell">{s.conversation?.bestPct != null ? `${s.conversation.bestPct}%` : "–"}</td>
                       </tr>
                       {isOpen && (
                         <tr className="bg-neutral-950/40">
-                          <td colSpan={5} className="p-4">
+                          <td colSpan={7} className="p-4">
                             <div className="text-xs font-bold text-neutral-400 mb-2">คำที่ {s.name} ยังอ่อน:</div>
                             {weak.length === 0 ? (
                               <span className="text-neutral-600 text-sm">ยังไม่มีคำที่อ่อน หรือยังไม่มีข้อมูล</span>
@@ -251,6 +274,41 @@ export default function AdminDashboard() {
                                 ))}
                               </div>
                             )}
+
+                            <div className="mt-4 grid sm:grid-cols-2 gap-3 border-t border-neutral-800 pt-3">
+                              <div>
+                                <div className="text-xs font-bold text-sky-300 mb-1">📖 การอ่าน (Reading)</div>
+                                {s.reading ? (
+                                  <div className="text-xs text-neutral-400 space-y-0.5">
+                                    <div>ทำไป {s.reading.attempts ?? 0} รอบ · ดีสุด {s.reading.bestPct ?? 0}% · สะสม {s.reading.totalCorrect ?? 0}/{s.reading.totalAnswered ?? 0}</div>
+                                    {s.reading.byType &&
+                                      Object.entries(s.reading.byType).map(([t, v]) => (
+                                        <div key={t} className="text-neutral-500">
+                                          • {(RQTYPE_LABELS as Record<string, string>)[t] ?? t}: {v.correct}/{v.answered}
+                                        </div>
+                                      ))}
+                                  </div>
+                                ) : (
+                                  <span className="text-neutral-600 text-xs">ยังไม่มีข้อมูล</span>
+                                )}
+                              </div>
+                              <div>
+                                <div className="text-xs font-bold text-purple-300 mb-1">💬 บทสนทนา (Conversation)</div>
+                                {s.conversation ? (
+                                  <div className="text-xs text-neutral-400 space-y-0.5">
+                                    <div>ทำไป {s.conversation.attempts ?? 0} รอบ · ดีสุด {s.conversation.bestPct ?? 0}% · สะสม {s.conversation.totalCorrect ?? 0}/{s.conversation.totalAnswered ?? 0}</div>
+                                    {s.conversation.byFormat &&
+                                      Object.entries(s.conversation.byFormat).map(([t, v]) => (
+                                        <div key={t} className="text-neutral-500">
+                                          • {(CONV_FORMAT_LABELS as Record<string, string>)[t] ?? t}: {v.correct}/{v.answered}
+                                        </div>
+                                      ))}
+                                  </div>
+                                ) : (
+                                  <span className="text-neutral-600 text-xs">ยังไม่มีข้อมูล</span>
+                                )}
+                              </div>
+                            </div>
                           </td>
                         </tr>
                       )}
@@ -259,7 +317,7 @@ export default function AdminDashboard() {
                 })}
                 {students.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="p-10 text-center text-neutral-600 font-bold">
+                    <td colSpan={7} className="p-10 text-center text-neutral-600 font-bold">
                       ยังไม่มีข้อมูลนักเรียน — เมื่อเด็กเล่นจบรอบและซิงก์ขึ้นคลาวด์ จะปรากฏที่นี่
                     </td>
                   </tr>
