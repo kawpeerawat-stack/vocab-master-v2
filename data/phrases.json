@@ -1,0 +1,222 @@
+[
+  {
+    "word": "give up",
+    "thai_meaning": "ยอมแพ้, เลิกล้ม",
+    "eng_definition": "to stop trying to do something",
+    "synonym": "quit",
+    "antonym": "continue",
+    "example_sentence": "Don't give up — you are almost there.",
+    "level": "B1",
+    "part_of_speech": "phrasal verb",
+    "type": "phrasal_verb"
+  },
+  {
+    "word": "look after",
+    "thai_meaning": "ดูแล, เอาใจใส่",
+    "eng_definition": "to take care of someone or something",
+    "synonym": "care for",
+    "antonym": "neglect",
+    "example_sentence": "She looks after her little brother after school.",
+    "level": "B1",
+    "part_of_speech": "phrasal verb",
+    "type": "phrasal_verb"
+  },
+  {
+    "word": "find out",
+    "thai_meaning": "ค้นพบ, รู้ความจริง",
+    "eng_definition": "to discover information about something",
+    "synonym": "discover",
+    "antonym": "-",
+    "example_sentence": "I need to find out when the train leaves.",
+    "level": "B1",
+    "part_of_speech": "phrasal verb",
+    "type": "phrasal_verb"
+  },
+  {
+    "word": "put off",
+    "thai_meaning": "เลื่อนออกไป, ผัดผ่อน",
+    "eng_definition": "to delay or postpone something",
+    "synonym": "postpone",
+    "antonym": "-",
+    "example_sentence": "They put off the meeting until Friday.",
+    "level": "B2",
+    "part_of_speech": "phrasal verb",
+    "type": "phrasal_verb"
+  },
+  {
+    "word": "carry out",
+    "thai_meaning": "ดำเนินการ, ทำให้สำเร็จ",
+    "eng_definition": "to perform or complete a task",
+    "synonym": "perform",
+    "antonym": "-",
+    "example_sentence": "The scientists carried out the experiment carefully.",
+    "level": "B2",
+    "part_of_speech": "phrasal verb",
+    "type": "phrasal_verb"
+  },
+  {
+    "word": "come up with",
+    "thai_meaning": "คิดออก, เสนอ (ความคิด)",
+    "eng_definition": "to think of an idea or plan",
+    "synonym": "devise",
+    "antonym": "-",
+    "example_sentence": "She came up with a clever solution to the problem.",
+    "level": "B2",
+    "part_of_speech": "phrasal verb",
+    "type": "phrasal_verb"
+  },
+  {
+    "word": "run out of",
+    "thai_meaning": "ใช้จนหมด, ไม่มีเหลือ",
+    "eng_definition": "to have no more of something left",
+    "synonym": "-",
+    "antonym": "-",
+    "example_sentence": "We ran out of milk this morning.",
+    "level": "B1",
+    "part_of_speech": "phrasal verb",
+    "type": "phrasal_verb"
+  },
+  {
+    "word": "turn down",
+    "thai_meaning": "ปฏิเสธ (ข้อเสนอ)",
+    "eng_definition": "to refuse an offer or request",
+    "synonym": "reject",
+    "antonym": "accept",
+    "example_sentence": "He turned down the job offer in Bangkok.",
+    "level": "B2",
+    "part_of_speech": "phrasal verb",
+    "type": "phrasal_verb"
+  },
+  {
+    "word": "bring up",
+    "thai_meaning": "หยิบยก (เรื่อง) ขึ้นมาพูด; เลี้ยงดู",
+    "eng_definition": "to mention a topic, or to raise a child",
+    "synonym": "raise",
+    "antonym": "-",
+    "example_sentence": "She brought up an interesting point during the discussion.",
+    "level": "B2",
+    "part_of_speech": "phrasal verb",
+    "type": "phrasal_verb"
+  },
+  {
+    "word": "get along",
+    "thai_meaning": "เข้ากันได้ดี",
+    "eng_definition": "to have a friendly relationship with someone",
+    "synonym": "-",
+    "antonym": "-",
+    "example_sentence": "The two new students get along very well.",
+    "level": "B1",
+    "part_of_speech": "phrasal verb",
+    "type": "phrasal_verb"
+  },
+  {
+    "word": "once in a blue moon",
+    "thai_meaning": "นาน ๆ ครั้ง, แทบจะไม่เคย",
+    "eng_definition": "very rarely",
+    "synonym": "-",
+    "antonym": "-",
+    "example_sentence": "We eat at expensive restaurants once in a blue moon.",
+    "level": "B2",
+    "part_of_speech": "idiom",
+    "type": "idiom"
+  },
+  {
+    "word": "hit the books",
+    "thai_meaning": "ตั้งใจอ่านหนังสือ (อย่างหนัก)",
+    "eng_definition": "to study hard",
+    "synonym": "-",
+    "antonym": "-",
+    "example_sentence": "Exams are next week, so I need to hit the books.",
+    "level": "B1",
+    "part_of_speech": "idiom",
+    "type": "idiom"
+  },
+  {
+    "word": "piece of cake",
+    "thai_meaning": "ง่ายมาก, เรื่องกล้วย ๆ",
+    "eng_definition": "something very easy to do",
+    "synonym": "-",
+    "antonym": "-",
+    "example_sentence": "The grammar test was a piece of cake.",
+    "level": "B1",
+    "part_of_speech": "idiom",
+    "type": "idiom"
+  },
+  {
+    "word": "under the weather",
+    "thai_meaning": "รู้สึกไม่ค่อยสบาย",
+    "eng_definition": "feeling slightly ill",
+    "synonym": "-",
+    "antonym": "-",
+    "example_sentence": "She stayed home because she felt under the weather.",
+    "level": "B2",
+    "part_of_speech": "idiom",
+    "type": "idiom"
+  },
+  {
+    "word": "break the ice",
+    "thai_meaning": "ทำลายความเงียบ, เริ่มต้นบทสนทนาให้ผ่อนคลาย",
+    "eng_definition": "to make people feel more relaxed and start talking",
+    "synonym": "-",
+    "antonym": "-",
+    "example_sentence": "He told a joke to break the ice at the meeting.",
+    "level": "B2",
+    "part_of_speech": "idiom",
+    "type": "idiom"
+  },
+  {
+    "word": "on the same page",
+    "thai_meaning": "เข้าใจตรงกัน, คิดเห็นไปในทางเดียวกัน",
+    "eng_definition": "in agreement or sharing the same understanding",
+    "synonym": "-",
+    "antonym": "-",
+    "example_sentence": "Before we start, let's make sure we're on the same page.",
+    "level": "B2",
+    "part_of_speech": "idiom",
+    "type": "idiom"
+  },
+  {
+    "word": "cost an arm and a leg",
+    "thai_meaning": "แพงมาก",
+    "eng_definition": "to be very expensive",
+    "synonym": "-",
+    "antonym": "-",
+    "example_sentence": "That new smartphone costs an arm and a leg.",
+    "level": "B2",
+    "part_of_speech": "idiom",
+    "type": "idiom"
+  },
+  {
+    "word": "get cold feet",
+    "thai_meaning": "เกิดอาการกลัวหรือลังเลในนาทีสุดท้าย",
+    "eng_definition": "to suddenly become too nervous to do something planned",
+    "synonym": "-",
+    "antonym": "-",
+    "example_sentence": "He got cold feet just before giving his speech.",
+    "level": "C1",
+    "part_of_speech": "idiom",
+    "type": "idiom"
+  },
+  {
+    "word": "the last straw",
+    "thai_meaning": "ฟางเส้นสุดท้าย, จุดที่ทนไม่ไหวอีกต่อไป",
+    "eng_definition": "the final problem that makes someone lose patience",
+    "synonym": "-",
+    "antonym": "-",
+    "example_sentence": "Being late again was the last straw for the manager.",
+    "level": "C1",
+    "part_of_speech": "idiom",
+    "type": "idiom"
+  },
+  {
+    "word": "keep an eye on",
+    "thai_meaning": "คอยเฝ้าดู, คอยระวัง",
+    "eng_definition": "to watch someone or something carefully",
+    "synonym": "-",
+    "antonym": "-",
+    "example_sentence": "Could you keep an eye on my bag for a moment?",
+    "level": "B1",
+    "part_of_speech": "idiom",
+    "type": "idiom"
+  }
+]
