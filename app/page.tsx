@@ -19,6 +19,8 @@ import { loadCloudProgress, saveCloudProgress, loadLeaderboard, LeaderboardEntry
 import {
   ReadingPassage,
   RQTYPE_LABELS,
+  CATEGORY_LABELS,
+  CATEGORY_ORDER,
   loadReadingPassages,
 } from './lib/reading';
 import {
@@ -94,6 +96,7 @@ export default function Home() {
   const [readingLoading, setReadingLoading] = useState(false);
   const [teacherPreview, setTeacherPreview] = useState(false); // ครูเปิดดูบทที่ยังไม่ตรวจ
   const [readingView, setReadingView] = useState<'LIST' | 'PLAY' | 'RESULT'>('LIST');
+  const [readingCat, setReadingCat] = useState<string>('ALL'); // หมวดที่กำลังกรองในหน้ารายการบทอ่าน
   const [activePassage, setActivePassage] = useState<ReadingPassage | null>(null);
   const [rIndex, setRIndex] = useState(0);
   const [rSelected, setRSelected] = useState<number | null>(null);
@@ -688,6 +691,10 @@ export default function Home() {
   // บทอ่านที่จะแสดง (เด็กเห็นเฉพาะที่ครูตรวจแล้ว / ครูเปิดสวิตช์เพื่อพรีวิวบทที่ยังไม่ตรวจ)
   const visiblePassages = teacherPreview ? readingPassages : readingPassages.filter((p) => p.verified);
   const hasUnverified = readingPassages.some((p) => !p.verified);
+  // หมวดที่มีบทอ่านจริง (เรียงตามลำดับที่กำหนด) + รายการที่กรองตามหมวดที่เลือก
+  const catsPresent = CATEGORY_ORDER.filter((c) => visiblePassages.some((p) => (p.category || 'other') === c));
+  const effectiveCat = readingCat !== 'ALL' && catsPresent.includes(readingCat) ? readingCat : 'ALL';
+  const shownPassages = effectiveCat === 'ALL' ? visiblePassages : visiblePassages.filter((p) => (p.category || 'other') === effectiveCat);
 
   // ── โหลดชุดบทสนทนาเมื่อเข้าห้อง Conversation ครั้งแรก ──
   useEffect(() => {
@@ -1128,6 +1135,31 @@ export default function Home() {
                   โหมดครู: แสดงบทที่ยังไม่ได้ตรวจ (สำหรับทดสอบก่อนเปิดให้นักเรียน)
                 </label>
 
+                {!readingLoading && catsPresent.length > 1 && (
+                  <div className="flex flex-wrap gap-2 justify-center mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setReadingCat('ALL')}
+                      className={`text-xs font-black px-3 py-1.5 rounded-full border-2 transition-all ${effectiveCat === 'ALL' ? 'bg-[#003399] text-white border-[#003399]' : 'bg-white text-[#003399] border-[#003399]/25 hover:border-[#003399]/50'}`}
+                    >
+                      ทั้งหมด ({visiblePassages.length})
+                    </button>
+                    {catsPresent.map((c) => {
+                      const n = visiblePassages.filter((p) => (p.category || 'other') === c).length;
+                      return (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setReadingCat(c)}
+                          className={`text-xs font-black px-3 py-1.5 rounded-full border-2 transition-all ${effectiveCat === c ? 'bg-[#003399] text-white border-[#003399]' : 'bg-white text-[#003399] border-[#003399]/25 hover:border-[#003399]/50'}`}
+                        >
+                          {CATEGORY_LABELS[c]} ({n})
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
                 {readingLoading && (
                   <p className="text-center text-gray-400 font-bold py-10">⏳ กำลังโหลดบทอ่าน…</p>
                 )}
@@ -1143,7 +1175,7 @@ export default function Home() {
                 )}
 
                 <div className="space-y-3">
-                  {visiblePassages.map((p) => (
+                  {shownPassages.map((p) => (
                     <button
                       key={p.id}
                       type="button"
@@ -1153,6 +1185,9 @@ export default function Home() {
                       <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                         <span className="text-[10px] font-black bg-[#003399] text-white px-2 py-0.5 rounded-full">{p.level}</span>
                         <span className="text-[10px] font-black bg-[#003399]/10 text-[#003399] px-2 py-0.5 rounded-full">{p.examStyle}</span>
+                        {p.category && (
+                          <span className="text-[10px] font-black bg-[#FFD700]/30 text-[#003399] px-2 py-0.5 rounded-full">{CATEGORY_LABELS[p.category] || p.category}</span>
+                        )}
                         {p.verified ? (
                           <span className="text-[10px] font-black bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✓ ครูตรวจแล้ว</span>
                         ) : (
