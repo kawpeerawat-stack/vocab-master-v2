@@ -73,8 +73,15 @@
       "format": "LONG_CONVO",
       "title": "Planning a Group Project",
       "scenario_th": "เพื่อนสองคนคุยกันเรื่องแบ่งงานและกำหนดเวลาโปรเจกต์กลุ่ม",
-      "dialogue": "Maya: Have you thought about how we should divide the history project?\nLiam: A little. I could handle the research if you don't mind doing the slides.\nMaya: That works for me. I actually enjoy designing slides. But we should agree on a deadline.\nLiam: How about we finish our parts by Thursday so we have the weekend to practice?\nMaya: Thursday might be tight for me \u2014 I have a music exam on Wednesday. Could we say Friday instead?\nLiam: Sure, Friday is fine. I'll send you my research notes as soon as they're ready.\nMaya: Perfect. Let's check in on Friday evening to put everything together.",
-      "targetVocab": ["divide", "handle", "research", "design", "agree", "enjoy"],
+      "dialogue": "Maya: Have you thought about how we should divide the history project?\nLiam: A little. I could handle the research if you don't mind doing the slides.\nMaya: That works for me. I actually enjoy designing slides. But we should agree on a deadline.\nLiam: How about we finish our parts by Thursday so we have the weekend to practice?\nMaya: Thursday might be tight for me — I have a music exam on Wednesday. Could we say Friday instead?\nLiam: Sure, Friday is fine. I'll send you my research notes as soon as they're ready.\nMaya: Perfect. Let's check in on Friday evening to put everything together.",
+      "targetVocab": [
+        "divide",
+        "handle",
+        "research",
+        "design",
+        "agree",
+        "enjoy"
+      ],
       "verified": false,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
@@ -113,6 +120,152 @@
           ],
           "answerIndex": 1,
           "explanation_th": "ตอบข้อ B — Maya บอกว่าวันพฤหัสฯ กระชั้นเพราะมีสอบดนตรีวันพุธ จึงขอเลื่อนเป็นวันศุกร์เพื่อให้มีเวลาเตรียมตัวมากขึ้น"
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-long-010",
+      "level": "B2",
+      "examStyle": "A-LEVEL",
+      "format": "LONG_CONVO",
+      "title": "History Project Deadline",
+      "scenario_th": "นักเรียนสองคนปรึกษาและแบ่งงานกลุ่มที่ใกล้ถึงกำหนดส่ง",
+      "dialogue": "Maya: Liam, we really need to finalize our history project. The deadline is this Friday.\nLiam: I know, Maya. I've finished the research on the industrial revolution, but I haven't started the slides yet.\nMaya: That's alright. If you send me your notes, I can start putting the presentation together.\nLiam: Are you sure? That sounds like a lot of work for you to handle alone.\nMaya: It's fine. We need to divide the tasks efficiently. You can focus on writing the speech script while I do the slides.\nLiam: Deal! I'll email you the document right now. Thanks for stepping up.",
+      "targetVocab": [
+        "finalize",
+        "efficiently",
+        "step up",
+        "divide",
+        "handle"
+      ],
+      "verified": false,
+      "source": "AI-generated — teacher review required",
+      "questions": [
+        {
+          "id": "cv-b2-long-010-q1",
+          "question": "What is the main problem Maya and Liam are trying to solve?",
+          "choices": [
+            "Completing their project before the upcoming deadline.",
+            "Choosing an interesting topic for their history class.",
+            "Finding missing research notes about the industrial revolution.",
+            "Deciding who will present the slides in front of the class."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — เพราะประเด็นหลักคือทั้งคู่พยายามจัดการงานให้เสร็จทันกำหนดส่งวันศุกร์ (finalize our history project. The deadline is this Friday) ตัวเลือกอื่นไม่ตรงกับปัญหาที่กำลังเผชิญ"
+        },
+        {
+          "id": "cv-b2-long-010-q2",
+          "question": "What is Liam most likely going to do next after sending the email?",
+          "choices": [
+            "Start designing the presentation slides.",
+            "Draft the script for their presentation.",
+            "Ask the teacher to extend the deadline.",
+            "Begin researching the industrial revolution."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — เพราะ Maya เสนอให้แบ่งงานกันทำ โดยให้ Liam โฟกัสที่การเขียนบทพูด (focus on writing the speech script) ซึ่ง Liam ก็ตอบตกลง (Deal!)"
+        }
+      ]
+    },
+    {
+      "id": "cv-b1-short-011",
+      "level": "B1",
+      "examStyle": "TGAT",
+      "format": "SHORT_CONVO",
+      "title": "Movie Invitation",
+      "scenario_th": "เพื่อนชวนไปดูหนังแต่ผู้ถูกชวนปฏิเสธเพราะติดสอบ",
+      "dialogue": "Jake: Hey Sarah, a few of us are going to see that new Marvel movie tonight. Do you want to come?\nSarah: I'd love to, but I have a huge math test tomorrow morning. _____\nJake: No worries! Good luck with your studying.",
+      "targetVocab": [
+        "huge",
+        "No worries"
+      ],
+      "verified": false,
+      "source": "AI-generated — teacher review required",
+      "questions": [
+        {
+          "id": "cv-b1-short-011-q1",
+          "question": "Which phrase best completes the conversation?",
+          "choices": [
+            "I can't stand superhero movies.",
+            "I'll definitely be there.",
+            "Maybe some other time.",
+            "Why didn't you invite me earlier?"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — Maybe some other time. (ไว้โอกาสหน้านะ) เป็นการปฏิเสธคำชวนอย่างสุภาพที่สอดคล้องกับประโยคก่อนหน้าที่บอกว่าอยากไปแต่ติดสอบ (I'd love to, but...) ตัวเลือกอื่นขัดแย้งกับบริบทหรือดูหยาบคายเกินไป"
+        }
+      ]
+    },
+    {
+      "id": "cv-c1-qr-012",
+      "level": "C1",
+      "examStyle": "A-LEVEL",
+      "format": "QUESTION_RESPONSE",
+      "title": "Professional Feedback & Success",
+      "scenario_th": "เลือกประโยคตอบกลับที่เหมาะสมในสถานการณ์การเรียนและการทำงาน",
+      "dialogue": "",
+      "targetVocab": [
+        "constructive criticism",
+        "take into account",
+        "resilience"
+      ],
+      "verified": false,
+      "source": "AI-generated — teacher review required",
+      "questions": [
+        {
+          "id": "cv-c1-qr-012-q1",
+          "question": "Speaker A: \"I really appreciate the constructive criticism on my essay. I'll definitely take your suggestions into account for the final draft.\"\nWhich is the most natural response from Speaker B?",
+          "choices": [
+            "That's completely unacceptable behavior.",
+            "I'm glad you found the feedback helpful.",
+            "Why are you complaining about the grade?",
+            "You shouldn't have submitted it late in the first place."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — เพราะ A กล่าวขอบคุณสำหรับคำวิจารณ์เชิงสร้างสรรค์ (constructive criticism) B จึงควรตอบรับอย่างสุภาพว่ายินดีที่คำแนะนำนั้นเป็นประโยชน์ ส่วนข้ออื่นเป็นการต่อว่าซึ่งผิดบริบทโดยสิ้นเชิง"
+        },
+        {
+          "id": "cv-c1-qr-012-q2",
+          "question": "Speaker A: \"Despite the sudden budget cuts, the marketing team showed incredible resilience and still managed to launch the campaign on time.\"\nWhich is the most natural response from Speaker B?",
+          "choices": [
+            "It's a shame they gave up so easily.",
+            "I didn't know the campaign was cancelled.",
+            "We need to reduce their budget even more next year.",
+            "They really deserve a lot of credit for pulling that off."
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — เพราะ A ชื่นชมทีมที่ฝ่าฟันอุปสรรคจนปล่อยแคมเปญได้สำเร็จ (showed incredible resilience... launch the campaign on time) B จึงควรตอบเสริมในเชิงบวกว่าพวกเขาควรได้รับคำชมเชยอย่างมาก (deserve a lot of credit) ข้ออื่นสื่อความหมายในทางลบหรือเข้าใจผิดว่างานล้มเหลว"
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-short-013",
+      "level": "B2",
+      "examStyle": "TGAT",
+      "format": "SHORT_CONVO",
+      "title": "Defective Item Return",
+      "scenario_th": "ลูกค้าสอบถามเรื่องการเปลี่ยนสินค้าที่มีตำหนิในร้านเสื้อผ้า",
+      "dialogue": "Customer: Excuse me, I bought this jacket here yesterday, but the zipper is broken.\nClerk: I apologize for the inconvenience. Do you have the receipt with you?\nCustomer: Yes, right here. _____\nClerk: Absolutely. We have the same model in stock. I'll grab one for you.",
+      "targetVocab": [
+        "defective",
+        "inconvenience",
+        "receipt",
+        "in stock"
+      ],
+      "verified": false,
+      "source": "AI-generated — teacher review required",
+      "questions": [
+        {
+          "id": "cv-b2-short-013-q1",
+          "question": "Which phrase best completes the conversation?",
+          "choices": [
+            "Is it possible to exchange it for a new one?",
+            "Can I just get a full refund instead?",
+            "I don't want to buy anything else from here.",
+            "Could you fix the zipper for me right now?"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — Is it possible to exchange it for a new one? (ขอเปลี่ยนตัวใหม่ได้ไหม) เข้ากับบริบทที่พนักงานตอบตกลงและบอกว่ามีสินค้ารุ่นเดียวกันในสต็อก (Absolutely. We have the same model in stock.) ข้ออื่นไม่นำไปสู่การเปลี่ยนเสื้อตัวใหม่"
         }
       ]
     }
