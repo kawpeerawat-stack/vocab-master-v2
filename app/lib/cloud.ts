@@ -43,6 +43,21 @@ export interface ReadingStat {
   byType: Record<string, ReadingByType>; // ความแม่นรายชนิดคำถาม
 }
 
+// ── สถิติห้อง Conversation รายคน (เก็บใน students/{email}.conversation) ──
+export interface ConvByFormat {
+  answered: number;
+  correct: number;
+}
+export interface ConversationStat {
+  attempts: number;
+  totalAnswered: number;
+  totalCorrect: number;
+  lastCorrect: number;
+  lastTotal: number;
+  bestPct: number;
+  byFormat: Record<string, ConvByFormat>; // ความแม่นรายรูปแบบบทสนทนา
+}
+
 export interface CloudProgress {
   name: string;
   email: string;
@@ -55,6 +70,8 @@ export interface CloudProgress {
   lastScore: number;
   // ── สถิติห้องอ่าน (อาจไม่มีในเอกสารเก่า) ──
   reading?: ReadingStat;
+  // ── สถิติห้องบทสนทนา (อาจไม่มีในเอกสารเก่า) ──
+  conversation?: ConversationStat;
   // ── streak (อาจไม่มีในเอกสารเก่า) ──
   streak?: number;
   bestStreak?: number;
@@ -279,6 +296,88 @@ export async function saveReadingProgress(params: {
     return true;
   } catch (e) {
     console.error("saveReadingProgress error:", e);
+    return false;
+  }
+}
+
+// ── บันทึกผลรอบ Conversation (merge) ──
+//   - อัปเดตสถิติสะสมใน field "conversation"
+//   - บวกแต้มรายสัปดาห์ (weeklyXp) + เขียน streak เพื่อให้นับรวมทุกห้อง
+export async function saveConversationProgress(params: {
+  email: string;
+  name: string;
+  correct: number;
+  total: number;
+  byFormat: Record<string, ConvByFormat>;
+  streak?: StreakState;
+}): Promise<boolean> {
+  const { email, name, correct, total, byFormat, streak } = params;
+  if (!email || !db) return false;
+  try {
+    const ref = doc(db, COLLECTION, emailToId(email));
+    const weekId = currentWeekId();
+
+    let prevConv: ConversationStat | undefined;
+    let prevWeeklyXp = 0;
+    let prevWeekId = "";
+    try {
+      const prev = await getDoc(ref);
+      if (prev.exists()) {
+        const pd = prev.data() as CloudProgress;
+        prevConv = pd.conversation;
+        prevWeeklyXp = pd.weeklyXp ?? 0;
+        prevWeekId = pd.weekId ?? "";
+      }
+    } catch {
+      // ใช้ค่าเริ่มต้น
+    }
+
+    const mergedByFormat: Record<string, ConvByFormat> = { ...(prevConv?.byFormat ?? {}) };
+    for (const k in byFormat) {
+      const cur = mergedByFormat[k] ?? { answered: 0, correct: 0 };
+      mergedByFormat[k] = {
+        answered: cur.answered + byFormat[k].answered,
+        correct: cur.correct + byFormat[k].correct,
+      };
+    }
+
+    const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+    const conversation: ConversationStat = {
+      attempts: (prevConv?.attempts ?? 0) + 1,
+      totalAnswered: (prevConv?.totalAnswered ?? 0) + total,
+      totalCorrect: (prevConv?.totalCorrect ?? 0) + correct,
+      lastCorrect: correct,
+      lastTotal: total,
+      bestPct: Math.max(prevConv?.bestPct ?? 0, pct),
+      byFormat: mergedByFormat,
+    };
+
+    const weeklyXp = prevWeekId === weekId ? prevWeeklyXp + correct : correct;
+
+    await setDoc(
+      ref,
+      {
+        name,
+        email: email.trim().toLowerCase(),
+        conversation,
+        weeklyXp,
+        weekId,
+        ...(streak
+          ? {
+              streak: streak.streak,
+              bestStreak: streak.bestStreak,
+              lastStudyDate: streak.lastStudyDate,
+              todayCount: streak.todayCount,
+              dailyGoal: streak.dailyGoal,
+            }
+          : {}),
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+    return true;
+  } catch (e) {
+    console.error("saveConversationProgress error:", e);
     return false;
   }
 }
