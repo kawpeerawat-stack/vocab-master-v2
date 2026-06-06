@@ -218,6 +218,94 @@
           "explanation_th": "ตอบข้อ B — โครงเรื่องเรียงเป็น: แนะนำหัวข้อ → ข้อดี (ย่อหน้า 2) → ข้อจำกัด (ย่อหน้า 3) → สรุปแบบสมดุล (ย่อหน้า 4–5) จึงเป็นรูปแบบ \"ข้อดี-ข้อจำกัด-สรุป\""
         }
       ]
+    },
+    {
+      "id": "rd-b2-002",
+      "level": "B2",
+      "examStyle": "A-LEVEL",
+      "genre": "narrative",
+      "title": "Our Study Group",
+      "passage": "When our class found out about the difficult final exam, a few of us decided to form a study group. At first, no one knew what to say, so I told a silly joke to break the ice. After that, we began to get along much better.\n\nWe agreed that we should not give up, even when the work felt hard. Some chapters were a piece of cake, but others were confusing. Whenever we got stuck, someone would come up with a new way to explain the idea.\n\nOne evening we almost ran out of time before finishing, so we promised to hit the books every day until the test. By the end of the week, we were all on the same page and felt ready. Working together turned a stressful task into something we actually enjoyed.",
+      "wordCount": 137,
+      "targetVocab": [
+        "break the ice",
+        "get along",
+        "give up",
+        "piece of cake",
+        "come up with",
+        "run out of",
+        "hit the books",
+        "on the same page"
+      ],
+      "verified": false,
+      "source": "AI-generated (Claude) — teacher review required",
+      "questions": [
+        {
+          "id": "rd-b2-002-q1",
+          "type": "MAIN_IDEA",
+          "question": "What is the passage mainly about?",
+          "choices": [
+            "A student who failed an important exam",
+            "How a study group helped classmates prepare together",
+            "A teacher who gave a very difficult test",
+            "A funny joke told during class"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ทั้งบทเล่าว่ากลุ่มติวช่วยให้เพื่อน ๆ เตรียมสอบไปด้วยกัน ส่วน C/D เป็นรายละเอียดย่อย ไม่ใช่ใจความหลัก"
+        },
+        {
+          "id": "rd-b2-002-q2",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "The phrase \"break the ice\" in the passage is closest in meaning to ___.",
+          "choices": [
+            "to make people feel relaxed and start talking",
+            "to damage something made of ice",
+            "to leave a cold room quickly",
+            "to win a difficult game"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — \"break the ice\" เป็นสำนวน (idiom) แปลว่าทำให้บรรยากาศผ่อนคลายและเริ่มพูดคุยกัน ในบทคือเล่ามุกเพื่อให้กลุ่มเริ่มคุยกัน ลองแตะคำนี้ในบทอ่านเพื่อดูคำแปลจากคลังได้"
+        },
+        {
+          "id": "rd-b2-002-q3",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "In the passage, \"come up with\" means ___.",
+          "choices": [
+            "to climb to a higher place",
+            "to give up on a task",
+            "to arrive somewhere late",
+            "to think of (an idea or solution)"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — \"come up with\" เป็น phrasal verb แปลว่าคิดออก/เสนอความคิด ในบทคือมีคนคิดวิธีอธิบายใหม่ ๆ เมื่อกลุ่มติดขัด"
+        },
+        {
+          "id": "rd-b2-002-q4",
+          "type": "INFERENCE",
+          "question": "What can be inferred about the study group?",
+          "choices": [
+            "They disliked working with one another",
+            "They never finished any of their work",
+            "Cooperation made studying easier and more enjoyable",
+            "Only one student did all of the work"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ประโยคสุดท้าย \"Working together turned a stressful task into something we actually enjoyed\" สื่อเป็นนัยว่าการร่วมมือกันทำให้การเรียนง่ายและสนุกขึ้น"
+        },
+        {
+          "id": "rd-b2-002-q5",
+          "type": "PURPOSE_TONE",
+          "question": "The overall tone of the passage is ___.",
+          "choices": [
+            "positive and encouraging",
+            "angry and critical",
+            "sad and hopeless",
+            "bored and uninterested"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — คำอย่าง \"get along better\", \"felt ready\", \"actually enjoyed\" สื่อโทนบวกและให้กำลังใจ"
+        }
+      ]
     }
   ]
 }
