@@ -10,6 +10,17 @@ interface VocabWord {
   antonym: string
   example_sentence: string
   level: string
+  part_of_speech?: string
+  type?: 'word' | 'phrasal_verb' | 'idiom'
+}
+
+function readJson(file: string): VocabWord[] {
+  try {
+    const raw = readFileSync(join(process.cwd(), 'data', file), 'utf-8')
+    return JSON.parse(raw) as VocabWord[]
+  } catch {
+    return []
+  }
 }
 
 export async function GET(request: NextRequest) {
@@ -20,9 +31,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
   }
 
-  const filePath = join(process.cwd(), 'data', 'vocab.json')
-  const raw = readFileSync(filePath, 'utf-8')
-  const all: VocabWord[] = JSON.parse(raw)
-  const filtered = all.filter(w => w.word !== 'คำศัพท์ภาษาอังกฤษ')
-  return NextResponse.json(filtered)
+  // คลังคำศัพท์เดิม + คลัง Phrasal verb/Idiom (รวมเป็นคลังเดียว)
+  const words = readJson('vocab.json')
+  const phrases = readJson('phrases.json')
+  const all = [...words, ...phrases].filter((w) => w.word !== 'คำศัพท์ภาษาอังกฤษ')
+  return NextResponse.json(all)
 }
