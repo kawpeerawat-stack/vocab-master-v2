@@ -306,6 +306,608 @@
           "explanation_th": "ตอบข้อ A — คำอย่าง \"get along better\", \"felt ready\", \"actually enjoyed\" สื่อโทนบวกและให้กำลังใจ"
         }
       ]
+    },
+    {
+      "id": "rd-b1-010",
+      "level": "B1",
+      "examStyle": "TGAT",
+      "genre": "review",
+      "title": "FlexiFit App: A Home Workout Solution",
+      "passage": "Looking for a way to stay fit without joining an expensive gym? The \"FlexiFit\" app might be exactly what you need. This new mobile application offers hundreds of home workout routines for all fitness levels. Users can choose from yoga, strength training, and cardio exercises. What makes FlexiFit stand out is its personalized schedule. When you first open the app, it asks about your goals and current habits. Then, it creates a weekly plan just for you. The basic version is completely free, though it includes some annoying ads. If you upgrade to the premium version for $5 a month, you get an ad-free experience and access to live online classes with professional trainers. Overall, FlexiFit is a highly convenient tool for busy people who want to improve their health at home.",
+      "wordCount": 138,
+      "targetVocab": [
+        "expensive",
+        "routine",
+        "personalized",
+        "habit",
+        "premium",
+        "convenient"
+      ],
+      "verified": false,
+      "source": "AI-generated — teacher review required",
+      "questions": [
+        {
+          "id": "rd-b1-010-q1",
+          "type": "MAIN_IDEA",
+          "question": "What is the passage mainly about?",
+          "choices": [
+            "How to become a professional trainer",
+            "A review of a new fitness application",
+            "The dangers of expensive gyms",
+            "Why yoga is better than cardio"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — เพราะเนื้อหาทั้งบทเป็นการรีวิวแอปพลิเคชันออกกำลังกายชื่อ FlexiFit ส่วนข้ออื่นเป็นเพียงรายละเอียดเล็กน้อยหรือเนื้อหาที่ไม่ได้กล่าวถึง"
+        },
+        {
+          "id": "rd-b1-010-q2",
+          "type": "SUPPORTING_DETAIL",
+          "question": "What is a benefit of the $5 premium version?",
+          "choices": [
+            "A free gym membership",
+            "New workout shoes",
+            "Fewer questions about habits",
+            "Access to live online classes"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — เพราะในเนื้อเรื่องระบุชัดเจนว่าถ้าจ่าย $5 ต่อเดือนจะได้เข้าถึงชั้นเรียนออนไลน์สดกับเทรนเนอร์มืออาชีพ"
+        },
+        {
+          "id": "rd-b1-010-q3",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "The word \"convenient\" in the last sentence is closest in meaning to ___.",
+          "choices": [
+            "easy to use",
+            "very expensive",
+            "hard to understand",
+            "extremely boring"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — เพราะ convenient แปลว่าสะดวกสบายหรือใช้งานง่าย สอดคล้องกับบริบทที่เป็นเครื่องมือสำหรับคนยุ่ง (busy people)"
+        },
+        {
+          "id": "rd-b1-010-q4",
+          "type": "REFERENCE",
+          "question": "The word \"it\" in the sentence \"Then, it creates a weekly plan...\" refers to ___.",
+          "choices": [
+            "the gym",
+            "the goal",
+            "the app",
+            "the trainer"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — คำว่า it ในประโยคนี้หมายถึงตัวแอปพลิเคชัน (FlexiFit) ที่ทำหน้าที่สร้างตารางออกกำลังกายรายสัปดาห์ให้ผู้ใช้งาน"
+        },
+        {
+          "id": "rd-b1-010-q5",
+          "type": "INFERENCE",
+          "question": "Who would most likely find this app useful?",
+          "choices": [
+            "Professional athletes looking for a gym",
+            "People who prefer exercising outdoors",
+            "Someone with a busy schedule wanting to save money",
+            "Doctors who treat sports injuries"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — สามารถอนุมานได้จากประโยคจบที่ว่าแอปนี้เหมาะกับ busy people และประโยคแรกที่ชวนให้ผู้ที่ไม่อยากเสียเงินแพง ๆ กับยิมมาใช้"
+        }
+      ]
+    },
+    {
+      "id": "rd-b1-011",
+      "level": "B1",
+      "examStyle": "TGAT",
+      "genre": "advertisement",
+      "title": "AeroGlide Smart Suitcase",
+      "passage": "Traveling can be stressful, but the new AeroGlide Smart Suitcase is here to change that. Designed for modern travelers, this innovative suitcase features a built-in scale in its handle. You simply lift the bag, and the screen shows its exact weight, helping you avoid unexpected airline fees. Furthermore, the AeroGlide comes with two USB charging ports, allowing you to charge your phone and tablet while waiting at the gate. It is made from lightweight but durable polycarbonate material that protects your belongings from rough handling. For security, it includes a digital lock that you can control using your smartphone. If you order from our website before Friday, you will receive a 20% discount and free shipping. Make your next vacation relaxing from the start. Upgrade to AeroGlide today!",
+      "wordCount": 133,
+      "targetVocab": [
+        "stressful",
+        "innovative",
+        "avoid",
+        "durable",
+        "security",
+        "discount"
+      ],
+      "verified": false,
+      "source": "AI-generated — teacher review required",
+      "questions": [
+        {
+          "id": "rd-b1-011-q1",
+          "type": "PURPOSE_TONE",
+          "question": "What is the primary purpose of this passage?",
+          "choices": [
+            "To warn people about airline fees",
+            "To persuade people to buy a product",
+            "To explain how to pack a suitcase",
+            "To complain about stressful travel"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — เนื่องจากบทอ่านนี้เป็นโฆษณา จุดประสงค์หลักคือเชิญชวนและโน้มน้าวให้ผู้อ่านซื้อกระเป๋าเดินทางรุ่นใหม่นี้"
+        },
+        {
+          "id": "rd-b1-011-q2",
+          "type": "SUPPORTING_DETAIL",
+          "question": "How does the suitcase help travelers avoid extra fees?",
+          "choices": [
+            "By showing the weight of the bag",
+            "By paying the airline directly",
+            "By offering a 20% discount",
+            "By making the bag look smaller"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ในบทความระบุว่ากระเป๋ามีเครื่องชั่งน้ำหนักในตัว (built-in scale) ซึ่งบอกน้ำหนักกระเป๋าได้ ช่วยให้หลีกเลี่ยงค่าธรรมเนียมน้ำหนักเกิน"
+        },
+        {
+          "id": "rd-b1-011-q3",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "The word \"durable\" is closest in meaning to ___.",
+          "choices": [
+            "heavy",
+            "expensive",
+            "beautiful",
+            "strong"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — คำว่า durable แปลว่า ทนทาน แข็งแรง ซึ่งเข้ากับบริบทว่ากระเป๋าสามารถปกป้องสัมภาระจากการโยนหรือกระแทกได้"
+        },
+        {
+          "id": "rd-b1-011-q4",
+          "type": "REFERENCE",
+          "question": "The word \"that\" in the phrase \"digital lock that you can control\" refers to ___.",
+          "choices": [
+            "your smartphone",
+            "the digital lock",
+            "the security",
+            "the suitcase"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — คำว่า that เป็น relative pronoun ที่ทำหน้าที่ขยายคำนามที่อยู่ติดกันข้างหน้า ซึ่งก็คือ a digital lock"
+        },
+        {
+          "id": "rd-b1-011-q5",
+          "type": "MAIN_IDEA",
+          "question": "Which of the following would be the best heading for this text?",
+          "choices": [
+            "The Future of Airline Travel",
+            "The Perfect Travel Companion",
+            "How to Charge Your Phone",
+            "Why Polycarbonate is Safe"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — เพื่อนร่วมเดินทางที่สมบูรณ์แบบ เป็นหัวข้อที่ครอบคลุมใจความสำคัญทั้งหมดเกี่ยวกับการนำเสนอฟังก์ชันต่าง ๆ ของกระเป๋าเดินทางรุ่นนี้"
+        }
+      ]
+    },
+    {
+      "id": "rd-b2-012",
+      "level": "B2",
+      "examStyle": "NETSAT",
+      "genre": "argumentative article",
+      "title": "The Shift Toward a Four-Day Workweek",
+      "passage": "The traditional five-day workweek has been the global standard for nearly a century. However, an increasing number of companies are experimenting with a four-day workweek, and the results are surprisingly positive. Advocates argue that working fewer hours does not necessarily lead to a decrease in productivity. In fact, numerous pilot programs across Europe have demonstrated that employees often achieve the same, if not greater, output in four days as they do in five. This phenomenon is largely attributed to improved employee well-being. When workers have an extra day to rest, handle personal errands, or spend time with family, they return to the office feeling rejuvenated and more focused. Furthermore, the compressed schedule forces teams to eliminate time-wasting activities, such as unnecessary meetings, thereby increasing overall efficiency. Despite these benefits, critics warn that this model may not suit every industry. Service sectors that require 24/7 customer support, for instance, might struggle to adapt without significantly increasing their staffing costs. Ultimately, while the four-day workweek presents a compelling vision for the future of work, its widespread implementation will require careful planning and flexibility.",
+      "wordCount": 187,
+      "targetVocab": [
+        "standard",
+        "experiment",
+        "productivity",
+        "phenomenon",
+        "rejuvenated",
+        "efficiency",
+        "implementation"
+      ],
+      "verified": false,
+      "source": "AI-generated — teacher review required",
+      "questions": [
+        {
+          "id": "rd-b2-012-q1",
+          "type": "MAIN_IDEA",
+          "question": "What is the central idea of the text?",
+          "choices": [
+            "The five-day workweek is completely outdated and must be banned.",
+            "Europe has the most productive workers in the world.",
+            "The four-day workweek offers significant benefits but also faces industry-specific challenges.",
+            "Customer service jobs are the hardest jobs to manage in modern businesses."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ใจความหลักของบทความคือการนำเสนอข้อดีของการทำงานสัปดาห์ละ 4 วัน (ผลผลิตเท่าเดิม, พนักงานสุขภาพจิตดีขึ้น) แต่ก็ยังกล่าวถึงข้อจำกัดในบางอุตสาหกรรม"
+        },
+        {
+          "id": "rd-b2-012-q2",
+          "type": "INFERENCE",
+          "question": "What can be inferred about the traditional five-day workweek?",
+          "choices": [
+            "It may include time-wasting activities that reduce overall efficiency.",
+            "It was originally designed for the service sector.",
+            "It is the only model that guarantees high productivity.",
+            "It gives employees too much time to rest at home."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — สามารถอนุมานได้จากประโยคที่ว่าเมื่อลดเวลาเหลือ 4 วัน ทำให้ต้องตัดกิจกรรมที่เสียเวลาทิ้งไป แปลว่าการทำ 5 วันปกติอาจมีกิจกรรมที่ไร้ประสิทธิภาพแฝงอยู่"
+        },
+        {
+          "id": "rd-b2-012-q3",
+          "type": "REFERENCE",
+          "question": "The word \"their\" in the phrase \"increasing their staffing costs\" refers to ___.",
+          "choices": [
+            "critics",
+            "benefits",
+            "employees",
+            "service sectors"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — their ในที่นี้อ้างอิงถึง service sectors (ภาคบริการ) ที่อาจจะต้องมีค่าใช้จ่ายจ้างพนักงานเพิ่มขึ้นถ้านำระบบนี้มาใช้"
+        },
+        {
+          "id": "rd-b2-012-q4",
+          "type": "SUPPORTING_DETAIL",
+          "question": "According to the passage, why does productivity remain stable or increase in a shorter workweek?",
+          "choices": [
+            "Employees are paid much higher salaries.",
+            "Employees eliminate unnecessary tasks and feel more rested.",
+            "Companies hire more managers to watch the staff.",
+            "The government forces companies to work faster."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — บทความระบุว่าที่ผลผลิตยังดีอยู่เป็นเพราะพนักงานได้พักผ่อนเต็มที่ (rejuvenated) และต้องตัดกิจกรรมที่ไร้สาระ (eliminate time-wasting activities) ออกไป"
+        },
+        {
+          "id": "rd-b2-012-q5",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "The word \"attributed\" is closest in meaning to ___.",
+          "choices": [
+            "caused by",
+            "ignored by",
+            "compared to",
+            "hidden from"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — attributed to แปลว่า มีสาเหตุมาจาก สอดคล้องกับบริบทที่บอกว่าปรากฏการณ์ผลผลิตที่เพิ่มขึ้นนี้ เกิดจาก สุขภาวะที่ดีขึ้นของพนักงาน"
+        },
+        {
+          "id": "rd-b2-012-q6",
+          "type": "PURPOSE_TONE",
+          "question": "The author's tone towards the four-day workweek can be best described as ___.",
+          "choices": [
+            "highly pessimistic",
+            "extremely angry",
+            "cautiously optimistic",
+            "completely neutral"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ผู้เขียนมีน้ำเสียงเชิงบวกแบบระมัดระวัง (cautiously optimistic) คือเห็นด้วยว่ามีข้อดีมากมาย แต่วรรคสุดท้ายก็ยังเตือนว่าต้องวางแผนให้ดีและมีข้อจำกัด"
+        }
+      ]
+    },
+    {
+      "id": "rd-b2-013",
+      "level": "B2",
+      "examStyle": "NETSAT",
+      "genre": "informative text",
+      "title": "Restoring the Rainforests of the Sea",
+      "passage": "Coral reefs are often called the rainforests of the sea because of their incredible biodiversity. Unfortunately, rising ocean temperatures and severe pollution have caused widespread coral bleaching, threatening marine ecosystems globally. In response to this crisis, marine biologists have developed a promising technique called \"coral farming\" or \"fragmentation.\" The process involves breaking off small pieces of healthy, temperature-resistant corals and growing them in underwater nurseries. Once these fragments reach a certain size, they are carefully transplanted back onto degraded reef structures. Recent studies show that these lab-grown corals grow significantly faster than they would in their natural environment. Moreover, scientists are selectively breeding species that show genetic resilience to warmer waters, effectively creating \"super corals.\" While this restoration method requires substantial funding and intensive labor, the initial results offer a glimmer of hope. In the Caribbean, several degraded areas have seen a 40% increase in coral cover over the last five years. However, experts emphasize that coral farming alone cannot solve the problem; it must be accompanied by drastic global reductions in greenhouse gas emissions to truly save these vital ecosystems.",
+      "wordCount": 185,
+      "targetVocab": [
+        "biodiversity",
+        "bleaching",
+        "fragmentation",
+        "transplant",
+        "degraded",
+        "resilience",
+        "emission"
+      ],
+      "verified": false,
+      "source": "AI-generated — teacher review required",
+      "questions": [
+        {
+          "id": "rd-b2-013-q1",
+          "type": "MAIN_IDEA",
+          "question": "What is the main focus of the passage?",
+          "choices": [
+            "The history of coral reefs in the Caribbean",
+            "A scientific method used to restore damaged coral reefs",
+            "How to measure greenhouse gas emissions",
+            "The financial costs of marine biology programs"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — บทอ่านมุ่งเน้นไปที่การอธิบายวิธีการ coral farming หรือ fragmentation ซึ่งเป็นวิธีที่นักวิทยาศาสตร์นำมาใช้ฟื้นฟูแนวปะการังที่เสื่อมโทรม"
+        },
+        {
+          "id": "rd-b2-013-q2",
+          "type": "SUPPORTING_DETAIL",
+          "question": "What is the first step in the coral farming process?",
+          "choices": [
+            "Reducing global greenhouse gas emissions",
+            "Transplanting mature corals into the ocean",
+            "Taking small pieces of healthy, strong corals",
+            "Selectively breeding local fish species"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ในเนื้อหาบอกว่ากระบวนการเริ่มจาก breaking off small pieces of healthy, temperature-resistant corals เพื่อนำไปอนุบาลต่อ"
+        },
+        {
+          "id": "rd-b2-013-q3",
+          "type": "INFERENCE",
+          "question": "Why are scientists trying to create \"super corals\"?",
+          "choices": [
+            "Because super corals are much cheaper to grow.",
+            "Because super corals can survive in warmer ocean waters.",
+            "Because super corals attract more tourists.",
+            "Because super corals grow well in polluted fresh water."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — อนุมานได้จากประโยคที่ว่า scientists are selectively breeding species that show genetic resilience to warmer waters ซึ่งแปลว่าเพาะพันธุ์สายพันธุ์ที่ทนความร้อนได้ดีเพื่อรับมือกับภาวะโลกร้อน"
+        },
+        {
+          "id": "rd-b2-013-q4",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "The word \"degraded\" in the passage is closest in meaning to ___.",
+          "choices": [
+            "damaged",
+            "improved",
+            "protected",
+            "hidden"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — degraded หมายถึง เสื่อมโทรม หรือถูกทำลาย (damaged) ซึ่งตรงกับบริบทของแนวปะการังที่ได้รับผลกระทบจากอุณหภูมิน้ำและมลพิษ"
+        },
+        {
+          "id": "rd-b2-013-q5",
+          "type": "REFERENCE",
+          "question": "The word \"they\" in the sentence \"they are carefully transplanted\" refers to ___.",
+          "choices": [
+            "marine biologists",
+            "greenhouse gases",
+            "coral fragments",
+            "underwater nurseries"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — they เป็นสรรพนามแทน coral fragments (ชิ้นส่วนปะการัง) ที่เมื่อโตถึงขนาดหนึ่งแล้วจะถูกนำไปปลูกถ่ายคืนสู่ธรรมชาติ"
+        },
+        {
+          "id": "rd-b2-013-q6",
+          "type": "ORGANIZATION",
+          "question": "How does the author conclude the passage?",
+          "choices": [
+            "By asking a rhetorical question to the readers",
+            "By predicting the complete extinction of coral reefs",
+            "By listing the locations of underwater nurseries",
+            "By stating that solving the root cause is also necessary"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — ผู้เขียนจบเรื่องด้วยการเตือนว่า ลำพังแค่ปลูกปะการังไม่พอ แต่ต้องลดการปล่อยก๊าซเรือนกระจก (root cause) ด้วยเพื่อแก้ปัญหาอย่างยั่งยืน"
+        }
+      ]
+    },
+    {
+      "id": "rd-c1-014",
+      "level": "C1",
+      "examStyle": "A-LEVEL",
+      "genre": "feature article",
+      "title": "The True Cost of Fast Fashion",
+      "passage": "The contemporary fashion industry is dominated by the \"fast fashion\" business model, which relies on the rapid mass production of inexpensive, trendy clothing. While this approach democratizes fashion by allowing consumers of all income levels to access the latest styles, its environmental toll is catastrophic. The manufacturing processes involved consume vast quantities of water and rely heavily on synthetic fabrics like polyester, a petroleum-based material that takes centuries to decompose. Furthermore, the inherent disposability of fast fashion encourages a throwaway culture; millions of tons of discarded garments end up in landfills annually, emitting potent greenhouse gases as they degrade. In an attempt to mitigate these detrimental impacts, a counter-movement known as \"slow fashion\" has emerged. This paradigm emphasizes sustainability, ethical labor practices, and the utilization of eco-friendly materials such as organic cotton and recycled fibers. Slow fashion advocates urge consumers to prioritize longevity and versatility over fleeting trends, encouraging them to invest in higher-quality pieces that can be worn for years. However, transitioning away from fast fashion is fraught with challenges. Sustainable clothing typically commands a premium price, making it inaccessible to marginalized demographics. Additionally, corporate greenwashing—where companies falsely market their products as environmentally friendly—complicates the landscape, making it arduous for well-intentioned consumers to make genuinely ethical choices. Addressing this crisis necessitates not only individual behavioral shifts but also stringent governmental regulations to hold the industry accountable for its ecological footprint.",
+      "wordCount": 233,
+      "targetVocab": [
+        "democratize",
+        "catastrophic",
+        "decompose",
+        "mitigate",
+        "detrimental",
+        "paradigm",
+        "versatility",
+        "arduous",
+        "stringent"
+      ],
+      "verified": false,
+      "source": "AI-generated — teacher review required",
+      "questions": [
+        {
+          "id": "rd-c1-014-q1",
+          "type": "MAIN_IDEA",
+          "question": "Which of the following best summarizes the passage?",
+          "choices": [
+            "Fast fashion provides cheap clothes, but natural fibers are too expensive to be used globally.",
+            "Consumers must stop buying polyester completely if they want to save the environment.",
+            "The environmental damage from fast fashion is severe, and adopting sustainable alternatives is complex.",
+            "Corporate greenwashing is the only reason why slow fashion has not succeeded in the market."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ใจความหลักคือบอกถึงผลเสียร้ายแรงทางสิ่งแวดล้อมจาก fast fashion และอธิบายถึงความพยายามของ slow fashion ตลอดจนความท้าทายต่าง ๆ ที่ทำให้การแก้ปัญหาซับซ้อน"
+        },
+        {
+          "id": "rd-c1-014-q2",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "The word \"mitigate\" in the second paragraph is closest in meaning to ___.",
+          "choices": [
+            "exaggerate",
+            "alleviate",
+            "investigate",
+            "generate"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — คำว่า mitigate แปลว่า บรรเทาหรือทำให้น้อยลง ซึ่งตรงกับความหมายของ alleviate (ลดผลกระทบเชิงลบลง) ส่วนข้ออื่นมีความหมายไม่สอดคล้องกับบริบท"
+        },
+        {
+          "id": "rd-c1-014-q3",
+          "type": "REFERENCE",
+          "question": "What does \"this approach\" in the first paragraph refer to?",
+          "choices": [
+            "The rapid mass production of cheap clothing",
+            "The use of recycled fibers",
+            "The emission of greenhouse gases",
+            "The governmental regulations"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — this approach อ้างอิงถึงประโยคก่อนหน้าที่พูดถึงโมเดลธุรกิจ fast fashion ซึ่งก็คือการผลิตเสื้อผ้าราคาถูกและตามกระแสอย่างรวดเร็ว (rapid mass production)"
+        },
+        {
+          "id": "rd-c1-014-q4",
+          "type": "INFERENCE",
+          "question": "It can be inferred from the passage that polyester ___.",
+          "choices": [
+            "is ethically produced by slow fashion brands.",
+            "breaks down quickly in natural environments.",
+            "is primarily made from organic agricultural products.",
+            "contributes significantly to long-term environmental pollution."
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — อนุมานได้ว่าโพลีเอสเตอร์ก่อมลพิษระยะยาว เพราะเนื้อเรื่องระบุว่าเป็น petroleum-based material that takes centuries to decompose (ใช้เวลาหลายร้อยปีในการย่อยสลาย)"
+        },
+        {
+          "id": "rd-c1-014-q5",
+          "type": "PURPOSE_TONE",
+          "question": "The author mentions \"greenwashing\" primarily to ___.",
+          "choices": [
+            "praise companies for their efforts to save the planet.",
+            "illustrate a difficulty consumers face when trying to buy sustainable clothing.",
+            "explain how polyester is dyed to look like natural cotton.",
+            "persuade the government to lower taxes on eco-friendly brands."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ผู้เขียนยกคำว่า greenwashing (การฟอกเขียว) มาเพื่ออธิบายถึงอุปสรรคหนึ่ง (arduous) ที่ทำให้ผู้บริโภคที่หวังดีตัดสินใจเลือกซื้อสินค้าได้อย่างยากลำบาก"
+        },
+        {
+          "id": "rd-c1-014-q6",
+          "type": "SUPPORTING_DETAIL",
+          "question": "According to the passage, what is one major barrier to the widespread adoption of slow fashion?",
+          "choices": [
+            "Consumers prefer clothes that last for decades.",
+            "Sustainable garments usually have a high price.",
+            "There are not enough landfills for recycled clothes.",
+            "Organic cotton is no longer available."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ในเนื้อเรื่องระบุว่า Sustainable clothing typically commands a premium price ซึ่งหมายความว่าราคาสูงเป็นอุปสรรคต่อการเข้าถึงของคนบางกลุ่ม"
+        },
+        {
+          "id": "rd-c1-014-q7",
+          "type": "ORGANIZATION",
+          "question": "How is the text organized?",
+          "choices": [
+            "Chronological order of fashion trends",
+            "Comparing two completely identical industries",
+            "Problem presentation followed by a potential solution and its limitations",
+            "A personal narrative about shopping experiences"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — โครงสร้างบทความคือเริ่มจากการเสนอปัญหา (Fast fashion) ตามด้วยทางแก้ (Slow fashion) และทิ้งท้ายด้วยข้อจำกัด/ความท้าทายต่าง ๆ (ราคา, ฟอกเขียว, กฎหมาย)"
+        }
+      ]
+    },
+    {
+      "id": "rd-c1-015",
+      "level": "C1",
+      "examStyle": "A-LEVEL",
+      "genre": "analytical essay",
+      "title": "Algorithmic Feeds and Adolescent Psychology",
+      "passage": "In the digital age, social media platforms have fundamentally altered the landscape of human interaction, particularly among adolescents. Unlike chronological feeds of the past, contemporary social media is governed by sophisticated algorithms designed to maximize user retention. These algorithms curate content based on individual psychological profiles, exploiting cognitive vulnerabilities to ensure prolonged engagement. For teenagers, whose brains are still undergoing critical developmental phases, this constant bombardment of hyper-personalized content can be deeply destabilizing. One of the most insidious consequences of algorithmic curation is the amplification of social comparison. Platforms disproportionately promote idealized, heavily edited representations of reality, subtly implying that these unattainable standards are the norm. Consequently, adolescents frequently report heightened levels of anxiety, depressive symptoms, and body dysmorphia as they measure their authentic lives against the curated highlights of others. Furthermore, the algorithm's tendency to prioritize emotionally charged, polarizing content traps young users in echo chambers, reinforcing extreme viewpoints and impairing their capacity for nuanced critical thinking. Despite mounting empirical evidence linking these algorithmic mechanisms to a global decline in adolescent mental health, tech conglomerates remain reluctant to alter their profitable business models. Legislative interventions aimed at enforcing algorithmic transparency and restricting data-mining practices on minors are currently gaining traction. However, until comprehensive regulatory frameworks are established, the onus remains largely on educators and parents to cultivate digital literacy, equipping the younger generation with the cognitive tools necessary to navigate this complex, psychologically demanding virtual terrain.",
+      "wordCount": 240,
+      "targetVocab": [
+        "alter",
+        "retention",
+        "vulnerability",
+        "insidious",
+        "amplification",
+        "polarizing",
+        "empirical",
+        "transparency",
+        "onus"
+      ],
+      "verified": false,
+      "source": "AI-generated — teacher review required",
+      "questions": [
+        {
+          "id": "rd-c1-015-q1",
+          "type": "MAIN_IDEA",
+          "question": "What is the primary theme of the passage?",
+          "choices": [
+            "The financial success of tech conglomerates in the digital age",
+            "How to use social media algorithms to improve learning",
+            "The history of social media platforms from past to present",
+            "The detrimental psychological impacts of social media algorithms on teenagers"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — ธีมหลักของบทอ่านนี้คือการวิเคราะห์ถึงผลกระทบเชิงลบทางจิตวิทยา (ความวิตกกังวล, การเปรียบเทียบ) ที่อัลกอริทึมของโซเชียลมีเดียมีต่อวัยรุ่น"
+        },
+        {
+          "id": "rd-c1-015-q2",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "The term \"insidious\" in the second paragraph could best be replaced by ___.",
+          "choices": [
+            "obvious and clear",
+            "harmful but difficult to notice",
+            "highly beneficial",
+            "loud and aggressive"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — insidious หมายถึง สิ่งที่เป็นอันตรายแต่แฝงตัวมาอย่างแยบยลจนสังเกตได้ยาก ซึ่งสอดคล้องกับบริบทเรื่องการเปรียบเทียบทางสังคมที่ค่อย ๆ กัดกินจิตใจวัยรุ่นโดยไม่รู้ตัว"
+        },
+        {
+          "id": "rd-c1-015-q3",
+          "type": "INFERENCE",
+          "question": "Based on the passage, why are chronological feeds considered less harmful than algorithmic feeds?",
+          "choices": [
+            "They do not intentionally exploit psychological vulnerabilities to maximize watch time.",
+            "They show heavily edited representations of reality more often.",
+            "They are completely free from any type of advertisements.",
+            "They only show content that has been approved by educators."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — อนุมานได้จากที่ผู้เขียนเปรียบเทียบว่าอัลกอริทึมปัจจุบันออกแบบมาเพื่อ exploit cognitive vulnerabilities เพื่อตรึงคนไว้หน้าจอ ในขณะที่ฟีดแบบเก่า (chronological) ไม่ได้มีเจตนานี้"
+        },
+        {
+          "id": "rd-c1-015-q4",
+          "type": "SUPPORTING_DETAIL",
+          "question": "How do social media algorithms impair adolescents' critical thinking?",
+          "choices": [
+            "By giving them too many homework assignments",
+            "By showing them chronological posts from their close friends",
+            "By continuously showing them polarizing content that aligns with their existing beliefs",
+            "By encouraging them to limit their screen time voluntarily"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — เนื้อเรื่องระบุว่าอัลกอริทึมดันเนื้อหาที่ใช้อารมณ์รุนแรง (polarizing content) ทำให้วัยรุ่นติดอยู่ใน echo chambers ซึ่งทำลายความสามารถในการคิดวิเคราะห์อย่างรอบด้าน (nuanced critical thinking)"
+        },
+        {
+          "id": "rd-c1-015-q5",
+          "type": "REFERENCE",
+          "question": "The word \"their\" in the phrase \"alter their profitable business models\" refers to ___.",
+          "choices": [
+            "adolescents",
+            "tech conglomerates",
+            "algorithmic mechanisms",
+            "legislative interventions"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — their อ้างอิงประธานของประโยค ซึ่งก็คือ tech conglomerates (กลุ่มบริษัทยักษ์ใหญ่ด้านเทคโนโลยี) ที่ไม่ยอมเปลี่ยนโมเดลธุรกิจที่ทำกำไรมหาศาล"
+        },
+        {
+          "id": "rd-c1-015-q6",
+          "type": "PURPOSE_TONE",
+          "question": "The author's tone toward tech conglomerates can be best described as ___.",
+          "choices": [
+            "supportive and admiring",
+            "indifferent and unbothered",
+            "sympathetic and understanding",
+            "critical and disapproving"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — น้ำเสียงของผู้เขียนมีลักษณะวิพากษ์วิจารณ์และไม่เห็นด้วย (critical and disapproving) โดยชี้ให้เห็นว่าบริษัทยอมแลกสุขภาพจิตของวัยรุ่นกับผลกำไรทางธุรกิจ"
+        },
+        {
+          "id": "rd-c1-015-q7",
+          "type": "ORGANIZATION",
+          "question": "Which of the following best describes the development of the passage?",
+          "choices": [
+            "It explains a mechanism, details its negative effects, and concludes with a call for mitigation.",
+            "It contrasts two types of teenagers and evaluates their internet usage.",
+            "It outlines a historical timeline of social media from the 2000s to the present.",
+            "It proposes a new algorithm, tests it, and proves its absolute safety."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — การจัดเรียงเนื้อหาเริ่มจากการอธิบายกลไกของอัลกอริทึม จากนั้นชี้ให้เห็นผลกระทบทางลบ (เช่น ซึมเศร้า ขาดวิจารณญาณ) และจบด้วยการเรียกร้องให้พ่อแม่/ครูช่วยกันและให้มีกฎหมายควบคุม"
+        }
+      ]
     }
   ]
 }
