@@ -15,12 +15,17 @@ import {
   pickSmartDistractors,
   chooseQuestionType,
 } from './lib/quiz';
-import { loadCloudProgress, saveCloudProgress, loadLeaderboard, LeaderboardEntry, saveReadingProgress, ReadingByType } from './lib/cloud';
+import { loadCloudProgress, saveCloudProgress, loadLeaderboard, LeaderboardEntry, saveReadingProgress, ReadingByType, saveConversationProgress, ConvByFormat } from './lib/cloud';
 import {
   ReadingPassage,
   RQTYPE_LABELS,
   loadReadingPassages,
 } from './lib/reading';
+import {
+  ConvSet,
+  CONV_FORMAT_LABELS,
+  loadConversationSets,
+} from './lib/conversation';
 import {
   StreakState,
   emptyStreak,
@@ -95,6 +100,18 @@ export default function Home() {
   const [rResults, setRResults] = useState<{ qid: string; type: string; selected: number; correct: boolean }[]>([]);
   const [rSaving, setRSaving] = useState(false);
   const [glossWord, setGlossWord] = useState<string | null>(null); // คำใน targetVocab ที่กำลังเปิดดูคำแปล
+  // ── สถานะห้อง Conversation ──
+  const [conversationSets, setConversationSets] = useState<ConvSet[]>([]);
+  const [convLoading, setConvLoading] = useState(false);
+  const [convPreview, setConvPreview] = useState(false); // ครูเปิดดูชุดที่ยังไม่ตรวจ
+  const [convView, setConvView] = useState<'LIST' | 'PLAY' | 'RESULT'>('LIST');
+  const [activeConv, setActiveConv] = useState<ConvSet | null>(null);
+  const [cIndex, setCIndex] = useState(0);
+  const [cSelected, setCSelected] = useState<number | null>(null);
+  const [cAnswered, setCAnswered] = useState(false);
+  const [cResults, setCResults] = useState<{ qid: string; selected: number; correct: boolean }[]>([]);
+  const [cSaving, setCSaving] = useState(false);
+  const [convGloss, setConvGloss] = useState<string | null>(null);
 
   const [studentName, setStudentName] = useState('');
   const [email, setEmail] = useState('');
@@ -667,6 +684,77 @@ export default function Home() {
   const visiblePassages = teacherPreview ? readingPassages : readingPassages.filter((p) => p.verified);
   const hasUnverified = readingPassages.some((p) => !p.verified);
 
+  // ── โหลดชุดบทสนทนาเมื่อเข้าห้อง Conversation ครั้งแรก ──
+  useEffect(() => {
+    if (section === 'CONVERSATION' && conversationSets.length === 0 && !convLoading) {
+      setConvLoading(true);
+      loadConversationSets()
+        .then((cs) => setConversationSets(cs))
+        .catch((e) => console.error('โหลดบทสนทนาไม่สำเร็จ:', e))
+        .finally(() => setConvLoading(false));
+    }
+  }, [section, conversationSets.length, convLoading]);
+
+  const startConv = (s: ConvSet) => {
+    setActiveConv(s);
+    setCIndex(0);
+    setCSelected(null);
+    setCAnswered(false);
+    setCResults([]);
+    setConvGloss(null);
+    setConvView('PLAY');
+  };
+
+  const answerConv = (choiceIndex: number) => {
+    if (cAnswered || !activeConv) return;
+    const q = activeConv.questions[cIndex];
+    const correct = choiceIndex === q.answerIndex;
+    setCSelected(choiceIndex);
+    setCAnswered(true);
+    setCResults((prev) => [...prev, { qid: q.id, selected: choiceIndex, correct }]);
+  };
+
+  const finishConv = async (allResults: { qid: string; selected: number; correct: boolean }[]) => {
+    setConvView('RESULT');
+    if (!activeConv) return;
+    const total = allResults.length;
+    const correct = allResults.filter((r) => r.correct).length;
+    // บันทึกเฉพาะชุดที่ครูตรวจแล้ว (ไม่บันทึกตอนครูพรีวิว)
+    if (activeConv.verified && email) {
+      const byFormat: Record<string, ConvByFormat> = {};
+      const f = activeConv.format;
+      const b = byFormat[f] ?? { answered: 0, correct: 0 };
+      b.answered += total;
+      b.correct += correct;
+      byFormat[f] = b;
+      const updatedStreak = applyActivity(streakState, total);
+      setStreakState(updatedStreak);
+      saveStreak(email, updatedStreak);
+      setCSaving(true);
+      try {
+        await saveConversationProgress({ email, name: studentName, correct, total, byFormat, streak: updatedStreak });
+      } catch (e) {
+        console.error('บันทึกผล Conversation ไม่สำเร็จ:', e);
+      } finally {
+        setCSaving(false);
+      }
+    }
+  };
+
+  const nextConvQuestion = () => {
+    if (!activeConv) return;
+    if (cIndex + 1 >= activeConv.questions.length) {
+      finishConv(cResults);
+    } else {
+      setCIndex((i) => i + 1);
+      setCSelected(null);
+      setCAnswered(false);
+    }
+  };
+
+  const visibleConvSets = convPreview ? conversationSets : conversationSets.filter((s) => s.verified);
+  const hasUnverifiedConv = conversationSets.some((s) => !s.verified);
+
   return (
     <div
       className="min-h-screen bg-[#f8f9fa] flex flex-col items-center justify-center p-4 font-sans text-gray-800 select-none"
@@ -785,27 +873,220 @@ export default function Home() {
           </div>
         )}
 
-        {/* ── ห้อง Conversation (placeholder — จะสร้างจริงในขั้นถัดไป) ── */}
+        {/* ── ห้อง Conversation (จริง) ── */}
         {gameState === 'START' && isLoggedIn && section === 'CONVERSATION' && (
-          <div className="text-center animate-fadeIn mt-2">
-            <div className="flex flex-col items-center justify-center mb-6">
-              <span className="text-5xl mb-3">💬</span>
-              <h1 className="text-2xl font-black text-gray-900 mb-1">บทสนทนา (Conversation)</h1>
-              <p className="text-[#003399] font-bold text-sm tracking-widest uppercase">Coming next step</p>
+          <div className="animate-fadeIn mt-2">
+            <div className="flex items-center justify-between mb-4">
+              <button
+                type="button"
+                onClick={() => { setSection('HUB'); setConvView('LIST'); }}
+                className="text-sm font-bold text-[#003399] hover:underline flex items-center gap-1"
+              >
+                ← เมนูหลัก
+              </button>
+              <span className="text-base font-black text-gray-900">💬 บทสนทนา (Conversation)</span>
+              <span className="w-14" />
             </div>
-            <div className="bg-[#FFD700]/10 border-2 border-[#FFD700]/40 rounded-3xl p-6 mb-6">
-              <p className="text-gray-700 font-bold text-sm leading-relaxed">
-                🚧 ห้องนี้กำลังสร้างในขั้นถัดไปครับ
-                <span className="block text-xs text-gray-500 font-medium mt-1">เมื่อห้อง Reading เรียบร้อย ผมจะก๊อปแพทเทิร์นเดียวกันมาทำ Conversation</span>
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setSection('HUB')}
-              className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg hover:bg-[#002266] active:scale-[0.98] transition-all uppercase tracking-widest"
-            >
-              ← กลับเมนูหลัก
-            </button>
+
+            {/* ---- รายการชุดบทสนทนา ---- */}
+            {convView === 'LIST' && (
+              <div>
+                <label className="flex items-center justify-center gap-2 mb-4 text-xs font-bold text-gray-500 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={convPreview}
+                    onChange={(e) => setConvPreview(e.target.checked)}
+                    className="w-4 h-4 accent-[#003399]"
+                  />
+                  โหมดครู: แสดงชุดที่ยังไม่ได้ตรวจ (สำหรับทดสอบก่อนเปิดให้นักเรียน)
+                </label>
+
+                {convLoading && (
+                  <p className="text-center text-gray-400 font-bold py-10">⏳ กำลังโหลดบทสนทนา…</p>
+                )}
+
+                {!convLoading && visibleConvSets.length === 0 && (
+                  <div className="bg-[#FFD700]/10 border-2 border-[#FFD700]/40 rounded-3xl p-6 text-center text-sm font-bold text-gray-700 leading-relaxed">
+                    {hasUnverifiedConv ? (
+                      <>ยังไม่มีชุดที่ครูตรวจแล้ว<span className="block text-xs text-gray-500 font-medium mt-1">เปิด &quot;โหมดครู&quot; ด้านบนเพื่อพรีวิว — เมื่อแก้ verified เป็น true ในไฟล์ conversation.json นักเรียนจะเห็นชุดนั้น</span></>
+                    ) : (
+                      'ยังไม่มีบทสนทนาในระบบ'
+                    )}
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  {visibleConvSets.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => startConv(s)}
+                      className="w-full text-left p-4 bg-white border-2 border-[#003399]/15 rounded-2xl shadow-sm hover:border-[#003399]/40 active:scale-[0.99] transition-all"
+                    >
+                      <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                        <span className="text-[10px] font-black bg-[#003399] text-white px-2 py-0.5 rounded-full">{s.level}</span>
+                        <span className="text-[10px] font-black bg-[#003399]/10 text-[#003399] px-2 py-0.5 rounded-full">{s.examStyle}</span>
+                        <span className="text-[10px] font-black bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{CONV_FORMAT_LABELS[s.format]}</span>
+                        {s.verified ? (
+                          <span className="text-[10px] font-black bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✓ ครูตรวจแล้ว</span>
+                        ) : (
+                          <span className="text-[10px] font-black bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">⚠ รอครูตรวจ</span>
+                        )}
+                      </div>
+                      <div className="font-black text-gray-900 text-[15px] leading-snug">{s.title}</div>
+                      {s.scenario_th && <div className="text-xs text-gray-500 font-medium mt-0.5">{s.scenario_th}</div>}
+                      <div className="text-xs text-gray-400 font-bold mt-1">{s.questions.length} คำถาม</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ---- ทำบทสนทนา ---- */}
+            {convView === 'PLAY' && activeConv && (() => {
+              const q = activeConv.questions[cIndex];
+              return (
+                <div>
+                  {!activeConv.verified && (
+                    <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-3 mb-3 text-[11px] font-bold text-amber-700 text-center">
+                      ⚠ ชุดนี้ยังไม่ได้ตรวจ (โหมดครู) — คะแนนจะไม่ถูกบันทึก
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    <span className="text-[10px] font-black bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{CONV_FORMAT_LABELS[activeConv.format]}</span>
+                    <span className="font-black text-gray-900 text-[15px]">{activeConv.title}</span>
+                  </div>
+                  {activeConv.scenario_th && <p className="text-xs text-gray-500 font-medium mb-2">{activeConv.scenario_th}</p>}
+
+                  {/* บทสนทนา (ถ้ามี) */}
+                  {activeConv.dialogue.trim() && (
+                    <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-3">
+                      <p className="text-[14px] text-gray-700 leading-relaxed whitespace-pre-line">{activeConv.dialogue}</p>
+                    </div>
+                  )}
+
+                  {/* คำศัพท์จากคลัง — แตะดูคำแปล */}
+                  {activeConv.targetVocab.length > 0 && (
+                    <div className="mb-4">
+                      <div className="text-[11px] font-black text-[#003399] uppercase tracking-wide mb-1.5">คำศัพท์ในบทสนทนา (แตะดูคำแปล)</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {activeConv.targetVocab.map((w) => (
+                          <button
+                            key={w}
+                            type="button"
+                            onClick={() => setConvGloss(convGloss === w ? null : w)}
+                            className={`text-[12px] font-bold px-2.5 py-1 rounded-full border transition-all ${convGloss === w ? 'bg-[#003399] text-[#FFD700] border-[#003399]' : 'bg-white text-[#003399] border-[#003399]/30 hover:border-[#003399]'}`}
+                          >
+                            {w}
+                          </button>
+                        ))}
+                      </div>
+                      {convGloss && vocabByWord[convGloss.toLowerCase()] && (
+                        <div className="mt-2 bg-[#003399]/5 border border-[#003399]/15 rounded-xl p-3 text-sm">
+                          <span className="font-black text-[#003399]">{convGloss}</span>
+                          <span className="text-gray-700"> — {vocabByWord[convGloss.toLowerCase()].thai_meaning}</span>
+                          <div className="text-xs text-gray-500 mt-0.5 italic">{vocabByWord[convGloss.toLowerCase()].eng_definition}</div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* คำถาม */}
+                  <div className="flex items-center justify-end mb-2">
+                    <span className="text-xs font-bold text-gray-400">ข้อ {cIndex + 1} / {activeConv.questions.length}</span>
+                  </div>
+                  <p className="font-black text-gray-900 text-[15px] mb-3 leading-snug whitespace-pre-line">{q.question}</p>
+
+                  <div className="space-y-2">
+                    {q.choices.map((c, idx) => {
+                      const letter = String.fromCharCode(65 + idx);
+                      let cls = 'bg-white border-gray-200 text-gray-700 hover:border-[#003399]/40';
+                      if (cAnswered) {
+                        if (idx === q.answerIndex) cls = 'bg-green-50 border-green-400 text-green-800';
+                        else if (idx === cSelected) cls = 'bg-rose-50 border-rose-400 text-rose-700';
+                        else cls = 'bg-white border-gray-100 text-gray-400';
+                      }
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          disabled={cAnswered}
+                          onClick={() => answerConv(idx)}
+                          className={`w-full text-left p-3 rounded-xl border-2 font-bold text-[14px] transition-all flex gap-2 ${cls}`}
+                        >
+                          <span className="font-black">{letter}.</span>
+                          <span className="flex-1">{c}</span>
+                          {cAnswered && idx === q.answerIndex && <span>✓</span>}
+                          {cAnswered && idx === cSelected && idx !== q.answerIndex && <span>✗</span>}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {cAnswered && (
+                    <div className="mt-3 bg-[#003399]/5 border border-[#003399]/15 rounded-2xl p-4 animate-fadeIn">
+                      <div className="text-xs font-black text-[#003399] uppercase tracking-wide mb-1">💡 คำอธิบาย</div>
+                      <p className="text-[14px] text-gray-700 leading-relaxed">{q.explanation_th}</p>
+                    </div>
+                  )}
+
+                  {cAnswered && (
+                    <button
+                      type="button"
+                      onClick={nextConvQuestion}
+                      className="w-full mt-4 py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg hover:bg-[#002266] active:scale-[0.98] transition-all uppercase tracking-widest"
+                    >
+                      {cIndex + 1 >= activeConv.questions.length ? 'ดูผลสรุป' : 'ข้อถัดไป →'}
+                    </button>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* ---- สรุปผล ---- */}
+            {convView === 'RESULT' && activeConv && (() => {
+              const total = activeConv.questions.length;
+              const correct = cResults.filter((r) => r.correct).length;
+              const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+              return (
+                <div className="animate-fadeIn">
+                  <div className="text-center mb-5">
+                    <div className="text-5xl font-black text-[#003399]">{correct}/{total}</div>
+                    <div className="text-sm font-bold text-gray-500 mt-1">ตอบถูก {pct}%</div>
+                    {cSaving && <div className="text-xs text-gray-400 mt-1">⏳ กำลังบันทึกคะแนน…</div>}
+                    {!activeConv.verified && <div className="text-xs text-amber-600 font-bold mt-1">โหมดครู — ไม่บันทึกคะแนน</div>}
+                  </div>
+
+                  <div className="space-y-2 mb-5">
+                    {activeConv.questions.map((q, i) => {
+                      const r = cResults[i];
+                      const ok = r?.correct;
+                      return (
+                        <div key={q.id} className={`p-3 rounded-xl border-2 ${ok ? 'bg-green-50 border-green-200' : 'bg-rose-50 border-rose-200'}`}>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={`text-xs font-black ${ok ? 'text-green-700' : 'text-rose-600'}`}>{ok ? '✓ ถูก' : '✗ ผิด'}</span>
+                          </div>
+                          <p className="text-[13px] font-bold text-gray-800 leading-snug whitespace-pre-line">{q.question}</p>
+                          {!ok && r && (
+                            <p className="text-[12px] text-gray-500 mt-1">คุณตอบ: {String.fromCharCode(65 + r.selected)} · เฉลย: {String.fromCharCode(65 + q.answerIndex)}</p>
+                          )}
+                          <p className="text-[12px] text-gray-600 mt-1 leading-relaxed">{q.explanation_th}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => { setConvView('LIST'); setActiveConv(null); }}
+                    className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg hover:bg-[#002266] active:scale-[0.98] transition-all uppercase tracking-widest"
+                  >
+                    ← เลือกชุดอื่น
+                  </button>
+                </div>
+              );
+            })()}
           </div>
         )}
 
