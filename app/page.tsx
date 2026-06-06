@@ -45,6 +45,7 @@ type WordItem = {
   example_sentence: string;
   level: string;
   part_of_speech?: string;
+  type?: 'word' | 'phrasal_verb' | 'idiom';
 };
 
 // แปลงชนิดคำเป็นป้ายสั้น ๆ สำหรับแสดงผล
@@ -285,8 +286,12 @@ export default function Home() {
   // forcedType: ถ้ากำหนด ทุกข้อจะเป็นประเภทเดียวกัน (โหมดเจาะพาร์ท ไม่มีข้อแต่งประโยค)
   const beginRoundWithWords = (words: WordItem[], forcedType?: QuizQuestion['questionType']) => {
     const formattedQuestions: QuizQuestion[] = words.map((item, i) => {
+      // วลี/สำนวนหลายคำ ไม่เหมาะกับโหมดพิมพ์เป๊ะ ๆ (TYPE) → ใช้โหมดความหมายแทน
+      const isMultiWord = item.word.includes(' ');
+      const guard = (t: QuizQuestion['questionType']): QuizQuestion['questionType'] =>
+        t === 'TYPE' && isMultiWord ? 'MEANING' : t;
       if (forcedType) {
-        return { ...item, questionType: forcedType };
+        return { ...item, questionType: guard(forcedType) };
       }
       // ข้อท้ายสุด WRITE_MODE_QUESTIONS ข้อ ให้เป็นโหมดแต่งประโยค
       if (i >= words.length - WRITE_MODE_QUESTIONS) {
@@ -296,7 +301,7 @@ export default function Home() {
       const hasSynonym = Boolean(item.synonym && item.synonym !== "-" && item.synonym.trim() !== "");
       const hasAntonym = Boolean(item.antonym && item.antonym !== "-" && item.antonym.trim() !== "");
       const qType = chooseQuestionType(box, { hasSynonym, hasAntonym });
-      return { ...item, questionType: qType };
+      return { ...item, questionType: guard(qType) };
     });
 
     setCurrentQuestions(formattedQuestions);
@@ -985,6 +990,11 @@ export default function Home() {
                       {convGloss && vocabByWord[convGloss.toLowerCase()] && (
                         <div className="mt-2 bg-[#003399]/5 border border-[#003399]/15 rounded-xl p-3 text-sm">
                           <span className="font-black text-[#003399]">{convGloss}</span>
+                          {vocabByWord[convGloss.toLowerCase()].type && vocabByWord[convGloss.toLowerCase()].type !== 'word' && (
+                            <span className="ml-1.5 text-[10px] font-black bg-[#FFD700] text-[#003399] px-1.5 py-0.5 rounded-full align-middle">
+                              {vocabByWord[convGloss.toLowerCase()].type === 'idiom' ? 'idiom' : 'phrasal verb'}
+                            </span>
+                          )}
                           <span className="text-gray-700"> — {vocabByWord[convGloss.toLowerCase()].thai_meaning}</span>
                           <div className="text-xs text-gray-500 mt-0.5 italic">{vocabByWord[convGloss.toLowerCase()].eng_definition}</div>
                         </div>
@@ -1193,6 +1203,11 @@ export default function Home() {
                       {glossWord && vocabByWord[glossWord.toLowerCase()] && (
                         <div className="mt-2 bg-[#003399]/5 border border-[#003399]/15 rounded-xl p-3 text-sm">
                           <span className="font-black text-[#003399]">{glossWord}</span>
+                          {vocabByWord[glossWord.toLowerCase()].type && vocabByWord[glossWord.toLowerCase()].type !== 'word' && (
+                            <span className="ml-1.5 text-[10px] font-black bg-[#FFD700] text-[#003399] px-1.5 py-0.5 rounded-full align-middle">
+                              {vocabByWord[glossWord.toLowerCase()].type === 'idiom' ? 'idiom' : 'phrasal verb'}
+                            </span>
+                          )}
                           <span className="text-gray-700"> — {vocabByWord[glossWord.toLowerCase()].thai_meaning}</span>
                           <div className="text-xs text-gray-500 mt-0.5 italic">{vocabByWord[glossWord.toLowerCase()].eng_definition}</div>
                         </div>
