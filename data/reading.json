@@ -237,7 +237,7 @@
         "hit the books",
         "on the same page"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -323,7 +323,7 @@
         "premium",
         "convenient"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated — teacher review required",
       "questions": [
         {
@@ -409,7 +409,7 @@
         "security",
         "discount"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated — teacher review required",
       "questions": [
         {
@@ -496,7 +496,7 @@
         "efficiency",
         "implementation"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated — teacher review required",
       "questions": [
         {
@@ -596,7 +596,7 @@
         "resilience",
         "emission"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated — teacher review required",
       "questions": [
         {
@@ -698,7 +698,7 @@
         "arduous",
         "stringent"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated — teacher review required",
       "questions": [
         {
@@ -813,7 +813,7 @@
         "transparency",
         "onus"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated — teacher review required",
       "questions": [
         {
