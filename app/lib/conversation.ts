@@ -7,6 +7,13 @@
 import type { ExamStyle, ReadingLevel } from "./reading";
 
 export type ConvFormat = "QUESTION_RESPONSE" | "SHORT_CONVO" | "LONG_CONVO";
+export type ConvCategory =
+  | "daily"
+  | "school"
+  | "travel"
+  | "shopping"
+  | "work"
+  | "other";
 
 export interface ConvQuestion {
   id: string;
@@ -21,6 +28,7 @@ export interface ConvSet {
   level: ReadingLevel;
   examStyle: ExamStyle;
   format: ConvFormat;
+  category?: ConvCategory; // หมวดสถานการณ์ (ชีวิตประจำวัน/โรงเรียน/เดินทาง...) สำหรับกรอง
   title: string;
   scenario_th?: string; // บริบทภาษาไทยสั้น ๆ
   dialogue: string; // บทสนทนา (อาจว่างได้ในแบบถาม–ตอบ)
@@ -36,6 +44,24 @@ export const CONV_FORMAT_LABELS: Record<ConvFormat, string> = {
   SHORT_CONVO: "เติมบทสนทนา",
   LONG_CONVO: "บทสนทนายาว",
 };
+
+// หมวดสถานการณ์ของบทสนทนา (ภาษาไทย) สำหรับตัวกรอง
+export const CONV_CATEGORY_LABELS: Record<string, string> = {
+  daily: "ชีวิตประจำวัน",
+  school: "โรงเรียน & การเรียน",
+  travel: "เดินทาง & ท่องเที่ยว",
+  shopping: "ช้อปปิ้ง & บริการ",
+  work: "การงาน & มืออาชีพ",
+  other: "อื่น ๆ",
+};
+export const CONV_CATEGORY_ORDER: string[] = [
+  "daily",
+  "school",
+  "travel",
+  "shopping",
+  "work",
+  "other",
+];
 
 // โหลดชุดบทสนทนาจาก API
 export async function loadConversationSets(
