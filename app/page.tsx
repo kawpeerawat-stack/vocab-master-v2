@@ -26,6 +26,8 @@ import {
 import {
   ConvSet,
   CONV_FORMAT_LABELS,
+  CONV_CATEGORY_LABELS,
+  CONV_CATEGORY_ORDER,
   loadConversationSets,
 } from './lib/conversation';
 import {
@@ -109,6 +111,7 @@ export default function Home() {
   const [convLoading, setConvLoading] = useState(false);
   const [convPreview, setConvPreview] = useState(false); // ครูเปิดดูชุดที่ยังไม่ตรวจ
   const [convView, setConvView] = useState<'LIST' | 'PLAY' | 'RESULT'>('LIST');
+  const [convCat, setConvCat] = useState<string>('ALL'); // หมวดที่กำลังกรองในหน้ารายการบทสนทนา
   const [activeConv, setActiveConv] = useState<ConvSet | null>(null);
   const [cIndex, setCIndex] = useState(0);
   const [cSelected, setCSelected] = useState<number | null>(null);
@@ -765,6 +768,9 @@ export default function Home() {
   };
 
   const visibleConvSets = convPreview ? conversationSets : conversationSets.filter((s) => s.verified);
+  const convCatsPresent = CONV_CATEGORY_ORDER.filter((c) => visibleConvSets.some((s) => (s.category || 'other') === c));
+  const convEffectiveCat = convCat !== 'ALL' && convCatsPresent.includes(convCat) ? convCat : 'ALL';
+  const shownConvSets = convEffectiveCat === 'ALL' ? visibleConvSets : visibleConvSets.filter((s) => (s.category || 'other') === convEffectiveCat);
   const hasUnverifiedConv = conversationSets.some((s) => !s.verified);
 
   return (
@@ -913,6 +919,31 @@ export default function Home() {
                   โหมดครู: แสดงชุดที่ยังไม่ได้ตรวจ (สำหรับทดสอบก่อนเปิดให้นักเรียน)
                 </label>
 
+                {!convLoading && convCatsPresent.length > 1 && (
+                  <div className="flex flex-wrap gap-2 justify-center mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setConvCat('ALL')}
+                      className={`text-xs font-black px-3 py-1.5 rounded-full border-2 transition-all ${convEffectiveCat === 'ALL' ? 'bg-[#003399] text-white border-[#003399]' : 'bg-white text-[#003399] border-[#003399]/25 hover:border-[#003399]/50'}`}
+                    >
+                      ทั้งหมด ({visibleConvSets.length})
+                    </button>
+                    {convCatsPresent.map((c) => {
+                      const n = visibleConvSets.filter((s) => (s.category || 'other') === c).length;
+                      return (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setConvCat(c)}
+                          className={`text-xs font-black px-3 py-1.5 rounded-full border-2 transition-all ${convEffectiveCat === c ? 'bg-[#003399] text-white border-[#003399]' : 'bg-white text-[#003399] border-[#003399]/25 hover:border-[#003399]/50'}`}
+                        >
+                          {CONV_CATEGORY_LABELS[c]} ({n})
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
                 {convLoading && (
                   <p className="text-center text-gray-400 font-bold py-10">⏳ กำลังโหลดบทสนทนา…</p>
                 )}
@@ -928,7 +959,7 @@ export default function Home() {
                 )}
 
                 <div className="space-y-3">
-                  {visibleConvSets.map((s) => (
+                  {shownConvSets.map((s) => (
                     <button
                       key={s.id}
                       type="button"
@@ -939,6 +970,9 @@ export default function Home() {
                         <span className="text-[10px] font-black bg-[#003399] text-white px-2 py-0.5 rounded-full">{s.level}</span>
                         <span className="text-[10px] font-black bg-[#003399]/10 text-[#003399] px-2 py-0.5 rounded-full">{s.examStyle}</span>
                         <span className="text-[10px] font-black bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">{CONV_FORMAT_LABELS[s.format]}</span>
+                        {s.category && (
+                          <span className="text-[10px] font-black bg-[#FFD700]/30 text-[#003399] px-2 py-0.5 rounded-full">{CONV_CATEGORY_LABELS[s.category] || s.category}</span>
+                        )}
                         {s.verified ? (
                           <span className="text-[10px] font-black bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✓ ครูตรวจแล้ว</span>
                         ) : (
