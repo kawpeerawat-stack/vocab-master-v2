@@ -38,7 +38,8 @@
           "answerIndex": 1,
           "explanation_th": "ตอบข้อ B — คำถามให้เลือกระหว่างกาแฟกับชา การตอบที่เหมาะสมคือเลือกอย่างใดอย่างหนึ่งอย่างสุภาพ เช่น \"Tea, please. Thank you.\" ตัวเลือกอื่นไม่ตอบคำถามที่ถูกถาม"
         }
-      ]
+      ],
+      "category": "daily"
     },
     {
       "id": "cv-b1-short-001",
@@ -64,7 +65,8 @@
           "answerIndex": 0,
           "explanation_th": "ตอบข้อ A — ประโยคถัดมา A พูดว่า \"Great, thank you!\" และถามต่อว่าใช้เวลานานเท่าไร แสดงว่า B ต้องตอบยืนยันว่ารถไฟไปใจกลางเมือง คำตอบ A จึงต่อเนื่องกับบริบทมากที่สุด ส่วนตัวเลือกอื่นทำให้บทสนทนาไม่ปะติดปะต่อ"
         }
-      ]
+      ],
+      "category": "travel"
     },
     {
       "id": "cv-b2-long-001",
@@ -121,7 +123,8 @@
           "answerIndex": 1,
           "explanation_th": "ตอบข้อ B — Maya บอกว่าวันพฤหัสฯ กระชั้นเพราะมีสอบดนตรีวันพุธ จึงขอเลื่อนเป็นวันศุกร์เพื่อให้มีเวลาเตรียมตัวมากขึ้น"
         }
-      ]
+      ],
+      "category": "school"
     },
     {
       "id": "cv-b2-long-010",
@@ -165,7 +168,8 @@
           "answerIndex": 1,
           "explanation_th": "ตอบข้อ B — เพราะ Maya เสนอให้แบ่งงานกันทำ โดยให้ Liam โฟกัสที่การเขียนบทพูด (focus on writing the speech script) ซึ่ง Liam ก็ตอบตกลง (Deal!)"
         }
-      ]
+      ],
+      "category": "school"
     },
     {
       "id": "cv-b1-short-011",
@@ -194,7 +198,8 @@
           "answerIndex": 2,
           "explanation_th": "ตอบข้อ C — Maybe some other time. (ไว้โอกาสหน้านะ) เป็นการปฏิเสธคำชวนอย่างสุภาพที่สอดคล้องกับประโยคก่อนหน้าที่บอกว่าอยากไปแต่ติดสอบ (I'd love to, but...) ตัวเลือกอื่นขัดแย้งกับบริบทหรือดูหยาบคายเกินไป"
         }
-      ]
+      ],
+      "category": "daily"
     },
     {
       "id": "cv-c1-qr-012",
@@ -236,7 +241,8 @@
           "answerIndex": 3,
           "explanation_th": "ตอบข้อ D — เพราะ A ชื่นชมทีมที่ฝ่าฟันอุปสรรคจนปล่อยแคมเปญได้สำเร็จ (showed incredible resilience... launch the campaign on time) B จึงควรตอบเสริมในเชิงบวกว่าพวกเขาควรได้รับคำชมเชยอย่างมาก (deserve a lot of credit) ข้ออื่นสื่อความหมายในทางลบหรือเข้าใจผิดว่างานล้มเหลว"
         }
-      ]
+      ],
+      "category": "work"
     },
     {
       "id": "cv-b2-short-013",
@@ -267,7 +273,8 @@
           "answerIndex": 0,
           "explanation_th": "ตอบข้อ A — Is it possible to exchange it for a new one? (ขอเปลี่ยนตัวใหม่ได้ไหม) เข้ากับบริบทที่พนักงานตอบตกลงและบอกว่ามีสินค้ารุ่นเดียวกันในสต็อก (Absolutely. We have the same model in stock.) ข้ออื่นไม่นำไปสู่การเปลี่ยนเสื้อตัวใหม่"
         }
-      ]
+      ],
+      "category": "shopping"
     }
   ]
 }
