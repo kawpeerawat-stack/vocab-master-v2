@@ -15,7 +15,7 @@ import {
   pickSmartDistractors,
   chooseQuestionType,
 } from './lib/quiz';
-import { loadCloudProgress, saveCloudProgress, loadLeaderboard, LeaderboardEntry, saveReadingProgress, ReadingByType, saveConversationProgress, ConvByFormat } from './lib/cloud';
+import { loadCloudProgress, saveCloudProgress, loadLeaderboard, LeaderboardEntry, saveReadingProgress, ReadingByType, saveConversationProgress, ConvByFormat, loadReadingLeaderboard, ReadingLeaderboardEntry } from './lib/cloud';
 import {
   ReadingPassage,
   RQTYPE_LABELS,
@@ -108,6 +108,8 @@ export default function Home() {
   const [glossWord, setGlossWord] = useState<string | null>(null); // คำใน targetVocab ที่กำลังเปิดดูคำแปล
   const [readingMastered, setReadingMastered] = useState<Set<string>>(new Set()); // บทที่ "พิชิต" แล้ว (ตอบถูกครบทุกข้อ)
   const [readingCompleted, setReadingCompleted] = useState<Set<string>>(new Set()); // บทที่เคยทำจบ
+  const [readingBoard, setReadingBoard] = useState<ReadingLeaderboardEntry[] | null>(null); // อันดับนักพิชิตรายสัปดาห์
+  const [readingBoardLoading, setReadingBoardLoading] = useState(false);
   // ── สถานะห้อง Conversation ──
   const [conversationSets, setConversationSets] = useState<ConvSet[]>([]);
   const [convLoading, setConvLoading] = useState(false);
@@ -626,6 +628,17 @@ export default function Home() {
     }
   }, [section, readingPassages.length, readingLoading]);
 
+  // ── โหลดอันดับนักพิชิตบทอ่านเมื่อเข้าห้อง Reading ──
+  useEffect(() => {
+    if (section === 'READING' && readingBoard === null && !readingBoardLoading) {
+      setReadingBoardLoading(true);
+      loadReadingLeaderboard()
+        .then((b) => setReadingBoard(b))
+        .catch(() => setReadingBoard([]))
+        .finally(() => setReadingBoardLoading(false));
+    }
+  }, [section, readingBoard, readingBoardLoading]);
+
   // แผนที่คำศัพท์ (สำหรับแตะดูคำแปลคำใน targetVocab ของบทอ่าน)
   const vocabByWord = React.useMemo(() => {
     const m: Record<string, WordItem> = {};
@@ -682,6 +695,7 @@ export default function Home() {
       setRSaving(true);
       try {
         await saveReadingProgress({ email, name: studentName, correct, total, byType, streak: updatedStreak, passageId: activePassage.id, mastered: allCorrect });
+        loadReadingLeaderboard().then(setReadingBoard).catch(() => {}); // รีเฟรชอันดับให้เห็นผลทันที
       } catch (e) {
         console.error('บันทึกผล Reading ไม่สำเร็จ:', e);
       } finally {
@@ -1209,6 +1223,46 @@ export default function Home() {
                     <p className="text-[10px] text-gray-400 mt-2 leading-relaxed text-center">
                       ตอบถูกครบทุกข้อในบท = พิชิตบทนั้น ⭐ (ทำซ้ำได้จนกว่าจะพิชิต)
                     </p>
+                  </div>
+                )}
+
+                {!readingLoading && visiblePassages.length > 0 && (
+                  <div className="bg-white border-2 border-[#FFD700]/50 rounded-3xl p-5 mb-4 shadow-sm">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-black text-[#003399] uppercase tracking-wider">🏆 Top 3 นักพิชิตประจำสัปดาห์</span>
+                      <span className="text-[10px] font-bold text-gray-400">รีเซ็ตทุกวันจันทร์</span>
+                    </div>
+                    {readingBoardLoading ? (
+                      <div className="text-center text-gray-400 font-bold py-4 animate-pulse">กำลังโหลดอันดับ…</div>
+                    ) : !readingBoard || readingBoard.length === 0 ? (
+                      <div className="text-center text-gray-500 font-bold py-3 text-sm">ยังไม่มีใครพิชิตบทสัปดาห์นี้ — เป็นคนแรกเลย! ⭐</div>
+                    ) : (() => {
+                      const myEmail = email.trim().toLowerCase();
+                      const top3 = readingBoard.slice(0, 3);
+                      const myIdx = readingBoard.findIndex((e) => e.email === myEmail);
+                      return (
+                        <>
+                          <div className="space-y-1.5 mt-2">
+                            {top3.map((e, i) => {
+                              const isMe = e.email === myEmail;
+                              const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉';
+                              return (
+                                <div key={e.email} className={`flex items-center gap-3 px-3 py-2 rounded-xl ${isMe ? 'bg-[#FFD700]/20 border-2 border-[#FFD700]' : 'bg-gray-50'}`}>
+                                  <span className="w-6 text-center text-lg">{medal}</span>
+                                  <span className="flex-1 font-bold text-gray-800 truncate">{e.name}{isMe && ' (คุณ)'}</span>
+                                  <span className="font-black text-[#003399]">{e.weeklyMastered}<span className="text-[10px] text-gray-400 font-bold"> บท</span></span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <div className="mt-3 pt-3 border-t border-gray-100 text-center text-xs font-black text-[#003399]">
+                            {myIdx >= 0
+                              ? `อันดับของคุณ: #${myIdx + 1} จาก ${readingBoard.length} คน · พิชิต ${readingBoard[myIdx].weeklyMastered} บทสัปดาห์นี้`
+                              : 'พิชิตบท (ตอบถูกครบทุกข้อ) เพื่อติดอันดับสัปดาห์นี้! ⭐'}
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 )}
 
