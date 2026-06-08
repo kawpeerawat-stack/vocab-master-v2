@@ -438,5 +438,38 @@
     "level": "B2",
     "part_of_speech": "idiom",
     "type": "idiom"
+  },
+  {
+    "word": "step up",
+    "thai_meaning": "ก้าวขึ้นมารับผิดชอบ, เพิ่มความพยายาม",
+    "eng_definition": "to take responsibility or increase your effort",
+    "synonym": "take charge",
+    "antonym": "-",
+    "example_sentence": "Thanks for stepping up to help with the project.",
+    "level": "B2",
+    "part_of_speech": "phrasal verb",
+    "type": "phrasal_verb"
+  },
+  {
+    "word": "no worries",
+    "thai_meaning": "ไม่เป็นไร, ไม่ต้องกังวล",
+    "eng_definition": "used to tell someone that something is not a problem",
+    "synonym": "no problem",
+    "antonym": "-",
+    "example_sentence": "\"Sorry I'm late!\" \"No worries!\"",
+    "level": "B1",
+    "part_of_speech": "idiom",
+    "type": "idiom"
+  },
+  {
+    "word": "take into account",
+    "thai_meaning": "คำนึงถึง, นำมาพิจารณา",
+    "eng_definition": "to consider something when making a decision",
+    "synonym": "consider",
+    "antonym": "ignore",
+    "example_sentence": "I'll take your suggestions into account for the final draft.",
+    "level": "B2",
+    "part_of_speech": "phrasal verb",
+    "type": "phrasal_verb"
   }
 ]
