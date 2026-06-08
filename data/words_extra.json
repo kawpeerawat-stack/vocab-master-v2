@@ -429,28 +429,6 @@
     "type": "word"
   },
   {
-    "word": "step up",
-    "thai_meaning": "ก้าวขึ้นมารับผิดชอบ, เพิ่มความพยายาม",
-    "eng_definition": "to take responsibility or increase your effort",
-    "synonym": "take charge",
-    "antonym": "-",
-    "example_sentence": "Thanks for stepping up to help with the project.",
-    "level": "B2",
-    "part_of_speech": "phrasal verb",
-    "type": "phrasal_verb"
-  },
-  {
-    "word": "no worries",
-    "thai_meaning": "ไม่เป็นไร, ไม่ต้องกังวล",
-    "eng_definition": "used to tell someone that something is not a problem",
-    "synonym": "no problem",
-    "antonym": "-",
-    "example_sentence": "\"Sorry I'm late!\" \"No worries!\"",
-    "level": "B1",
-    "part_of_speech": "idiom",
-    "type": "idiom"
-  },
-  {
     "word": "constructive criticism",
     "thai_meaning": "คำวิจารณ์เชิงสร้างสรรค์",
     "eng_definition": "helpful feedback intended to improve something",
@@ -458,19 +436,8 @@
     "antonym": "-",
     "example_sentence": "She gave me constructive criticism on my essay.",
     "level": "C1",
-    "part_of_speech": "phrase",
+    "part_of_speech": "noun",
     "type": "word"
-  },
-  {
-    "word": "take into account",
-    "thai_meaning": "คำนึงถึง, นำมาพิจารณา",
-    "eng_definition": "to consider something when making a decision",
-    "synonym": "consider",
-    "antonym": "ignore",
-    "example_sentence": "I'll take your suggestions into account for the final draft.",
-    "level": "B2",
-    "part_of_speech": "phrasal verb",
-    "type": "phrasal_verb"
   },
   {
     "word": "defective",
@@ -513,7 +480,7 @@
     "antonym": "out of stock",
     "example_sentence": "We have the same model in stock.",
     "level": "B2",
-    "part_of_speech": "phrase",
+    "part_of_speech": "adjective",
     "type": "word"
   },
   {
@@ -35053,7 +35020,7 @@
     "antonym": "-",
     "example_sentence": "The national debt reached one trillion dollars.",
     "level": "B2",
-    "part_of_speech": "number",
+    "part_of_speech": "noun",
     "type": "word"
   },
   {
