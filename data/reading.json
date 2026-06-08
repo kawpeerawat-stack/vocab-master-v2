@@ -917,6 +917,664 @@
         }
       ],
       "category": "article"
+    },
+    {
+      "id": "rd-b1-101",
+      "level": "B1",
+      "examStyle": "A-LEVEL",
+      "genre": "news report",
+      "category": "story",
+      "title": "A Teenager's Simple Idea Brings Clean Water to a Village",
+      "passage": "Nong, a 17-year-old student in northern Thailand, noticed that families in her village often became sick from dirty water. The nearest clean water source was far away, and bottled water was too expensive for many households.\n\nDetermined to help, she spent months reading about how to remove dirt and bacteria from water. With guidance from her science teacher, she built a simple filter using sand, small stones, and a layer of charcoal. The materials were cheap and easy to find.\n\nHer device was tested by the local hospital, which confirmed that the filtered water was safe to drink. Soon, neighbours began asking Nong to help them build their own filters.\n\nToday, more than thirty families in the village use her design. Nong hopes to share the idea with other communities that face the same problem. \"I am just one student,\" she said, \"but a small idea can change many lives.\"",
+      "wordCount": 158,
+      "targetVocab": [
+        "determined",
+        "confirm",
+        "guidance",
+        "bacteria",
+        "filter",
+        "layer"
+      ],
+      "verified": false,
+      "source": "AI-generated (Claude) — teacher review required",
+      "questions": [
+        {
+          "id": "rd-b1-101-q1",
+          "type": "MAIN_IDEA",
+          "question": "What is the passage mainly about?",
+          "choices": [
+            "A student who built a cheap water filter to help her village",
+            "A hospital that tests drinking water in northern Thailand",
+            "Why bottled water is too expensive for villagers",
+            "A science teacher who invented a new machine"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ทั้งบทเล่าเรื่องนักเรียนที่สร้างเครื่องกรองน้ำราคาถูกเพื่อช่วยหมู่บ้าน ส่วน B, C, D เป็นรายละเอียดประกอบ (โรงพยาบาล ราคาน้ำขวด และครู ถูกกล่าวถึงเพียงเล็กน้อย) ไม่ใช่ใจความหลัก"
+        },
+        {
+          "id": "rd-b1-101-q2",
+          "type": "SUPPORTING_DETAIL",
+          "question": "What materials did Nong use to build her filter?",
+          "choices": [
+            "Plastic bottles and cloth",
+            "Sand, small stones, and charcoal",
+            "Metal pipes and glass",
+            "Salt and boiling water"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ย่อหน้าที่ 2 ระบุชัดว่าใช้ \"sand, small stones, and a layer of charcoal\" ตัวเลือกอื่นไม่ได้กล่าวถึงในบท จึงเป็นตัวลวง"
+        },
+        {
+          "id": "rd-b1-101-q3",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "In paragraph 2, the word \"Determined\" is closest in meaning to:",
+          "choices": [
+            "confused",
+            "firmly decided",
+            "afraid",
+            "tired"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — \"determined\" แปลว่า มุ่งมั่น/ตั้งใจแน่วแน่ ซึ่งตรงกับ \"firmly decided\" บริบทคือเธอมุ่งมั่นจะช่วย จึงใช้เวลาหลายเดือนศึกษา ไม่ใช่สับสน กลัว หรือเหนื่อย"
+        },
+        {
+          "id": "rd-b1-101-q4",
+          "type": "REFERENCE",
+          "question": "In paragraph 3, the word \"which\" refers to:",
+          "choices": [
+            "the village",
+            "the filtered water",
+            "the local hospital",
+            "Nong's device"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ประโยค \"tested by the local hospital, which confirmed...\" คำว่า which แทน the local hospital (โรงพยาบาลเป็นผู้ยืนยันว่าน้ำปลอดภัย) ไม่ใช่หมู่บ้าน น้ำ หรือเครื่องกรอง"
+        },
+        {
+          "id": "rd-b1-101-q5",
+          "type": "INFERENCE",
+          "question": "What can be inferred about Nong?",
+          "choices": [
+            "She wants to become a doctor.",
+            "She cares about helping others, not just herself.",
+            "She plans to sell her filters for a high price.",
+            "She dislikes living in her village."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — เธอช่วยเพื่อนบ้านสร้างเครื่องกรองและอยากแบ่งปันแนวคิดให้ชุมชนอื่น แสดงว่าใส่ใจช่วยเหลือผู้อื่น ส่วน A, C, D ไม่มีข้อมูลสนับสนุนในบท"
+        },
+        {
+          "id": "rd-b1-101-q6",
+          "type": "PURPOSE_TONE",
+          "question": "What is the main purpose of the passage?",
+          "choices": [
+            "To warn readers about dangerous water",
+            "To advertise a water filter for sale",
+            "To tell an inspiring story about a student's idea",
+            "To explain the science of removing bacteria"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — บทนี้เป็นข่าว/เรื่องเล่าเชิงให้กำลังใจเกี่ยวกับแนวคิดของนักเรียน ไม่ได้มุ่งเตือนภัย ขายสินค้า หรืออธิบายหลักวิทยาศาสตร์อย่างละเอียด"
+        }
+      ]
+    },
+    {
+      "id": "rd-b1-102",
+      "level": "B1",
+      "examStyle": "A-LEVEL",
+      "genre": "review",
+      "category": "review",
+      "title": "App Review: Is 'WordPath' Worth Your Time?",
+      "passage": "If you want to grow your English vocabulary, the free app WordPath might be a good place to start. I have used it for two months, and overall I am impressed, though it is not perfect.\n\nThe best feature is its daily practice. Each day, the app gives you ten new words with clear examples and a short quiz. The words are useful for real conversations, not just rare words you will never say.\n\nThe design is clean and easy to use, even for beginners. However, the app does not work without an internet connection, which is annoying when you are travelling. I also wish it included more listening exercises.\n\nWordPath is not the most advanced app available, but for students who want a simple daily habit, it is an excellent choice. I would recommend it to anyone starting their vocabulary journey.",
+      "wordCount": 146,
+      "targetVocab": [
+        "advanced",
+        "connection",
+        "annoying",
+        "impressed",
+        "overall",
+        "rare"
+      ],
+      "verified": false,
+      "source": "AI-generated (Claude) — teacher review required",
+      "questions": [
+        {
+          "id": "rd-b1-102-q1",
+          "type": "MAIN_IDEA",
+          "question": "What is the writer's main purpose?",
+          "choices": [
+            "To compare WordPath with other apps",
+            "To give an opinion about whether WordPath is worth using",
+            "To explain how to learn English grammar",
+            "To complain about a poorly designed app"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — บทนี้เป็นรีวิวที่ให้ความเห็นว่าแอปคุ้มค่าจะใช้หรือไม่ ไม่ได้เปรียบเทียบกับแอปอื่น สอนไวยากรณ์ หรือเป็นการบ่นล้วนๆ (ผู้เขียนชมเป็นส่วนใหญ่)"
+        },
+        {
+          "id": "rd-b1-102-q2",
+          "type": "SUPPORTING_DETAIL",
+          "question": "According to the review, what is the best feature of WordPath?",
+          "choices": [
+            "Its listening exercises",
+            "Its offline mode",
+            "Its daily practice with new words",
+            "Its advanced grammar lessons"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ย่อหน้าที่ 2 บอกว่า \"The best feature is its daily practice\" ส่วน listening กลับเป็นสิ่งที่ผู้เขียน \"อยากให้มีมากกว่านี้\" และแอปใช้ออฟไลน์ไม่ได้ จึงเป็นตัวลวง"
+        },
+        {
+          "id": "rd-b1-102-q3",
+          "type": "SUPPORTING_DETAIL",
+          "question": "What does the writer dislike about the app?",
+          "choices": [
+            "It is too expensive.",
+            "It does not work without the internet.",
+            "The words are too rare to be useful.",
+            "The design is confusing for beginners."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ย่อหน้าที่ 3 ระบุว่าแอป \"does not work without an internet connection, which is annoying\" ส่วนแอปนี้ฟรี คำศัพท์มีประโยชน์ และดีไซน์ใช้ง่าย จึงตัดข้ออื่นออก"
+        },
+        {
+          "id": "rd-b1-102-q4",
+          "type": "PURPOSE_TONE",
+          "question": "How would you best describe the writer's overall opinion?",
+          "choices": [
+            "Mostly positive",
+            "Completely negative",
+            "Confused and unsure",
+            "Angry and disappointed"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — แม้จะมีข้อติเล็กน้อย (ออฟไลน์ไม่ได้, อยากได้ listening เพิ่ม) แต่ผู้เขียนชมว่า impressed, excellent choice และ recommend จึงเป็นความเห็นเชิงบวกเป็นส่วนใหญ่"
+        },
+        {
+          "id": "rd-b1-102-q5",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "In paragraph 3, the word \"annoying\" is closest in meaning to:",
+          "choices": [
+            "exciting",
+            "slightly irritating",
+            "dangerous",
+            "helpful"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — \"annoying\" แปลว่า น่ารำคาญ ตรงกับ \"slightly irritating\" บริบทคือการใช้ออฟไลน์ไม่ได้สร้างความรำคาญเวลาเดินทาง ไม่ใช่ตื่นเต้น อันตราย หรือมีประโยชน์"
+        },
+        {
+          "id": "rd-b1-102-q6",
+          "type": "INFERENCE",
+          "question": "Who would the writer most likely recommend this app to?",
+          "choices": [
+            "An advanced learner who wants rare academic words",
+            "Someone who wants a simple daily vocabulary habit",
+            "A person with no interest in English",
+            "A traveller who is usually offline"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ผู้เขียนสรุปว่าเหมาะกับ \"students who want a simple daily habit\" ส่วนผู้ใช้ระดับสูงที่ต้องการคำหายาก และคนที่มักออฟไลน์ จะไม่เหมาะ (แอปเน้นคำใช้บ่อยและต้องต่อเน็ต)"
+        }
+      ]
+    },
+    {
+      "id": "rd-b2-101",
+      "level": "B2",
+      "examStyle": "A-LEVEL",
+      "genre": "feature article",
+      "category": "science",
+      "title": "Why Do We Dream?",
+      "passage": "For centuries, people have wondered why we dream. Although scientists still do not fully understand dreams, recent research has offered several interesting theories.\n\nOne popular idea is that dreams help the brain process emotions. During the day, we experience many feelings, some of which we do not deal with consciously. According to this theory, the brain revisits these emotions at night, helping us cope with stress and difficult experiences.\n\nAnother theory suggests that dreaming strengthens memory. While we sleep, the brain appears to sort through the day's information, keeping what is important and discarding what is not. This may explain why a good night's sleep often helps students remember what they have studied.\n\nNot all researchers agree, however. Some argue that dreams are simply random signals produced by the sleeping brain, with no real meaning at all. Supporters of this view point out that many dreams are confusing and impossible to explain.\n\nWhatever the truth may be, dreams continue to fascinate us. As technology improves, scientists hope to look more closely at the sleeping brain — and perhaps finally answer a question that humans have asked for thousands of years.",
+      "wordCount": 192,
+      "targetVocab": [
+        "emotion",
+        "cope",
+        "discard",
+        "random",
+        "signal",
+        "theory",
+        "confusing"
+      ],
+      "verified": false,
+      "source": "AI-generated (Claude) — teacher review required",
+      "questions": [
+        {
+          "id": "rd-b2-101-q1",
+          "type": "MAIN_IDEA",
+          "question": "What is the passage mainly about?",
+          "choices": [
+            "How to remember dreams after waking up",
+            "Different theories about why humans dream",
+            "Why students should sleep before exams",
+            "A new technology that records dreams"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — บทนี้นำเสนอหลายทฤษฎีว่าทำไมมนุษย์จึงฝัน (จัดการอารมณ์ / เสริมความจำ / สัญญาณสุ่ม) ส่วน A, C, D เป็นรายละเอียดเล็กน้อยหรือไม่ได้กล่าวถึง"
+        },
+        {
+          "id": "rd-b2-101-q2",
+          "type": "SUPPORTING_DETAIL",
+          "question": "According to one theory, how does dreaming help with memory?",
+          "choices": [
+            "It creates brand-new information overnight.",
+            "It helps the brain sort and keep important information.",
+            "It removes all of the day's memories.",
+            "It allows the brain to stop working completely."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ย่อหน้าที่ 3 ระบุว่าสมอง \"sort through the day's information, keeping what is important\" จึงช่วยเรื่องความจำ ไม่ใช่สร้างข้อมูลใหม่หรือลบความจำทั้งหมด"
+        },
+        {
+          "id": "rd-b2-101-q3",
+          "type": "INFERENCE",
+          "question": "What can be inferred from paragraph 4?",
+          "choices": [
+            "All scientists agree that dreams have a hidden meaning.",
+            "There is no single agreed explanation for dreams.",
+            "Dreams are always easy to understand.",
+            "Random dreams can never be studied."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ย่อหน้าที่ 4 ขึ้นต้นว่า \"Not all researchers agree\" และเสนอมุมที่ต่างออกไป แสดงว่ายังไม่มีคำอธิบายเดียวที่ทุกคนเห็นพ้อง"
+        },
+        {
+          "id": "rd-b2-101-q4",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "In paragraph 3, the word \"discarding\" is closest in meaning to:",
+          "choices": [
+            "collecting",
+            "throwing away",
+            "repeating",
+            "hiding"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — \"discard\" แปลว่า ทิ้ง/กำจัด ตรงกับ \"throwing away\" บริบทคือสมองเก็บข้อมูลสำคัญและทิ้งสิ่งที่ไม่สำคัญ จึงตรงข้ามกับ collecting"
+        },
+        {
+          "id": "rd-b2-101-q5",
+          "type": "REFERENCE",
+          "question": "In paragraph 2, \"these emotions\" refers to:",
+          "choices": [
+            "emotions experienced during the day",
+            "emotions felt only while dreaming",
+            "emotions caused by stress at night",
+            "emotions that only scientists study"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ก่อนหน้านี้บทกล่าวถึง \"During the day, we experience many feelings\" ดังนั้น these emotions จึงหมายถึงอารมณ์ที่เกิดขึ้นระหว่างวัน ที่สมองนำกลับมาจัดการตอนกลางคืน"
+        },
+        {
+          "id": "rd-b2-101-q6",
+          "type": "PURPOSE_TONE",
+          "question": "What is the writer's tone in the passage?",
+          "choices": [
+            "Certain and final",
+            "Balanced and curious",
+            "Angry and critical",
+            "Sad and hopeless"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ผู้เขียนเสนอหลายทฤษฎีอย่างเป็นกลาง ยอมรับว่ายังไม่มีข้อสรุป และแสดงความอยากรู้ (\"dreams continue to fascinate us\") จึงเป็นน้ำเสียงเป็นกลางและใคร่รู้"
+        },
+        {
+          "id": "rd-b2-101-q7",
+          "type": "ORGANIZATION",
+          "question": "How is the passage mainly organized?",
+          "choices": [
+            "By telling a single story in time order",
+            "By presenting and comparing different theories",
+            "By giving step-by-step instructions",
+            "By describing one experiment in detail"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — บทนี้จัดเรียงโดยเสนอทฤษฎีต่างๆ ทีละทฤษฎีแล้วเปรียบเทียบกัน (One theory... Another theory... Not all researchers agree) ไม่ใช่เล่าตามเวลา ให้ขั้นตอน หรืออธิบายการทดลองเดียว"
+        }
+      ]
+    },
+    {
+      "id": "rd-b2-102",
+      "level": "B2",
+      "examStyle": "A-LEVEL",
+      "genre": "argumentative article",
+      "category": "article",
+      "title": "The Hidden Cost of Fast Fashion",
+      "passage": "Fast fashion — cheap, trendy clothing produced very quickly — has changed the way the world shops. Stores now release new styles every few weeks, and many shoppers happily buy far more than they need. Yet behind these low prices lies a cost that is easy to ignore.\n\nThe first problem is environmental. Producing clothes requires enormous amounts of water and energy. When unwanted items are thrown away, they often end up in landfills, where synthetic fabrics can take decades to break down. The fashion industry has become one of the largest sources of pollution in the world.\n\nThere is also a human cost. To keep prices low, some companies rely on factories where workers face long hours and unsafe conditions. Shoppers rarely see these workers, so it is easy to forget that someone, somewhere, paid a price for a cheap shirt.\n\nNone of this means we must stop buying clothes altogether. However, small changes can help. Buying fewer but better-quality items, repairing what we own, and choosing responsible brands all reduce the damage. The real question is not whether we can afford fast fashion, but whether the planet can.",
+      "wordCount": 190,
+      "targetVocab": [
+        "synthetic",
+        "responsible",
+        "afford",
+        "environmental",
+        "damage",
+        "ignore",
+        "release"
+      ],
+      "verified": false,
+      "source": "AI-generated (Claude) — teacher review required",
+      "questions": [
+        {
+          "id": "rd-b2-102-q1",
+          "type": "MAIN_IDEA",
+          "question": "Which statement best expresses the main idea of the passage?",
+          "choices": [
+            "Fast fashion is cheap, but it carries serious hidden environmental and human costs.",
+            "Fast fashion stores release new clothing styles every few weeks.",
+            "Synthetic fabrics are the only cause of pollution in the world.",
+            "People should stop buying new clothes completely."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ใจความหลักคือ fast fashion ถูกแต่แฝงต้นทุนทั้งด้านสิ่งแวดล้อมและด้านมนุษย์ ส่วน B เป็นรายละเอียด, C เกินจริง (บทไม่ได้บอกว่าเป็นสาเหตุเดียว), D ขัดกับย่อหน้าสุดท้ายที่บอกว่าไม่ต้องเลิกซื้อ"
+        },
+        {
+          "id": "rd-b2-102-q2",
+          "type": "SUPPORTING_DETAIL",
+          "question": "Why are synthetic fabrics described as an environmental problem?",
+          "choices": [
+            "They are more expensive than other materials.",
+            "They can take decades to break down in landfills.",
+            "They cannot be produced quickly enough.",
+            "They are difficult for workers to make."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ย่อหน้าที่ 2 ระบุว่า synthetic fabrics \"can take decades to break down\" ในหลุมฝังกลบ จึงเป็นปัญหาสิ่งแวดล้อม ตัวเลือกอื่นไม่ตรงกับเหตุผลด้านสิ่งแวดล้อมที่บทกล่าวถึง"
+        },
+        {
+          "id": "rd-b2-102-q3",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "In paragraph 2, the word \"enormous\" is closest in meaning to:",
+          "choices": [
+            "very small",
+            "very large",
+            "very cheap",
+            "very clean"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — \"enormous\" แปลว่า มหาศาล/ใหญ่มาก ตรงกับ \"very large\" บริบทคือการผลิตเสื้อผ้าใช้น้ำและพลังงานปริมาณมหาศาล"
+        },
+        {
+          "id": "rd-b2-102-q4",
+          "type": "INFERENCE",
+          "question": "What does the writer suggest about most shoppers?",
+          "choices": [
+            "They refuse to buy cheap clothing.",
+            "They often do not think about who makes their clothes.",
+            "They prefer to repair their old clothes.",
+            "They work in clothing factories themselves."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ย่อหน้าที่ 3 บอกว่า \"Shoppers rarely see these workers, so it is easy to forget\" จึงอนุมานได้ว่าผู้ซื้อส่วนใหญ่มักไม่ได้คิดถึงคนที่ผลิตเสื้อผ้าให้"
+        },
+        {
+          "id": "rd-b2-102-q5",
+          "type": "REFERENCE",
+          "question": "In paragraph 3, the phrase \"these workers\" refers to:",
+          "choices": [
+            "shoppers who buy cheap shirts",
+            "workers in factories with long hours and unsafe conditions",
+            "company owners who set low prices",
+            "people who design new fashion styles"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ประโยคก่อนหน้ากล่าวถึง \"factories where workers face long hours and unsafe conditions\" ดังนั้น these workers จึงหมายถึงคนงานในโรงงานเหล่านั้น"
+        },
+        {
+          "id": "rd-b2-102-q6",
+          "type": "PURPOSE_TONE",
+          "question": "What is the writer's main purpose?",
+          "choices": [
+            "To advertise a particular clothing brand",
+            "To persuade readers to think about the true costs of fast fashion",
+            "To explain how clothes are made in factories",
+            "To describe the history of the fashion industry"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — บทนี้เป็นบทความเชิงโน้มน้าว ชี้ให้ผู้อ่านตระหนักถึงต้นทุนที่แท้จริงของ fast fashion และเสนอทางเลือก ไม่ได้โฆษณาแบรนด์หรือเล่าประวัติ"
+        },
+        {
+          "id": "rd-b2-102-q7",
+          "type": "ORGANIZATION",
+          "question": "How is the passage mainly organized?",
+          "choices": [
+            "It tells a personal story from beginning to end.",
+            "It presents problems and then suggests possible solutions.",
+            "It compares two different clothing companies.",
+            "It lists events in the order they happened."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — บทนี้เสนอปัญหา (สิ่งแวดล้อม + มนุษย์) แล้วปิดท้ายด้วยทางออกเล็กๆ ที่ทำได้ จึงเป็นโครงแบบ ปัญหา–ทางแก้ ไม่ใช่เล่าเรื่องหรือเรียงตามเวลา"
+        }
+      ]
+    },
+    {
+      "id": "rd-c1-101",
+      "level": "C1",
+      "examStyle": "A-LEVEL",
+      "genre": "analytical essay",
+      "category": "article",
+      "title": "The Paradox of Choice",
+      "passage": "Modern life offers more choices than ever before. A simple trip to the supermarket can present dozens of varieties of a single product, and online shopping multiplies the options endlessly. We tend to assume that more choice is always better — but psychologists are not so sure.\n\nIn theory, having many options should make us happier, since we can find exactly what suits us. In practice, however, an overwhelming number of choices can produce the opposite effect. Faced with too many possibilities, people often feel anxious, delay their decisions, or avoid choosing altogether.\n\nEven after a choice is made, satisfaction may suffer. When only one or two options exist, we rarely wonder what we missed. But when we reject twenty alternatives, it becomes tempting to imagine that one of them might have been better. This lingering doubt can quietly undermine our contentment.\n\nThis does not imply that choice is undesirable; the freedom to choose remains genuinely valuable. The point is subtler: beyond a certain threshold, additional options stop adding value and begin to impose a burden. Recognising this paradox may help us design simpler systems — and lead calmer, more decisive lives.",
+      "wordCount": 188,
+      "targetVocab": [
+        "assume",
+        "overwhelming",
+        "anxious",
+        "undermine",
+        "threshold",
+        "decisive",
+        "reject",
+        "burden"
+      ],
+      "verified": false,
+      "source": "AI-generated (Claude) — teacher review required",
+      "questions": [
+        {
+          "id": "rd-c1-101-q1",
+          "type": "MAIN_IDEA",
+          "question": "What is the central argument of the essay?",
+          "choices": [
+            "Online shopping has too many products.",
+            "Having too many choices can reduce happiness rather than increase it.",
+            "People should never be given any choices.",
+            "Supermarkets should sell fewer products to save money."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — แก่นของบทคือ \"ทางเลือกที่มากเกินไปอาจลดความสุขแทนที่จะเพิ่ม\" (the paradox of choice) ส่วน A เป็นตัวอย่าง, C/D เกินจริงและขัดกับย่อหน้าสุดท้ายที่ยืนยันว่าเสรีภาพในการเลือกยังมีค่า"
+        },
+        {
+          "id": "rd-c1-101-q2",
+          "type": "SUPPORTING_DETAIL",
+          "question": "According to paragraph 2, what can too many choices cause?",
+          "choices": [
+            "People make decisions more quickly.",
+            "People feel anxious or avoid deciding.",
+            "People always find exactly what they want.",
+            "People stop shopping online completely."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ย่อหน้าที่ 2 ระบุว่าเมื่อเจอทางเลือกมากเกินไป ผู้คน \"feel anxious, delay their decisions, or avoid choosing\" จึงตอบข้อ B"
+        },
+        {
+          "id": "rd-c1-101-q3",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "In paragraph 3, the word \"undermine\" is closest in meaning to:",
+          "choices": [
+            "strengthen",
+            "weaken",
+            "explain",
+            "increase"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — \"undermine\" แปลว่า บ่อนทำลาย/ทำให้อ่อนแอลง ตรงกับ \"weaken\" บริบทคือความลังเลค่อยๆ บั่นทอนความพึงพอใจของเรา จึงตรงข้ามกับ strengthen/increase"
+        },
+        {
+          "id": "rd-c1-101-q4",
+          "type": "INFERENCE",
+          "question": "What does the writer imply about the belief that \"more choice is always better\"?",
+          "choices": [
+            "It is a new idea created by psychologists.",
+            "It is widely held but may be mistaken.",
+            "It is true in every situation.",
+            "It applies only to online shopping."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ผู้เขียนบอกว่า \"We tend to assume that more choice is always better — but psychologists are not so sure\" แสดงว่าความเชื่อนี้แพร่หลายแต่อาจไม่ถูกต้องเสมอไป"
+        },
+        {
+          "id": "rd-c1-101-q5",
+          "type": "REFERENCE",
+          "question": "In paragraph 2, \"the opposite effect\" refers to making people:",
+          "choices": [
+            "happier than before",
+            "less happy rather than more",
+            "richer than before",
+            "faster at deciding"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ประโยคก่อนหน้าบอกว่าทางเลือกมากๆ \"should make us happier\" ดังนั้น the opposite effect จึงหมายถึงผลตรงข้าม คือทำให้มีความสุขน้อยลง (anxious, ลังเล)"
+        },
+        {
+          "id": "rd-c1-101-q6",
+          "type": "PURPOSE_TONE",
+          "question": "How would you best describe the tone of the essay?",
+          "choices": [
+            "emotional and angry",
+            "thoughtful and analytical",
+            "humorous and light",
+            "uncertain and confused"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ผู้เขียนวิเคราะห์อย่างมีเหตุผล ชั่งน้ำหนักทั้งสองด้าน และสรุปอย่างรอบคอบ จึงเป็นน้ำเสียงเชิงวิเคราะห์และไตร่ตรอง ไม่ใช่โกรธ ตลก หรือสับสน"
+        },
+        {
+          "id": "rd-c1-101-q7",
+          "type": "ORGANIZATION",
+          "question": "How does the writer mainly develop the argument?",
+          "choices": [
+            "By telling a story about one shopper",
+            "By challenging a common belief and explaining why it may be wrong",
+            "By giving step-by-step shopping instructions",
+            "By comparing prices in different shops"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ผู้เขียนตั้งต้นด้วยความเชื่อทั่วไป (more choice is better) แล้วค่อยๆ โต้แย้งว่าทำไมอาจไม่จริง พร้อมเหตุผลเชิงจิตวิทยา จึงเป็นการพัฒนาแบบท้าทายความเชื่อ"
+        }
+      ]
+    },
+    {
+      "id": "rd-c1-102",
+      "level": "C1",
+      "examStyle": "A-LEVEL",
+      "genre": "feature article",
+      "category": "science",
+      "title": "Why Time Seems to Speed Up as We Age",
+      "passage": "Many people share a curious feeling: as they grow older, time seems to pass more quickly. A summer that felt endless in childhood now slips by in an instant. Although a year is always the same length, our perception of it clearly is not. Why should this be?\n\nOne explanation is mathematical. To a five-year-old, a single year represents a fifth of their entire life — a vast, significant stretch. To a fifty-year-old, the same year is merely one part in fifty, and therefore feels proportionally smaller. By this logic, each passing year occupies a shrinking fraction of the life we have already lived.\n\nPsychologists offer a complementary explanation based on memory. Our sense of how much time has passed depends heavily on how many new experiences we can recall. Childhood is crowded with first events — a first day at school, a first journey, a first friendship — and these vivid memories make the period feel rich and long. Adult routines, by contrast, tend to blur together, leaving fewer distinct markers behind.\n\nIf this is true, there may be a practical lesson. Seeking out novelty — learning a skill, visiting unfamiliar places, breaking from routine — creates fresh memories and, in a sense, stretches time. We cannot slow the clock, but we may be able to make our years feel fuller.",
+      "wordCount": 223,
+      "targetVocab": [
+        "perception",
+        "vast",
+        "distinct",
+        "fraction",
+        "significant",
+        "recall",
+        "contrast",
+        "instant"
+      ],
+      "verified": false,
+      "source": "AI-generated (Claude) — teacher review required",
+      "questions": [
+        {
+          "id": "rd-c1-102-q1",
+          "type": "MAIN_IDEA",
+          "question": "What is the passage mainly about?",
+          "choices": [
+            "Why a year is always the same length",
+            "Possible explanations for why time seems to pass faster as we age",
+            "How to remember childhood events more clearly",
+            "Why children dislike long summers"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — บทนี้เสนอคำอธิบายหลายแบบ (เชิงคณิตศาสตร์ + เชิงความจำ) ว่าทำไมเวลาจึงดูผ่านเร็วขึ้นเมื่อเราอายุมากขึ้น ส่วน A, C, D เป็นรายละเอียดหรือไม่ใช่ใจความหลัก"
+        },
+        {
+          "id": "rd-c1-102-q2",
+          "type": "SUPPORTING_DETAIL",
+          "question": "According to the mathematical explanation, why does a year feel shorter to an older person?",
+          "choices": [
+            "Older people are busier than children.",
+            "A year is a smaller fraction of the life they have already lived.",
+            "Older people have weaker memories.",
+            "A year actually becomes shorter over time."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ย่อหน้าที่ 2 อธิบายว่าหนึ่งปีของเด็ก 5 ขวบคือ 1 ใน 5 ของชีวิต แต่ของคน 50 ปีคือ 1 ใน 50 จึงรู้สึกเล็กลงตามสัดส่วน ไม่ใช่เพราะยุ่งหรือความจำแย่"
+        },
+        {
+          "id": "rd-c1-102-q3",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "In paragraph 4, the word \"novelty\" is closest in meaning to:",
+          "choices": [
+            "new and unfamiliar experiences",
+            "comfortable old habits",
+            "expensive activities",
+            "long periods of rest"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — \"novelty\" แปลว่า ความแปลกใหม่ ตรงกับ \"new and unfamiliar experiences\" บริบทคือการหาประสบการณ์ใหม่ๆ เช่น เรียนทักษะใหม่ ไปที่ที่ไม่คุ้นเคย ตรงข้ามกับกิจวัตรเดิมๆ"
+        },
+        {
+          "id": "rd-c1-102-q4",
+          "type": "INFERENCE",
+          "question": "Why might childhood feel longer than adult years, according to the memory explanation?",
+          "choices": [
+            "Children sleep more than adults.",
+            "Childhood contains many new and memorable experiences.",
+            "Children cannot tell the time accurately.",
+            "Adults have better memories than children."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ย่อหน้าที่ 3 บอกว่าวัยเด็กเต็มไปด้วย \"first events\" และความทรงจำชัดเจน ทำให้ช่วงนั้นรู้สึกยาวและเต็ม ขณะที่กิจวัตรผู้ใหญ่กลืนกันไปหมด"
+        },
+        {
+          "id": "rd-c1-102-q5",
+          "type": "REFERENCE",
+          "question": "In paragraph 3, \"these vivid memories\" refers to memories of:",
+          "choices": [
+            "adult daily routines",
+            "childhood first events such as a first day at school",
+            "mathematical calculations about age",
+            "experiences that have not happened yet"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ประโยคก่อนหน้ากล่าวถึง \"first events — a first day at school, a first journey, a first friendship\" ดังนั้น these vivid memories จึงหมายถึงความทรงจำเรื่องครั้งแรกๆ ในวัยเด็ก"
+        },
+        {
+          "id": "rd-c1-102-q6",
+          "type": "PURPOSE_TONE",
+          "question": "What is the writer's main purpose?",
+          "choices": [
+            "To prove that time travel is possible",
+            "To explain a familiar feeling using reasoning and science",
+            "To complain that life is too short",
+            "To advertise activities for older people"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ผู้เขียนอธิบายความรู้สึกที่คุ้นเคย (เวลาผ่านเร็วขึ้น) ด้วยเหตุผลเชิงคณิตศาสตร์และจิตวิทยา พร้อมข้อคิดเชิงปฏิบัติ ไม่ได้พิสูจน์การเดินทางข้ามเวลาหรือโฆษณา"
+        },
+        {
+          "id": "rd-c1-102-q7",
+          "type": "ORGANIZATION",
+          "question": "How is the passage mainly organized?",
+          "choices": [
+            "It describes a feeling, offers explanations, then gives a practical lesson.",
+            "It lists events in the exact order they happened.",
+            "It compares two famous scientists' lives.",
+            "It gives instructions for a single experiment."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — บทเริ่มด้วยความรู้สึก (เวลาผ่านเร็ว) → เสนอคำอธิบายสองแบบ → ปิดท้ายด้วยข้อคิดที่นำไปใช้ได้ (หาประสบการณ์ใหม่) จึงเป็นโครงแบบนี้"
+        }
+      ]
     }
   ]
 }
