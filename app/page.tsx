@@ -647,6 +647,20 @@ export default function Home() {
   }, [vocabData]);
 
   // เริ่มทำบทอ่านที่เลือก
+  // อ่านออกเสียงคำศัพท์ (Web Speech API ของเบราว์เซอร์ — ไม่ต้องพึ่งบริการภายนอก)
+  const speak = (text: string) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-US';
+      u.rate = 0.9;
+      window.speechSynthesis.speak(u);
+    } catch {
+      /* เบราว์เซอร์บางตัวไม่รองรับ — เงียบไว้ */
+    }
+  };
+
   const startPassage = (p: ReadingPassage) => {
     setActivePassage(p);
     setRIndex(0);
@@ -1371,18 +1385,38 @@ export default function Home() {
                           </button>
                         ))}
                       </div>
-                      {glossWord && vocabByWord[glossWord.toLowerCase()] && (
-                        <div className="mt-2 bg-[#003399]/5 border border-[#003399]/15 rounded-xl p-3 text-sm">
-                          <span className="font-black text-[#003399]">{glossWord}</span>
-                          {vocabByWord[glossWord.toLowerCase()].type && vocabByWord[glossWord.toLowerCase()].type !== 'word' && (
-                            <span className="ml-1.5 text-[10px] font-black bg-[#FFD700] text-[#003399] px-1.5 py-0.5 rounded-full align-middle">
-                              {vocabByWord[glossWord.toLowerCase()].type === 'idiom' ? 'idiom' : 'phrasal verb'}
-                            </span>
-                          )}
-                          <span className="text-gray-700"> — {vocabByWord[glossWord.toLowerCase()].thai_meaning}</span>
-                          <div className="text-xs text-gray-500 mt-0.5 italic">{vocabByWord[glossWord.toLowerCase()].eng_definition}</div>
-                        </div>
-                      )}
+                      {glossWord && (() => {
+                        const g = vocabByWord[glossWord.toLowerCase()];
+                        return (
+                          <div className="mt-2 bg-[#003399]/5 border border-[#003399]/15 rounded-xl p-3 text-sm">
+                            <div className="flex items-center gap-2">
+                              <span className="font-black text-[#003399]">{glossWord}</span>
+                              {g?.type && g.type !== 'word' && (
+                                <span className="text-[10px] font-black bg-[#FFD700] text-[#003399] px-1.5 py-0.5 rounded-full">
+                                  {g.type === 'idiom' ? 'idiom' : 'phrasal verb'}
+                                </span>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => speak(glossWord)}
+                                aria-label="ฟังเสียงอ่าน"
+                                title="ฟังเสียงอ่าน"
+                                className="ml-auto w-8 h-8 flex items-center justify-center rounded-full bg-[#003399] text-[#FFD700] hover:bg-[#002266] active:scale-95 transition-all"
+                              >
+                                🔊
+                              </button>
+                            </div>
+                            {g ? (
+                              <>
+                                <div className="text-gray-700 mt-1">{g.thai_meaning}</div>
+                                {g.eng_definition && <div className="text-xs text-gray-500 mt-0.5 italic">{g.eng_definition}</div>}
+                              </>
+                            ) : (
+                              <div className="text-xs text-gray-500 mt-1">ยังไม่มีคำแปลในคลัง — กดปุ่ม 🔊 เพื่อฟังเสียงอ่านได้</div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                   )}
 
