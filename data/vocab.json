@@ -519,16 +519,6 @@
     "part_of_speech": "verb"
   },
   {
-    "word": "analyze",
-    "thai_meaning": "วิเคราะห์",
-    "eng_definition": "to examine something carefully in order to understand it",
-    "synonym": "examine, evaluate, investigate",
-    "antonym": "overlook, ignore, misinterpret",
-    "example_sentence": "In the lab, students ___ the data to find patterns.",
-    "level": "B2",
-    "part_of_speech": "verb"
-  },
-  {
     "word": "approach",
     "thai_meaning": "วิธีการ, เข้าใกล้",
     "eng_definition": "a way of dealing with something",
@@ -4369,16 +4359,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "flavor",
-    "thai_meaning": "รสชาติ, รส",
-    "eng_definition": "the taste of something",
-    "synonym": "taste, flavoring, savor",
-    "antonym": "bland, tasteless, plain",
-    "example_sentence": "This ice cream has strawberry ___.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "flesh",
     "thai_meaning": "เนื้อ, เนื้อสัตว์",
     "eng_definition": "the soft substance of the body",
@@ -4959,16 +4939,6 @@
     "part_of_speech": "adjective"
   },
   {
-    "word": "honor",
-    "thai_meaning": "เกียรติ, ความดี",
-    "eng_definition": "high respect or great esteem",
-    "synonym": "respect, esteem, dignity",
-    "antonym": "dishonor, shame, disgrace",
-    "example_sentence": "It is an ___ to meet you.",
-    "level": "B2",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "host",
     "thai_meaning": "เจ้าบ้าน, ผู้จัด",
     "eng_definition": "a person who receives guests",
@@ -4997,16 +4967,6 @@
     "example_sentence": "She gave him a warm ___.",
     "level": "B1",
     "part_of_speech": "verb"
-  },
-  {
-    "word": "humor",
-    "thai_meaning": "อารมณ์ขัน, ความตลก",
-    "eng_definition": "the quality of being amusing",
-    "synonym": "wit, comedy, funniness",
-    "antonym": "seriousness, dullness, sobriety",
-    "example_sentence": "He has great ___.",
-    "level": "B2",
-    "part_of_speech": "noun"
   },
   {
     "word": "hunt",
