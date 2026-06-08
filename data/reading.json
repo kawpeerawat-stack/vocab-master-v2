@@ -1137,7 +1137,7 @@
         "mysterious",
         "theory"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -1265,7 +1265,7 @@
         "environmental",
         "hidden"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -1393,7 +1393,7 @@
         "content",
         "freedom"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -1534,7 +1534,7 @@
         "deliberately",
         "emotion"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -1653,6 +1653,634 @@
           ],
           "answerIndex": 2,
           "explanation_th": "ตอบข้อ C — ย่อหน้าสุดท้ายเสนอว่าการหาความแปลกใหม่ (เรียนทักษะใหม่ ไปที่ใหม่ เปลี่ยนกิจวัตร) สร้างความทรงจำใหม่และทำให้รู้สึกว่าเวลายาวขึ้น ส่วนการทำกิจวัตรเดิมจะยิ่งทำให้เวลาผ่านเร็ว"
+        }
+      ]
+    },
+    {
+      "id": "rd-b1-201",
+      "level": "B1",
+      "examStyle": "NETSAT",
+      "genre": "email (correspondence)",
+      "category": "other",
+      "title": "Email: English Camp Sign-Up",
+      "passage": "From: Ms. Pranee Wong, English Club Coordinator\nTo: All English Club Members\nSubject: English Camp — Important Details and Sign-Up\n\nDear members,\n\nI am pleased to announce that our annual English Camp will take place on Saturday 15 March at the school hall, from 9 a.m. to 4 p.m. This year's theme is \"Storytelling Through Drama,\" and we are lucky to have a guest speaker from Khon Kaen University leading the afternoon workshop.\n\nPlease note the following points:\n- The camp is free, but places are limited to forty students.\n- To reserve a place, reply to this email by Friday 7 March.\n- Bring a packed lunch; drinks and snacks will be provided.\n- Wear comfortable clothes, as some activities involve movement.\n\nIf you have already signed up for the debate competition, you may still join the camp, but please tell me in advance so that I can arrange the schedule.\n\nI look forward to seeing many of you there. Feel free to contact me if you have any questions.\n\nBest regards,\nMs. Pranee Wong\nEnglish Club Coordinator",
+      "wordCount": 179,
+      "targetVocab": [
+        "announce",
+        "annual",
+        "reserve",
+        "advance",
+        "theme",
+        "workshop",
+        "limited",
+        "contact"
+      ],
+      "verified": false,
+      "source": "AI-generated (Claude) — teacher review required",
+      "questions": [
+        {
+          "id": "rd-b1-201-q1",
+          "type": "MAIN_IDEA",
+          "question": "What is the main purpose of this email?",
+          "choices": [
+            "To announce an English Camp and explain how to join.",
+            "To cancel the school's annual English Camp this year.",
+            "To invite members to a debate competition next week.",
+            "To report on the results of last year's English Camp."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — อีเมลประกาศการจัด English Camp และบอกวิธีสมัคร (reply by Friday 7 March) ส่วน B/C/D ขัดกับเนื้อหา (ไม่ได้ยกเลิก ไม่ใช่การแข่ง debate และไม่ได้รายงานผลปีก่อน)"
+        },
+        {
+          "id": "rd-b1-201-q2",
+          "type": "SUPPORTING_DETAIL",
+          "question": "How can a student reserve a place at the camp?",
+          "choices": [
+            "By paying a small fee at the school office.",
+            "By calling the guest speaker before the camp.",
+            "By replying to the email before Friday 7 March.",
+            "By signing a form at the hall on the camp day."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — อีเมลระบุว่า \"To reserve a place, reply to this email by Friday 7 March\" ส่วนค่ายนี้ฟรี (ไม่ต้องจ่าย) จึงตัดข้ออื่นออก"
+        },
+        {
+          "id": "rd-b1-201-q3",
+          "type": "SUPPORTING_DETAIL",
+          "question": "What are students asked to bring to the camp?",
+          "choices": [
+            "Their own bottles of water and snacks.",
+            "A packed lunch for the middle of the day.",
+            "A laptop computer for the drama workshop.",
+            "A ticket bought from the coordinator first."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — อีเมลบอกว่า \"Bring a packed lunch; drinks and snacks will be provided\" ดังนั้นต้องเตรียมอาหารกลางวันมาเอง ส่วนเครื่องดื่มและของว่างทางค่ายจัดให้"
+        },
+        {
+          "id": "rd-b1-201-q4",
+          "type": "INFERENCE",
+          "question": "What can be inferred about the English Camp?",
+          "choices": [
+            "It is expected to attract very few students.",
+            "It will be held outdoors in the school garden.",
+            "It is open only to students who can pay a fee.",
+            "It is popular, so places may fill up quickly."
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — ค่ายฟรีแต่ \"places are limited to forty\" และให้รีบ reply ภายในวันที่กำหนด จึงอนุมานได้ว่าเป็นที่นิยมและที่นั่งอาจเต็มเร็ว"
+        },
+        {
+          "id": "rd-b1-201-q5",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "In the email, the word \"reserve\" is closest in meaning to:",
+          "choices": [
+            "to give back",
+            "to pay for",
+            "to book ahead",
+            "to describe"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — \"reserve a place\" หมายถึงจองที่ไว้ล่วงหน้า ตรงกับ \"to book ahead\" ไม่ใช่คืน จ่ายเงิน หรือบรรยาย"
+        },
+        {
+          "id": "rd-b1-201-q6",
+          "type": "PURPOSE_TONE",
+          "question": "How would you best describe the tone of the email?",
+          "choices": [
+            "Friendly, clear, and informative",
+            "Angry, harsh, and complaining",
+            "Sad, gloomy, and apologetic",
+            "Cold, distant, and threatening"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ผู้เขียนใช้ภาษาสุภาพเป็นกันเอง (Dear members, I look forward to seeing you, Feel free to contact me) พร้อมให้ข้อมูลชัดเจน จึงเป็นน้ำเสียงเป็นมิตรและให้ข้อมูล"
+        }
+      ]
+    },
+    {
+      "id": "rd-b1-202",
+      "level": "B1",
+      "examStyle": "NETSAT",
+      "genre": "notice (correspondence)",
+      "category": "other",
+      "title": "Notice: Library Hours During Exams",
+      "passage": "NOTICE — School Library\n\nTo all students,\n\nDuring the final examination period (1–14 October), the library will extend its opening hours to help you prepare.\n\nNew opening hours:\n- Monday to Friday: 7 a.m. – 8 p.m.\n- Saturday: 9 a.m. – 5 p.m.\n- Sunday: closed\n\nPlease remember the following rules:\n- Keep your voice low. The study zone on the second floor is for silent study only.\n- You may borrow up to five books at a time during this period.\n- Food is not allowed inside, but covered water bottles are fine.\n\nStudents who return books late will not be able to borrow again until the fine has been paid.\n\nWe wish you the very best of luck in your exams.\n\nThe Library Team",
+      "wordCount": 127,
+      "targetVocab": [
+        "extend",
+        "examination",
+        "silent",
+        "covered",
+        "opening",
+        "zone"
+      ],
+      "verified": false,
+      "source": "AI-generated (Claude) — teacher review required",
+      "questions": [
+        {
+          "id": "rd-b1-202-q1",
+          "type": "MAIN_IDEA",
+          "question": "What is the main purpose of this notice?",
+          "choices": [
+            "To announce that the library will close for exams.",
+            "To remind students to return all their library books.",
+            "To inform students of extended hours during exams.",
+            "To introduce a new study zone on the first floor."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ประกาศแจ้งว่าห้องสมุด \"extend its opening hours\" ช่วงสอบ ส่วน A ตรงข้ามกับเนื้อหา, B/D เป็นรายละเอียดเล็กน้อยหรือไม่ตรง"
+        },
+        {
+          "id": "rd-b1-202-q2",
+          "type": "SUPPORTING_DETAIL",
+          "question": "When is the library open on Saturdays during this period?",
+          "choices": [
+            "From 9 a.m. until 5 p.m. in the afternoon.",
+            "From 7 a.m. until 8 p.m. in the evening.",
+            "It stays completely closed all of Saturday.",
+            "From 9 a.m. until 8 p.m. without any break."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ประกาศระบุ \"Saturday: 9 a.m. – 5 p.m.\" ส่วน 7–20 น. คือจันทร์–ศุกร์ และวันอาทิตย์ปิด จึงตัดข้ออื่นออก"
+        },
+        {
+          "id": "rd-b1-202-q3",
+          "type": "SUPPORTING_DETAIL",
+          "question": "What does the notice say about the second-floor study zone?",
+          "choices": [
+            "It is reserved only for teachers during exams.",
+            "It is the place where students may eat lunch.",
+            "It is closed throughout the whole exam period.",
+            "It is for silent study, so voices must be low."
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — ประกาศบอกว่าโซนชั้นสองเป็น \"silent study only\" และให้เก็บเสียงเบา ตัวเลือกอื่นไม่มีในประกาศ"
+        },
+        {
+          "id": "rd-b1-202-q4",
+          "type": "INFERENCE",
+          "question": "What will happen to a student who returns books late?",
+          "choices": [
+            "They will be banned from the library forever.",
+            "They cannot borrow again until the fine is paid.",
+            "They must pay double the price of the books.",
+            "They will be reported to their own class teacher."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ประกาศระบุว่าคนคืนหนังสือช้า \"will not be able to borrow again until the fine has been paid\" ตัวเลือกอื่นเกินจริงหรือไม่มีในบท"
+        },
+        {
+          "id": "rd-b1-202-q5",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "In the notice, the word \"extend\" is closest in meaning to:",
+          "choices": [
+            "to cut short",
+            "to close down",
+            "to make longer",
+            "to clean up"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — \"extend its hours\" หมายถึงขยาย/ทำให้นานขึ้น ตรงกับ \"to make longer\" ไม่ใช่ตัดให้สั้นหรือปิด"
+        },
+        {
+          "id": "rd-b1-202-q6",
+          "type": "PURPOSE_TONE",
+          "question": "How would you describe the tone of the notice?",
+          "choices": [
+            "Helpful and encouraging",
+            "Angry and impatient",
+            "Sad and apologetic",
+            "Funny and playful"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ประกาศช่วยอำนวยความสะดวก (ขยายเวลา) และอวยพร \"best of luck\" จึงเป็นน้ำเสียงช่วยเหลือและให้กำลังใจ"
+        }
+      ]
+    },
+    {
+      "id": "rd-b1-203",
+      "level": "B1",
+      "examStyle": "NETSAT",
+      "genre": "instructions",
+      "category": "other",
+      "title": "How to Set Up Your Student Email Account",
+      "passage": "Follow these steps to set up your school email account before the first day of class.\n\n1. Open your web browser and go to the school website.\n2. Click the \"Student Login\" button at the top right of the page.\n3. Enter the username printed on your registration card. Your first password is your date of birth in the form DDMMYYYY.\n4. The system will then ask you to create a new password. Choose one that is at least eight characters long and includes a number.\n5. Once you are logged in, read the \"Welcome\" message, which contains your class timetable.\n\nIf you forget your password, do not create a second account. Instead, visit the IT office in Room 105 with your student card, and a staff member will reset it for you.",
+      "wordCount": 133,
+      "targetVocab": [
+        "browser",
+        "register",
+        "staff",
+        "account",
+        "password",
+        "click"
+      ],
+      "verified": false,
+      "source": "AI-generated (Claude) — teacher review required",
+      "questions": [
+        {
+          "id": "rd-b1-203-q1",
+          "type": "MAIN_IDEA",
+          "question": "What is the main purpose of this text?",
+          "choices": [
+            "To explain how to repair a broken school computer.",
+            "To explain how to set up a student email account.",
+            "To explain how to register for brand-new classes.",
+            "To explain how to contact a teacher by email."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ข้อความเป็นขั้นตอนการตั้งค่าอีเมลนักเรียน (set up your school email account) ตัวเลือกอื่นไม่ตรงกับเนื้อหา"
+        },
+        {
+          "id": "rd-b1-203-q2",
+          "type": "SUPPORTING_DETAIL",
+          "question": "What is a student's first password?",
+          "choices": [
+            "The username printed on the registration card.",
+            "A word chosen freely by the student in advance.",
+            "A secret code sent later by the IT office staff.",
+            "The student's date of birth in DDMMYYYY form."
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — ขั้นที่ 3 ระบุว่ารหัสผ่านแรกคือวันเกิดรูปแบบ DDMMYYYY ส่วน username ใช้ล็อกอิน ไม่ใช่รหัสผ่าน"
+        },
+        {
+          "id": "rd-b1-203-q3",
+          "type": "SUPPORTING_DETAIL",
+          "question": "What must the new password include?",
+          "choices": [
+            "At least eight characters and a number.",
+            "At least four letters and one symbol.",
+            "The student's full name and birth year.",
+            "A capital letter and the word school."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ขั้นที่ 4 บอกว่ารหัสใหม่ต้องยาวอย่างน้อย 8 ตัวอักษรและมีตัวเลข ตัวเลือกอื่นไม่ตรงเงื่อนไข"
+        },
+        {
+          "id": "rd-b1-203-q4",
+          "type": "INFERENCE",
+          "question": "What should a student do if they forget the password?",
+          "choices": [
+            "Quickly create a brand-new second account.",
+            "Send an email straight to the headmaster.",
+            "Visit the IT office with a student card.",
+            "Wait for the system to reset it on its own."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ข้อความบอกว่าอย่าสร้างบัญชีที่สอง ให้ไปที่ IT office ห้อง 105 พร้อมบัตรนักเรียน ตัวเลือกอื่นขัดกับคำแนะนำ"
+        },
+        {
+          "id": "rd-b1-203-q5",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "In the text, the word \"reset\" is closest in meaning to:",
+          "choices": [
+            "to delete fully",
+            "to set again",
+            "to print out",
+            "to lock away"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — \"reset the password\" คือตั้งรหัสใหม่ให้ ตรงกับ \"to set again\" ไม่ใช่ลบทิ้ง พิมพ์ หรือล็อก"
+        },
+        {
+          "id": "rd-b1-203-q6",
+          "type": "ORGANIZATION",
+          "question": "How is the information mainly organized?",
+          "choices": [
+            "As a list of rules in order of importance.",
+            "As a comparison between two email systems.",
+            "As a story about one student's first day.",
+            "As a series of steps in the order to follow."
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — ข้อความเรียงเป็นขั้นตอน 1–5 ตามลำดับที่ต้องทำ จึงเป็นการจัดเรียงแบบขั้นตอน ไม่ใช่เปรียบเทียบหรือเล่าเรื่อง"
+        }
+      ]
+    },
+    {
+      "id": "rd-b2-201",
+      "level": "B2",
+      "examStyle": "NETSAT",
+      "genre": "informative article",
+      "category": "article",
+      "title": "The Rise of Urban Farming",
+      "passage": "In cities around the world, a quiet change is taking place on rooftops, balconies, and empty plots of land. Urban farming — growing food within a city rather than in the countryside — is becoming increasingly popular, and for several practical reasons.\n\nThe first is freshness. Vegetables grown in the city can reach local markets within hours, rather than travelling long distances by truck. This not only improves their taste but also reduces the fuel used in transport.\n\nUrban farms also make use of space that would otherwise be wasted. A flat rooftop, for example, can be turned into a productive garden that helps cool the building below. Some restaurants now grow herbs on their own roofs, picking them only minutes before they are served.\n\nThere are social benefits too. Community gardens, where neighbours share a plot of land, bring people together and give city children a chance to see how food is grown. For many families, this connection to nature is a welcome break from busy urban life.\n\nOf course, urban farming cannot replace traditional agriculture; cities simply do not have enough space to feed everyone. But as a supplement, it offers fresher food, greener buildings, and stronger communities — a small but meaningful step toward more sustainable cities.",
+      "wordCount": 210,
+      "targetVocab": [
+        "urban",
+        "increasingly",
+        "productive",
+        "supplement",
+        "sustainable",
+        "practical"
+      ],
+      "verified": false,
+      "source": "AI-generated (Claude) — teacher review required",
+      "questions": [
+        {
+          "id": "rd-b2-201-q1",
+          "type": "MAIN_IDEA",
+          "question": "What is the passage mainly about?",
+          "choices": [
+            "Why traditional farming is no longer necessary.",
+            "How to grow vegetables on a small balcony.",
+            "The benefits of farming inside modern cities.",
+            "The long history of farming in the countryside."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — บทเล่าข้อดีของการทำเกษตรในเมือง (urban farming) ส่วน A ขัดกับย่อหน้าสุดท้าย, B/D เป็นรายละเอียดหรือไม่ใช่ใจความหลัก"
+        },
+        {
+          "id": "rd-b2-201-q2",
+          "type": "SUPPORTING_DETAIL",
+          "question": "According to the passage, why does city-grown food taste better?",
+          "choices": [
+            "It reaches local markets within just a few hours.",
+            "It is grown using special chemical fertilisers.",
+            "It is always sold at much cheaper market prices.",
+            "It is kept in cold storage for several days first."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ย่อหน้าที่ 2 ระบุว่าผักในเมืองถึงตลาดภายในไม่กี่ชั่วโมง ทำให้รสชาติดีขึ้น ตัวเลือกอื่นไม่มีในบท"
+        },
+        {
+          "id": "rd-b2-201-q3",
+          "type": "SUPPORTING_DETAIL",
+          "question": "How can a rooftop garden help the building below it?",
+          "choices": [
+            "By providing several extra rooms for residents.",
+            "By helping to keep the building cooler.",
+            "By blocking all the noise from the street.",
+            "By producing electricity from the sunlight."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ย่อหน้าที่ 3 บอกว่าสวนบนดาดฟ้า \"helps cool the building below\" ตัวเลือกอื่นไม่ได้กล่าวถึง"
+        },
+        {
+          "id": "rd-b2-201-q4",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "In the last paragraph, the word \"supplement\" is closest in meaning to:",
+          "choices": [
+            "a complete replacement for something",
+            "a serious problem for everyone",
+            "a strict rule that must be obeyed",
+            "an extra addition to something"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — \"as a supplement\" หมายถึงสิ่งที่เสริมเข้าไป ตรงกับ \"an extra addition\" บริบทคือเกษตรในเมืองเป็นส่วนเสริม ไม่ใช่แทนที่เกษตรปกติ"
+        },
+        {
+          "id": "rd-b2-201-q5",
+          "type": "REFERENCE",
+          "question": "In paragraph 4, \"this connection\" refers to:",
+          "choices": [
+            "the link between two separate city farms",
+            "the bond formed between teachers and pupils",
+            "city children seeing how food is grown",
+            "the route that delivery trucks take daily"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ประโยคก่อนหน้าพูดถึงเด็กในเมืองได้เห็นว่าอาหารปลูกอย่างไร ดังนั้น this connection to nature จึงหมายถึงการได้สัมผัสธรรมชาติผ่านการเห็นการปลูกอาหาร"
+        },
+        {
+          "id": "rd-b2-201-q6",
+          "type": "INFERENCE",
+          "question": "What does the writer suggest about urban farming?",
+          "choices": [
+            "It is useful but cannot feed a whole city alone.",
+            "It will soon completely replace normal farms.",
+            "It is far too expensive for most cities to try.",
+            "It can only ever work in very small villages."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ย่อหน้าสุดท้ายบอกว่ามันแทนเกษตรดั้งเดิมไม่ได้ แต่เป็นส่วนเสริมที่ดี จึงอนุมานได้ว่ามีประโยชน์แต่เลี้ยงคนทั้งเมืองลำพังไม่ได้"
+        },
+        {
+          "id": "rd-b2-201-q7",
+          "type": "PURPOSE_TONE",
+          "question": "What is the writer's attitude toward urban farming?",
+          "choices": [
+            "Strongly opposed and rather worried.",
+            "Positive but realistic about its limits.",
+            "Completely uninterested and quite bored.",
+            "Confused about how it really works."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ผู้เขียนชมข้อดีหลายอย่างแต่ยอมรับข้อจำกัด (แทนเกษตรปกติไม่ได้) จึงเป็นทัศนคติเชิงบวกแต่สมจริง"
+        }
+      ]
+    },
+    {
+      "id": "rd-b2-202",
+      "level": "B2",
+      "examStyle": "NETSAT",
+      "genre": "argumentative article",
+      "category": "article",
+      "title": "Should Students Use Smartphones in Class?",
+      "passage": "Few topics divide teachers and students as sharply as the use of smartphones in the classroom. Some schools ban them completely, while others encourage their use as learning tools. So which side is right?\n\nThose who oppose phones in class make a strong case. Smartphones are a constant source of distraction: a single notification can pull a student's attention away from a lesson, and research suggests that even having a phone on the desk can reduce concentration. There is also the temptation to cheat, or simply to scroll through social media instead of listening.\n\nSupporters, however, argue that banning phones ignores their real value. A smartphone can be a dictionary, a calculator, and a gateway to information all at once. Used well, it allows students to look up unfamiliar words, take part in online quizzes, and learn at their own pace.\n\nThe truth, perhaps, lies somewhere in between. The problem is not the device itself but how it is used. Rather than banning phones outright, schools might teach students to use them responsibly — switching them to silent during explanations, and taking them out only for specific tasks. In a world where technology is everywhere, learning to manage it may prove more useful than learning to live without it.",
+      "wordCount": 209,
+      "targetVocab": [
+        "concentration",
+        "constant",
+        "encourage",
+        "oppose",
+        "notification",
+        "value"
+      ],
+      "verified": false,
+      "source": "AI-generated (Claude) — teacher review required",
+      "questions": [
+        {
+          "id": "rd-b2-202-q1",
+          "type": "MAIN_IDEA",
+          "question": "What is the main question the writer explores?",
+          "choices": [
+            "Whether smartphones are too costly for students.",
+            "Whether teachers should be allowed to use phones.",
+            "Whether social media is harmful to young people.",
+            "Whether students should use smartphones in class."
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — ทั้งบทถกประเด็น \"ควรให้นักเรียนใช้สมาร์ตโฟนในห้องเรียนไหม\" ตัวเลือกอื่นเป็นประเด็นข้างเคียงที่ไม่ใช่คำถามหลัก"
+        },
+        {
+          "id": "rd-b2-202-q2",
+          "type": "SUPPORTING_DETAIL",
+          "question": "What argument do those who oppose phones make?",
+          "choices": [
+            "Phones are a constant source of distraction.",
+            "Phones are far too heavy to carry around.",
+            "Phones are useful dictionaries and calculators.",
+            "Phones help students learn at their own pace."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ฝ่ายค้านชี้ว่าโทรศัพท์ \"a constant source of distraction\" และลดสมาธิ ส่วน C/D เป็นข้อโต้แย้งของฝ่ายสนับสนุน"
+        },
+        {
+          "id": "rd-b2-202-q3",
+          "type": "SUPPORTING_DETAIL",
+          "question": "How do supporters say a smartphone can help learning?",
+          "choices": [
+            "By replacing the teacher in every single lesson.",
+            "By keeping all students silent during the class.",
+            "By acting as a dictionary and a calculator.",
+            "By completely preventing any online cheating."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ฝ่ายสนับสนุนบอกว่าโทรศัพท์เป็นทั้งพจนานุกรม เครื่องคิดเลข และประตูสู่ข้อมูล ตัวเลือกอื่นเกินจริงหรือไม่มีในบท"
+        },
+        {
+          "id": "rd-b2-202-q4",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "In paragraph 4, the word \"outright\" is closest in meaning to:",
+          "choices": [
+            "slowly and carefully",
+            "completely and at once",
+            "secretly and quietly",
+            "fairly and equally"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — \"banning phones outright\" หมายถึงสั่งห้ามแบบเด็ดขาดทันที ตรงกับ \"completely and at once\""
+        },
+        {
+          "id": "rd-b2-202-q5",
+          "type": "INFERENCE",
+          "question": "What is the writer's own view by the end of the passage?",
+          "choices": [
+            "Phones should be banned from every classroom.",
+            "Phones should be used freely with no limits.",
+            "The real issue is how phones are used.",
+            "Teachers should never carry phones at all."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ย่อหน้าสุดท้ายสรุปว่า \"The problem is not the device itself but how it is used\" จึงมองว่าประเด็นอยู่ที่วิธีใช้ ไม่ใช่ห้ามหรือปล่อยเสรี"
+        },
+        {
+          "id": "rd-b2-202-q6",
+          "type": "PURPOSE_TONE",
+          "question": "How would you best describe the writer's approach?",
+          "choices": [
+            "Balanced, weighing both sides before judging.",
+            "One-sided, attacking all who disagree.",
+            "Joking, treating the topic as a game.",
+            "Hopeless, sure nothing can be done."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ผู้เขียนเสนอทั้งฝ่ายค้านและฝ่ายสนับสนุนก่อนสรุปจุดยืนกลางๆ จึงเป็นแนวสมดุล ชั่งน้ำหนักสองด้าน"
+        },
+        {
+          "id": "rd-b2-202-q7",
+          "type": "ORGANIZATION",
+          "question": "How is the passage mainly organized?",
+          "choices": [
+            "It lists steps for using a phone in class.",
+            "It tells one student's story about a phone.",
+            "It compares the prices of several phones.",
+            "It gives both sides, then a middle position."
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — บทเสนอข้อโต้แย้งฝ่ายค้าน → ฝ่ายสนับสนุน → แล้วปิดด้วยจุดยืนตรงกลาง จึงเป็นโครงแบบนี้"
+        }
+      ]
+    },
+    {
+      "id": "rd-b2-203",
+      "level": "B2",
+      "examStyle": "NETSAT",
+      "genre": "formal letter (correspondence)",
+      "category": "other",
+      "title": "Letter: A Reply to a Customer Complaint",
+      "passage": "Dear Ms. Chen,\n\nThank you for your letter of 3 May regarding the laptop bag you purchased from our online store. I am sorry to hear that the zip broke after only two weeks, and I understand how frustrating this must be.\n\nHaving looked into your case, I can confirm that your purchase is still covered by our one-year warranty. We would therefore like to offer you two options. You may either return the faulty bag for a full refund, or we can send you a replacement free of charge. In both cases, we will cover the cost of postage.\n\nTo proceed, simply reply to this letter and let us know which option you prefer. If you choose a replacement, please confirm your delivery address so that we can send the new bag without delay.\n\nOnce again, please accept our apologies for the inconvenience. We value you as a customer and hope to serve you better in the future.\n\nYours sincerely,\nDavid Lim\nCustomer Service Manager",
+      "wordCount": 166,
+      "targetVocab": [
+        "purchase",
+        "confirm",
+        "refund",
+        "replacement",
+        "delivery",
+        "inconvenience"
+      ],
+      "verified": false,
+      "source": "AI-generated (Claude) — teacher review required",
+      "questions": [
+        {
+          "id": "rd-b2-203-q1",
+          "type": "MAIN_IDEA",
+          "question": "What is the main purpose of this letter?",
+          "choices": [
+            "To advertise a brand-new range of laptop bags.",
+            "To respond to a complaint and offer some options.",
+            "To ask the customer to pay for a repair service.",
+            "To explain why the warranty has already expired."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — จดหมายตอบข้อร้องเรียนเรื่องกระเป๋าเสียและเสนอทางเลือก (คืนเงินหรือเปลี่ยนใหม่) ตัวเลือกอื่นขัดกับเนื้อหา"
+        },
+        {
+          "id": "rd-b2-203-q2",
+          "type": "SUPPORTING_DETAIL",
+          "question": "What two options does the company offer Ms. Chen?",
+          "choices": [
+            "A discount voucher or a written apology.",
+            "A repair in store or a longer warranty.",
+            "A full refund or a free replacement bag.",
+            "A cash reward or a free laptop computer."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — จดหมายเสนอ \"a full refund\" หรือ \"a replacement free of charge\" ตัวเลือกอื่นไม่ตรงกับข้อเสนอ"
+        },
+        {
+          "id": "rd-b2-203-q3",
+          "type": "SUPPORTING_DETAIL",
+          "question": "Who will pay for the cost of postage?",
+          "choices": [
+            "The company will cover the postage cost.",
+            "Ms. Chen must pay the postage herself.",
+            "The postage will be split between them.",
+            "No postage is needed for either option."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — จดหมายระบุ \"we will cover the cost of postage\" จึงเป็นบริษัทที่จ่ายค่าส่ง"
+        },
+        {
+          "id": "rd-b2-203-q4",
+          "type": "INFERENCE",
+          "question": "What can be inferred about the company?",
+          "choices": [
+            "It refuses to take responsibility for faults.",
+            "It no longer sells any kind of laptop bag.",
+            "It blames Ms. Chen for breaking the zip.",
+            "It wants to keep the customer satisfied."
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — บริษัทขอโทษ เสนอทางเลือก และบอกว่า \"value you as a customer\" จึงอนุมานได้ว่าต้องการรักษาลูกค้าให้พอใจ"
+        },
+        {
+          "id": "rd-b2-203-q5",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "In the letter, the word \"faulty\" is closest in meaning to:",
+          "choices": [
+            "brand new and unused",
+            "broken or not working",
+            "rather large and heavy",
+            "cheap but good value"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — \"the faulty bag\" หมายถึงกระเป๋าที่ชำรุด/ใช้ไม่ได้ ตรงกับ \"broken or not working\" บริบทคือซิปเสีย"
+        },
+        {
+          "id": "rd-b2-203-q6",
+          "type": "PURPOSE_TONE",
+          "question": "How would you describe the tone of the letter?",
+          "choices": [
+            "Rude and dismissive of the customer.",
+            "Casual and full of friendly jokes.",
+            "Polite, apologetic, and professional.",
+            "Angry and blaming the customer."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — จดหมายใช้ภาษาสุภาพ ขอโทษ และเป็นทางการ (Dear / Yours sincerely / accept our apologies) จึงเป็นน้ำเสียงสุภาพและเป็นมืออาชีพ"
         }
       ]
     }
