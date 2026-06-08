@@ -11,15 +11,14 @@
       "passage": "Last weekend, more than fifty students from Anukoolnaree School joined a community project to protect the mangrove forest near their town. The forest had suffered serious damage after a storm, and local fishers worried that fewer fish would be available in the coming year.\n\nBefore the trip, the students spent two afternoons learning how to prepare young mangrove plants. Their teacher explained that healthy mangroves protect the coast from strong waves and provide a home for crabs, fish, and birds.\n\nOn Saturday morning, the group planted almost four hundred trees along the muddy shore. The work required patience, because the soft mud made walking difficult. Still, the students said the effort was worth it.\n\n\"Planting trees is hard, but the benefit is huge,\" said one student. \"In a few years, these mangroves will support our whole community.\"\n\nThe project leader hopes the result will encourage other schools to start similar activities. She believes that small actions, repeated by many people, can slowly bring the damaged forest back to life.",
       "wordCount": 176,
       "targetVocab": [
-        "community",
-        "protect",
         "damage",
-        "available",
-        "prepare",
         "require",
         "effort",
-        "benefit",
-        "result"
+        "shore",
+        "patience",
+        "worth",
+        "encourage",
+        "repeated"
       ],
       "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
@@ -122,7 +121,7 @@
         "consequence",
         "accumulate",
         "require",
-        "benefit"
+        "challenge"
       ],
       "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
@@ -319,12 +318,12 @@
       "passage": "Looking for a way to stay fit without joining an expensive gym? The \"FlexiFit\" app might be exactly what you need. This new mobile application offers hundreds of home workout routines for all fitness levels. Users can choose from yoga, strength training, and cardio exercises. What makes FlexiFit stand out is its personalized schedule. When you first open the app, it asks about your goals and current habits. Then, it creates a weekly plan just for you. The basic version is completely free, though it includes some annoying ads. If you upgrade to the premium version for $5 a month, you get an ad-free experience and access to live online classes with professional trainers. Overall, FlexiFit is a highly convenient tool for busy people who want to improve their health at home.",
       "wordCount": 138,
       "targetVocab": [
-        "expensive",
-        "routine",
         "personalized",
-        "habit",
         "premium",
-        "convenient"
+        "convenient",
+        "application",
+        "workout",
+        "fitness"
       ],
       "verified": true,
       "source": "AI-generated — teacher review required",
@@ -408,10 +407,10 @@
       "targetVocab": [
         "stressful",
         "innovative",
-        "avoid",
         "durable",
         "security",
-        "discount"
+        "discount",
+        "smart"
       ],
       "verified": true,
       "source": "AI-generated — teacher review required",
@@ -494,12 +493,12 @@
       "wordCount": 187,
       "targetVocab": [
         "standard",
-        "experiment",
         "productivity",
         "phenomenon",
         "rejuvenated",
         "efficiency",
-        "implementation"
+        "implementation",
+        "global"
       ],
       "verified": true,
       "source": "AI-generated — teacher review required",
