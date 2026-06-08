@@ -81,6 +81,9 @@ export interface CloudProgress {
   // ── แต้มรายสัปดาห์ (รีเซ็ตทุกวันจันทร์) ──
   weeklyXp?: number;
   weekId?: string;
+  // ── แถบความสำเร็จห้องอ่าน ──
+  masteredPassages?: string[];  // id บทที่ "พิชิต" (ตอบถูกครบทุกข้อ)
+  completedPassages?: string[]; // id บทที่เคยทำจบ (ถูกครบหรือไม่ก็ตาม)
 }
 
 // ── โหลดความก้าวหน้าจากคลาวด์ (คืน null ถ้ายังไม่มี) ──
@@ -225,8 +228,10 @@ export async function saveReadingProgress(params: {
   total: number;
   byType: Record<string, ReadingByType>;
   streak?: StreakState;
+  passageId?: string;  // บทที่เพิ่งทำจบ (ใช้ทำ "แถบความสำเร็จ/พิชิตบท")
+  mastered?: boolean;  // ทำจบแบบถูกครบทุกข้อหรือไม่ (= พิชิตบท)
 }): Promise<boolean> {
-  const { email, name, correct, total, byType, streak } = params;
+  const { email, name, correct, total, byType, streak, passageId, mastered } = params;
   if (!email || !db) return false;
   try {
     const ref = doc(db, COLLECTION, emailToId(email));
@@ -236,6 +241,8 @@ export async function saveReadingProgress(params: {
     let prevReading: ReadingStat | undefined;
     let prevWeeklyXp = 0;
     let prevWeekId = "";
+    let prevMastered: string[] = [];
+    let prevCompleted: string[] = [];
     try {
       const prev = await getDoc(ref);
       if (prev.exists()) {
@@ -243,6 +250,8 @@ export async function saveReadingProgress(params: {
         prevReading = pd.reading;
         prevWeeklyXp = pd.weeklyXp ?? 0;
         prevWeekId = pd.weekId ?? "";
+        prevMastered = pd.masteredPassages ?? [];
+        prevCompleted = pd.completedPassages ?? [];
       }
     } catch {
       // อ่านค่าเดิมไม่ได้ก็ใช้ค่าเริ่มต้น
@@ -269,6 +278,12 @@ export async function saveReadingProgress(params: {
       byType: mergedByType,
     };
 
+    // รวมรายการ "บทที่ทำจบ" และ "บทที่พิชิต" (union กันซ้ำ — Firestore merge ทับ array ทั้งก้อน จึงต้องรวมเอง)
+    const completedPassages = passageId && !prevCompleted.includes(passageId)
+      ? [...prevCompleted, passageId] : prevCompleted;
+    const masteredPassages = passageId && mastered && !prevMastered.includes(passageId)
+      ? [...prevMastered, passageId] : prevMastered;
+
     // แต้มรายสัปดาห์ (สัปดาห์เดิม → บวกต่อ, สัปดาห์ใหม่ → เริ่มจากรอบนี้)
     const weeklyXp = prevWeekId === weekId ? prevWeeklyXp + correct : correct;
 
@@ -280,6 +295,7 @@ export async function saveReadingProgress(params: {
         reading,
         weeklyXp,
         weekId,
+        ...(passageId ? { masteredPassages, completedPassages } : {}),
         ...(streak
           ? {
               streak: streak.streak,
