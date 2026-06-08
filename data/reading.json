@@ -1,4 +1,4 @@
-{
+ฟ{
   "version": 1,
   "note": "เนื้อหาทั้งหมดนี้ AI ร่างขึ้น (Claude) — ต้องให้คุณครูตรวจสอบความถูกต้องของบทอ่าน คำถาม เฉลย และคำอธิบายก่อนนำไปใช้จริงกับนักเรียน เมื่อตรวจแล้วให้เปลี่ยน verified เป็น true",
   "passages": [
@@ -2301,7 +2301,7 @@
         "distant",
         "genuine"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -2440,7 +2440,7 @@
         "environmental",
         "affordable"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -2579,7 +2579,7 @@
         "anxiety",
         "distant"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
