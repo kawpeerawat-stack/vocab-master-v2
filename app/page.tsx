@@ -106,6 +106,8 @@ export default function Home() {
   const [rResults, setRResults] = useState<{ qid: string; type: string; selected: number; correct: boolean }[]>([]);
   const [rSaving, setRSaving] = useState(false);
   const [glossWord, setGlossWord] = useState<string | null>(null); // คำใน targetVocab ที่กำลังเปิดดูคำแปล
+  const [readingMastered, setReadingMastered] = useState<Set<string>>(new Set()); // บทที่ "พิชิต" แล้ว (ตอบถูกครบทุกข้อ)
+  const [readingCompleted, setReadingCompleted] = useState<Set<string>>(new Set()); // บทที่เคยทำจบ
   // ── สถานะห้อง Conversation ──
   const [conversationSets, setConversationSets] = useState<ConvSet[]>([]);
   const [convLoading, setConvLoading] = useState(false);
@@ -247,6 +249,8 @@ export default function Home() {
       // 2) ดึงจากคลาวด์มาทับถ้ามี (ทำให้ progress ตามข้ามเครื่อง)
       try {
         const cloud = await loadCloudProgress(email);
+        if (cloud?.masteredPassages) setReadingMastered(new Set(cloud.masteredPassages));
+        if (cloud?.completedPassages) setReadingCompleted(new Set(cloud.completedPassages));
         if (cloud && cloud.srs && Object.keys(cloud.srs).length > 0) {
           setSrsStore(cloud.srs);
           saveStore(email, cloud.srs); // เก็บลงเครื่องเป็น cache ด้วย
@@ -656,6 +660,13 @@ export default function Home() {
     if (!activePassage) return;
     const total = allResults.length;
     const correct = allResults.filter((r) => r.correct).length;
+    const allCorrect = total > 0 && correct === total; // ถูกครบทุกข้อ = "พิชิตบท"
+    // อัปเดตแถบความสำเร็จทันที (เฉพาะบทที่ครูตรวจแล้ว) ให้เห็นผลในรอบนี้เลย แม้ยังไม่ล็อกอินอีเมล
+    if (activePassage.verified) {
+      const pid = activePassage.id;
+      setReadingCompleted((prev) => { const n = new Set(prev); n.add(pid); return n; });
+      if (allCorrect) setReadingMastered((prev) => { const n = new Set(prev); n.add(pid); return n; });
+    }
     // บันทึกคะแนนเฉพาะบทที่ครูตรวจแล้ว (ไม่บันทึกตอนครูพรีวิวบทที่ยัง verified:false)
     if (activePassage.verified && email) {
       const byType: Record<string, ReadingByType> = {};
@@ -670,7 +681,7 @@ export default function Home() {
       saveStreak(email, updatedStreak);
       setRSaving(true);
       try {
-        await saveReadingProgress({ email, name: studentName, correct, total, byType, streak: updatedStreak });
+        await saveReadingProgress({ email, name: studentName, correct, total, byType, streak: updatedStreak, passageId: activePassage.id, mastered: allCorrect });
       } catch (e) {
         console.error('บันทึกผล Reading ไม่สำเร็จ:', e);
       } finally {
@@ -698,6 +709,10 @@ export default function Home() {
   const catsPresent = CATEGORY_ORDER.filter((c) => visiblePassages.some((p) => (p.category || 'other') === c));
   const effectiveCat = readingCat !== 'ALL' && catsPresent.includes(readingCat) ? readingCat : 'ALL';
   const shownPassages = effectiveCat === 'ALL' ? visiblePassages : visiblePassages.filter((p) => (p.category || 'other') === effectiveCat);
+  // ── แถบความสำเร็จ (พิชิตบท) — นับเฉพาะบทที่นักเรียนเห็น (ครูตรวจแล้ว) ──
+  const masteredCount = visiblePassages.filter((p) => readingMastered.has(p.id)).length;
+  const completedCount = visiblePassages.filter((p) => readingCompleted.has(p.id)).length;
+  const masteryPct = visiblePassages.length > 0 ? Math.round((masteredCount / visiblePassages.length) * 100) : 0;
 
   // ── โหลดชุดบทสนทนาเมื่อเข้าห้อง Conversation ครั้งแรก ──
   useEffect(() => {
@@ -1169,6 +1184,34 @@ export default function Home() {
                   โหมดครู: แสดงบทที่ยังไม่ได้ตรวจ (สำหรับทดสอบก่อนเปิดให้นักเรียน)
                 </label>
 
+                {!readingLoading && visiblePassages.length > 0 && (
+                  <div className="bg-[#003399]/5 border-2 border-[#003399]/10 rounded-3xl p-5 mb-4 shadow-sm">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-xs font-black text-[#003399] uppercase tracking-wider">⭐ แถบความสำเร็จการอ่าน</span>
+                      <span className="text-sm font-black text-[#003399] bg-[#FFD700] px-3 py-1 rounded-full shadow-sm">{masteryPct}%</span>
+                    </div>
+                    <div className="w-full bg-white h-4 rounded-full mb-3 overflow-hidden border border-[#003399]/10">
+                      <div
+                        className="bg-gradient-to-r from-[#FFD700] to-[#ffb800] h-full transition-all duration-1000 ease-out"
+                        style={{ width: `${masteryPct}%` }}
+                      ></div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-center">
+                      <div className="bg-white rounded-xl py-2 border border-[#003399]/10">
+                        <div className="text-lg font-black text-[#FFB800]">⭐ {masteredCount}</div>
+                        <div className="text-[10px] font-bold text-gray-500">พิชิตแล้ว (ถูกครบ)</div>
+                      </div>
+                      <div className="bg-white rounded-xl py-2 border border-[#003399]/10">
+                        <div className="text-lg font-black text-[#003399]">{completedCount} / {visiblePassages.length}</div>
+                        <div className="text-[10px] font-bold text-gray-500">บทที่เคยทำ</div>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-2 leading-relaxed text-center">
+                      ตอบถูกครบทุกข้อในบท = พิชิตบทนั้น ⭐ (ทำซ้ำได้จนกว่าจะพิชิต)
+                    </p>
+                  </div>
+                )}
+
                 {!readingLoading && catsPresent.length > 1 && (
                   <div className="flex flex-wrap gap-2 justify-center mb-4">
                     <button
@@ -1227,6 +1270,11 @@ export default function Home() {
                         ) : (
                           <span className="text-[10px] font-black bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">⚠ รอครูตรวจ</span>
                         )}
+                        {readingMastered.has(p.id) ? (
+                          <span className="text-[10px] font-black bg-[#FFD700]/40 text-[#8a6d00] px-2 py-0.5 rounded-full">⭐ พิชิตแล้ว</span>
+                        ) : readingCompleted.has(p.id) ? (
+                          <span className="text-[10px] font-black bg-blue-100 text-[#003399] px-2 py-0.5 rounded-full">↻ ลองอีกครั้ง</span>
+                        ) : null}
                       </div>
                       <div className="font-black text-gray-900 text-[15px] leading-snug">{p.title}</div>
                       <div className="text-xs text-gray-500 font-bold mt-1">{p.questions.length} คำถาม · ~{p.wordCount} คำ</div>
@@ -1348,6 +1396,16 @@ export default function Home() {
                   <div className="text-center mb-5">
                     <div className="text-5xl font-black text-[#003399]">{correct}/{total}</div>
                     <div className="text-sm font-bold text-gray-500 mt-1">ตอบถูก {pct}%</div>
+                    {total > 0 && correct === total ? (
+                      <div className="mt-3 bg-[#FFD700]/20 border-2 border-[#FFD700] rounded-2xl py-3 px-4 animate-fadeIn">
+                        <div className="text-2xl">⭐🎉</div>
+                        <div className="text-sm font-black text-[#8a6d00]">พิชิตบทนี้แล้ว! ตอบถูกครบทุกข้อ</div>
+                      </div>
+                    ) : (
+                      <div className="mt-3 bg-[#003399]/5 border-2 border-[#003399]/15 rounded-2xl py-3 px-4">
+                        <div className="text-sm font-black text-[#003399]">เกือบแล้ว! อ่านเฉลยด้านล่าง แล้วลองอีกครั้งเพื่อพิชิตบทนี้ ⭐</div>
+                      </div>
+                    )}
                     {rSaving && <div className="text-xs text-gray-400 mt-1">⏳ กำลังบันทึกคะแนน…</div>}
                     {!activePassage.verified && <div className="text-xs text-amber-600 font-bold mt-1">โหมดครู — ไม่บันทึกคะแนน</div>}
                   </div>
@@ -1372,6 +1430,15 @@ export default function Home() {
                     })}
                   </div>
 
+                  {!(total > 0 && correct === total) && (
+                    <button
+                      type="button"
+                      onClick={() => startPassage(activePassage)}
+                      className="w-full py-4 mb-3 bg-[#FFD700] text-[#003399] font-black rounded-2xl shadow-lg hover:bg-[#ffcc00] active:scale-[0.98] transition-all uppercase tracking-widest"
+                    >
+                      ↻ ทำบทนี้อีกครั้ง (เพื่อพิชิต ⭐)
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => { setReadingView('LIST'); setActivePassage(null); }}
