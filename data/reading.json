@@ -1675,7 +1675,7 @@
         "limited",
         "contact"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -1775,7 +1775,7 @@
         "opening",
         "zone"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -1875,7 +1875,7 @@
         "password",
         "click"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -1975,7 +1975,7 @@
         "sustainable",
         "practical"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -2088,7 +2088,7 @@
         "notification",
         "value"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -2201,7 +2201,7 @@
         "delivery",
         "inconvenience"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -2281,6 +2281,423 @@
           ],
           "answerIndex": 2,
           "explanation_th": "ตอบข้อ C — จดหมายใช้ภาษาสุภาพ ขอโทษ และเป็นทางการ (Dear / Yours sincerely / accept our apologies) จึงเป็นน้ำเสียงสุภาพและเป็นมืออาชีพ"
+        }
+      ]
+    },
+    {
+      "id": "rd-b2-204",
+      "level": "B2",
+      "examStyle": "NETSAT",
+      "genre": "informative article",
+      "category": "article",
+      "title": "How Music Shapes the Brain",
+      "passage": "Most of us listen to music every day — on the way to school, while studying, or simply to relax — without thinking much about what it actually does to us. Yet over the past few decades, scientists have discovered that music is far more than entertainment. It affects the human brain in remarkable ways, shaping our emotions, our memory, our bodies, and even the way we learn.\n\nPerhaps the most obvious effect of music is on our mood. A fast, upbeat song can make us feel energetic, while a slow, gentle melody can calm us down or bring back distant memories. This happens because music triggers the release of chemicals in the brain that are linked to pleasure and reward — the same chemicals involved when we eat a favourite food or receive good news. This is why a single song can sometimes change the way we feel in a matter of seconds.\n\nMusic also has a surprisingly powerful connection to memory. Many people find it far easier to remember information when it is set to a tune; this is exactly why young children learn the alphabet through song. Researchers have even found that patients who have lost much of their memory through illness can still recall songs from their youth, long after most other memories have faded. The rhythm and melody seem to provide a kind of map that helps the brain store and later recover information.\n\nBeyond thoughts and feelings, music can even influence the body. Studies have shown that listening to a steady beat can help people walk more smoothly, which is why music is now used to support patients recovering from injuries that affect movement. Hospitals sometimes play calming music to lower patients' stress before an operation, and athletes rely on energetic playlists to push themselves further during training. The body, it seems, responds naturally to rhythm, often without our being aware of it.\n\nGiven all these benefits, it is tempting to assume that music always helps us study. The truth, however, is more complicated. Quiet background music without words may help some people concentrate, but loud music with lyrics often does the opposite, competing for the very attention that the task requires. Whether music helps or harms, in other words, depends on the person, the type of music, and the kind of work being done.\n\nWhat is clear is that music is deeply woven into the way our minds and bodies work. It can lift our spirits, unlock distant memories, ease pain, and, used wisely, support our learning. The next time you put on your headphones, it may be worth remembering that you are not simply hearing a song — you are giving your brain a gentle but genuine workout.",
+      "wordCount": 456,
+      "targetVocab": [
+        "melody",
+        "trigger",
+        "recover",
+        "concentrate",
+        "distant",
+        "genuine"
+      ],
+      "verified": false,
+      "source": "AI-generated (Claude) — teacher review required",
+      "questions": [
+        {
+          "id": "rd-b2-204-q1",
+          "type": "MAIN_IDEA",
+          "question": "What is the passage mainly about?",
+          "choices": [
+            "How to choose the best music for studying hard.",
+            "The many ways music affects the brain and body.",
+            "Why most young children enjoy singing the alphabet song.",
+            "The history of music in hospitals and sport."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — บทเล่าผลของดนตรีต่อสมองและร่างกายหลายด้าน (อารมณ์ ความจำ ร่างกาย การเรียน) ส่วน A/C/D เป็นรายละเอียดย่อย"
+        },
+        {
+          "id": "rd-b2-204-q2",
+          "type": "SUPPORTING_DETAIL",
+          "question": "Why can a song change how we feel so quickly?",
+          "choices": [
+            "Because it forces the body to move in rhythm.",
+            "Because it slowly improves our long-term memory over the years.",
+            "Because it blocks out all other nearby sounds.",
+            "Because it triggers brain chemicals linked to pleasure."
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — ย่อหน้าที่ 2 บอกว่าดนตรีกระตุ้นการหลั่งสารเคมีในสมองที่เชื่อมกับความสุข ทำให้อารมณ์เปลี่ยนได้ในไม่กี่วินาที"
+        },
+        {
+          "id": "rd-b2-204-q3",
+          "type": "SUPPORTING_DETAIL",
+          "question": "What does the passage say about music and memory?",
+          "choices": [
+            "Information set to a tune is often easier to recall.",
+            "Music erases painful memories from early childhood.",
+            "Only trained musicians can remember songs clearly.",
+            "Songs are harder to remember than spoken words."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ย่อหน้าที่ 3 ระบุว่าข้อมูลที่ใส่ทำนองจะจำง่ายขึ้น (เด็กเรียน ABC ผ่านเพลง) ตัวเลือกอื่นขัดกับบท"
+        },
+        {
+          "id": "rd-b2-204-q4",
+          "type": "SUPPORTING_DETAIL",
+          "question": "How is music used to help the body, according to the passage?",
+          "choices": [
+            "It is used to help patients fall fast asleep.",
+            "It is used to teach young children how to read printed music.",
+            "It is used to help patients recovering movement.",
+            "It is used to test how fast athletes can run."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ย่อหน้าที่ 4 บอกว่าจังหวะช่วยให้เดินได้ราบรื่นขึ้น จึงใช้ช่วยผู้ป่วยที่ฟื้นฟูการเคลื่อนไหว ตัวเลือกอื่นไม่ตรง"
+        },
+        {
+          "id": "rd-b2-204-q5",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "In paragraph 5, the word \"competing\" is closest in meaning to:",
+          "choices": [
+            "joining forces with",
+            "struggling to take",
+            "carefully listening to",
+            "fully paying for"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — \"competing for the attention\" หมายถึงแย่งความสนใจ ตรงกับ \"struggling to take\" บริบทคือเพลงดังมีเนื้อร้องไปแย่งสมาธิที่งานต้องใช้"
+        },
+        {
+          "id": "rd-b2-204-q6",
+          "type": "INFERENCE",
+          "question": "What can be inferred about playing loud music with lyrics while studying?",
+          "choices": [
+            "It always helps every student concentrate better.",
+            "It is the best way to remember new information.",
+            "It has no effect at all on how we work.",
+            "It may make it harder to focus on the task."
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — ย่อหน้าที่ 5 บอกว่าเพลงดังมีเนื้อร้องมักไปแย่งสมาธิ จึงอนุมานได้ว่าอาจทำให้โฟกัสงานยากขึ้น"
+        },
+        {
+          "id": "rd-b2-204-q7",
+          "type": "REFERENCE",
+          "question": "In paragraph 2, \"the same chemicals\" refers to chemicals involved when we:",
+          "choices": [
+            "eat a favourite food or hear good news",
+            "listen to a slow and gentle melody",
+            "lose our memory through a long illness",
+            "walk smoothly to a steady musical beat"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ประโยคนั้นเทียบว่าเป็นสารเคมีชุดเดียวกับตอน \"eat a favourite food or receive good news\" จึงตอบข้อ A"
+        },
+        {
+          "id": "rd-b2-204-q8",
+          "type": "PURPOSE_TONE",
+          "question": "What is the writer's main purpose?",
+          "choices": [
+            "To warn readers about the dangers of loud music.",
+            "To advertise a new brand of music headphones.",
+            "To explain how music affects the mind and body.",
+            "To prove that music is better than any medicine."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — บทอธิบายผลของดนตรีต่อจิตใจและร่างกายอย่างเป็นกลาง ไม่ได้เตือนภัย โฆษณา หรือพิสูจน์ว่าดีกว่ายา"
+        },
+        {
+          "id": "rd-b2-204-q9",
+          "type": "ORGANIZATION",
+          "question": "How is the passage mainly organized?",
+          "choices": [
+            "By telling one patient's story from start to end.",
+            "By describing several different effects of music.",
+            "By giving step-by-step instructions for studying.",
+            "By comparing two famous styles of music."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — บทไล่อธิบายผลของดนตรีทีละด้าน (อารมณ์ → ความจำ → ร่างกาย → การเรียน) จึงเป็นการบรรยายหลายผลกระทบ"
+        }
+      ]
+    },
+    {
+      "id": "rd-b2-205",
+      "level": "B2",
+      "examStyle": "NETSAT",
+      "genre": "argumentative article",
+      "category": "article",
+      "title": "Should Single-Use Plastics Be Banned?",
+      "passage": "Plastic bags, straws, bottles, and food containers have become part of daily life. They are cheap, light, and convenient — and they are almost everywhere. In recent years, however, many governments have begun to ban or tax single-use plastics: items that are designed to be thrown away after only one use. Supporters say such measures are long overdue, while critics argue that they cause more problems than they solve. So which side has the stronger case?\n\nThose in favour of banning single-use plastics point to the enormous damage these products cause. The great majority of them are never recycled. Instead, they end up in rivers, oceans, and landfills, where they can take hundreds of years to break down. Along the way, they harm wildlife: sea turtles mistake floating plastic bags for jellyfish, and seabirds feed tiny plastic fragments to their chicks. Every year, millions of tonnes of plastic flow into the sea, and much of it never truly disappears — it only breaks into smaller and smaller pieces. By cutting plastic off at the source, supporters argue, a ban deals with the problem before it begins, rather than relying on recycling systems that frequently fail.\n\nOpponents, however, raise a number of practical concerns. Plastic is cheap, light, and hygienic, and for some people it is genuinely hard to replace. Disabled people, for instance, may depend on flexible plastic straws that stiff paper ones cannot match. Small businesses worry about the rising cost of alternatives, and some scientists point out that producing paper or cotton bags can actually use more water and energy than making plastic ones. A poorly designed ban, they warn, may simply move the harm somewhere else rather than removing it.\n\nBoth sides make fair points, and the issue is rarely as simple as it first appears. A ban that removes plastic straws but ignores the far larger problem of plastic packaging may achieve very little in practice. On the other hand, doing nothing at all is clearly not a serious option, given the sheer scale of plastic pollution today. The wisest path may lie in careful design: banning the most harmful and least necessary items first, while offering affordable alternatives and protecting the small number of people who truly need certain plastic products.\n\nIn the end, single-use plastics offer a useful example of how environmental decisions are seldom black and white. Banning them can bring real and lasting benefits, but only if it is done thoughtfully, with proper attention to cost, fairness, and the wider picture. The aim, after all, is not merely to be seen to be doing something, but to make a genuine difference to the planet that we all share.",
+      "wordCount": 446,
+      "targetVocab": [
+        "convenient",
+        "fragment",
+        "genuine",
+        "damage",
+        "environmental",
+        "affordable"
+      ],
+      "verified": false,
+      "source": "AI-generated (Claude) — teacher review required",
+      "questions": [
+        {
+          "id": "rd-b2-205-q1",
+          "type": "MAIN_IDEA",
+          "question": "What is the main question the passage explores?",
+          "choices": [
+            "How plastic bottles and bags are made in factories.",
+            "Why plastic is cheaper than paper and cotton bags.",
+            "Whether single-use plastics should be banned or not.",
+            "How sea turtles and seabirds protect their young."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ทั้งบทถกว่าควรแบนพลาสติกใช้ครั้งเดียวหรือไม่ ตัวเลือกอื่นเป็นรายละเอียดย่อยหรือไม่ใช่ประเด็นหลัก"
+        },
+        {
+          "id": "rd-b2-205-q2",
+          "type": "SUPPORTING_DETAIL",
+          "question": "What do supporters of a ban say about most single-use plastics?",
+          "choices": [
+            "They are never recycled and last for hundreds of years.",
+            "They are cheaper to make than any other material.",
+            "They can easily be replaced by paper in almost every case.",
+            "They are safely burned without harming the air."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ย่อหน้าที่ 2 บอกว่าพลาสติกส่วนใหญ่ไม่ถูกรีไซเคิลและใช้เวลาย่อยสลายหลายร้อยปี ตัวเลือกอื่นไม่ใช่เหตุผลฝ่ายสนับสนุน"
+        },
+        {
+          "id": "rd-b2-205-q3",
+          "type": "SUPPORTING_DETAIL",
+          "question": "What practical concern do opponents of a ban raise?",
+          "choices": [
+            "Plastic is more dangerous to wildlife than glass is.",
+            "Recycling plastic is cheaper than producing it new.",
+            "Banning plastic would end all ocean pollution at once.",
+            "Some people genuinely need flexible plastic straws."
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — ย่อหน้าที่ 3 ยกตัวอย่างว่าผู้พิการบางคนต้องใช้หลอดพลาสติกที่งอได้ ซึ่งหลอดกระดาษแข็งแทนไม่ได้ ตัวเลือกอื่นไม่ใช่ข้อกังวลที่บทกล่าว"
+        },
+        {
+          "id": "rd-b2-205-q4",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "In paragraph 3, the word \"hygienic\" is closest in meaning to:",
+          "choices": [
+            "very expensive",
+            "clean and safe",
+            "easily broken",
+            "brightly coloured"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — \"hygienic\" แปลว่า ถูกสุขอนามัย/สะอาดปลอดภัย ตรงกับ \"clean and safe\""
+        },
+        {
+          "id": "rd-b2-205-q5",
+          "type": "INFERENCE",
+          "question": "What does the writer suggest about a ban on plastic straws alone?",
+          "choices": [
+            "It would completely solve the plastic problem.",
+            "It is the most important step a country can take.",
+            "It may do little if larger problems are ignored.",
+            "It would be impossible for any government to pass."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ย่อหน้าที่ 4 บอกว่าการแบนหลอดแต่ละเลยปัญหาบรรจุภัณฑ์ที่ใหญ่กว่าอาจได้ผลน้อย จึงอนุมานได้ว่าแบนเฉพาะหลอดอย่างเดียวช่วยได้ไม่มากถ้ามองข้ามปัญหาใหญ่"
+        },
+        {
+          "id": "rd-b2-205-q6",
+          "type": "REFERENCE",
+          "question": "In paragraph 3, the word \"alternatives\" refers to:",
+          "choices": [
+            "other materials used in place of plastic",
+            "the many different brands of plastic drinking straws",
+            "the small businesses that sell goods",
+            "laws that ban single-use plastics"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — บริบทพูดถึงต้นทุนของวัสดุทดแทนพลาสติก (กระดาษ/ผ้าฝ้าย) ดังนั้น alternatives จึงหมายถึงวัสดุอื่นที่ใช้แทนพลาสติก"
+        },
+        {
+          "id": "rd-b2-205-q7",
+          "type": "PURPOSE_TONE",
+          "question": "How would you best describe the writer's overall position?",
+          "choices": [
+            "Firmly against banning any plastic at all.",
+            "Completely certain that all bans are useless.",
+            "Uninterested in the issue of pollution.",
+            "Balanced, favouring careful and fair bans."
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — ผู้เขียนเสนอทั้งสองฝ่ายแล้วสรุปว่าควรแบนอย่างรอบคอบและเป็นธรรม จึงเป็นจุดยืนสมดุลที่หนุนการแบนแบบมีการออกแบบที่ดี"
+        },
+        {
+          "id": "rd-b2-205-q8",
+          "type": "ORGANIZATION",
+          "question": "How is the passage mainly organized?",
+          "choices": [
+            "It lists the steps for recycling plastic at home.",
+            "It gives both sides, then suggests a wise middle path.",
+            "It tells the story of one plastic bottle's journey.",
+            "It compares plastic pollution in two countries."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — บทเสนอฝ่ายสนับสนุน → ฝ่ายค้าน → แล้วเสนอทางสายกลางที่รอบคอบ จึงเป็นโครงแบบนี้"
+        },
+        {
+          "id": "rd-b2-205-q9",
+          "type": "INFERENCE",
+          "question": "Based on the passage, what would the writer most likely support?",
+          "choices": [
+            "Banning every single type of plastic immediately and completely.",
+            "Keeping all single-use plastics exactly as they are.",
+            "Banning the most harmful items while offering alternatives.",
+            "Leaving the decision entirely to plastic companies."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ผู้เขียนเสนอให้แบนสิ่งที่อันตรายและไม่จำเป็นที่สุดก่อน พร้อมจัดหาทางเลือกที่จับต้องได้ จึงน่าจะสนับสนุนแนวทางนี้"
+        }
+      ]
+    },
+    {
+      "id": "rd-c1-201",
+      "level": "C1",
+      "examStyle": "NETSAT",
+      "genre": "analytical article",
+      "category": "article",
+      "title": "Why We Procrastinate",
+      "passage": "Almost everyone has done it. A deadline is approaching, an important task is waiting, and yet we find ourselves tidying a desk, checking a phone, or watching just one more video instead. Procrastination — the habit of needlessly delaying what we know we should do — is one of the most common of human weaknesses. What makes it so puzzling is that we often procrastinate even when we fully understand that it will cost us dearly later. Why do intelligent, capable people so regularly act against their own interests?\n\nFor a long time, procrastination was dismissed as simple laziness or weak willpower. More recent research, however, suggests something far more interesting. Psychologists now argue that procrastination is less about managing time than about managing emotions. When a task makes us feel anxious, bored, or unsure of ourselves, putting it off offers instant relief. We are not really avoiding the work itself so much as avoiding the unpleasant feelings attached to it.\n\nThis helps explain why procrastination can feel so pleasant in the moment and so painful afterwards. By delaying a difficult task, we escape discomfort now, but we quietly hand a larger problem to our future selves. The relief we gain is genuine but temporary; the task does not vanish, and it usually grows more stressful as the deadline draws nearer. In this sense, procrastination behaves like a trap that rewards us immediately while punishing us in the long run.\n\nPart of the explanation lies in the way the human brain weighs time. We tend to value rewards that we can enjoy right now far more highly than benefits that lie somewhere in the future — a tendency that psychologists call \"present bias.\" The discomfort of beginning a hard task is immediate and vivid, while the satisfaction of completing it feels distant and abstract. Faced with this imbalance, the brain naturally leans towards the easier and more comfortable option in front of it.\n\nSeeing procrastination as an emotional habit, rather than a simple character flaw, points the way towards better solutions. Instead of merely ordering ourselves to \"try harder,\" we can make the first step smaller and less frightening — promising to work for just five minutes, for example, or breaking an enormous task into smaller, manageable pieces. Interestingly, research also suggests that forgiving ourselves for past delays makes us less likely to procrastinate again, because it removes some of the very anxiety that caused the problem in the first place.\n\nProcrastination, then, is not really a sign that we are lazy or foolish. It is a deeply human reaction to uncomfortable feelings, and like most habits, it can be understood and slowly changed. The next time you catch yourself delaying, the most useful question may not be \"Why am I so lazy?\" but rather \"What is it about this task that I am trying to avoid?\" — and that small shift in thinking can make a surprising difference.",
+      "wordCount": 489,
+      "targetVocab": [
+        "delay",
+        "anxious",
+        "temporary",
+        "abstract",
+        "anxiety",
+        "distant"
+      ],
+      "verified": false,
+      "source": "AI-generated (Claude) — teacher review required",
+      "questions": [
+        {
+          "id": "rd-c1-201-q1",
+          "type": "MAIN_IDEA",
+          "question": "What is the main idea of the passage?",
+          "choices": [
+            "Procrastination is caused mainly by poor time management.",
+            "Lazy people are the only ones who ever procrastinate.",
+            "Procrastination is an emotional habit that can be changed.",
+            "Most tasks are best left until the very last minute."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — แก่นของบทคือ การผัดวันประกันพรุ่งเป็นนิสัยทางอารมณ์ที่เข้าใจและค่อยๆ แก้ได้ ส่วน A/B ขัดกับงานวิจัยที่บทเสนอ และ D ไม่ใช่สาระ"
+        },
+        {
+          "id": "rd-c1-201-q2",
+          "type": "SUPPORTING_DETAIL",
+          "question": "According to recent research, what is procrastination really about?",
+          "choices": [
+            "Managing uncomfortable emotions rather than time.",
+            "Carefully planning every hour of the working day.",
+            "A lack of intelligence in otherwise capable people.",
+            "Choosing the hardest possible task to do first."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ย่อหน้าที่ 2 บอกว่างานวิจัยใหม่มองว่าการผัดงานเป็นเรื่องการจัดการ \"อารมณ์\" มากกว่าการจัดการเวลา"
+        },
+        {
+          "id": "rd-c1-201-q3",
+          "type": "SUPPORTING_DETAIL",
+          "question": "Why does the writer compare procrastination to a trap?",
+          "choices": [
+            "Because it is impossible for anyone to ever escape it.",
+            "Because it punishes us the moment we begin a task.",
+            "Because it slowly makes every task more enjoyable.",
+            "Because it rewards us now but punishes us later."
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — ย่อหน้าที่ 3 บอกว่าการผัดงานให้ความสุขทันทีแต่สร้างปัญหาที่ใหญ่ขึ้นในอนาคต จึงเหมือนกับดักที่ให้รางวัลตอนนี้แต่ลงโทษทีหลัง"
+        },
+        {
+          "id": "rd-c1-201-q4",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "In paragraph 4, the phrase \"present bias\" refers to the tendency to:",
+          "choices": [
+            "value future rewards more than immediate ones",
+            "value present rewards more than future ones",
+            "ignore both present and future rewards equally",
+            "treat present and future rewards as the same"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — บทอธิบายว่า present bias คือการให้ค่ารางวัลที่ได้ตอนนี้มากกว่ารางวัลในอนาคต จึงตรงกับข้อ B"
+        },
+        {
+          "id": "rd-c1-201-q5",
+          "type": "INFERENCE",
+          "question": "What can be inferred about starting a hard task?",
+          "choices": [
+            "It always feels easy once the deadline is close.",
+            "It brings an immediate and lasting sense of joy.",
+            "Its discomfort feels stronger than its distant reward.",
+            "It is impossible unless someone forces us to begin."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ย่อหน้าที่ 4 บอกว่าความอึดอัดตอนเริ่มงานนั้นชัดและทันที ขณะที่รางวัลตอนทำเสร็จดูไกลและเป็นนามธรรม จึงอนุมานได้ว่าความอึดอัดรู้สึกแรงกว่ารางวัลที่อยู่ไกล"
+        },
+        {
+          "id": "rd-c1-201-q6",
+          "type": "SUPPORTING_DETAIL",
+          "question": "What does research say about forgiving ourselves for past delays?",
+          "choices": [
+            "It makes us less likely to procrastinate again.",
+            "It encourages us to delay even more in future.",
+            "It has no measurable effect on our behaviour.",
+            "It works only for people who are naturally lazy."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ย่อหน้าที่ 5 ระบุว่าการให้อภัยตัวเองเรื่องการผัดงานในอดีตช่วยลดโอกาสผัดงานซ้ำ เพราะลดความวิตกที่เป็นต้นเหตุ"
+        },
+        {
+          "id": "rd-c1-201-q7",
+          "type": "VOCAB_IN_CONTEXT",
+          "question": "In paragraph 5, the word \"manageable\" is closest in meaning to:",
+          "choices": [
+            "extremely difficult to finish",
+            "completely impossible to start",
+            "far too large to even attempt",
+            "easy enough to deal with"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — \"manageable pieces\" หมายถึงชิ้นงานที่จัดการไหว ตรงกับ \"easy enough to deal with\" บริบทคือแบ่งงานใหญ่เป็นส่วนเล็กที่รับมือได้"
+        },
+        {
+          "id": "rd-c1-201-q8",
+          "type": "PURPOSE_TONE",
+          "question": "How would you best describe the writer's tone?",
+          "choices": [
+            "Harsh and strongly critical of lazy people.",
+            "Understanding, thoughtful, and encouraging.",
+            "Confused and unsure about the whole topic.",
+            "Amused, joking, and not at all serious."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ผู้เขียนอธิบายอย่างเข้าอกเข้าใจ ไม่ตัดสินว่าขี้เกียจ และเสนอทางออกเชิงให้กำลังใจ จึงเป็นน้ำเสียงเข้าใจและให้กำลังใจ"
+        },
+        {
+          "id": "rd-c1-201-q9",
+          "type": "ORGANIZATION",
+          "question": "How is the passage mainly organized?",
+          "choices": [
+            "It tells a single person's story in time order.",
+            "It lists steps for finishing tasks in strict order.",
+            "It explains a problem, its causes, then solutions.",
+            "It compares two famous psychologists' careers."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — บทเริ่มด้วยปัญหา (ทำไมเราผัดงาน) → อธิบายสาเหตุ (อารมณ์ + present bias) → เสนอทางแก้ จึงเป็นโครงปัญหา–สาเหตุ–ทางออก"
         }
       ]
     }
