@@ -1914,17 +1914,6 @@
     "type": "word"
   },
   {
-    "word": "defense",
-    "thai_meaning": "การป้องกัน",
-    "eng_definition": "the action of defending from or resisting attack",
-    "synonym": "protection",
-    "antonym": "offense",
-    "example_sentence": "The army is responsible for the country's defense.",
-    "level": "B1",
-    "part_of_speech": "noun",
-    "type": "word"
-  },
-  {
     "word": "master",
     "thai_meaning": "เจ้านาย, ผู้เชี่ยวชาญ",
     "eng_definition": "a skilled practitioner of a particular art or activity",
@@ -2263,17 +2252,6 @@
     "example_sentence": "The eastern part of the country is very mountainous.",
     "level": "B1",
     "part_of_speech": "adjective",
-    "type": "word"
-  },
-  {
-    "word": "labor",
-    "thai_meaning": "แรงงาน",
-    "eng_definition": "work, especially hard physical work",
-    "synonym": "work",
-    "antonym": "-",
-    "example_sentence": "The company faces a shortage of skilled labor.",
-    "level": "B1",
-    "part_of_speech": "noun",
     "type": "word"
   },
   {
@@ -4235,17 +4213,6 @@
     "type": "word"
   },
   {
-    "word": "favor",
-    "thai_meaning": "ความช่วยเหลือ, ความโปรดปราน",
-    "eng_definition": "an act of kindness beyond what is due or usual",
-    "synonym": "kindness",
-    "antonym": "disfavor",
-    "example_sentence": "Could you do me a favor and close the door?",
-    "level": "B1",
-    "part_of_speech": "noun",
-    "type": "word"
-  },
-  {
     "word": "frame",
     "thai_meaning": "กรอบ",
     "eng_definition": "a rigid structure that surrounds or encloses something",
@@ -5464,17 +5431,6 @@
     "example_sentence": "He grabbed his coat and ran out of the door.",
     "level": "B2",
     "part_of_speech": "verb",
-    "type": "word"
-  },
-  {
-    "word": "license",
-    "thai_meaning": "ใบอนุญาต",
-    "eng_definition": "a permit from an authority to own or use something, do a particular thing, or carry on a trade",
-    "synonym": "permit",
-    "antonym": "-",
-    "example_sentence": "You need a driver's license to drive a car.",
-    "level": "C1",
-    "part_of_speech": "noun",
     "type": "word"
   },
   {
@@ -11176,17 +11132,6 @@
     "type": "word"
   },
   {
-    "word": "judgment",
-    "thai_meaning": "การตัดสิน",
-    "eng_definition": "the ability to make considered decisions or come to sensible conclusions",
-    "synonym": "opinion",
-    "antonym": "-",
-    "example_sentence": "He showed good judgment in that situation.",
-    "level": "B2",
-    "part_of_speech": "noun",
-    "type": "word"
-  },
-  {
     "word": "mature",
     "thai_meaning": "บรรลุนิติภาวะ, โตเต็มที่",
     "eng_definition": "fully developed in body or mind",
@@ -11855,17 +11800,6 @@
     "example_sentence": "Respect is essential for building a strong, mutual friendship.",
     "level": "C1",
     "part_of_speech": "adjective",
-    "type": "word"
-  },
-  {
-    "word": "offense",
-    "thai_meaning": "การกระทำความผิด, การโจมตี",
-    "eng_definition": "an illegal act, or a crime that breaks a rule",
-    "synonym": "crime",
-    "antonym": "defense",
-    "example_sentence": "Stealing from a store is considered a serious offense.",
-    "level": "C1",
-    "part_of_speech": "noun",
     "type": "word"
   },
   {
@@ -15782,17 +15716,6 @@
     "example_sentence": "The technical team worked hard to eliminate bugs from the software.",
     "level": "B2",
     "part_of_speech": "verb",
-    "type": "word"
-  },
-  {
-    "word": "harbor",
-    "thai_meaning": "ท่าเรือ",
-    "eng_definition": "A sheltered area of water deep enough to provide ships safe anchorage.",
-    "synonym": "port",
-    "antonym": "-",
-    "example_sentence": "Several small fishing boats were docked safely inside the harbor.",
-    "level": "C1",
-    "part_of_speech": "noun",
     "type": "word"
   },
   {
@@ -19723,17 +19646,6 @@
     "type": "word"
   },
   {
-    "word": "fiber",
-    "thai_meaning": "เส้นใย",
-    "eng_definition": "a thread or filament from which a vegetable tissue or textile is formed",
-    "synonym": "thread",
-    "antonym": "-",
-    "example_sentence": "Fruits and vegetables are excellent sources of dietary fiber.",
-    "level": "C1",
-    "part_of_speech": "noun",
-    "type": "word"
-  },
-  {
     "word": "fried",
     "thai_meaning": "ทอด",
     "eng_definition": "cooked in hot fat or oil",
@@ -21907,17 +21819,6 @@
     "synonym": "consultant",
     "antonym": "-",
     "example_sentence": "Students should speak with an academic advisor before choosing classes.",
-    "level": "C1",
-    "part_of_speech": "noun",
-    "type": "word"
-  },
-  {
-    "word": "aluminum",
-    "thai_meaning": "อลูมิเนียม",
-    "eng_definition": "A lightweight, silvery-white metal used to make cans and airplane parts.",
-    "synonym": "-",
-    "antonym": "-",
-    "example_sentence": "Soft drink cans are typically made from recycled aluminum.",
     "level": "C1",
     "part_of_speech": "noun",
     "type": "word"
