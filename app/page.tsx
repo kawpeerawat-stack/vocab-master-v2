@@ -133,7 +133,6 @@ export default function Home() {
   // โหมดติว: ทั้งหมด / พื้นฐาน(B1) / ระดับสอบเข้ามหาลัย(B2·C1)
   const [examFocus, setExamFocus] = useState<'all' | 'foundation' | 'exam'>('all');
   // เลือกเจาะพาร์ท: null = ผสมทุกแนว, หรือเจาะประเภทเดียว
-  const [focusType, setFocusType] = useState<'SYNONYM' | 'ANTONYM' | 'SENTENCE' | 'MEANING' | 'TYPE' | null>(null);
   // จัดอันดับคนขยัน
   const [showRanking, setShowRanking] = useState(false);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[] | null>(null);
@@ -374,43 +373,9 @@ export default function Home() {
     beginRoundWithWords(weak);
   };
 
-  // ── รอบเจาะพาร์ทเดียว (เช่น Synonym ล้วน / อังกฤษ→ไทย ล้วน) ──
-  const startFocusRound = (type: 'SYNONYM' | 'ANTONYM' | 'SENTENCE' | 'MEANING' | 'TYPE') => {
-    if (vocabData.length === 0) {
-      alert("⚠️ ระบบยังโหลดคลังคำศัพท์ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บแล้วลองใหม่ครับ");
-      return;
-    }
-    // คัดเฉพาะคำที่ใช้กับประเภทนี้ได้
-    const eligible = vocabData.filter((w) => {
-      if (type === 'SYNONYM') return Boolean(w.synonym && w.synonym !== '-' && w.synonym.trim());
-      if (type === 'ANTONYM') return Boolean(w.antonym && w.antonym !== '-' && w.antonym.trim());
-      if (type === 'SENTENCE') return Boolean(w.example_sentence && w.example_sentence.trim());
-      return Boolean(w.thai_meaning && w.thai_meaning.trim()); // MEANING / TYPE
-    });
-    if (eligible.length === 0) {
-      alert("ยังไม่มีคำในคลังที่ใช้กับแนวนี้ได้ ลองเลือกแนวอื่นหรือโหมดผสมดูครับ");
-      return;
-    }
-    const levelPlan =
-      examFocus === 'foundation'
-        ? [{ level: 'B1', count: 10 }]
-        : examFocus === 'exam'
-        ? [{ level: 'B2', count: 7 }, { level: 'C1', count: 3 }]
-        : [{ level: 'B1', count: 4 }, { level: 'B2', count: 4 }, { level: 'C1', count: 2 }];
-    const picked = pickRound(srsStore, eligible, { total: TOTAL_QUESTIONS_PER_ROUND, levelPlan });
-    const wordMap = new Map(eligible.map((w) => [w.word, w]));
-    const words: WordItem[] = picked.map((w) => wordMap.get(w)).filter((w): w is WordItem => Boolean(w));
-    if (words.length === 0) {
-      alert("ยังไม่มีคำที่เหมาะกับแนวนี้ในระดับที่เลือก ลองเปลี่ยนโหมดติวเป็น 'ทั้งหมด' ดูครับ");
-      return;
-    }
-    beginRoundWithWords(words, type);
-  };
-
-  // ปุ่ม Start: ถ้าเลือกเจาะพาร์ทก็เล่นแนวนั้นล้วน, ไม่งั้นเล่นแบบผสม
+  // ปุ่ม Start: เล่นแบบผสมเสมอ (คละทุกแนวคำถาม — ใกล้เคียงข้อสอบจริงที่สุด)
   const handleStart = () => {
-    if (focusType) startFocusRound(focusType);
-    else startNewQuizRound();
+    startNewQuizRound();
   };
 
   const generateOptionsForQuestion = (correctItem: QuizQuestion, allItems: WordItem[]) => {
@@ -1732,40 +1697,6 @@ export default function Home() {
                 {examFocus === 'exam' && (
                   <div className="text-[10px] text-gray-400 text-center mt-2">เน้นคำระดับ B2–C1 สำหรับ TGAT / A-Level / NETSAT</div>
                 )}
-              </div>
-
-              {/* ── เลือกแนวข้อสอบ: ผสม หรือ เจาะพาร์ทเดียว ── */}
-              <div>
-                <div className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2 text-center">เลือกแนวข้อสอบ</div>
-                <div className="grid grid-cols-3 gap-2">
-                  {([
-                    { key: null, label: 'ผสม', sub: 'แนะนำ' },
-                    { key: 'SYNONYM', label: 'Synonym', sub: 'คำเหมือน' },
-                    { key: 'ANTONYM', label: 'Antonym', sub: 'คำตรงข้าม' },
-                    { key: 'SENTENCE', label: 'Context', sub: 'เดาจากบริบท' },
-                    { key: 'MEANING', label: 'Eng→Thai', sub: 'เลือกความหมาย' },
-                    { key: 'TYPE', label: 'Thai→Eng', sub: 'พิมพ์คำ' },
-                  ] as const).map((opt) => (
-                    <button
-                      key={opt.label}
-                      type="button"
-                      onClick={() => setFocusType(opt.key)}
-                      className={`py-2 rounded-xl border-2 text-center transition-all ${
-                        focusType === opt.key
-                          ? 'bg-[#003399] border-[#003399] text-[#FFD700] shadow-sm'
-                          : 'bg-white border-gray-200 text-gray-600 hover:border-[#003399]/40'
-                      }`}
-                    >
-                      <div className="text-[13px] font-black">{opt.label}</div>
-                      <div className="text-[9px] font-bold opacity-70">{opt.sub}</div>
-                    </button>
-                  ))}
-                </div>
-                <div className="text-[10px] text-gray-400 text-center mt-2">
-                  {focusType
-                    ? 'ฝึกเจาะแนวนี้ล้วน 10 ข้อ — เหมาะกับการซ้อมจุดอ่อน'
-                    : 'คละทุกแนวใน 1 ชุด — จำได้แม่นและใกล้เคียงข้อสอบจริงที่สุด'}
-                </div>
               </div>
 
               <button
