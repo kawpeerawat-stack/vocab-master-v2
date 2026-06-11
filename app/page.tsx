@@ -116,6 +116,7 @@ export default function Home() {
   const [convPreview, setConvPreview] = useState(false); // ครูเปิดดูชุดที่ยังไม่ตรวจ
   const [convView, setConvView] = useState<'LIST' | 'PLAY' | 'RESULT'>('LIST');
   const [convCat, setConvCat] = useState<string>('ALL'); // หมวดที่กำลังกรองในหน้ารายการบทสนทนา
+  const [convExam, setConvExam] = useState<string>('ALL'); // สนามสอบที่กำลังกรองในห้องสนทนา (มีแค่ TGAT/A-Level — NETSAT ไม่มีพาร์ตนี้)
   const [activeConv, setActiveConv] = useState<ConvSet | null>(null);
   const [cIndex, setCIndex] = useState(0);
   const [cSelected, setCSelected] = useState<number | null>(null);
@@ -798,9 +799,13 @@ export default function Home() {
   };
 
   const visibleConvSets = convPreview ? conversationSets : conversationSets.filter((s) => s.verified);
-  const convCatsPresent = CONV_CATEGORY_ORDER.filter((c) => visibleConvSets.some((s) => (s.category || 'other') === c));
+  // ── ชั้นกรองสนามสอบห้องสนทนา (โชว์เฉพาะสนามที่มีชุดจริง — NETSAT ไม่มีพาร์ต Conversation ตาม blueprint) ──
+  const convExamsPresent = EXAM_ORDER.filter((e) => visibleConvSets.some((s) => s.examStyle === e));
+  const convEffectiveExam = convExam !== 'ALL' && convExamsPresent.includes(convExam) ? convExam : 'ALL';
+  const convExamFiltered = convEffectiveExam === 'ALL' ? visibleConvSets : visibleConvSets.filter((s) => s.examStyle === convEffectiveExam);
+  const convCatsPresent = CONV_CATEGORY_ORDER.filter((c) => convExamFiltered.some((s) => (s.category || 'other') === c));
   const convEffectiveCat = convCat !== 'ALL' && convCatsPresent.includes(convCat) ? convCat : 'ALL';
-  const shownConvSets = convEffectiveCat === 'ALL' ? visibleConvSets : visibleConvSets.filter((s) => (s.category || 'other') === convEffectiveCat);
+  const shownConvSets = convEffectiveCat === 'ALL' ? convExamFiltered : convExamFiltered.filter((s) => (s.category || 'other') === convEffectiveCat);
   const hasUnverifiedConv = conversationSets.some((s) => !s.verified);
 
   return (
@@ -949,6 +954,32 @@ export default function Home() {
                   โหมดครู: แสดงชุดที่ยังไม่ได้ตรวจ (สำหรับทดสอบก่อนเปิดให้นักเรียน)
                 </label>
 
+                {/* ── แท็บสนามสอบห้องสนทนา (TGAT/A-Level เท่านั้น — NETSAT ไม่มีพาร์ตนี้) ── */}
+                {!convLoading && convExamsPresent.length > 1 && (
+                  <div className="flex flex-wrap gap-2 justify-center mb-2">
+                    <button
+                      type="button"
+                      onClick={() => { setConvExam('ALL'); setConvCat('ALL'); }}
+                      className={`text-sm font-black px-4 py-2 rounded-2xl border-2 transition-all ${convEffectiveExam === 'ALL' ? 'bg-[#FFD700] text-[#003399] border-[#003399]' : 'bg-white text-[#003399] border-[#003399]/25 hover:border-[#003399]/50'}`}
+                    >
+                      ทั้งหมด ({visibleConvSets.length})
+                    </button>
+                    {convExamsPresent.map((e) => {
+                      const n = visibleConvSets.filter((s) => s.examStyle === e).length;
+                      return (
+                        <button
+                          key={e}
+                          type="button"
+                          onClick={() => { setConvExam(e); setConvCat('ALL'); }}
+                          className={`text-sm font-black px-4 py-2 rounded-2xl border-2 transition-all ${convEffectiveExam === e ? 'bg-[#FFD700] text-[#003399] border-[#003399]' : 'bg-white text-[#003399] border-[#003399]/25 hover:border-[#003399]/50'}`}
+                        >
+                          {e} ({n})
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
                 {!convLoading && convCatsPresent.length > 1 && (
                   <div className="flex flex-wrap gap-2 justify-center mb-4">
                     <button
@@ -956,10 +987,10 @@ export default function Home() {
                       onClick={() => setConvCat('ALL')}
                       className={`text-xs font-black px-3 py-1.5 rounded-full border-2 transition-all ${convEffectiveCat === 'ALL' ? 'bg-[#003399] text-white border-[#003399]' : 'bg-white text-[#003399] border-[#003399]/25 hover:border-[#003399]/50'}`}
                     >
-                      ทั้งหมด ({visibleConvSets.length})
+                      ทั้งหมด ({convExamFiltered.length})
                     </button>
                     {convCatsPresent.map((c) => {
-                      const n = visibleConvSets.filter((s) => (s.category || 'other') === c).length;
+                      const n = convExamFiltered.filter((s) => (s.category || 'other') === c).length;
                       return (
                         <button
                           key={c}
