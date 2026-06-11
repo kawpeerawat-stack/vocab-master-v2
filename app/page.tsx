@@ -101,8 +101,7 @@ export default function Home() {
   const [readingCat, setReadingCat] = useState<string>('ALL'); // หมวดที่กำลังกรองในหน้ารายการบทอ่าน
   const [activePassage, setActivePassage] = useState<ReadingPassage | null>(null);
   const [rIndex, setRIndex] = useState(0);
-  const [rSelected, setRSelected] = useState<number | null>(null);
-  const [rAnswered, setRAnswered] = useState(false);
+  const [rAnswers, setRAnswers] = useState<(number | null)[]>([]); // คำตอบที่เลือกของแต่ละข้อ (โหมดข้อสอบ — เปลี่ยนได้จนกว่าจะส่ง)
   const [rResults, setRResults] = useState<{ qid: string; type: string; selected: number; correct: boolean }[]>([]);
   const [rSaving, setRSaving] = useState(false);
   const [glossWord, setGlossWord] = useState<string | null>(null); // คำใน targetVocab ที่กำลังเปิดดูคำแปล
@@ -629,21 +628,34 @@ export default function Home() {
   const startPassage = (p: ReadingPassage) => {
     setActivePassage(p);
     setRIndex(0);
-    setRSelected(null);
-    setRAnswered(false);
+    setRAnswers(new Array(p.questions.length).fill(null));
     setRResults([]);
     setGlossWord(null);
     setReadingView('PLAY');
   };
 
-  // ตอบคำถามข้อปัจจุบัน
-  const answerReading = (choiceIndex: number) => {
-    if (rAnswered || !activePassage) return;
-    const q = activePassage.questions[rIndex];
-    const correct = choiceIndex === q.answerIndex;
-    setRSelected(choiceIndex);
-    setRAnswered(true);
-    setRResults((prev) => [...prev, { qid: q.id, type: q.type, selected: choiceIndex, correct }]);
+  // เลือก/เปลี่ยนคำตอบข้อปัจจุบัน (โหมดข้อสอบ — ยังไม่เฉลยจนกว่าจะกดส่ง)
+  const selectReadingAnswer = (choiceIndex: number) => {
+    if (!activePassage) return;
+    setRAnswers((prev) => {
+      const next = [...prev];
+      next[rIndex] = choiceIndex;
+      return next;
+    });
+  };
+
+  // ส่งคำตอบทั้งหมด → ตรวจรวมทีเดียว แล้วไปหน้าสรุปผล (พร้อมเฉลย+คำอธิบายทุกข้อ)
+  const submitReading = () => {
+    if (!activePassage) return;
+    if (rAnswers.some((a) => a === null || a === undefined)) return; // ต้องตอบครบก่อนส่ง
+    const results = activePassage.questions.map((q, i) => ({
+      qid: q.id,
+      type: q.type,
+      selected: rAnswers[i] as number,
+      correct: rAnswers[i] === q.answerIndex,
+    }));
+    setRResults(results);
+    finishReading(results);
   };
 
   // สรุปผลเมื่อทำครบทุกข้อ
@@ -680,18 +692,6 @@ export default function Home() {
       } finally {
         setRSaving(false);
       }
-    }
-  };
-
-  // ไปข้อถัดไป หรือจบรอบถ้าหมดแล้ว
-  const nextReadingQuestion = () => {
-    if (!activePassage) return;
-    if (rIndex + 1 >= activePassage.questions.length) {
-      finishReading(rResults);
-    } else {
-      setRIndex((i) => i + 1);
-      setRSelected(null);
-      setRAnswered(false);
     }
   };
 
@@ -1385,56 +1385,102 @@ export default function Home() {
                     </div>
                   )}
 
-                  {/* คำถาม */}
+                  {/* คำถาม — โหมดข้อสอบ: เลื่อนดูทุกข้อได้อิสระ เลือกแล้วเปลี่ยนได้ ส่งรวมตอนท้าย */}
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[11px] font-black bg-[#FFD700] text-[#003399] px-2 py-0.5 rounded-full">{RQTYPE_LABELS[q.type]}</span>
                     <span className="text-xs font-bold text-gray-400">ข้อ {rIndex + 1} / {activePassage.questions.length}</span>
                   </div>
+
+                  {/* จุดนำทางข้อ — เทคนิคข้อสอบ: กวาดตาดูคำถามทุกข้อก่อนอ่านบท แล้วกดกลับมาตอบทีหลังได้ */}
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {activePassage.questions.map((qq, i) => {
+                      const answered = rAnswers[i] !== null && rAnswers[i] !== undefined;
+                      const isCur = i === rIndex;
+                      return (
+                        <button
+                          key={qq.id}
+                          type="button"
+                          onClick={() => setRIndex(i)}
+                          className={`w-8 h-8 rounded-full text-xs font-black border-2 transition-all ${
+                            isCur
+                              ? 'bg-[#FFD700] border-[#003399] text-[#003399] scale-110'
+                              : answered
+                              ? 'bg-[#003399] border-[#003399] text-white'
+                              : 'bg-white border-gray-300 text-gray-500 hover:border-[#003399]/50'
+                          }`}
+                        >
+                          {i + 1}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="text-[10px] text-gray-400 mb-3">💡 เทคนิค: กวาดตาดู &quot;คำถาม&quot; ทุกข้อก่อนอ่านบท — กดตัวเลขเพื่อข้ามไปดู/ย้อนกลับมาตอบได้ทุกเมื่อ</p>
+
                   <p className="font-black text-gray-900 text-[15px] mb-3 leading-snug">{q.question}</p>
 
                   <div className="space-y-2">
                     {q.choices.map((c, idx) => {
                       const letter = String.fromCharCode(65 + idx);
-                      let cls = 'bg-white border-gray-200 text-gray-700 hover:border-[#003399]/40';
-                      if (rAnswered) {
-                        if (idx === q.answerIndex) cls = 'bg-green-50 border-green-400 text-green-800';
-                        else if (idx === rSelected) cls = 'bg-rose-50 border-rose-400 text-rose-700';
-                        else cls = 'bg-white border-gray-100 text-gray-400';
-                      }
+                      const isSel = rAnswers[rIndex] === idx;
                       return (
                         <button
                           key={idx}
                           type="button"
-                          disabled={rAnswered}
-                          onClick={() => answerReading(idx)}
-                          className={`w-full text-left p-3 rounded-xl border-2 font-bold text-[14px] transition-all flex gap-2 ${cls}`}
+                          onClick={() => selectReadingAnswer(idx)}
+                          className={`w-full text-left p-3 rounded-xl border-2 font-bold text-[14px] transition-all flex gap-2 ${
+                            isSel
+                              ? 'bg-[#003399] border-[#003399] text-[#FFD700] shadow-sm'
+                              : 'bg-white border-gray-200 text-gray-700 hover:border-[#003399]/40'
+                          }`}
                         >
                           <span className="font-black">{letter}.</span>
                           <span className="flex-1">{c}</span>
-                          {rAnswered && idx === q.answerIndex && <span>✓</span>}
-                          {rAnswered && idx === rSelected && idx !== q.answerIndex && <span>✗</span>}
+                          {isSel && <span>✔</span>}
                         </button>
                       );
                     })}
                   </div>
 
-                  {/* เฉลย + คำอธิบาย */}
-                  {rAnswered && (
-                    <div className="mt-3 bg-[#003399]/5 border border-[#003399]/15 rounded-2xl p-4 animate-fadeIn">
-                      <div className="text-xs font-black text-[#003399] uppercase tracking-wide mb-1">💡 คำอธิบาย</div>
-                      <p className="text-[14px] text-gray-700 leading-relaxed">{q.explanation_th}</p>
-                    </div>
-                  )}
-
-                  {rAnswered && (
+                  {/* นำทาง ไป-กลับ */}
+                  <div className="flex gap-2 mt-4">
                     <button
                       type="button"
-                      onClick={nextReadingQuestion}
-                      className="w-full mt-4 py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg hover:bg-[#002266] active:scale-[0.98] transition-all uppercase tracking-widest"
+                      onClick={() => setRIndex((i) => Math.max(0, i - 1))}
+                      disabled={rIndex === 0}
+                      className="flex-1 py-3 rounded-2xl font-black border-2 border-[#003399]/20 text-[#003399] bg-white disabled:opacity-30 hover:border-[#003399]/50 active:scale-[0.98] transition-all"
                     >
-                      {rIndex + 1 >= activePassage.questions.length ? 'ดูผลสรุป' : 'ข้อถัดไป →'}
+                      ← ก่อนหน้า
                     </button>
-                  )}
+                    <button
+                      type="button"
+                      onClick={() => setRIndex((i) => Math.min(activePassage.questions.length - 1, i + 1))}
+                      disabled={rIndex + 1 >= activePassage.questions.length}
+                      className="flex-1 py-3 rounded-2xl font-black border-2 border-[#003399]/20 text-[#003399] bg-white disabled:opacity-30 hover:border-[#003399]/50 active:scale-[0.98] transition-all"
+                    >
+                      ถัดไป →
+                    </button>
+                  </div>
+
+                  {/* ส่งคำตอบ (ต้องครบทุกข้อ) */}
+                  {(() => {
+                    const answeredCount = rAnswers.filter((a) => a !== null && a !== undefined).length;
+                    const totalQ = activePassage.questions.length;
+                    const ready = answeredCount === totalQ;
+                    return (
+                      <button
+                        type="button"
+                        onClick={submitReading}
+                        disabled={!ready}
+                        className={`w-full mt-3 py-4 font-black rounded-2xl shadow-lg uppercase tracking-widest transition-all ${
+                          ready
+                            ? 'bg-[#003399] text-[#FFD700] hover:bg-[#002266] active:scale-[0.98]'
+                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        }`}
+                      >
+                        {ready ? '📤 ส่งคำตอบ · ดูผลสรุป' : `ตอบแล้ว ${answeredCount}/${totalQ} ข้อ — ตอบให้ครบก่อนส่ง`}
+                      </button>
+                    );
+                  })()}
                 </div>
               );
             })()}
