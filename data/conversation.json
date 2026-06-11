@@ -285,7 +285,7 @@
       "scenario_th": "ลูกค้าสั่งเครื่องดื่มที่ร้านกาแฟ — เลือกประโยคเติมช่องว่างให้บทสนทนาสมบูรณ์",
       "dialogue": "A: Hi there! What can I get for you today?\nB: _____\nA: Sure. Would you like anything to eat with that?\nB: No thanks, just the coffee.",
       "targetVocab": [],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "category": "daily",
       "questions": [
@@ -294,9 +294,9 @@
           "question": "What best completes the conversation (the blank)?",
           "choices": [
             "Can I have a medium coffee, please?",
-            "I went to this café yesterday.",
-            "The weather is very cold today.",
-            "No, I don't have a car."
+            "I came to this café just yesterday.",
+            "The weather feels quite cold today.",
+            "No, I don't actually have my own car."
           ],
           "answerIndex": 0,
           "explanation_th": "ตอบข้อ A — พนักงานถามว่าจะรับอะไร การตอบที่เหมาะคือสั่งเครื่องดื่ม เช่น \"Can I have a medium coffee, please?\" สอดคล้องกับประโยคถัดมาที่พูดถึงกาแฟ ตัวเลือกอื่นไม่ตอบคำถาม"
@@ -305,10 +305,10 @@
           "id": "cv-b1-short-101-q2",
           "question": "When Speaker B says \"No thanks,\" what is B doing?",
           "choices": [
-            "Declining the offer of food",
-            "Refusing to pay for the coffee",
-            "Asking for the bill",
-            "Complaining about the service"
+            "Declining the offer of something to eat",
+            "Refusing to pay for the coffee at all",
+            "Asking the waiter to bring over the bill",
+            "Complaining about the slow service"
           ],
           "answerIndex": 0,
           "explanation_th": "ตอบข้อ A — พนักงานถามว่าจะรับอาหารด้วยไหม B ตอบ \"No thanks, just the coffee\" จึงเป็นการปฏิเสธข้อเสนอเรื่องอาหารอย่างสุภาพ ไม่ใช่ปฏิเสธกาแฟหรือขอบิล"
@@ -324,7 +324,7 @@
       "scenario_th": "เลือกประโยคตอบที่เหมาะสมที่สุดในสถานการณ์ห้องเรียน (แนวถาม–ตอบ)",
       "dialogue": "",
       "targetVocab": [],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "category": "school",
       "questions": [
@@ -333,9 +333,9 @@
           "question": "Teacher: \"Could you please hand in your homework now?\"\nWhich is the most appropriate response?",
           "choices": [
             "Here it is. Sorry it's a little late.",
-            "I really like this classroom.",
-            "The school bus was red.",
-            "Yes, I have a pet dog."
+            "I really do like this large classroom.",
+            "The school bus this morning was red.",
+            "Yes, I have a small pet dog at home."
           ],
           "answerIndex": 0,
           "explanation_th": "ตอบข้อ A — ครูขอให้ส่งการบ้าน การตอบที่เหมาะคือส่งงานพร้อมคำพูดสุภาพ เช่น \"Here it is...\" ตัวเลือกอื่นไม่เกี่ยวกับคำขอ"
@@ -344,10 +344,10 @@
           "id": "cv-b1-qr-101-q2",
           "question": "Classmate: \"I didn't really understand today's lesson. Did you?\"\nWhich response is most natural?",
           "choices": [
-            "Not really. Maybe we can ask the teacher together.",
-            "I had lunch at noon.",
-            "The library is upstairs.",
-            "No, I'm not tired at all."
+            "Not really. Maybe we can go and ask the teacher.",
+            "I had quite a big lunch at around noon time today.",
+            "The school library is right upstairs from here.",
+            "No, I'm not feeling at all tired right now."
           ],
           "answerIndex": 0,
           "explanation_th": "ตอบข้อ A — เพื่อนบอกว่าไม่เข้าใจบทเรียนและถามกลับ การตอบที่เป็นธรรมชาติคือแสดงความเห็นใจและเสนอทางแก้ เช่น ไปถามครูด้วยกัน ตัวเลือกอื่นไม่เข้าบริบท"
@@ -356,10 +356,10 @@
           "id": "cv-b1-qr-101-q3",
           "question": "Teacher: \"Well done on your presentation today!\"\nWhich is the best response?",
           "choices": [
-            "Thank you. I practised a lot.",
-            "It is raining outside.",
-            "I don't know the answer.",
-            "Can I borrow a pen?"
+            "Thank you. I practised it a lot beforehand.",
+            "It is raining quite hard outside right now.",
+            "I really don't know the answer to that.",
+            "Could I please borrow a pen from you?"
           ],
           "answerIndex": 0,
           "explanation_th": "ตอบข้อ A — เมื่อได้รับคำชม การตอบที่สุภาพคือกล่าวขอบคุณ เช่น \"Thank you. I practised a lot.\" ตัวเลือกอื่นไม่ตอบรับคำชม"
@@ -375,7 +375,7 @@
       "scenario_th": "บทสนทนาสัมภาษณ์งานพาร์ทไทม์ระหว่างผู้จัดการ (A) กับนักเรียน (B) — อ่านแล้วตอบคำถามความเข้าใจ",
       "dialogue": "A: Thanks for coming in. So, why are you interested in this part-time position?\nB: I'd like to gain some work experience, and the hours fit well around my classes.\nA: That's good to hear. The job involves serving customers and handling payments. Are you comfortable with that?\nB: Yes. I worked at my family's shop last summer, so I'm used to dealing with customers.\nA: Great. One thing to note — weekends can get very busy. Would that be a problem for you?\nB: Not at all. I'm actually free most weekends.\nA: Perfect. We'll let you know by Friday.",
       "targetVocab": [],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "category": "work",
       "questions": [
@@ -383,10 +383,10 @@
           "id": "cv-b2-long-101-q1",
           "question": "Why does B want the job?",
           "choices": [
-            "To gain work experience and because the hours suit his classes",
-            "Because the salary is very high",
-            "Because his family told him to apply",
-            "Because he wants to leave school"
+            "To gain work experience and because the hours suit him",
+            "Because the salary for this job is extremely high",
+            "Because his own family firmly told him that he had to apply",
+            "Because he is hoping to leave school very soon"
           ],
           "answerIndex": 0,
           "explanation_th": "ตอบข้อ A — B บอกว่า \"I'd like to gain some work experience, and the hours fit well around my classes\" ตัวเลือกอื่นไม่ได้กล่าวถึงในบทสนทนา"
@@ -395,10 +395,10 @@
           "id": "cv-b2-long-101-q2",
           "question": "What relevant experience does B mention?",
           "choices": [
-            "Working at his family's shop last summer",
-            "Studying business at university",
-            "Volunteering at a hospital",
-            "Managing a large company"
+            "Working at his family's shop during last summer",
+            "Studying business management at a university",
+            "Doing volunteer work at a local hospital ward",
+            "Managing a fairly large company for a whole year"
           ],
           "answerIndex": 0,
           "explanation_th": "ตอบข้อ A — B กล่าวว่า \"I worked at my family's shop last summer, so I'm used to dealing with customers\" จึงเป็นประสบการณ์ที่เกี่ยวข้อง"
@@ -407,10 +407,10 @@
           "id": "cv-b2-long-101-q3",
           "question": "What does the manager warn B about?",
           "choices": [
-            "Weekends can get very busy.",
-            "The pay is quite low.",
-            "The shop may close soon.",
-            "Customers are often rude."
+            "That weekends can sometimes get very busy",
+            "That the pay is going to be rather low",
+            "That the shop might have to close down soon",
+            "That the customers are often quite rude"
           ],
           "answerIndex": 0,
           "explanation_th": "ตอบข้อ A — ผู้จัดการเตือนว่า \"weekends can get very busy\" แล้วถามว่าจะเป็นปัญหาไหม ตัวเลือกอื่นไม่ได้กล่าวถึง"
@@ -419,10 +419,10 @@
           "id": "cv-b2-long-101-q4",
           "question": "What can we infer about B from the conversation?",
           "choices": [
-            "He seems well-prepared and suitable for the job.",
-            "He is not interested in the position.",
-            "He has never spoken to customers before.",
-            "He cannot work on weekends."
+            "He seems well-prepared and suitable for the job",
+            "He is clearly not at all interested in the position",
+            "He has never once spoken to any customers",
+            "He is unable to work on weekends at all"
           ],
           "answerIndex": 0,
           "explanation_th": "ตอบข้อ A — B ตอบทุกคำถามอย่างมั่นใจ มีประสบการณ์ตรง และว่างช่วงสุดสัปดาห์ จึงอนุมานได้ว่าเขาเตรียมพร้อมและเหมาะกับงาน"
@@ -431,10 +431,10 @@
           "id": "cv-b2-long-101-q5",
           "question": "What does the manager mean by \"We'll let you know by Friday\"?",
           "choices": [
-            "A final decision has not been made yet.",
-            "B has definitely got the job.",
-            "B has not got the job.",
-            "B must start work on Friday."
+            "A final decision about him has not been made yet",
+            "He has definitely been given the job already",
+            "He has clearly not been given the job at all",
+            "He has to start working there this very Friday"
           ],
           "answerIndex": 0,
           "explanation_th": "ตอบข้อ A — ประโยคนี้หมายความว่ายังไม่ได้ตัดสินใจ จะแจ้งผลภายในวันศุกร์ ไม่ใช่การยืนยันรับหรือปฏิเสธ และไม่ใช่วันเริ่มงาน"
@@ -450,7 +450,7 @@
       "scenario_th": "ผู้โดยสารเช็กอินที่สนามบิน — เลือกประโยคเติมช่องว่างให้บทสนทนาสมบูรณ์",
       "dialogue": "A: Good morning. May I see your passport and ticket, please?\nB: Here you are.\nA: Thank you. _____\nB: Just this one suitcase, and a small backpack as carry-on.\nA: That's fine. Your flight boards at gate 12.",
       "targetVocab": [],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "category": "travel",
       "questions": [
@@ -458,10 +458,10 @@
           "id": "cv-b2-short-101-q1",
           "question": "What best completes the blank?",
           "choices": [
-            "How many bags will you be checking in?",
-            "Have you visited this country before?",
-            "Would you prefer a window or aisle seat?",
-            "What time did you arrive at the airport?"
+            "How many bags will you be checking in today?",
+            "Have you ever visited this country before now?",
+            "Would you prefer a window or an aisle seat?",
+            "What time did you reach the airport today?"
           ],
           "answerIndex": 0,
           "explanation_th": "ตอบข้อ A — คำตอบถัดมา B บอกจำนวนกระเป๋า (\"one suitcase... a small backpack as carry-on\") ดังนั้นช่องว่างต้องเป็นคำถามเรื่องจำนวนกระเป๋าที่จะโหลด ตัวเลือกอื่นไม่ตรงกับคำตอบ"
@@ -470,10 +470,10 @@
           "id": "cv-b2-short-101-q2",
           "question": "In this context, \"carry-on\" most likely means a bag that:",
           "choices": [
-            "is checked into the aircraft's hold",
-            "you take with you into the cabin",
-            "is left at the airport",
-            "can only hold documents"
+            "is checked into the hold below the plane",
+            "you carry with you into the plane cabin",
+            "is left behind at the airport check-in",
+            "can only hold a few small paper documents"
           ],
           "answerIndex": 1,
           "explanation_th": "ตอบข้อ B — \"carry-on\" คือกระเป๋าที่ถือขึ้นไปในห้องโดยสารเครื่องบิน (ตรงข้ามกับกระเป๋าที่โหลดใต้ท้องเครื่อง) บริบทคือกระเป๋าใบเล็กที่นำติดตัว"
@@ -489,7 +489,7 @@
       "scenario_th": "นักเรียนสองคน (A, B) ถกกันเรื่องหัวข้อโปรเจกต์กลุ่ม — อ่านแล้วตอบคำถามความเข้าใจและการตีความ",
       "dialogue": "A: I think we should focus the project entirely on renewable energy. It's the strongest topic.\nB: I see your point, but if we narrow it that much, we might leave out other important issues, like saving energy at home.\nA: That's fair, though I worry we'll run out of time if we try to cover too much.\nB: How about this — we make renewable energy the main focus, but add one short section on saving energy?\nA: That actually sounds like a good compromise. Let's do that.",
       "targetVocab": [],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "category": "school",
       "questions": [
@@ -498,9 +498,9 @@
           "question": "What are A and B mainly discussing?",
           "choices": [
             "How to decide the focus of their group project",
-            "Which teacher to ask for help",
-            "When to submit the project",
-            "Where to find renewable energy"
+            "Which teacher they ought to ask for some help",
+            "When exactly they should submit the project",
+            "Where to find good sources on renewable energy"
           ],
           "answerIndex": 0,
           "explanation_th": "ตอบข้อ A — ทั้งบทสนทนาเป็นการถกว่าควรให้โปรเจกต์เน้นเรื่องใด (พลังงานหมุนเวียนล้วน หรือรวมเรื่องประหยัดพลังงานด้วย) ตัวเลือกอื่นไม่ได้พูดถึง"
@@ -509,10 +509,10 @@
           "id": "cv-c1-long-101-q2",
           "question": "What is B's concern about A's original idea?",
           "choices": [
-            "Narrowing the topic might leave out other important issues.",
-            "Renewable energy is not an interesting topic.",
-            "The project will be too easy.",
-            "A is doing all the work alone."
+            "Narrowing the topic might leave out other key issues",
+            "Renewable energy is not a very interesting topic",
+            "The whole project will probably turn out to be far too easy",
+            "Speaker A is doing all of the work entirely alone"
           ],
           "answerIndex": 0,
           "explanation_th": "ตอบข้อ A — B กังวลว่า \"if we narrow it that much, we might leave out other important issues\" จึงเสนอให้รวมเรื่องประหยัดพลังงานด้วย"
@@ -521,10 +521,10 @@
           "id": "cv-c1-long-101-q3",
           "question": "When A says \"That's fair,\" A is:",
           "choices": [
-            "acknowledging that B's point has merit",
-            "completely rejecting B's idea",
-            "asking B to be quiet",
-            "changing the subject"
+            "acknowledging that B's point does have some merit",
+            "completely rejecting B's idea without any thought",
+            "politely asking B to stay quiet for a moment",
+            "trying to change the subject of the discussion"
           ],
           "answerIndex": 0,
           "explanation_th": "ตอบข้อ A — \"That's fair\" เป็นการยอมรับว่าข้อโต้แย้งของ B มีเหตุผล (แม้ A จะเสริมข้อกังวลเรื่องเวลาต่อ) ไม่ใช่การปฏิเสธหรือเปลี่ยนเรื่อง"
@@ -534,9 +534,9 @@
           "question": "How is the disagreement finally resolved?",
           "choices": [
             "By reaching a compromise that combines both ideas",
-            "By A giving up the project",
-            "By asking the teacher to decide",
-            "By choosing a completely new topic"
+            "By Speaker A simply giving up on the whole project",
+            "By asking their teacher to make the final decision",
+            "By choosing a completely new and different topic"
           ],
           "answerIndex": 0,
           "explanation_th": "ตอบข้อ A — พวกเขาตกลงให้พลังงานหมุนเวียนเป็นหัวข้อหลักแต่เพิ่มส่วนสั้นๆ เรื่องประหยัดพลังงาน ซึ่งเป็นการประนีประนอมที่รวมทั้งสองความคิด"
@@ -545,10 +545,10 @@
           "id": "cv-c1-long-101-q5",
           "question": "The word \"compromise\" is closest in meaning to:",
           "choices": [
-            "an agreement in which each side gives up something",
-            "a serious argument with no solution",
-            "a complete victory for one side",
-            "a decision made by a stranger"
+            "an agreement where each side gives up something",
+            "a serious argument that has no real solution",
+            "a complete and total victory for just one of the sides",
+            "a final decision that is made by a stranger"
           ],
           "answerIndex": 0,
           "explanation_th": "ตอบข้อ A — \"compromise\" คือการประนีประนอม ข้อตกลงที่แต่ละฝ่ายยอมลดบางส่วนเพื่อหาจุดร่วม ไม่ใช่การเอาชนะหรือการทะเลาะที่ไร้ทางออก"
@@ -564,7 +564,7 @@
       "scenario_th": "เลือกประโยคตอบที่สุภาพและเหมาะสมที่สุดในสถานการณ์ที่ต้องใช้ไหวพริบ (ระดับ C1 — น้ำเสียง/มารยาททางภาษา)",
       "dialogue": "",
       "targetVocab": [],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "category": "work",
       "questions": [
@@ -572,10 +572,10 @@
           "id": "cv-c1-qr-101-q1",
           "question": "A colleague says: \"I really think we should cancel the event.\"\nYou disagree but want to stay polite. Which response is best?",
           "choices": [
-            "I understand your concern, but I think it's worth trying once more.",
-            "You are completely wrong about everything.",
-            "Whatever you say is fine, I don't care.",
-            "I had a big breakfast this morning."
+            "I understand your concern, but it may be worth one more try.",
+            "You are completely and utterly wrong about every part of this.",
+            "Honestly, whatever you decide is fine; I don't care at all.",
+            "I happened to have quite a big breakfast this morning."
           ],
           "answerIndex": 0,
           "explanation_th": "ตอบข้อ A — เป็นการไม่เห็นด้วยอย่างสุภาพ โดยรับฟังความกังวลก่อน (\"I understand your concern\") แล้วเสนอความเห็นต่าง ตัวเลือกอื่นหยาบ ยอมแพ้ หรือไม่เกี่ยวข้อง"
@@ -584,10 +584,10 @@
           "id": "cv-c1-qr-101-q2",
           "question": "Your manager asks: \"Can you finish this report by tonight?\" You realistically cannot.\nWhich is the most appropriate response?",
           "choices": [
-            "I'm afraid tonight is tight, but I can have it ready first thing tomorrow.",
-            "No.",
-            "That's impossible and completely unfair.",
-            "I really don't enjoy writing reports."
+            "Tonight is tight, but I can have it ready first thing tomorrow.",
+            "No — there is honestly just no way that I can manage that tonight.",
+            "That is completely impossible and really quite unfair to me.",
+            "I really do not enjoy writing these long reports at all."
           ],
           "answerIndex": 0,
           "explanation_th": "ตอบข้อ A — เป็นการปฏิเสธอย่างมืออาชีพ โดยอธิบายข้อจำกัดและเสนอทางออก (พรุ่งนี้เช้า) ตัวเลือกอื่นห้วนเกินไป ก้าวร้าว หรือไม่ตอบโจทย์"
@@ -596,10 +596,10 @@
           "id": "cv-c1-qr-101-q3",
           "question": "Someone gives feedback: \"Your draft has a few weak points.\"\nWhich response shows the most mature, professional attitude?",
           "choices": [
-            "Thanks for the honest feedback — could you point out which parts to improve?",
-            "My draft is actually perfect.",
-            "Why are you always so negative?",
-            "I didn't even write it."
+            "Thanks for the honest feedback — which parts should I improve?",
+            "Actually, I happen to think my draft is already quite perfect.",
+            "Why do you always have to be so negative about everything?",
+            "To be honest, I was not even the person who wrote this draft."
           ],
           "answerIndex": 0,
           "explanation_th": "ตอบข้อ A — เป็นการรับฟีดแบ็กอย่างเป็นผู้ใหญ่ ขอบคุณและถามรายละเอียดเพื่อปรับปรุง ตัวเลือกอื่นปฏิเสธคำติ ตอบโต้ หรือปัดความรับผิดชอบ"
