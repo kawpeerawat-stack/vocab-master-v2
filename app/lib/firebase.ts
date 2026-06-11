@@ -14,7 +14,7 @@ const firebaseConfig = {
 
 // reCAPTCHA v3 site key — เป็น "คีย์สาธารณะ" ใส่ในโค้ดได้ (ความลับคือ secret ที่อยู่ใน Firebase Console)
 // ⚠️ เปลี่ยนค่าด้านล่างเป็น site key จริงของคุณครู (จากขั้นตอนตั้งค่า reCAPTCHA)
-const RECAPTCHA_SITE_KEY = "6LcJbQ4tAAAAACrSP9HuwrcEv5_qRCpDi1roFjuM";
+const RECAPTCHA_SITE_KEY = "6Lfc1hgtAAAAAA_ots_YmAA7Xc6q_1qgcz0G2xIp";
 
 // ป้องกัน initialize ซ้ำ
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
