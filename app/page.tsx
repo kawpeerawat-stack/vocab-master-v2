@@ -99,6 +99,7 @@ export default function Home() {
   const [teacherPreview, setTeacherPreview] = useState(false); // ครูเปิดดูบทที่ยังไม่ตรวจ
   const [readingView, setReadingView] = useState<'LIST' | 'PLAY' | 'RESULT'>('LIST');
   const [readingCat, setReadingCat] = useState<string>('ALL'); // หมวดที่กำลังกรองในหน้ารายการบทอ่าน
+  const [readingExam, setReadingExam] = useState<string>('ALL'); // สนามสอบที่กำลังกรอง (ALL/A-LEVEL/TGAT/NETSAT)
   const [activePassage, setActivePassage] = useState<ReadingPassage | null>(null);
   const [rIndex, setRIndex] = useState(0);
   const [rAnswers, setRAnswers] = useState<(number | null)[]>([]); // คำตอบที่เลือกของแต่ละข้อ (โหมดข้อสอบ — เปลี่ยนได้จนกว่าจะส่ง)
@@ -626,12 +627,28 @@ export default function Home() {
   };
 
   const startPassage = (p: ReadingPassage) => {
-    setActivePassage(p);
+    // สลับลำดับคำถาม (Fisher–Yates) — กันลอกในห้องสอบ: ได้บทเดียวกันแต่ข้อไม่เรียงเหมือนกัน
+    const shuffled = [...p.questions];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    const passage = { ...p, questions: shuffled };
+    setActivePassage(passage);
     setRIndex(0);
-    setRAnswers(new Array(p.questions.length).fill(null));
+    setRAnswers(new Array(passage.questions.length).fill(null));
     setRResults([]);
     setGlossWord(null);
     setReadingView('PLAY');
+  };
+
+  // 🎲 สุ่มบทอ่านจากสนาม/หมวดที่เลือกอยู่ — ให้น้ำหนักบทที่ยังไม่เคยทำก่อน แล้วค่อยบทที่ยังไม่พิชิต
+  const startRandomPassage = (pool: ReadingPassage[]) => {
+    if (pool.length === 0) return;
+    const fresh = pool.filter((p) => !readingCompleted.has(p.id));
+    const unmastered = pool.filter((p) => readingCompleted.has(p.id) && !readingMastered.has(p.id));
+    const pick = fresh.length > 0 ? fresh : unmastered.length > 0 ? unmastered : pool;
+    startPassage(pick[Math.floor(Math.random() * pick.length)]);
   };
 
   // เลือก/เปลี่ยนคำตอบข้อปัจจุบัน (โหมดข้อสอบ — ยังไม่เฉลยจนกว่าจะกดส่ง)
@@ -699,9 +716,14 @@ export default function Home() {
   const visiblePassages = teacherPreview ? readingPassages : readingPassages.filter((p) => p.verified);
   const hasUnverified = readingPassages.some((p) => !p.verified);
   // หมวดที่มีบทอ่านจริง (เรียงตามลำดับที่กำหนด) + รายการที่กรองตามหมวดที่เลือก
-  const catsPresent = CATEGORY_ORDER.filter((c) => visiblePassages.some((p) => (p.category || 'other') === c));
+  // ── ชั้นกรองสนามสอบ (แท็บ) — โชว์เฉพาะสนามที่มีบทจริง ──
+  const EXAM_ORDER = ['A-LEVEL', 'TGAT', 'NETSAT'];
+  const examsPresent = EXAM_ORDER.filter((e) => visiblePassages.some((p) => p.examStyle === e));
+  const effectiveExam = readingExam !== 'ALL' && examsPresent.includes(readingExam) ? readingExam : 'ALL';
+  const examFiltered = effectiveExam === 'ALL' ? visiblePassages : visiblePassages.filter((p) => p.examStyle === effectiveExam);
+  const catsPresent = CATEGORY_ORDER.filter((c) => examFiltered.some((p) => (p.category || 'other') === c));
   const effectiveCat = readingCat !== 'ALL' && catsPresent.includes(readingCat) ? readingCat : 'ALL';
-  const shownPassages = effectiveCat === 'ALL' ? visiblePassages : visiblePassages.filter((p) => (p.category || 'other') === effectiveCat);
+  const shownPassages = effectiveCat === 'ALL' ? examFiltered : examFiltered.filter((p) => (p.category || 'other') === effectiveCat);
   // ── แถบความสำเร็จ (พิชิตบท) — นับเฉพาะบทที่นักเรียนเห็น (ครูตรวจแล้ว) ──
   const masteredCount = visiblePassages.filter((p) => readingMastered.has(p.id)).length;
   const completedCount = visiblePassages.filter((p) => readingCompleted.has(p.id)).length;
@@ -1245,6 +1267,41 @@ export default function Home() {
                   </div>
                 )}
 
+                {/* ── แท็บสนามสอบ + ปุ่มสุ่มบท (กันลอก: แต่ละคนได้บทต่างกัน ลำดับข้อต่างกัน) ── */}
+                {!readingLoading && examsPresent.length > 1 && (
+                  <div className="flex flex-wrap gap-2 justify-center mb-2">
+                    <button
+                      type="button"
+                      onClick={() => { setReadingExam('ALL'); setReadingCat('ALL'); }}
+                      className={`text-sm font-black px-4 py-2 rounded-2xl border-2 transition-all ${effectiveExam === 'ALL' ? 'bg-[#FFD700] text-[#003399] border-[#003399]' : 'bg-white text-[#003399] border-[#003399]/25 hover:border-[#003399]/50'}`}
+                    >
+                      ทั้งหมด ({visiblePassages.length})
+                    </button>
+                    {examsPresent.map((e) => {
+                      const n = visiblePassages.filter((p) => p.examStyle === e).length;
+                      return (
+                        <button
+                          key={e}
+                          type="button"
+                          onClick={() => { setReadingExam(e); setReadingCat('ALL'); }}
+                          className={`text-sm font-black px-4 py-2 rounded-2xl border-2 transition-all ${effectiveExam === e ? 'bg-[#FFD700] text-[#003399] border-[#003399]' : 'bg-white text-[#003399] border-[#003399]/25 hover:border-[#003399]/50'}`}
+                        >
+                          {e} ({n})
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                {!readingLoading && shownPassages.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => startRandomPassage(shownPassages)}
+                    className="w-full mb-4 py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg hover:bg-[#002266] active:scale-[0.98] transition-all tracking-wide"
+                  >
+                    🎲 สุ่มบทอ่าน{effectiveExam !== 'ALL' ? ` (${effectiveExam})` : ' (ทุกสนาม)'} — เริ่มทำทันที
+                  </button>
+                )}
+
                 {!readingLoading && catsPresent.length > 1 && (
                   <div className="flex flex-wrap gap-2 justify-center mb-4">
                     <button
@@ -1252,10 +1309,10 @@ export default function Home() {
                       onClick={() => setReadingCat('ALL')}
                       className={`text-xs font-black px-3 py-1.5 rounded-full border-2 transition-all ${effectiveCat === 'ALL' ? 'bg-[#003399] text-white border-[#003399]' : 'bg-white text-[#003399] border-[#003399]/25 hover:border-[#003399]/50'}`}
                     >
-                      ทั้งหมด ({visiblePassages.length})
+                      ทั้งหมด ({examFiltered.length})
                     </button>
                     {catsPresent.map((c) => {
-                      const n = visiblePassages.filter((p) => (p.category || 'other') === c).length;
+                      const n = examFiltered.filter((p) => (p.category || 'other') === c).length;
                       return (
                         <button
                           key={c}
