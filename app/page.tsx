@@ -932,10 +932,13 @@ export default function Home() {
             <div className="flex items-center justify-between mb-4">
               <button
                 type="button"
-                onClick={() => { setSection('HUB'); setConvView('LIST'); }}
+                onClick={() => {
+                  if (convView !== 'LIST') { setConvView('LIST'); setActiveConv(null); }
+                  else { setSection('HUB'); }
+                }}
                 className="text-sm font-bold text-[#003399] hover:underline flex items-center gap-1"
               >
-                ← เมนูหลัก
+                {convView === 'LIST' ? '← เมนูหลัก' : '← รายการบทสนทนา'}
               </button>
               <span className="text-base font-black text-gray-900">💬 บทสนทนา (Conversation)</span>
               <span className="w-14" />
@@ -1208,10 +1211,13 @@ export default function Home() {
             <div className="flex items-center justify-between mb-4">
               <button
                 type="button"
-                onClick={() => { setSection('HUB'); setReadingView('LIST'); }}
+                onClick={() => {
+                  if (readingView !== 'LIST') { setReadingView('LIST'); setActivePassage(null); }
+                  else { setSection('HUB'); }
+                }}
                 className="text-sm font-bold text-[#003399] hover:underline flex items-center gap-1"
               >
-                ← เมนูหลัก
+                {readingView === 'LIST' ? '← เมนูหลัก' : '← รายการบทอ่าน'}
               </button>
               <span className="text-base font-black text-gray-900">📖 การอ่าน (Reading)</span>
               <span className="w-14" />
@@ -1866,6 +1872,15 @@ export default function Home() {
         {/* ── หน้า Quiz ── */}
         {gameState === 'QUIZ' && currentQuestions.length > 0 && (
           <div className="animate-fadeIn">
+            <div className="mb-2">
+              <button
+                type="button"
+                onClick={() => setGameState('START')}
+                className="text-sm font-bold text-[#003399] hover:underline flex items-center gap-1"
+              >
+                ← เมนูคำศัพท์
+              </button>
+            </div>
             <div className="flex justify-between items-center mb-3 pb-3 border-b-2 border-gray-50">
               <span className="text-sm font-black px-4 py-2 bg-[#003399] rounded-xl text-[#FFD700] shadow-sm">
                 Q {currentIndex + 1} / {currentQuestions.length}
