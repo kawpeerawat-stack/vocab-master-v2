@@ -1804,7 +1804,7 @@
         "somehow",
         "within"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -1932,7 +1932,7 @@
         "stare",
         "wander"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -2060,7 +2060,7 @@
         "limit",
         "sharply"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -2201,7 +2201,7 @@
         "estimate",
         "float"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -2329,7 +2329,7 @@
         "whether",
         "suspicious"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -2457,7 +2457,7 @@
         "flame",
         "standing"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -2585,7 +2585,7 @@
         "insist",
         "rarely"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -2713,7 +2713,7 @@
         "hardly",
         "grain"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -2841,7 +2841,7 @@
         "living",
         "gaming"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -2969,7 +2969,7 @@
         "shortage",
         "privilege"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -3108,7 +3108,7 @@
         "embarrassed",
         "despite"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -3234,7 +3234,7 @@
         "escape",
         "treat"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -3360,7 +3360,7 @@
         "divide",
         "sharply"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -3499,7 +3499,7 @@
         "vulnerable",
         "undertake"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -3625,7 +3625,7 @@
         "stranger",
         "trust"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -3751,7 +3751,7 @@
         "occasional",
         "constant"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -3890,7 +3890,7 @@
         "silent",
         "sunlight"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -4016,7 +4016,7 @@
         "membership",
         "powerful"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -4142,7 +4142,7 @@
         "concentration",
         "essential"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -4268,7 +4268,7 @@
         "complex",
         "ignore"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -4407,7 +4407,7 @@
         "indeed",
         "deadly"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -4533,7 +4533,7 @@
         "simply",
         "practical"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -4659,7 +4659,7 @@
         "efficient",
         "teeth"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -4785,7 +4785,7 @@
         "despite",
         "waste"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -4924,7 +4924,7 @@
         "patch",
         "luxury"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -5050,7 +5050,7 @@
         "magical",
         "truth"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -5176,7 +5176,7 @@
         "means",
         "handful"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -5315,7 +5315,7 @@
         "harmful",
         "seriously"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -5441,7 +5441,7 @@
         "overnight",
         "appeal"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -5567,7 +5567,7 @@
         "remarkably",
         "powerful"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -5706,7 +5706,7 @@
         "testing",
         "surgical"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -5845,7 +5845,7 @@
         "aside",
         "rarely"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -5971,7 +5971,7 @@
         "disruption",
         "simply"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -6110,7 +6110,7 @@
         "failure",
         "endless"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -6236,7 +6236,7 @@
         "truly",
         "despite"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -6362,7 +6362,7 @@
         "principle",
         "freedom"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -6501,7 +6501,7 @@
         "assume",
         "basic"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -6627,7 +6627,7 @@
         "warning",
         "severe"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -6753,7 +6753,7 @@
         "claim",
         "added"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -6892,7 +6892,7 @@
         "constantly",
         "force"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -7018,7 +7018,7 @@
         "hidden",
         "plain"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -7144,7 +7144,7 @@
         "beyond",
         "humanity"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -7283,7 +7283,7 @@
         "seriously",
         "whether"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -7409,7 +7409,7 @@
         "balanced",
         "approach"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
@@ -7548,7 +7548,7 @@
         "affordable",
         "fairly"
       ],
-      "verified": false,
+      "verified": true,
       "source": "AI-generated (Claude) — teacher review required",
       "questions": [
         {
