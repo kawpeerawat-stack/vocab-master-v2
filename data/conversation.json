@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "note": "เนื้อหาทั้งหมดนี้ AI ร่างขึ้น (Claude) — ต้องให้คุณครูตรวจสอบบทสนทนา คำถาม เฉลย และคำอธิบายก่อนนำไปใช้จริง เมื่อตรวจแล้วให้เปลี่ยน verified เป็น true",
   "sets": [
     {
@@ -603,6 +603,2739 @@
           ],
           "answerIndex": 0,
           "explanation_th": "ตอบข้อ A — เป็นการรับฟีดแบ็กอย่างเป็นผู้ใหญ่ ขอบคุณและถามรายละเอียดเพื่อปรับปรุง ตัวเลือกอื่นปฏิเสธคำติ ตอบโต้ หรือปัดความรับผิดชอบ"
+        }
+      ]
+    },
+    {
+      "id": "cv-b1-qr-201",
+      "level": "B1",
+      "examStyle": "TGAT",
+      "format": "QUESTION_RESPONSE",
+      "title": "Greetings & Small Talk",
+      "scenario_th": "เลือกประโยคตอบที่เป็นธรรมชาติที่สุดในการทักทาย/คุยเล่น (แนว TGAT ถาม–ตอบ)",
+      "dialogue": "",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "daily",
+      "questions": [
+        {
+          "id": "cv-b1-qr-201-q1",
+          "question": "Speaker A: \"How was your weekend?\"\nWhich is the most natural response from Speaker B?",
+          "choices": [
+            "It was great, thanks. I went hiking.",
+            "I have one brother and one sister.",
+            "It's just behind the train station.",
+            "Because the morning bus was late."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — A ถามถึงสุดสัปดาห์ที่ผ่านมา คำตอบที่เป็นธรรมชาติคือเล่าว่าทำอะไร เช่น \"It was great, thanks. I went hiking.\" ตัวเลือกอื่นตอบไปคนละคำถาม"
+        },
+        {
+          "id": "cv-b1-qr-201-q2",
+          "question": "Speaker A: \"I haven't seen you in ages! How have you been?\"\nWhich is the most natural response?",
+          "choices": [
+            "No, I don't think that's right.",
+            "Pretty good, actually. Busy with work.",
+            "They cost about fifty baht each.",
+            "Turn left and walk past the bank."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — A ถามว่าช่วงนี้เป็นอย่างไรบ้าง คำตอบที่เหมาะคือบอกสารทุกข์สุกดิบ เช่น \"Pretty good, actually.\" ตัวเลือกอื่นตอบคนละเรื่อง"
+        },
+        {
+          "id": "cv-b1-qr-201-q3",
+          "question": "Speaker A: \"Have a great trip!\"\nWhich is the most natural response?",
+          "choices": [
+            "Yes, it's been raining since dawn.",
+            "He works at a bank downtown.",
+            "Thanks! I'll send you a postcard.",
+            "The meeting is at noon on Friday."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — A อวยพรให้เดินทางสนุก คำตอบที่เป็นธรรมชาติคือขอบคุณ เช่น \"Thanks! I'll send you a postcard.\" ตัวเลือกอื่นไม่เกี่ยวกับการอวยพร"
+        }
+      ]
+    },
+    {
+      "id": "cv-b1-qr-202",
+      "level": "B1",
+      "examStyle": "TGAT",
+      "format": "QUESTION_RESPONSE",
+      "title": "Saying Sorry & Thanks",
+      "scenario_th": "เลือกประโยคตอบให้เหมาะกับการขอโทษและการขอบคุณ (แนว TGAT ถาม–ตอบ)",
+      "dialogue": "",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "daily",
+      "questions": [
+        {
+          "id": "cv-b1-qr-202-q1",
+          "question": "Speaker A: \"I'm really sorry I'm late.\"\nWhich is the most natural response?",
+          "choices": [
+            "You're welcome, anytime at all.",
+            "Yes, I'd absolutely love to go.",
+            "It's up on the second floor.",
+            "That's okay, don't worry about it."
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — A กล่าวขอโทษที่มาสาย การตอบที่เหมาะคือให้อภัย เช่น \"That's okay, don't worry about it.\" ส่วนตัวเลือกอื่นใช้ตอบสถานการณ์อื่น ไม่ใช่คำขอโทษ"
+        },
+        {
+          "id": "cv-b1-qr-202-q2",
+          "question": "Speaker A: \"Thank you for the lovely dinner.\"\nWhich is the most natural response?",
+          "choices": [
+            "My pleasure. I'm glad you enjoyed it.",
+            "Sorry, I really can't make it today.",
+            "No, that bag isn't mine at all.",
+            "Because I hadn't eaten all day."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — A ขอบคุณสำหรับมื้ออาหาร การตอบรับคำขอบคุณอย่างสุภาพคือ \"My pleasure. I'm glad you enjoyed it.\" ตัวเลือกอื่นตอบคนละบริบท"
+        },
+        {
+          "id": "cv-b1-qr-202-q3",
+          "question": "Speaker A: \"I'm afraid I broke your cup.\"\nWhich is the most natural response?",
+          "choices": [
+            "Congratulations on the great news!",
+            "Don't worry, it was old anyway.",
+            "Yes, please, I'd love one.",
+            "It's about ten o'clock now."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — A สารภาพว่าทำถ้วยแตก การตอบที่เหมาะคือปลอบไม่ให้กังวล เช่น \"Don't worry, it was old anyway.\" ตัวเลือกอื่นไม่สอดคล้องกับสถานการณ์"
+        }
+      ]
+    },
+    {
+      "id": "cv-b1-qr-203",
+      "level": "B1",
+      "examStyle": "TGAT",
+      "format": "QUESTION_RESPONSE",
+      "title": "In the Classroom",
+      "scenario_th": "เลือกประโยคตอบในห้องเรียนให้เหมาะกับสถานการณ์ (แนว TGAT ถาม–ตอบ)",
+      "dialogue": "",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "school",
+      "questions": [
+        {
+          "id": "cv-b1-qr-203-q1",
+          "question": "Speaker A (teacher): \"Could you hand out these worksheets, please?\"\nWhich is the most natural response?",
+          "choices": [
+            "I have one older brother.",
+            "It was really delicious.",
+            "Sure, no problem.",
+            "The rain is quite heavy."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ครูขอให้ช่วยแจกใบงาน การตอบรับที่เหมาะคือ \"Sure, no problem.\" ตัวเลือกอื่นตอบคนละคำถาม"
+        },
+        {
+          "id": "cv-b1-qr-203-q2",
+          "question": "Speaker A: \"Do you understand the homework?\"\nWhich is the most natural response?",
+          "choices": [
+            "Yes, I just turned fifteen last week.",
+            "It's behind the door on the left.",
+            "He's the new history teacher here.",
+            "Not really. Could you explain question 3 again?"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — A ถามว่าเข้าใจการบ้านไหม การตอบที่เหมาะคือบอกว่าไม่เข้าใจและขอให้อธิบายข้อ 3 อีกครั้ง ตัวเลือกอื่นตอบคนละเรื่อง"
+        },
+        {
+          "id": "cv-b1-qr-203-q3",
+          "question": "Speaker A: \"Sorry, I forgot my textbook.\"\nWhich is the most natural response?",
+          "choices": [
+            "No problem, you can share with me.",
+            "Congratulations on passing the exam!",
+            "The library closes at six tonight.",
+            "Yes, I really do like coffee."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — A บอกว่าลืมหนังสือ การตอบที่เป็นมิตรคือชวนใช้ร่วมกัน \"you can share with me.\" ตัวเลือกอื่นไม่เข้ากับบริบท"
+        }
+      ]
+    },
+    {
+      "id": "cv-b1-qr-204",
+      "level": "B1",
+      "examStyle": "TGAT",
+      "format": "QUESTION_RESPONSE",
+      "title": "Getting Around",
+      "scenario_th": "เลือกประโยคตอบเกี่ยวกับการถามทาง/เดินทาง (แนว TGAT ถาม–ตอบ)",
+      "dialogue": "",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "travel",
+      "questions": [
+        {
+          "id": "cv-b1-qr-204-q1",
+          "question": "Speaker A: \"Excuse me, how do I get to the museum?\"\nWhich is the most natural response?",
+          "choices": [
+            "Yes, I actually went there yesterday.",
+            "Go straight and turn left at the bank.",
+            "It's a really interesting old place.",
+            "No, thank you, I'm quite all right."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — A ถามทางไปพิพิธภัณฑ์ การตอบที่เหมาะคือบอกทาง เช่น \"Go straight and turn left at the bank.\" ตัวเลือกอื่นไม่ได้บอกทาง"
+        },
+        {
+          "id": "cv-b1-qr-204-q2",
+          "question": "Speaker A: \"Is this seat taken?\"\nWhich is the most natural response?",
+          "choices": [
+            "The train leaves at around noon.",
+            "I'm just a tourist visiting here.",
+            "No, go ahead and sit down.",
+            "Because the whole carriage is full."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — A ถามว่าที่นั่งนี้มีคนนั่งหรือยัง การตอบที่เหมาะคืออนุญาตให้นั่ง \"No, go ahead and sit down.\" ตัวเลือกอื่นไม่ตอบคำถาม"
+        },
+        {
+          "id": "cv-b1-qr-204-q3",
+          "question": "Speaker A: \"Could you tell me where platform 4 is?\"\nWhich is the most natural response?",
+          "choices": [
+            "Yes, I've already bought a ticket.",
+            "The express train is dark blue.",
+            "It costs about twenty baht each.",
+            "It's just down the stairs on your right."
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — A ถามตำแหน่งชานชาลา 4 การตอบที่เหมาะคือบอกตำแหน่ง \"down the stairs on your right.\" ตัวเลือกอื่นไม่ได้บอกตำแหน่ง"
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-qr-205",
+      "level": "B2",
+      "examStyle": "TGAT",
+      "format": "QUESTION_RESPONSE",
+      "title": "At the Shop",
+      "scenario_th": "เลือกประโยคตอบในร้านค้าให้เหมาะกับสถานการณ์ (แนว TGAT ถาม–ตอบ)",
+      "dialogue": "",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "shopping",
+      "questions": [
+        {
+          "id": "cv-b2-qr-205-q1",
+          "question": "Speaker A (shop assistant): \"Can I help you find anything?\"\nWhich is the most natural response?",
+          "choices": [
+            "Yes, I'm looking for a birthday gift.",
+            "No, I'm just a student here.",
+            "It's quite sunny out there today.",
+            "Because I really enjoy shopping."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — พนักงานเสนอช่วยหาสินค้า การตอบที่เหมาะคือบอกสิ่งที่กำลังหา \"I'm looking for a birthday gift.\" ตัวเลือกอื่นตอบคนละเรื่อง"
+        },
+        {
+          "id": "cv-b2-qr-205-q2",
+          "question": "Speaker A: \"Would you like to try it on?\"\nWhich is the most natural response?",
+          "choices": [
+            "It actually costs nothing at all.",
+            "Yes, where are the fitting rooms?",
+            "I have two older sisters at home.",
+            "Turn right just past the bank."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — พนักงานถามว่าจะลองใส่ไหม การตอบที่เหมาะคือรับและถามหาห้องลอง \"where are the fitting rooms?\" ตัวเลือกอื่นไม่เข้ากับบริบท"
+        },
+        {
+          "id": "cv-b2-qr-205-q3",
+          "question": "Speaker A: \"I'm sorry, we're out of stock in that size.\"\nWhich is the most natural response?",
+          "choices": [
+            "Congratulations on the grand opening!",
+            "Yes, I'd love some tea, thank you.",
+            "That's a shame. Could you order it for me?",
+            "The shop opens at nine tomorrow."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — พนักงานบอกว่าไซซ์นั้นหมด การตอบที่เหมาะคือแสดงความเสียดายและขอให้สั่งของ \"Could you order it for me?\" ตัวเลือกอื่นไม่สอดคล้อง"
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-qr-206",
+      "level": "B2",
+      "examStyle": "TGAT",
+      "format": "QUESTION_RESPONSE",
+      "title": "At Work",
+      "scenario_th": "เลือกประโยคตอบในที่ทำงานให้เหมาะกับสถานการณ์ (แนว TGAT ถาม–ตอบ)",
+      "dialogue": "",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "work",
+      "questions": [
+        {
+          "id": "cv-b2-qr-206-q1",
+          "question": "Speaker A: \"Could you send me the report by Friday?\"\nWhich is the most natural response?",
+          "choices": [
+            "Yes, the coffee is still quite hot.",
+            "It's just near the train station.",
+            "Because I was feeling rather tired.",
+            "Of course. I'll have it ready by Thursday."
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — A ขอให้ส่งรายงานภายในวันศุกร์ การตอบที่เหมาะคือรับปาก \"I'll have it ready by Thursday.\" ตัวเลือกอื่นไม่ตอบคำขอ"
+        },
+        {
+          "id": "cv-b2-qr-206-q2",
+          "question": "Speaker A: \"Sorry to bother you—do you have a minute?\"\nWhich is the most natural response?",
+          "choices": [
+            "Sure, what can I do for you?",
+            "No, that one isn't mine at all.",
+            "It rained heavily all day long.",
+            "He is actually very tall indeed."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — A ขอเวลาสักครู่ การตอบที่เหมาะคือยินดีช่วย \"Sure, what can I do for you?\" ตัวเลือกอื่นไม่เข้ากับบริบท"
+        },
+        {
+          "id": "cv-b2-qr-206-q3",
+          "question": "Speaker A: \"Great job on the presentation!\"\nWhich is the most natural response?",
+          "choices": [
+            "Yes, please do sit down here.",
+            "Thank you, that means a lot.",
+            "It's on the very top shelf.",
+            "Because the bus was running late."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — A ชมการนำเสนอ การตอบที่เหมาะคือขอบคุณ \"Thank you, that means a lot.\" ตัวเลือกอื่นไม่ตอบคำชม"
+        }
+      ]
+    },
+    {
+      "id": "cv-b1-qr-207",
+      "level": "B1",
+      "examStyle": "TGAT",
+      "format": "QUESTION_RESPONSE",
+      "title": "Making Plans",
+      "scenario_th": "เลือกประโยคตอบเกี่ยวกับการนัดหมาย/ชักชวน (แนว TGAT ถาม–ตอบ)",
+      "dialogue": "",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "daily",
+      "questions": [
+        {
+          "id": "cv-b1-qr-207-q1",
+          "question": "Speaker A: \"Would you like to grab lunch later?\"\nWhich is the most natural response?",
+          "choices": [
+            "Yes, it's a really good book.",
+            "It's actually quite far away.",
+            "Sure, how about noon?",
+            "He lives in the flat upstairs."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — A ชวนไปกินข้าวเที่ยง การตอบที่เหมาะคือรับและเสนอเวลา \"Sure, how about noon?\" ตัวเลือกอื่นไม่ตอบคำชวน"
+        },
+        {
+          "id": "cv-b1-qr-207-q2",
+          "question": "Speaker A: \"Do you want to watch a movie tonight?\"\nWhich is the most natural response?",
+          "choices": [
+            "It's right there on the table.",
+            "Yes, I just turned twenty last month.",
+            "The shop is closed on Mondays.",
+            "I'd love to, but I have to study."
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — A ชวนดูหนัง การตอบที่เหมาะคือแสดงความอยากไปแต่ติดธุระ \"I'd love to, but I have to study.\" ตัวเลือกอื่นไม่เข้ากับคำชวน"
+        },
+        {
+          "id": "cv-b1-qr-207-q3",
+          "question": "Speaker A: \"Let's meet at the cafe at five.\"\nWhich is the most natural response?",
+          "choices": [
+            "Sounds good. See you there.",
+            "No, it isn't blue at all.",
+            "Because it was rather cold.",
+            "I have three pens in my bag."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — A นัดเจอที่คาเฟ่ตอนห้าโมง การตอบที่เหมาะคือตกลง \"Sounds good. See you there.\" ตัวเลือกอื่นไม่เข้ากับการนัดหมาย"
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-qr-208",
+      "level": "B2",
+      "examStyle": "TGAT",
+      "format": "QUESTION_RESPONSE",
+      "title": "Asking for Help",
+      "scenario_th": "เลือกประโยคตอบเกี่ยวกับการขอความช่วยเหลือด้านการเรียน (แนว TGAT ถาม–ตอบ)",
+      "dialogue": "",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "school",
+      "questions": [
+        {
+          "id": "cv-b2-qr-208-q1",
+          "question": "Speaker A: \"Could you explain this part one more time?\"\nWhich is the most natural response?",
+          "choices": [
+            "Yes, I'm getting a little hungry.",
+            "Of course. Which part is confusing you?",
+            "It's right next to the school gym.",
+            "Because the class started rather late."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — A ขอให้อธิบายอีกครั้ง การตอบที่เหมาะคือยินดีและถามจุดที่งง \"Which part is confusing you?\" ตัวเลือกอื่นไม่ตอบคำขอ"
+        },
+        {
+          "id": "cv-b2-qr-208-q2",
+          "question": "Speaker A: \"I'm not sure how to start my essay.\"\nWhich is the most natural response?",
+          "choices": [
+            "Yes, the weather is really lovely today.",
+            "It costs about ten baht for each one.",
+            "Try making an outline of your main points first.",
+            "He is actually my younger brother."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — A บอกว่าไม่รู้จะเริ่มเรียงความอย่างไร การตอบที่เป็นประโยชน์คือแนะให้ทำโครงก่อน \"make an outline of your main points first.\" ตัวเลือกอื่นไม่เกี่ยวข้อง"
+        },
+        {
+          "id": "cv-b2-qr-208-q3",
+          "question": "Speaker A: \"Thanks for helping me with the project.\"\nWhich is the most natural response?",
+          "choices": [
+            "No, the meeting is on Tuesday.",
+            "It's actually quite heavy to lift.",
+            "Because I was really busy then.",
+            "Anytime. Let me know if you need more help."
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — A ขอบคุณที่ช่วยทำโปรเจกต์ การตอบที่เหมาะคือยินดีและเสนอช่วยต่อ \"Anytime. Let me know if you need more help.\" ตัวเลือกอื่นไม่ตอบคำขอบคุณ"
+        }
+      ]
+    },
+    {
+      "id": "cv-b1-short-201",
+      "level": "B1",
+      "examStyle": "TGAT",
+      "format": "SHORT_CONVO",
+      "title": "Meeting a Friend",
+      "scenario_th": "เจอเพื่อนแล้วชวนทำกิจกรรม — เลือกประโยคเติมช่องว่างให้บทสนทนาสมบูรณ์",
+      "dialogue": "A: Hi Mai! _____(1)_____\nB: I'm doing well, thanks. How about you?\nA: Not bad. _____(2)_____\nB: Sure, I'm free this afternoon.\nA: _____(3)_____\nB: Great, see you at three!",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "daily",
+      "questions": [
+        {
+          "id": "cv-b1-short-201-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "How are you doing?",
+            "Where do you live?",
+            "What time is it?",
+            "How much is this?"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ประโยคถัดมา B ตอบว่า \"I'm doing well\" จึงต้องเป็นการถามทุกข์สุข \"How are you doing?\""
+        },
+        {
+          "id": "cv-b1-short-201-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "Have you eaten my lunch?",
+            "Do you want to study together?",
+            "Why are you so tall?",
+            "Is this your dog?"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — B ตอบว่า \"Sure, I'm free this afternoon\" แสดงว่า A เพิ่งชวนทำอะไรบางอย่าง \"Do you want to study together?\" จึงต่อเนื่องที่สุด"
+        },
+        {
+          "id": "cv-b1-short-201-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "I don't have any money.",
+            "The weather is cold today.",
+            "Let's meet at the library at three.",
+            "He is not my friend."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — B ปิดท้ายว่า \"see you at three\" จึงต้องเป็นการนัดเวลา/สถานที่ \"Let's meet at the library at three.\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b1-short-202",
+      "level": "B1",
+      "examStyle": "TGAT",
+      "format": "SHORT_CONVO",
+      "title": "Asking the Teacher",
+      "scenario_th": "นักเรียนเข้าไปถามครูเรื่องงาน — เลือกประโยคเติมช่องว่าง",
+      "dialogue": "A: Excuse me, _____(1)_____\nB (teacher): Yes, of course. What do you need?\nA: _____(2)_____\nB: The deadline is next Monday.\nA: _____(3)_____\nB: You're welcome. Good luck!",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "school",
+      "questions": [
+        {
+          "id": "cv-b1-short-202-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "may I eat your lunch?",
+            "are you going home?",
+            "do you like pizza?",
+            "may I ask you a question?"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — ครูตอบว่า \"Yes, of course. What do you need?\" จึงต้องเป็นการขออนุญาตถาม \"may I ask you a question?\""
+        },
+        {
+          "id": "cv-b1-short-202-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "When is the report due?",
+            "Where is your car?",
+            "How old are you?",
+            "What is your phone number?"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ครูตอบเรื่องกำหนดส่ง \"The deadline is next Monday\" จึงต้องถามว่ารายงานส่งเมื่อไร \"When is the report due?\""
+        },
+        {
+          "id": "cv-b1-short-202-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "No, it isn't.",
+            "Thank you very much.",
+            "Because it rained.",
+            "I have two cats."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ครูตอบ \"You're welcome\" จึงต้องเป็นการขอบคุณ \"Thank you very much.\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b1-short-203",
+      "level": "B1",
+      "examStyle": "TGAT",
+      "format": "SHORT_CONVO",
+      "title": "Buying a Bus Ticket",
+      "scenario_th": "ซื้อตั๋วรถที่ช่องขายตั๋ว — เลือกประโยคเติมช่องว่าง",
+      "dialogue": "A: Hello, _____(1)_____\nB (clerk): Sure. One way or round trip?\nA: _____(2)_____\nB: That will be 250 baht.\nA: _____(3)_____\nB: Here's your change and your ticket.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "shopping",
+      "questions": [
+        {
+          "id": "cv-b1-short-203-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "I am a teacher.",
+            "What is your name?",
+            "I'd like a ticket to Chiang Mai, please.",
+            "The bus is yellow."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — พนักงานถามต่อว่า \"One way or round trip?\" จึงต้องเป็นการขอซื้อตั๋ว \"I'd like a ticket to Chiang Mai, please.\""
+        },
+        {
+          "id": "cv-b1-short-203-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "I like trains.",
+            "It is very hot.",
+            "He is my brother.",
+            "Round trip, please."
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — ตอบคำถาม \"One way or round trip?\" จึงเลือกอย่างใดอย่างหนึ่ง \"Round trip, please.\""
+        },
+        {
+          "id": "cv-b1-short-203-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "Here's 300 baht.",
+            "No, thank you.",
+            "Because I'm late.",
+            "It is on the table."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — พนักงานพูดว่า \"Here's your change\" แสดงว่าลูกค้าเพิ่งจ่ายเงิน \"Here's 300 baht.\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b1-short-204",
+      "level": "B1",
+      "examStyle": "TGAT",
+      "format": "SHORT_CONVO",
+      "title": "At the Hotel",
+      "scenario_th": "เช็กอินที่โรงแรม — เลือกประโยคเติมช่องว่าง",
+      "dialogue": "A: Good evening, _____(1)_____\nB (receptionist): Yes, under what name?\nA: _____(2)_____\nB: Found it. A room for two nights.\nA: _____(3)_____\nB: Breakfast is from 7 to 10 in the main hall.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "travel",
+      "questions": [
+        {
+          "id": "cv-b1-short-204-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "I am very tired.",
+            "I have a reservation.",
+            "Where is the beach?",
+            "Do you like coffee?"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — พนักงานถามต่อว่า \"under what name?\" จึงต้องเป็นการแจ้งว่ามีการจอง \"I have a reservation.\""
+        },
+        {
+          "id": "cv-b1-short-204-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "It is raining.",
+            "I have a dog.",
+            "It's under Somchai.",
+            "The room is blue."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ตอบคำถาม \"under what name?\" ด้วยชื่อผู้จอง \"It's under Somchai.\""
+        },
+        {
+          "id": "cv-b1-short-204-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "Why is it cold?",
+            "How old are you?",
+            "Is this your bag?",
+            "What time is breakfast?"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — พนักงานตอบเรื่องเวลาอาหารเช้า จึงต้องถามว่า \"What time is breakfast?\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-short-205",
+      "level": "B2",
+      "examStyle": "TGAT",
+      "format": "SHORT_CONVO",
+      "title": "A Phone Call",
+      "scenario_th": "โทรศัพท์หาคนที่ไม่อยู่ — เลือกประโยคเติมช่องว่าง",
+      "dialogue": "A: Hi, this is Nina. _____(1)_____\nB: He's not here right now. _____(2)_____\nA: _____(3)_____\nB: Sure, I'll let him know you called.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "daily",
+      "questions": [
+        {
+          "id": "cv-b2-short-205-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "Could I speak to Tom, please?",
+            "What is the weather like?",
+            "Do you sell coffee?",
+            "Where is the station?"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — B ตอบว่า \"He's not here right now\" แสดงว่า A เพิ่งขอสายใครบางคน \"Could I speak to Tom, please?\""
+        },
+        {
+          "id": "cv-b2-short-205-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "Are you hungry now?",
+            "Can I take a message?",
+            "Is this your phone?",
+            "Why are you late?"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — เมื่อคนที่ต้องการไม่อยู่ ผู้รับสายจึงเสนอ \"Can I take a message?\""
+        },
+        {
+          "id": "cv-b2-short-205-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "No, it is not blue.",
+            "Because I was busy.",
+            "Yes, please tell him to call me back.",
+            "It costs ten baht."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — B ปิดท้ายว่า \"I'll let him know you called\" จึงต้องเป็นการฝากให้โทรกลับ \"please tell him to call me back.\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-short-206",
+      "level": "B2",
+      "examStyle": "TGAT",
+      "format": "SHORT_CONVO",
+      "title": "Starting a New Job",
+      "scenario_th": "วันแรกของพนักงานใหม่ — เลือกประโยคเติมช่องว่าง",
+      "dialogue": "A: Welcome to the team! _____(1)_____\nB: Thank you. I'm excited to be here.\nA: _____(2)_____\nB: Yes, I'd appreciate a quick tour.\nA: _____(3)_____\nB: That sounds perfect.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "work",
+      "questions": [
+        {
+          "id": "cv-b2-short-206-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "What is your favourite food?",
+            "Do you have any pets at home?",
+            "Why did you sell your car?",
+            "How was your first morning?"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — เป็นการต้อนรับพนักงานใหม่ คำถามที่เข้ากับบริบทคือ \"How was your first morning?\""
+        },
+        {
+          "id": "cv-b2-short-206-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "Would you like me to show you around?",
+            "Did you finish your dinner?",
+            "Is the weather nice outside?",
+            "Have you seen my keys?"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — B ตอบว่า \"I'd appreciate a quick tour\" จึงต้องเป็นการเสนอพาเดินดู \"Would you like me to show you around?\""
+        },
+        {
+          "id": "cv-b2-short-206-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "No, I don't have a brother.",
+            "Let's start with the main office, then.",
+            "Because the train was late.",
+            "It is on the top shelf."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ต่อเนื่องจากการพาทัวร์ จึงเริ่มจากออฟฟิศหลัก \"Let's start with the main office, then.\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-short-207",
+      "level": "B2",
+      "examStyle": "TGAT",
+      "format": "SHORT_CONVO",
+      "title": "Group Project Chat",
+      "scenario_th": "คุยกันเรื่องแบ่งงานกลุ่ม — เลือกประโยคเติมช่องว่าง",
+      "dialogue": "A: So, _____(1)_____\nB: I think we should each take one section.\nA: Good idea. _____(2)_____\nB: I'll do the introduction and the conclusion.\nA: _____(3)_____\nB: Let's aim to finish by Thursday.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "school",
+      "questions": [
+        {
+          "id": "cv-b2-short-207-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "how much does this cost?",
+            "where is the cafeteria?",
+            "how should we divide the work?",
+            "what time do you sleep?"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — B ตอบเรื่องการแบ่งหน้าที่ จึงต้องถามว่าจะแบ่งงานอย่างไร \"how should we divide the work?\""
+        },
+        {
+          "id": "cv-b2-short-207-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "Do you like spicy food?",
+            "Is this your notebook?",
+            "Why are you tired?",
+            "Which parts do you want to do?"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — B ตอบว่าจะทำส่วนไหน จึงต้องถามว่าอยากทำส่วนใด \"Which parts do you want to do?\""
+        },
+        {
+          "id": "cv-b2-short-207-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "When should we have it finished?",
+            "No, it isn't mine.",
+            "Because it was raining.",
+            "He is very tall."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — B ตอบเรื่องกำหนดเสร็จ \"finish by Thursday\" จึงต้องถามว่าควรเสร็จเมื่อไร \"When should we have it finished?\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-short-208",
+      "level": "B2",
+      "examStyle": "TGAT",
+      "format": "SHORT_CONVO",
+      "title": "Returning an Item",
+      "scenario_th": "ลูกค้าขอคืนสินค้า — เลือกประโยคเติมช่องว่าง",
+      "dialogue": "A: Hi, _____(1)_____\nB (clerk): Of course. Do you have the receipt?\nA: _____(2)_____\nB: No problem. Would you like a refund or an exchange?\nA: _____(3)_____\nB: Sure, I'll process the refund now.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "shopping",
+      "questions": [
+        {
+          "id": "cv-b2-short-208-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "I am looking for a job.",
+            "I'd like to return this shirt.",
+            "What is your name?",
+            "The store is big."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — พนักงานถามถึงใบเสร็จ แสดงว่าลูกค้ามาคืนของ \"I'd like to return this shirt.\""
+        },
+        {
+          "id": "cv-b2-short-208-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "No, I am a student.",
+            "It is very sunny.",
+            "Yes, here it is.",
+            "Because I like blue."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ตอบคำถาม \"Do you have the receipt?\" ด้วยการยื่นให้ \"Yes, here it is.\""
+        },
+        {
+          "id": "cv-b2-short-208-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "He is my friend.",
+            "It is on Monday.",
+            "Why is it closed?",
+            "A refund, please."
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — พนักงานพูดว่า \"I'll process the refund\" จึงต้องเป็นการเลือกขอคืนเงิน \"A refund, please.\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-long-201",
+      "level": "B2",
+      "examStyle": "TGAT",
+      "format": "LONG_CONVO",
+      "title": "Choosing a Club",
+      "scenario_th": "นักเรียนสองคนคุยกันเรื่องเลือกชมรม — อ่านแล้วตอบคำถามความเข้าใจ",
+      "dialogue": "A: Have you decided which club to join this term?\nB: I'm thinking about the debate club, but I'm a bit nervous about speaking in public.\nA: That's normal at first. The debate club actually helped me a lot with my confidence.\nB: Really? How often do they meet?\nA: Twice a week, after school. It can be tiring, but it's worth it.\nB: Do I need any experience to join?\nA: Not at all. They welcome beginners and teach you the basics.\nB: Okay, you've convinced me. I'll sign up tomorrow.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "school",
+      "questions": [
+        {
+          "id": "cv-b2-long-201-q1",
+          "question": "Which club is B considering?",
+          "choices": [
+            "The debate club",
+            "The science club",
+            "The art club",
+            "The music club"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — B พูดว่า \"I'm thinking about the debate club\""
+        },
+        {
+          "id": "cv-b2-long-201-q2",
+          "question": "Why is B nervous?",
+          "choices": [
+            "Because of the club fees",
+            "Because of speaking in public",
+            "Because of the meeting times",
+            "Because of the homework"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — B บอกว่า \"a bit nervous about speaking in public\""
+        },
+        {
+          "id": "cv-b2-long-201-q3",
+          "question": "How often does the club meet?",
+          "choices": [
+            "Once a month on weekends",
+            "Every day during lunch",
+            "Twice a week after school",
+            "Three times a week in the morning"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — A บอกว่า \"Twice a week, after school\""
+        },
+        {
+          "id": "cv-b2-long-201-q4",
+          "question": "Does B need experience to join?",
+          "choices": [
+            "Yes, two years of experience",
+            "Yes, a special test is required",
+            "Only with a teacher's permission",
+            "No, beginners are welcome"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — A บอกว่า \"They welcome beginners and teach you the basics\""
+        },
+        {
+          "id": "cv-b2-long-201-q5",
+          "question": "What does B decide to do?",
+          "choices": [
+            "To join the club",
+            "To quit school",
+            "To start a new club",
+            "To ask the teacher first"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — B สรุปว่า \"you've convinced me. I'll sign up tomorrow\" จึงอนุมานได้ว่าจะสมัครเข้าชมรม"
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-long-202",
+      "level": "B2",
+      "examStyle": "TGAT",
+      "format": "LONG_CONVO",
+      "title": "Asking for a Day Off",
+      "scenario_th": "พนักงานขอลาหยุดกับผู้จัดการ — อ่านแล้วตอบคำถามความเข้าใจ",
+      "dialogue": "A (employee): Excuse me, do you have a moment? I'd like to ask about taking a day off next week.\nB (manager): Sure. Which day were you thinking of?\nA: Thursday, if possible. I have a family event.\nB: Let me check the schedule... Thursday is quite busy, actually. Could you take Friday instead?\nA: Friday would work too. Thank you for being flexible.\nB: No problem. Just make sure your tasks are covered before you leave.\nA: Of course. I'll finish the report on Wednesday.\nB: Great. I'll mark you down for Friday off.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "work",
+      "questions": [
+        {
+          "id": "cv-b2-long-202-q1",
+          "question": "What does the employee want?",
+          "choices": [
+            "To get a pay rise",
+            "To take a day off",
+            "To change departments",
+            "To leave the company"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — พนักงานพูดว่า \"I'd like to ask about taking a day off\""
+        },
+        {
+          "id": "cv-b2-long-202-q2",
+          "question": "Which day did the employee first request?",
+          "choices": [
+            "Monday",
+            "Friday",
+            "Thursday",
+            "Saturday"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — พนักงานขอ \"Thursday, if possible\" ก่อน"
+        },
+        {
+          "id": "cv-b2-long-202-q3",
+          "question": "Why can't the employee take that day?",
+          "choices": [
+            "Because the office is closed",
+            "Because there are no holidays left",
+            "Because the manager is away",
+            "Because that day is busy"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — ผู้จัดการบอกว่า \"Thursday is quite busy\""
+        },
+        {
+          "id": "cv-b2-long-202-q4",
+          "question": "What must the employee do before leaving?",
+          "choices": [
+            "Make sure the tasks are covered",
+            "Train a new employee",
+            "Pay for a replacement",
+            "Cancel the family event"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ผู้จัดการสั่งว่า \"make sure your tasks are covered before you leave\""
+        },
+        {
+          "id": "cv-b2-long-202-q5",
+          "question": "Which day will the employee finally take off?",
+          "choices": [
+            "Thursday",
+            "Friday",
+            "Wednesday",
+            "Sunday"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ตอนจบผู้จัดการพูดว่า \"I'll mark you down for Friday off\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-long-203",
+      "level": "B2",
+      "examStyle": "TGAT",
+      "format": "LONG_CONVO",
+      "title": "Booking a Tour",
+      "scenario_th": "นักท่องเที่ยวสอบถามทัวร์เกาะ — อ่านแล้วตอบคำถามความเข้าใจ",
+      "dialogue": "A (tourist): Hi, I'd like some information about your island tours.\nB (agent): Of course. We have a half-day tour and a full-day tour.\nA: What's the difference?\nB: The full-day tour includes lunch and visits to three islands. The half-day only visits one.\nA: How much is the full-day tour?\nB: It's 1,200 baht per person, including the boat and lunch.\nA: That sounds good. Do I need to book in advance?\nB: Yes, especially on weekends. I'd recommend booking at least a day ahead.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "travel",
+      "questions": [
+        {
+          "id": "cv-b2-long-203-q1",
+          "question": "What is the tourist asking about?",
+          "choices": [
+            "Hotel rooms",
+            "Flight tickets",
+            "Island tours",
+            "Car rentals"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — นักท่องเที่ยวพูดว่า \"information about your island tours\""
+        },
+        {
+          "id": "cv-b2-long-203-q2",
+          "question": "What does the full-day tour include that the half-day does not?",
+          "choices": [
+            "A free hotel night",
+            "A private guide",
+            "Airport pickup",
+            "Lunch and three islands"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — พนักงานบอกว่าทัวร์เต็มวัน \"includes lunch and visits to three islands\" ส่วนครึ่งวันไปเกาะเดียว"
+        },
+        {
+          "id": "cv-b2-long-203-q3",
+          "question": "How much is the full-day tour per person?",
+          "choices": [
+            "1,200 baht",
+            "200 baht",
+            "2,100 baht",
+            "120 baht"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — พนักงานบอกราคา \"1,200 baht per person\""
+        },
+        {
+          "id": "cv-b2-long-203-q4",
+          "question": "What is included in that price?",
+          "choices": [
+            "Souvenirs and photos",
+            "The boat and lunch",
+            "A hotel and breakfast",
+            "Travel insurance"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ราคารวม \"the boat and lunch\""
+        },
+        {
+          "id": "cv-b2-long-203-q5",
+          "question": "What does the agent recommend?",
+          "choices": [
+            "Coming early in the morning",
+            "Bringing your own lunch",
+            "Booking at least a day ahead",
+            "Paying in cash only"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — พนักงานแนะนำว่า \"booking at least a day ahead\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b1-long-204",
+      "level": "B1",
+      "examStyle": "TGAT",
+      "format": "LONG_CONVO",
+      "title": "At the Doctor's",
+      "scenario_th": "คนไข้พบหมอเรื่องไม่สบาย — อ่านแล้วตอบคำถามความเข้าใจ",
+      "dialogue": "A (doctor): Good morning. What seems to be the problem?\nB: I've had a sore throat and a headache since yesterday.\nA: Do you have a fever?\nB: A little. I felt hot last night.\nA: It sounds like a common cold. Have you taken any medicine?\nB: Just some water and rest.\nA: That's good. Drink plenty of water, and take this medicine twice a day.\nB: Thank you, doctor. How long until I feel better?\nA: You should feel better in a few days. Come back if it gets worse.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "daily",
+      "questions": [
+        {
+          "id": "cv-b1-long-204-q1",
+          "question": "What problem does the patient have?",
+          "choices": [
+            "A broken arm",
+            "A toothache",
+            "A stomachache",
+            "A sore throat and a headache"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — คนไข้บอกว่า \"a sore throat and a headache\""
+        },
+        {
+          "id": "cv-b1-long-204-q2",
+          "question": "Since when has the patient felt unwell?",
+          "choices": [
+            "Since yesterday",
+            "Since last week",
+            "Since this morning",
+            "Since last month"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — คนไข้บอกว่า \"since yesterday\""
+        },
+        {
+          "id": "cv-b1-long-204-q3",
+          "question": "What does the doctor think it is?",
+          "choices": [
+            "A serious illness",
+            "A common cold",
+            "An allergy",
+            "A broken bone"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — หมอบอกว่า \"It sounds like a common cold\""
+        },
+        {
+          "id": "cv-b1-long-204-q4",
+          "question": "How often should the patient take the medicine?",
+          "choices": [
+            "Once a week",
+            "Every hour",
+            "Twice a day",
+            "Only at night"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — หมอสั่งว่า \"take this medicine twice a day\""
+        },
+        {
+          "id": "cv-b1-long-204-q5",
+          "question": "What should the patient do if it gets worse?",
+          "choices": [
+            "Stop drinking water",
+            "Take twice the medicine",
+            "Go to work as usual",
+            "Come back to the doctor"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — หมอบอกว่า \"Come back if it gets worse\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-long-205",
+      "level": "B2",
+      "examStyle": "TGAT",
+      "format": "LONG_CONVO",
+      "title": "Talking About Grades",
+      "scenario_th": "นักเรียนคุยกับครูเรื่องคะแนนสอบ — อ่านแล้วตอบคำถามความเข้าใจ",
+      "dialogue": "A (student): Excuse me, could I talk to you about my last test?\nB (teacher): Of course. Is something wrong?\nA: I was surprised by my score. I thought I did better.\nB: Let's look at it together. You lost most points on the writing section.\nA: I see. I wasn't sure how to organize my essay.\nB: That's a common issue. If you plan your paragraphs first, it gets much easier.\nA: Could I redo it for extra practice?\nB: Yes, that's a great idea. Bring it to me next week and I'll give you feedback.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "school",
+      "questions": [
+        {
+          "id": "cv-b2-long-205-q1",
+          "question": "Why does the student want to talk to the teacher?",
+          "choices": [
+            "About the last test",
+            "About a school trip",
+            "About a club",
+            "About the timetable"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — นักเรียนพูดว่า \"talk to you about my last test\""
+        },
+        {
+          "id": "cv-b2-long-205-q2",
+          "question": "How did the student feel about the score?",
+          "choices": [
+            "Very happy and proud",
+            "Surprised, expecting better",
+            "Bored and uninterested",
+            "Angry at a classmate"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — นักเรียนบอกว่า \"I was surprised by my score. I thought I did better\""
+        },
+        {
+          "id": "cv-b2-long-205-q3",
+          "question": "Where did the student lose most points?",
+          "choices": [
+            "The listening section",
+            "The vocabulary section",
+            "The writing section",
+            "The speaking section"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ครูบอกว่า \"You lost most points on the writing section\""
+        },
+        {
+          "id": "cv-b2-long-205-q4",
+          "question": "What advice does the teacher give?",
+          "choices": [
+            "Write as fast as possible",
+            "Memorize the textbook",
+            "Skip the hard questions",
+            "Plan the paragraphs first"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — ครูแนะนำว่า \"If you plan your paragraphs first, it gets much easier\""
+        },
+        {
+          "id": "cv-b2-long-205-q5",
+          "question": "What will the student do next week?",
+          "choices": [
+            "Bring the redone essay for feedback",
+            "Take the test again for a grade",
+            "Join a writing club",
+            "Change to another class"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ครูบอกว่า \"Bring it to me next week and I'll give you feedback\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-long-206",
+      "level": "B2",
+      "examStyle": "TGAT",
+      "format": "LONG_CONVO",
+      "title": "A Customer Complaint",
+      "scenario_th": "ลูกค้าโทรร้องเรียนเรื่องสินค้าผิด — อ่านแล้วตอบคำถามความเข้าใจ",
+      "dialogue": "A (customer): Hello, I'm calling about an order I received yesterday.\nB (staff): I'm sorry to hear there's an issue. What seems to be the problem?\nA: I ordered a blue jacket, but I received a red one.\nB: I apologize for the mix-up. Do you still have the original packaging?\nA: Yes, everything is here.\nB: Great. We'll send you the correct jacket and arrange a free return for the wrong one.\nA: How long will the replacement take?\nB: It should arrive within three working days. Again, I'm very sorry for the inconvenience.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "shopping",
+      "questions": [
+        {
+          "id": "cv-b2-long-206-q1",
+          "question": "Why is the customer calling?",
+          "choices": [
+            "To place a new order",
+            "About a problem with an order",
+            "To ask for a job",
+            "To cancel a membership"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ลูกค้าพูดว่า \"calling about an order I received yesterday\" และมีปัญหา"
+        },
+        {
+          "id": "cv-b2-long-206-q2",
+          "question": "What was wrong with the order?",
+          "choices": [
+            "The jacket was too small",
+            "The jacket never arrived",
+            "The jacket was the wrong colour",
+            "The jacket was damaged"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ลูกค้าบอกว่า \"I ordered a blue jacket, but I received a red one\""
+        },
+        {
+          "id": "cv-b2-long-206-q3",
+          "question": "What does the staff ask about?",
+          "choices": [
+            "The customer's address only",
+            "A photo of the receipt",
+            "The customer's age",
+            "The original packaging"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — พนักงานถามว่า \"Do you still have the original packaging?\""
+        },
+        {
+          "id": "cv-b2-long-206-q4",
+          "question": "What will the company do?",
+          "choices": [
+            "Send the correct item and arrange a free return",
+            "Give only a partial refund",
+            "Ask the customer to pay again",
+            "Close the customer's account"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — พนักงานบอกว่า \"send you the correct jacket and arrange a free return\""
+        },
+        {
+          "id": "cv-b2-long-206-q5",
+          "question": "How long will the replacement take?",
+          "choices": [
+            "Within one month",
+            "Within three working days",
+            "On the same day",
+            "Within an hour"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — พนักงานบอกว่า \"within three working days\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b1-long-207",
+      "level": "B1",
+      "examStyle": "TGAT",
+      "format": "LONG_CONVO",
+      "title": "Lost at the Airport",
+      "scenario_th": "ผู้โดยสารหลงทางหาประตูขึ้นเครื่อง — อ่านแล้วตอบคำถามความเข้าใจ",
+      "dialogue": "A: Excuse me, I think I'm lost. Where is gate 12?\nB (staff): Gate 12 is in Terminal 2. You're in Terminal 1 now.\nA: Oh no. How do I get there?\nB: Take the free shuttle train from this floor. It runs every five minutes.\nA: How long does it take?\nB: About ten minutes. Your gate is a short walk from the station.\nA: Thank you. My flight leaves in an hour—will I make it?\nB: Yes, you have plenty of time. Just follow the signs to the shuttle.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "travel",
+      "questions": [
+        {
+          "id": "cv-b1-long-207-q1",
+          "question": "What is the traveller looking for?",
+          "choices": [
+            "The exit",
+            "A restaurant",
+            "Gate 12",
+            "The toilet"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ผู้โดยสารถามว่า \"Where is gate 12?\""
+        },
+        {
+          "id": "cv-b1-long-207-q2",
+          "question": "Where is gate 12?",
+          "choices": [
+            "In Terminal 1",
+            "Outside the airport",
+            "On this floor",
+            "In Terminal 2"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — พนักงานบอกว่า \"Gate 12 is in Terminal 2\""
+        },
+        {
+          "id": "cv-b1-long-207-q3",
+          "question": "How should the traveller get there?",
+          "choices": [
+            "By the free shuttle train",
+            "By taxi",
+            "By walking outside",
+            "By bus"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — พนักงานบอกว่า \"Take the free shuttle train\""
+        },
+        {
+          "id": "cv-b1-long-207-q4",
+          "question": "How often does the shuttle run?",
+          "choices": [
+            "Every hour",
+            "Every five minutes",
+            "Twice a day",
+            "Once a week"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — พนักงานบอกว่า \"It runs every five minutes\""
+        },
+        {
+          "id": "cv-b1-long-207-q5",
+          "question": "Will the traveller make the flight?",
+          "choices": [
+            "No, the flight already left",
+            "Only if the traveller runs",
+            "Yes, there is plenty of time",
+            "The flight is cancelled"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — พนักงานบอกว่า \"Yes, you have plenty of time\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-long-208",
+      "level": "B2",
+      "examStyle": "TGAT",
+      "format": "LONG_CONVO",
+      "title": "Buying a Phone",
+      "scenario_th": "ลูกค้าเลือกซื้อโทรศัพท์ใหม่ — อ่านแล้วตอบคำถามความเข้าใจ",
+      "dialogue": "A (customer): Hi, I'm looking for a new phone but I'm not sure which one to choose.\nB (salesperson): Sure. What's most important to you—camera, battery, or price?\nA: The battery, mainly. I use my phone all day.\nB: In that case, this model has the longest battery life in the store.\nA: How much is it?\nB: It's 9,900 baht, and it comes with a one-year warranty.\nA: Can I pay in instalments?\nB: Yes, you can pay over six or twelve months with no extra fee.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "shopping",
+      "questions": [
+        {
+          "id": "cv-b2-long-208-q1",
+          "question": "What is the customer looking for?",
+          "choices": [
+            "A new laptop",
+            "A phone case",
+            "A camera",
+            "A new phone"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — ลูกค้าพูดว่า \"looking for a new phone\""
+        },
+        {
+          "id": "cv-b2-long-208-q2",
+          "question": "What is most important to the customer?",
+          "choices": [
+            "The battery life",
+            "The camera quality",
+            "The colour",
+            "The brand name"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ลูกค้าบอกว่า \"The battery, mainly. I use my phone all day\""
+        },
+        {
+          "id": "cv-b2-long-208-q3",
+          "question": "Why does the salesperson recommend that model?",
+          "choices": [
+            "It is the cheapest",
+            "It has the longest battery life",
+            "It has the best camera",
+            "It is the newest brand"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — พนักงานบอกว่า \"this model has the longest battery life in the store\""
+        },
+        {
+          "id": "cv-b2-long-208-q4",
+          "question": "What does the phone come with?",
+          "choices": [
+            "Free headphones",
+            "A free phone case",
+            "A one-year warranty",
+            "A second phone"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — พนักงานบอกว่า \"it comes with a one-year warranty\""
+        },
+        {
+          "id": "cv-b2-long-208-q5",
+          "question": "What payment option is offered?",
+          "choices": [
+            "Cash only",
+            "Payment after one year",
+            "A trade-in only",
+            "Instalments with no extra fee"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — พนักงานบอกว่า \"pay over six or twelve months with no extra fee\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-short-209",
+      "level": "B2",
+      "examStyle": "A-LEVEL",
+      "format": "SHORT_CONVO",
+      "title": "Scheduling a Meeting",
+      "scenario_th": "นัดประชุมเรื่องงบประมาณกับเพื่อนร่วมงาน — เลือกประโยคเติมช่องว่าง",
+      "dialogue": "A: _____(1)_____ to go over the budget?\nB: How about Tuesday afternoon?\nA: _____(2)_____ I have a call at two.\nB: Then let's say four o'clock.\nA: _____(3)_____\nB: Perfect, I'll send a calendar invite.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "work",
+      "questions": [
+        {
+          "id": "cv-b2-short-209-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "Would you be free this week",
+            "Have you eaten lunch yet",
+            "Where did you buy that",
+            "Why are you so busy"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — B ตอบเรื่องนัดวัน \"How about Tuesday afternoon?\" จึงต้องเป็นการชวนนัดประชุม \"Would you be free this week to go over the budget?\""
+        },
+        {
+          "id": "cv-b2-short-209-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "That is a lovely jacket—",
+            "That doesn't quite work for me—",
+            "I have never been there—",
+            "The weather is terrible—"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ประโยคต่อมา A อธิบายว่าติดประชุมตอนบ่ายสอง จึงต้องปฏิเสธเวลาที่ B เสนอ \"That doesn't quite work for me—\""
+        },
+        {
+          "id": "cv-b2-short-209-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "No, it isn't mine.",
+            "Because it was raining.",
+            "Four works perfectly.",
+            "He is very tall."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — B พูดว่า \"Perfect\" หลังตกลงเวลาสี่โมง จึงต้องเป็นการยืนยันรับเวลานั้น \"Four works perfectly.\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-short-210",
+      "level": "B2",
+      "examStyle": "A-LEVEL",
+      "format": "SHORT_CONVO",
+      "title": "Discussing a Reading",
+      "scenario_th": "นักเรียนคุยกันเรื่องบทความที่อ่าน — เลือกประโยคเติมช่องว่าง",
+      "dialogue": "A: Did you find the article _____(1)_____?\nB: Honestly, parts of it were hard to follow.\nA: Same here. _____(2)_____\nB: I think the author's main point is about climate policy.\nA: _____(3)_____\nB: Let's discuss it more in class tomorrow.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "school",
+      "questions": [
+        {
+          "id": "cv-b2-short-210-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "delicious to eat",
+            "expensive to buy",
+            "easy to carry",
+            "difficult to understand"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — B ตอบว่า \"parts of it were hard to follow\" จึงสอดคล้องกับการถามว่าบทความเข้าใจยากไหม \"difficult to understand\""
+        },
+        {
+          "id": "cv-b2-short-210-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "What did you think the main idea was?",
+            "How much did it cost?",
+            "Where did you park your car?",
+            "When is your birthday?"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — B ตอบเรื่องใจความหลักของผู้เขียน จึงต้องถามว่าใจความหลักคืออะไร \"What did you think the main idea was?\""
+        },
+        {
+          "id": "cv-b2-short-210-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "No, I don't have a pen.",
+            "That makes sense to me.",
+            "Because I was hungry.",
+            "It is on the shelf."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ตอบรับความเห็นของ B อย่างเป็นธรรมชาติ \"That makes sense to me.\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-short-211",
+      "level": "B2",
+      "examStyle": "A-LEVEL",
+      "format": "SHORT_CONVO",
+      "title": "Making an Apology",
+      "scenario_th": "โทรขอโทษเพื่อนเรื่องยกเลิกนัด — เลือกประโยคเติมช่องว่าง",
+      "dialogue": "A: I'm really sorry, _____(1)_____ our plans tonight.\nB: Oh no, is everything okay?\nA: Yes, but _____(2)_____\nB: Don't worry about it. We can reschedule.\nA: _____(3)_____\nB: How about this weekend instead?",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "daily",
+      "questions": [
+        {
+          "id": "cv-b2-short-211-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "but I have to eat",
+            "but I have to sing",
+            "but I have to cancel",
+            "but I have to swim"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — บริบทเป็นการขอโทษและเลื่อนนัด จึงต้องเป็น \"but I have to cancel our plans tonight\""
+        },
+        {
+          "id": "cv-b2-short-211-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "the cake was delicious.",
+            "the bus is yellow.",
+            "I have two cats.",
+            "something came up at work."
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — อธิบายเหตุผลของการยกเลิก \"something came up at work.\""
+        },
+        {
+          "id": "cv-b2-short-211-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "Thank you for understanding.",
+            "No, it isn't blue.",
+            "Because it was late.",
+            "He lives upstairs."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — B ยินดีเลื่อนนัด การตอบที่เหมาะคือขอบคุณที่เข้าใจ \"Thank you for understanding.\""
+        }
+      ]
+    },
+    {
+      "id": "cv-c1-short-212",
+      "level": "C1",
+      "examStyle": "A-LEVEL",
+      "format": "SHORT_CONVO",
+      "title": "Negotiating a Deadline",
+      "scenario_th": "ต่อรองกำหนดส่งงานกับหัวหน้า — เลือกประโยคเติมช่องว่าง",
+      "dialogue": "A: I'm afraid the report _____(1)_____ by Friday.\nB: I see. What's causing the delay?\nA: _____(2)_____ than we expected.\nB: All right. _____(3)_____\nA: Monday would be much more realistic.\nB: Let's agree on Monday, then.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "work",
+      "questions": [
+        {
+          "id": "cv-c1-short-212-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "won't be hungry",
+            "won't be ready",
+            "won't be sunny",
+            "won't be expensive"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — B ถามถึงสาเหตุการล่าช้า จึงต้องบอกว่ารายงาน \"won't be ready\" ทันวันศุกร์"
+        },
+        {
+          "id": "cv-c1-short-212-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "The lunch was more filling",
+            "The road was more crowded",
+            "The data took longer to gather",
+            "The film was more boring"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — อธิบายสาเหตุการล่าช้า \"The data took longer to gather than we expected.\""
+        },
+        {
+          "id": "cv-c1-short-212-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "What is your favourite colour?",
+            "Where did you eat lunch?",
+            "How tall is your brother?",
+            "When could you realistically finish it?"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — A ตอบเรื่องเวลาที่เป็นไปได้ (Monday) จึงต้องถามว่าจะเสร็จเมื่อไรจริง ๆ \"When could you realistically finish it?\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-short-213",
+      "level": "B2",
+      "examStyle": "A-LEVEL",
+      "format": "SHORT_CONVO",
+      "title": "Asking About a Product",
+      "scenario_th": "สอบถามรายละเอียดแล็ปท็อปในร้าน — เลือกประโยคเติมช่องว่าง",
+      "dialogue": "A: Excuse me, _____(1)_____ this laptop comes with a warranty?\nB: Yes, it has a two-year warranty.\nA: Great. _____(2)_____\nB: Of course, you can pay in monthly instalments.\nA: _____(3)_____\nB: It's available in silver and grey.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "shopping",
+      "questions": [
+        {
+          "id": "cv-b2-short-213-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "could you tell me whether",
+            "could you tell me how delicious",
+            "could you tell me why hungry",
+            "could you tell me where sleeping"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — B ตอบเรื่องการรับประกัน จึงต้องถามทางอ้อมว่า \"could you tell me whether this laptop comes with a warranty?\""
+        },
+        {
+          "id": "cv-b2-short-213-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "Do you like spicy food?",
+            "Is it possible to pay in instalments?",
+            "Is the weather nice today?",
+            "Have you seen my keys?"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — B ตอบเรื่องผ่อนชำระ จึงต้องถามว่าผ่อนได้ไหม \"Is it possible to pay in instalments?\""
+        },
+        {
+          "id": "cv-b2-short-213-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "Why are you tired?",
+            "When is your holiday?",
+            "What colours does it come in?",
+            "How old is your dog?"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — B ตอบเรื่องสี (silver and grey) จึงต้องถามว่ามีสีอะไรบ้าง \"What colours does it come in?\""
+        }
+      ]
+    },
+    {
+      "id": "cv-c1-short-214",
+      "level": "C1",
+      "examStyle": "A-LEVEL",
+      "format": "SHORT_CONVO",
+      "title": "University Advice",
+      "scenario_th": "ปรึกษาเรื่องเลือกคณะเรียนต่อ — เลือกประโยคเติมช่องว่าง",
+      "dialogue": "A: I'm trying to decide _____(1)_____ at university.\nB: What subjects are you most passionate about?\nA: _____(2)_____, but I'm not sure about the job prospects.\nB: Have you spoken to a career advisor?\nA: _____(3)_____\nB: It might really help you make a decision.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "school",
+      "questions": [
+        {
+          "id": "cv-c1-short-214-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "which lunch to order",
+            "which film to watch",
+            "which shirt to wear",
+            "which subject to study"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — บริบทเรื่องการเลือกวิชาเรียนต่อมหาวิทยาลัย จึงต้องเป็น \"which subject to study\""
+        },
+        {
+          "id": "cv-c1-short-214-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "I really enjoy biology and chemistry",
+            "I really enjoy sleeping and eating",
+            "I really enjoy the cold weather",
+            "I really enjoy this blue jacket"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ตอบคำถามเรื่องวิชาที่หลงใหล \"I really enjoy biology and chemistry\""
+        },
+        {
+          "id": "cv-c1-short-214-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "No, I don't have a brother.",
+            "Not yet, but I probably should.",
+            "Because the train was late.",
+            "It is on the top shelf."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — B ถามว่าเคยคุยกับที่ปรึกษาด้านอาชีพไหม จึงตอบว่ายังไม่ได้คุยแต่ควรคุย \"Not yet, but I probably should.\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-short-215",
+      "level": "B2",
+      "examStyle": "A-LEVEL",
+      "format": "SHORT_CONVO",
+      "title": "Changing a Flight",
+      "scenario_th": "โทรขอเลื่อนเที่ยวบิน — เลือกประโยคเติมช่องว่าง",
+      "dialogue": "A: Hello, _____(1)_____ my flight to a later time?\nB: Let me check. There's a flight at 6 p.m.\nA: _____(2)_____\nB: There's a small change fee of 500 baht.\nA: _____(3)_____\nB: Certainly. I'll send the new ticket to your email.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "travel",
+      "questions": [
+        {
+          "id": "cv-b2-short-215-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "would it be possible to eat",
+            "would it be possible to swim",
+            "would it be possible to change",
+            "would it be possible to sing"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — บริบทเรื่องเลื่อนเที่ยวบิน จึงต้องเป็น \"would it be possible to change my flight to a later time?\""
+        },
+        {
+          "id": "cv-b2-short-215-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "Do you sell sandwiches here?",
+            "What is the weather like?",
+            "Where can I buy a hat?",
+            "Is there a fee for changing it?"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — B ตอบเรื่องค่าธรรมเนียม 500 บาท จึงต้องถามว่ามีค่าใช้จ่ายไหม \"Is there a fee for changing it?\""
+        },
+        {
+          "id": "cv-b2-short-215-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "That's fine. Please go ahead.",
+            "No, it isn't mine.",
+            "Because I was busy.",
+            "He is very tall."
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ตกลงให้ดำเนินการเปลี่ยนเที่ยวบิน \"That's fine. Please go ahead.\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-short-216",
+      "level": "B2",
+      "examStyle": "A-LEVEL",
+      "format": "SHORT_CONVO",
+      "title": "Giving Feedback",
+      "scenario_th": "ให้ฟีดแบ็กการนำเสนอของเพื่อนร่วมงาน — เลือกประโยคเติมช่องว่าง",
+      "dialogue": "A: _____(1)_____ your presentation?\nB: Sure, I'd appreciate any feedback.\nA: It was clear overall, _____(2)_____\nB: You're right, I'll add more examples.\nA: _____(3)_____\nB: Thanks, that's really helpful.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "work",
+      "questions": [
+        {
+          "id": "cv-b2-short-216-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "Can I eat a few bites of",
+            "Can I share a few thoughts on",
+            "Can I borrow a pair of",
+            "Can I drive you to"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — B ตอบว่า \"I'd appreciate any feedback\" จึงต้องเป็นการขอแสดงความเห็น \"Can I share a few thoughts on your presentation?\""
+        },
+        {
+          "id": "cv-b2-short-216-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "but the coffee was cold.",
+            "but the room was small.",
+            "but it could use more examples.",
+            "but it was raining outside."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — B ตอบว่าจะเพิ่มตัวอย่าง จึงต้องเป็นข้อเสนอแนะ \"but it could use more examples.\""
+        },
+        {
+          "id": "cv-b2-short-216-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "No, it isn't blue.",
+            "Because it was late.",
+            "It costs ten baht.",
+            "Other than that, great work."
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — ปิดท้ายด้วยคำชมโดยรวม \"Other than that, great work.\""
+        }
+      ]
+    },
+    {
+      "id": "cv-c1-short-217",
+      "level": "C1",
+      "examStyle": "A-LEVEL",
+      "format": "SHORT_CONVO",
+      "title": "A Misunderstanding",
+      "scenario_th": "เคลียร์ความเข้าใจผิดเรื่องเวลานัด — เลือกประโยคเติมช่องว่าง",
+      "dialogue": "A: I think there's been _____(1)_____ about the meeting time.\nB: Oh? I thought we said three o'clock.\nA: _____(2)_____ four, actually.\nB: My apologies. I must have written it down wrong.\nA: _____(3)_____\nB: Let's double-check next time to avoid confusion.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "daily",
+      "questions": [
+        {
+          "id": "cv-c1-short-217-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "a bit of a misunderstanding",
+            "a bit of a sandwich",
+            "a bit of a holiday",
+            "a bit of a jacket"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — บริบทเรื่องเข้าใจเวลานัดคลาดเคลื่อน จึงต้องเป็น \"a bit of a misunderstanding\""
+        },
+        {
+          "id": "cv-c1-short-217-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "I believe we cooked at",
+            "I believe we agreed on",
+            "I believe we swam at",
+            "I believe we sang at"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — แก้ความเข้าใจว่าตกลงกันสี่โมง \"I believe we agreed on four, actually.\""
+        },
+        {
+          "id": "cv-c1-short-217-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "Yes, I am hungry.",
+            "It is on Tuesday.",
+            "No harm done.",
+            "Because it rained."
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — B กล่าวขอโทษ การตอบที่สุภาพคือไม่ถือสา \"No harm done.\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-short-218",
+      "level": "B2",
+      "examStyle": "A-LEVEL",
+      "format": "SHORT_CONVO",
+      "title": "At a Restaurant",
+      "scenario_th": "สั่งอาหารและสอบถามเมนู — เลือกประโยคเติมช่องว่าง",
+      "dialogue": "A: _____(1)_____ recommend for someone who doesn't eat meat?\nB: Our mushroom pasta is very popular.\nA: _____(2)_____\nB: It's mild, not spicy at all.\nA: _____(3)_____\nB: Excellent choice. I'll bring it right out.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "shopping",
+      "questions": [
+        {
+          "id": "cv-b2-short-218-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "How much would you",
+            "Where would you",
+            "Why would you",
+            "What would you"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — ถามคำแนะนำเมนูสำหรับคนไม่กินเนื้อ จึงต้องขึ้นต้นว่า \"What would you recommend...?\""
+        },
+        {
+          "id": "cv-b2-short-218-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "Is it spicy?",
+            "Are you tired?",
+            "Is it raining?",
+            "Do you have a pet?"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — B ตอบว่าไม่เผ็ด จึงต้องถามว่าเผ็ดไหม \"Is it spicy?\""
+        },
+        {
+          "id": "cv-b2-short-218-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "No, it isn't mine.",
+            "I'll have the mushroom pasta, then.",
+            "Because I was late.",
+            "He is my brother."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ตัดสินใจสั่งเมนูที่แนะนำ \"I'll have the mushroom pasta, then.\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-short-219",
+      "level": "B2",
+      "examStyle": "A-LEVEL",
+      "format": "SHORT_CONVO",
+      "title": "Joining a Study Group",
+      "scenario_th": "ขอเข้าร่วมกลุ่มติว — เลือกประโยคเติมช่องว่าง",
+      "dialogue": "A: I heard you have a study group. _____(1)_____?\nB: Of course! We meet on Wednesdays.\nA: _____(2)_____\nB: We usually review notes and quiz each other.\nA: _____(3)_____\nB: Just bring your textbook and a notebook.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "school",
+      "questions": [
+        {
+          "id": "cv-b2-short-219-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "Would it be okay if I slept",
+            "Would it be okay if I cooked",
+            "Would it be okay if I joined",
+            "Would it be okay if I swam"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — B ตอบรับว่ายินดี จึงต้องเป็นการขอเข้าร่วม \"Would it be okay if I joined?\""
+        },
+        {
+          "id": "cv-b2-short-219-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "What did you eat?",
+            "Where do you live?",
+            "How tall are you?",
+            "What do you usually do?"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — B อธิบายกิจกรรมในกลุ่ม จึงต้องถามว่าปกติทำอะไร \"What do you usually do?\""
+        },
+        {
+          "id": "cv-b2-short-219-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "Is there anything I should bring?",
+            "Why is it cold?",
+            "When is your birthday?",
+            "How old is your cat?"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — B ตอบเรื่องของที่ต้องเตรียม จึงต้องถามว่าต้องเอาอะไรมาบ้าง \"Is there anything I should bring?\""
+        }
+      ]
+    },
+    {
+      "id": "cv-c1-short-220",
+      "level": "C1",
+      "examStyle": "A-LEVEL",
+      "format": "SHORT_CONVO",
+      "title": "Delegating a Task",
+      "scenario_th": "มอบหมายงานรายงานลูกค้าให้ทีม — เลือกประโยคเติมช่องว่าง",
+      "dialogue": "A: Could you _____(1)_____ the client report this week?\nB: Sure. Which parts do you need me to focus on?\nA: _____(2)_____ the financial summary.\nB: Got it. _____(3)_____\nA: By Thursday would be ideal.\nB: I'll have it ready by then.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "work",
+      "questions": [
+        {
+          "id": "cv-c1-short-220-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "take a bite of",
+            "take charge of",
+            "take a nap on",
+            "take a swim in"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — บริบทเรื่องมอบหมายงาน จึงต้องเป็น \"take charge of the client report\""
+        },
+        {
+          "id": "cv-c1-short-220-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "Mainly the dessert and",
+            "Mainly the swimming and",
+            "Mainly the introduction and",
+            "Mainly the weather and"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ระบุส่วนที่ให้โฟกัส \"Mainly the introduction and the financial summary.\""
+        },
+        {
+          "id": "cv-c1-short-220-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "What is your favourite food?",
+            "Where did you park?",
+            "How old are you?",
+            "When do you need it by?"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — A ตอบเรื่องกำหนดเวลา (Thursday) จึงต้องถามว่าต้องการเมื่อไร \"When do you need it by?\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-short-221",
+      "level": "B2",
+      "examStyle": "A-LEVEL",
+      "format": "SHORT_CONVO",
+      "title": "Asking for Recommendations",
+      "scenario_th": "ขอคำแนะนำสถานที่เที่ยว — เลือกประโยคเติมช่องว่าง",
+      "dialogue": "A: We're visiting for two days. _____(1)_____?\nB: You should definitely see the old town and the night market.\nA: _____(2)_____\nB: The night market is best in the evening, around six.\nA: _____(3)_____\nB: Yes, it's within walking distance from your hotel.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "travel",
+      "questions": [
+        {
+          "id": "cv-b2-short-221-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "What do you recommend we see",
+            "What do you recommend we cook",
+            "What do you recommend we wear",
+            "What do you recommend we sleep"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — B แนะนำสถานที่เที่ยว จึงต้องถามว่าควรไปดูที่ไหน \"What do you recommend we see?\""
+        },
+        {
+          "id": "cv-b2-short-221-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "How much do you weigh?",
+            "When is the best time to go?",
+            "What is your phone number?",
+            "Why are you tired?"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — B ตอบเรื่องเวลาที่ดีที่สุด (around six) จึงต้องถามว่าเวลาไหนดี \"When is the best time to go?\""
+        },
+        {
+          "id": "cv-b2-short-221-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "Is your dog friendly?",
+            "Are you a student?",
+            "Is it close to where we're staying?",
+            "Is it your birthday?"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — B ตอบว่าเดินจากโรงแรมได้ จึงต้องถามว่าใกล้ที่พักไหม \"Is it close to where we're staying?\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b1-short-222",
+      "level": "B1",
+      "examStyle": "A-LEVEL",
+      "format": "SHORT_CONVO",
+      "title": "Inviting a Neighbour",
+      "scenario_th": "ชวนเพื่อนบ้านมางานเลี้ยงอาหารค่ำ — เลือกประโยคเติมช่องว่าง",
+      "dialogue": "A: Hi! We're having a small dinner on Saturday. _____(1)_____?\nB: That's so kind. I'd love to.\nA: _____(2)_____\nB: Around seven is perfect for me.\nA: _____(3)_____\nB: I'll bring some dessert, then.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "daily",
+      "questions": [
+        {
+          "id": "cv-b1-short-222-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "Would you like to sleep",
+            "Would you like to drive",
+            "Would you like to swim",
+            "Would you like to come"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — B ตอบรับคำเชิญ จึงต้องเป็นการชวนมางานเลี้ยง \"Would you like to come?\""
+        },
+        {
+          "id": "cv-b1-short-222-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "What time suits you?",
+            "What colour is it?",
+            "Where is your car?",
+            "How old are you?"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — B ตอบเรื่องเวลา (around seven) จึงต้องถามว่าสะดวกเวลาไหน \"What time suits you?\""
+        },
+        {
+          "id": "cv-b1-short-222-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "No, it isn't blue.",
+            "You don't need to bring anything.",
+            "Because it was late.",
+            "He lives far away."
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — B เสนอจะเอาของหวานมา A จึงตอบอย่างเกรงใจว่าไม่ต้องเอาอะไรมา \"You don't need to bring anything.\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b1-short-223",
+      "level": "B1",
+      "examStyle": "A-LEVEL",
+      "format": "SHORT_CONVO",
+      "title": "Borrowing Notes",
+      "scenario_th": "ขอยืมโน้ตเพื่อนหลังขาดเรียน — เลือกประโยคเติมช่องว่าง",
+      "dialogue": "A: I missed class yesterday. _____(1)_____?\nB: Sure, you can borrow my notes.\nA: _____(2)_____\nB: We covered chapter five.\nA: _____(3)_____\nB: No rush, give them back next week.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "school",
+      "questions": [
+        {
+          "id": "cv-b1-short-223-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "Could I eat your lunch",
+            "Could I drive your car",
+            "Could I copy your notes",
+            "Could I wear your shoes"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — A ขาดเรียน และ B ตอบว่าให้ยืมโน้ตได้ จึงต้องเป็น \"Could I copy your notes?\""
+        },
+        {
+          "id": "cv-b1-short-223-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "What did you cook?",
+            "Where do you live?",
+            "How tall are you?",
+            "What did we study?"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — B ตอบว่าเรียนบทไหน (chapter five) จึงต้องถามว่าเรียนอะไร \"What did we study?\""
+        },
+        {
+          "id": "cv-b1-short-223-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "When should I return them?",
+            "Why is it raining?",
+            "How old is your dog?",
+            "Is this your pen?"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — B ตอบเรื่องกำหนดคืน (next week) จึงต้องถามว่าควรคืนเมื่อไร \"When should I return them?\""
+        }
+      ]
+    },
+    {
+      "id": "cv-c1-short-224",
+      "level": "C1",
+      "examStyle": "A-LEVEL",
+      "format": "SHORT_CONVO",
+      "title": "A Job Interview Follow-up",
+      "scenario_th": "ช่วงท้ายการสัมภาษณ์งาน เปิดให้ผู้สมัครถาม — เลือกประโยคเติมช่องว่าง",
+      "dialogue": "A: Thank you for coming in. _____(1)_____ about the role?\nB: Yes—could you tell me about the team I'd be working with?\nA: _____(2)_____ of five designers.\nB: _____(3)_____\nA: We're hoping the successful candidate can start next month.\nB: That timeline works well for me.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "other",
+      "questions": [
+        {
+          "id": "cv-c1-short-224-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "Do you have any sandwiches",
+            "Do you have any questions",
+            "Do you have any umbrellas",
+            "Do you have any pets"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — B ตอบว่ามีคำถามเรื่องทีม จึงต้องเป็นการถามว่ามีคำถามไหม \"Do you have any questions about the role?\""
+        },
+        {
+          "id": "cv-c1-short-224-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "You'd be eating a large meal",
+            "You'd be driving a fast car",
+            "You'd be joining a small team",
+            "You'd be wearing a warm coat"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — อธิบายเรื่องทีมงาน \"You'd be joining a small team of five designers.\""
+        },
+        {
+          "id": "cv-c1-short-224-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "What is your favourite colour?",
+            "Where do you live?",
+            "How old are you?",
+            "When would you want me to start?"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — A ตอบเรื่องวันเริ่มงาน (next month) จึงต้องถามว่าให้เริ่มเมื่อไร \"When would you want me to start?\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-short-225",
+      "level": "B2",
+      "examStyle": "A-LEVEL",
+      "format": "SHORT_CONVO",
+      "title": "Comparing Options",
+      "scenario_th": "เปรียบเทียบกล้องสองรุ่นก่อนตัดสินใจซื้อ — เลือกประโยคเติมช่องว่าง",
+      "dialogue": "A: I can't decide between these two cameras. _____(1)_____?\nB: The second one has a better lens, but it's pricier.\nA: _____(2)_____\nB: About two thousand baht more.\nA: _____(3)_____\nB: I'd say it's worth it if you take a lot of photos.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "shopping",
+      "questions": [
+        {
+          "id": "cv-b2-short-225-q1",
+          "question": "Choose the best option for blank (1).",
+          "choices": [
+            "What's the main difference",
+            "What's the main breakfast",
+            "What's the main weather",
+            "What's the main holiday"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — B อธิบายความต่างของสองรุ่น จึงต้องถามว่าต่างกันหลัก ๆ ตรงไหน \"What's the main difference?\""
+        },
+        {
+          "id": "cv-b2-short-225-q2",
+          "question": "Choose the best option for blank (2).",
+          "choices": [
+            "How tall is your brother?",
+            "How much more expensive is it?",
+            "How old is your cat?",
+            "How far is your house?"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — B ตอบเรื่องส่วนต่างราคา (สองพันบาท) จึงต้องถามว่าแพงกว่าเท่าไร \"How much more expensive is it?\""
+        },
+        {
+          "id": "cv-b2-short-225-q3",
+          "question": "Choose the best option for blank (3).",
+          "choices": [
+            "Do you like spicy food?",
+            "Are you feeling tired?",
+            "Do you think it's worth the extra cost?",
+            "Is it raining outside?"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — B ให้ความเห็นเรื่องความคุ้มค่า จึงต้องถามว่าคุ้มกับเงินที่จ่ายเพิ่มไหม \"Do you think it's worth the extra cost?\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-long-209",
+      "level": "B2",
+      "examStyle": "A-LEVEL",
+      "format": "LONG_CONVO",
+      "title": "Discussing Study Abroad",
+      "scenario_th": "นักเรียนคุยกันเรื่องวางแผนไปเรียนต่อต่างประเทศ — อ่านแล้วตอบคำถามความเข้าใจ",
+      "dialogue": "A: I've been thinking about studying abroad next year.\nB: That's exciting! Where are you considering?\nA: Either Australia or Canada. I'm drawn to Canada because of the lower tuition fees.\nB: Have you looked into scholarships?\nA: Yes, there's one that covers half the tuition, but the deadline is very soon.\nB: Then you should start your application right away. What about accommodation?\nA: I'd probably stay in a university dormitory for the first year—it's cheaper and easier to make friends.\nB: That sounds like a sensible plan. Let me know if you need help with the essays.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "school",
+      "questions": [
+        {
+          "id": "cv-b2-long-209-q1",
+          "question": "Which countries is A considering?",
+          "choices": [
+            "Japan or Korea",
+            "France or Germany",
+            "the UK or the US",
+            "Australia or Canada"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — A พูดว่า \"Either Australia or Canada\""
+        },
+        {
+          "id": "cv-b2-long-209-q2",
+          "question": "Why does A prefer Canada?",
+          "choices": [
+            "Because of lower tuition fees",
+            "Because of the warm weather",
+            "Because of family there",
+            "Because of the language"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — A บอกว่า \"drawn to Canada because of the lower tuition fees\""
+        },
+        {
+          "id": "cv-b2-long-209-q3",
+          "question": "What does the scholarship cover?",
+          "choices": [
+            "All the tuition",
+            "Half the tuition",
+            "Flights and food",
+            "Accommodation only"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — A บอกว่า \"one that covers half the tuition\""
+        },
+        {
+          "id": "cv-b2-long-209-q4",
+          "question": "Why should A act quickly?",
+          "choices": [
+            "Because the flights are full",
+            "Because the term has started",
+            "Because the deadline is very soon",
+            "Because B is leaving"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — A บอกว่า \"the deadline is very soon\" และ B บอกให้รีบสมัคร"
+        },
+        {
+          "id": "cv-b2-long-209-q5",
+          "question": "Where will A stay in the first year?",
+          "choices": [
+            "In a private flat",
+            "With a host family",
+            "In a hotel",
+            "In a university dormitory"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — A บอกว่า \"stay in a university dormitory for the first year\""
+        }
+      ]
+    },
+    {
+      "id": "cv-c1-long-210",
+      "level": "C1",
+      "examStyle": "A-LEVEL",
+      "format": "LONG_CONVO",
+      "title": "A Performance Review",
+      "scenario_th": "การประเมินผลงานประจำปีระหว่างผู้จัดการกับพนักงาน — อ่านแล้วตอบคำถามความเข้าใจ",
+      "dialogue": "A (manager): Thanks for sitting down with me. Overall, your work this year has been strong.\nB: Thank you. I've tried hard to meet the targets.\nA: It shows. Your sales figures are above average. One area to develop is delegation—you tend to take on too much yourself.\nB: I admit I find it hard to hand tasks over.\nA: Trusting your team will free you up for bigger projects. I'd like you to lead the new campaign next quarter.\nB: I'd be glad to, though I may need some support at first.\nA: That's understandable. We'll arrange a mentor to guide you through it.\nB: That would be a great help. Thank you for the opportunity.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "work",
+      "questions": [
+        {
+          "id": "cv-c1-long-210-q1",
+          "question": "What is the purpose of the conversation?",
+          "choices": [
+            "A performance review",
+            "A job interview",
+            "A complaint",
+            "A farewell party"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — ทั้งบทเป็นการประเมินผลงานประจำปี ผู้จัดการพูดถึงผลงานและจุดที่ต้องพัฒนา"
+        },
+        {
+          "id": "cv-c1-long-210-q2",
+          "question": "What is B good at?",
+          "choices": [
+            "Delegating tasks",
+            "Sales figures above average",
+            "Arriving early",
+            "Writing reports"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ผู้จัดการบอกว่า \"Your sales figures are above average\""
+        },
+        {
+          "id": "cv-c1-long-210-q3",
+          "question": "What should B improve?",
+          "choices": [
+            "Being on time",
+            "Speaking in public",
+            "Delegating to the team",
+            "Using the computer"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ผู้จัดการบอกว่า \"One area to develop is delegation\" และ B ยอมรับว่ามอบงานให้คนอื่นได้ยาก"
+        },
+        {
+          "id": "cv-c1-long-210-q4",
+          "question": "What new responsibility is B given?",
+          "choices": [
+            "Training all new staff",
+            "Managing the budget alone",
+            "Closing the department",
+            "Leading the new campaign"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — ผู้จัดการบอกว่า \"I'd like you to lead the new campaign next quarter\""
+        },
+        {
+          "id": "cv-c1-long-210-q5",
+          "question": "How does the manager support B's concern?",
+          "choices": [
+            "By arranging a mentor",
+            "By reducing the salary",
+            "By cancelling the campaign",
+            "By hiring a replacement"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — B ขอการสนับสนุน ผู้จัดการตอบว่า \"We'll arrange a mentor to guide you through it\""
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-long-211",
+      "level": "B2",
+      "examStyle": "A-LEVEL",
+      "format": "LONG_CONVO",
+      "title": "A Travel Mishap",
+      "scenario_th": "คุยกันเรื่องปัญหาระหว่างเดินทางที่สนามบิน — อ่านแล้วตอบคำถามความเข้าใจ (มีคำถามวัดความหมายสำนวน)",
+      "dialogue": "A: How was your trip? I heard there was a problem at the airport.\nB: Oh, it was stressful. My connecting flight was cancelled because of a storm.\nA: That's awful. What did you do?\nB: The airline put us up in a hotel overnight and booked us on a morning flight.\nA: At least they took care of you. Did you lose any luggage?\nB: Luckily not, but my bag arrived a day later than I did.\nA: So everything worked out in the end?\nB: More or less. I was just relieved to get home safely.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "travel",
+      "questions": [
+        {
+          "id": "cv-b2-long-211-q1",
+          "question": "Why was B's flight cancelled?",
+          "choices": [
+            "Because of a strike",
+            "Because of a storm",
+            "Because of engine trouble",
+            "Because B was late"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — B บอกว่า \"cancelled because of a storm\""
+        },
+        {
+          "id": "cv-b2-long-211-q2",
+          "question": "What did the airline do for the passengers?",
+          "choices": [
+            "Gave a full cash refund",
+            "Offered a free upgrade",
+            "Provided a hotel and a morning flight",
+            "Did nothing at all"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — B บอกว่า \"put us up in a hotel overnight and booked us on a morning flight\""
+        },
+        {
+          "id": "cv-b2-long-211-q3",
+          "question": "What happened to B's luggage?",
+          "choices": [
+            "It was lost completely",
+            "It was damaged badly",
+            "It was sent to the wrong country",
+            "It arrived a day late"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — B บอกว่า \"my bag arrived a day later than I did\""
+        },
+        {
+          "id": "cv-b2-long-211-q4",
+          "question": "How did B feel by the end?",
+          "choices": [
+            "Relieved to be home safely",
+            "Angry at the staff",
+            "Excited to fly again",
+            "Bored and tired of home"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — B บอกว่า \"I was just relieved to get home safely\""
+        },
+        {
+          "id": "cv-b2-long-211-q5",
+          "question": "What does B mean by \"More or less\"?",
+          "choices": [
+            "Completely and perfectly",
+            "Mostly, but not perfectly",
+            "Not at all",
+            "Worse than before"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — \"More or less\" เป็นสำนวนแปลว่า \"ก็ประมาณนั้น/เกือบทั้งหมดแต่ไม่เป๊ะ\" คือเรื่องราวจบลงด้วยดีเกือบทั้งหมด"
+        }
+      ]
+    },
+    {
+      "id": "cv-c1-long-212",
+      "level": "C1",
+      "examStyle": "A-LEVEL",
+      "format": "LONG_CONVO",
+      "title": "A Debate About Technology",
+      "scenario_th": "ถกกันว่าสมาร์ตโฟนทำให้คนเข้าสังคมมากขึ้นหรือน้อยลง — อ่านแล้วตอบคำถามความเข้าใจ (มีคำถามวัดความหมาย)",
+      "dialogue": "A: I think smartphones have made us less social, not more.\nB: That's a common view, but I'd argue the opposite. They help us stay in touch with people far away.\nA: True, but how often do we ignore the people right in front of us?\nB: Fair point. Maybe the problem isn't the technology itself, but how we choose to use it.\nA: Exactly. A tool is only as good or bad as the person using it.\nB: So we agree, in a way—the responsibility lies with us, not the device.\nA: Well said. Perhaps the answer is simply more balance.\nB: I couldn't agree more.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "other",
+      "questions": [
+        {
+          "id": "cv-c1-long-212-q1",
+          "question": "What is the conversation mainly about?",
+          "choices": [
+            "How to repair a smartphone",
+            "Which phone brand is best",
+            "Whether smartphones make us more or less social",
+            "The price of new phones"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — ทั้งบทเป็นการถกเถียงว่าสมาร์ตโฟนทำให้คนเข้าสังคมมากขึ้นหรือน้อยลง"
+        },
+        {
+          "id": "cv-c1-long-212-q2",
+          "question": "What is A's opinion at the start?",
+          "choices": [
+            "Smartphones are too expensive",
+            "Smartphones are perfectly safe",
+            "Smartphones should be banned",
+            "Smartphones make us less social"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — A เปิดด้วย \"smartphones have made us less social, not more\""
+        },
+        {
+          "id": "cv-c1-long-212-q3",
+          "question": "What is B's counter-argument?",
+          "choices": [
+            "They help us stay in touch with distant people",
+            "They are cheaper than before",
+            "They have better cameras",
+            "They never break down"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — B แย้งว่า \"They help us stay in touch with people far away\""
+        },
+        {
+          "id": "cv-c1-long-212-q4",
+          "question": "What do A and B finally agree on?",
+          "choices": [
+            "Smartphones should be banned",
+            "The responsibility lies with the user, not the device",
+            "Technology is always harmful",
+            "Nobody should use phones at all"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — ทั้งคู่สรุปตรงกันว่า \"the responsibility lies with us, not the device\""
+        },
+        {
+          "id": "cv-c1-long-212-q5",
+          "question": "What does A suggest with \"more balance\"?",
+          "choices": [
+            "Buying more devices",
+            "Spending more money",
+            "Using technology in moderation",
+            "Using phones all day"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — \"more balance\" ในที่นี้หมายถึงการใช้เทคโนโลยีอย่างพอดี ไม่มากเกินไป"
+        }
+      ]
+    },
+    {
+      "id": "cv-b2-long-213",
+      "level": "B2",
+      "examStyle": "A-LEVEL",
+      "format": "LONG_CONVO",
+      "title": "Planning a Surprise Party",
+      "scenario_th": "พี่น้องวางแผนจัดงานวันเกิดเซอร์ไพรส์ให้แม่ — อ่านแล้วตอบคำถามความเข้าใจ (มีคำถามวัดความหมายสำนวน)",
+      "dialogue": "A: We need to plan something special for Mom's birthday.\nB: How about a surprise party at home?\nA: Good idea. Who should we invite?\nB: Just close family and a few of her old friends—she doesn't like big crowds.\nA: Agreed. I'll handle the food if you take care of the decorations.\nB: Deal. And we should tell everyone to arrive before six, so they're ready when she gets home.\nA: Perfect. Let's keep it a secret until then.\nB: My lips are sealed!",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "daily",
+      "questions": [
+        {
+          "id": "cv-b2-long-213-q1",
+          "question": "What are A and B planning?",
+          "choices": [
+            "A wedding",
+            "A school trip",
+            "A business meeting",
+            "A surprise birthday party"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — A พูดว่า \"plan something special for Mom's birthday\" และ B เสนอ \"a surprise party\""
+        },
+        {
+          "id": "cv-b2-long-213-q2",
+          "question": "Who will be invited?",
+          "choices": [
+            "Close family and a few old friends",
+            "The whole neighbourhood",
+            "All of Mom's coworkers",
+            "Only the two of them"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — B บอกว่า \"Just close family and a few of her old friends\""
+        },
+        {
+          "id": "cv-b2-long-213-q3",
+          "question": "What will A be responsible for?",
+          "choices": [
+            "The decorations",
+            "The food",
+            "The music",
+            "The invitations"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — A บอกว่า \"I'll handle the food\" ส่วน B ดูแลของตกแต่ง"
+        },
+        {
+          "id": "cv-b2-long-213-q4",
+          "question": "When should the guests arrive?",
+          "choices": [
+            "After midnight",
+            "At noon",
+            "Before six o'clock",
+            "Whenever they like"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — B บอกว่า \"tell everyone to arrive before six\""
+        },
+        {
+          "id": "cv-b2-long-213-q5",
+          "question": "What does B mean by \"My lips are sealed\"?",
+          "choices": [
+            "I'm very hungry",
+            "I can't speak English",
+            "I want to leave now",
+            "I'll keep it a secret"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — \"My lips are sealed\" เป็นสำนวนแปลว่า \"จะเก็บเป็นความลับ ไม่บอกใคร\" สอดคล้องกับการเก็บงานเซอร์ไพรส์เป็นความลับ"
+        }
+      ]
+    },
+    {
+      "id": "cv-c1-long-214",
+      "level": "C1",
+      "examStyle": "A-LEVEL",
+      "format": "LONG_CONVO",
+      "title": "A Project Setback",
+      "scenario_th": "พนักงานรายงานหัวหน้าเรื่องโปรเจกต์สะดุดและวางแผนรับมือ — อ่านแล้วตอบคำถามความเข้าใจ",
+      "dialogue": "A: I wanted to update you—we've hit a setback on the app project.\nB: I appreciate the honesty. What's the issue?\nA: A key feature isn't working as expected, and fixing it will push the launch back by two weeks.\nB: That's not ideal, but it's better to launch something that works. Have you told the client?\nA: Not yet. I wanted to discuss our options with you first.\nB: Let's be upfront with them. Clients usually respect honesty more than a missed promise.\nA: I agree. I'll draft an email explaining the delay and the new timeline.\nB: Good. Frame it positively—focus on the improved quality.",
+      "targetVocab": [],
+      "verified": true,
+      "source": "AI-generated (Claude) — teacher review required",
+      "category": "work",
+      "questions": [
+        {
+          "id": "cv-c1-long-214-q1",
+          "question": "What is A reporting?",
+          "choices": [
+            "A setback on the project",
+            "A successful launch",
+            "A new client",
+            "A pay rise"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — A เปิดด้วย \"we've hit a setback on the app project\""
+        },
+        {
+          "id": "cv-c1-long-214-q2",
+          "question": "What is the problem?",
+          "choices": [
+            "The team quit",
+            "A key feature isn't working",
+            "The budget was lost",
+            "The office closed"
+          ],
+          "answerIndex": 1,
+          "explanation_th": "ตอบข้อ B — A บอกว่า \"A key feature isn't working as expected\""
+        },
+        {
+          "id": "cv-c1-long-214-q3",
+          "question": "How will it affect the launch?",
+          "choices": [
+            "It will be cancelled",
+            "It will happen earlier",
+            "It will be delayed by two weeks",
+            "It will not change"
+          ],
+          "answerIndex": 2,
+          "explanation_th": "ตอบข้อ C — A บอกว่า \"push the launch back by two weeks\""
+        },
+        {
+          "id": "cv-c1-long-214-q4",
+          "question": "What does B advise about the client?",
+          "choices": [
+            "To hide the delay",
+            "To blame the team",
+            "To cancel the contract",
+            "To be honest and upfront"
+          ],
+          "answerIndex": 3,
+          "explanation_th": "ตอบข้อ D — B แนะนำว่า \"Let's be upfront with them\" เพราะลูกค้านับถือความซื่อตรง"
+        },
+        {
+          "id": "cv-c1-long-214-q5",
+          "question": "How does B suggest framing the email?",
+          "choices": [
+            "Positively, focusing on improved quality",
+            "Angrily, blaming the client",
+            "Vaguely, with no details",
+            "By demanding more money"
+          ],
+          "answerIndex": 0,
+          "explanation_th": "ตอบข้อ A — B บอกว่า \"Frame it positively—focus on the improved quality\""
         }
       ]
     }
