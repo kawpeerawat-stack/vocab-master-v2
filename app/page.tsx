@@ -124,6 +124,8 @@ export default function Home() {
   const [cResults, setCResults] = useState<{ qid: string; selected: number; correct: boolean }[]>([]);
   const [cSaving, setCSaving] = useState(false);
   const [convGloss, setConvGloss] = useState<string | null>(null);
+  const [convMastered, setConvMastered] = useState<Set<string>>(new Set()); // ชุดบทสนทนาที่ "พิชิต" แล้ว (ตอบถูกครบทุกข้อ)
+  const [convCompleted, setConvCompleted] = useState<Set<string>>(new Set()); // ชุดบทสนทนาที่เคยทำจบ
 
   const [studentName, setStudentName] = useState('');
   const [email, setEmail] = useState('');
@@ -253,6 +255,8 @@ export default function Home() {
         const cloud = await loadCloudProgress(email);
         if (cloud?.masteredPassages) setReadingMastered(new Set(cloud.masteredPassages));
         if (cloud?.completedPassages) setReadingCompleted(new Set(cloud.completedPassages));
+        if (cloud?.masteredConvos) setConvMastered(new Set(cloud.masteredConvos));
+        if (cloud?.completedConvos) setConvCompleted(new Set(cloud.completedConvos));
         if (cloud && cloud.srs && Object.keys(cloud.srs).length > 0) {
           setSrsStore(cloud.srs);
           saveStore(email, cloud.srs); // เก็บลงเครื่องเป็น cache ด้วย
@@ -765,6 +769,13 @@ export default function Home() {
     if (!activeConv) return;
     const total = allResults.length;
     const correct = allResults.filter((r) => r.correct).length;
+    const allCorrect = total > 0 && correct === total; // ถูกครบทุกข้อ = "พิชิตชุด"
+    // อัปเดตแถบความสำเร็จทันที (เฉพาะชุดที่ครูตรวจแล้ว) ให้เห็นผลในรอบนี้เลย แม้ยังไม่ล็อกอินอีเมล
+    if (activeConv.verified) {
+      const cid = activeConv.id;
+      setConvCompleted((prev) => { const n = new Set(prev); n.add(cid); return n; });
+      if (allCorrect) setConvMastered((prev) => { const n = new Set(prev); n.add(cid); return n; });
+    }
     // บันทึกเฉพาะชุดที่ครูตรวจแล้ว (ไม่บันทึกตอนครูพรีวิว)
     if (activeConv.verified && email) {
       const byFormat: Record<string, ConvByFormat> = {};
@@ -778,7 +789,7 @@ export default function Home() {
       saveStreak(email, updatedStreak);
       setCSaving(true);
       try {
-        await saveConversationProgress({ email, name: studentName, correct, total, byFormat, streak: updatedStreak });
+        await saveConversationProgress({ email, name: studentName, correct, total, byFormat, streak: updatedStreak, convId: activeConv.id, mastered: allCorrect });
       } catch (e) {
         console.error('บันทึกผล Conversation ไม่สำเร็จ:', e);
       } finally {
@@ -807,6 +818,10 @@ export default function Home() {
   const convEffectiveCat = convCat !== 'ALL' && convCatsPresent.includes(convCat) ? convCat : 'ALL';
   const shownConvSets = convEffectiveCat === 'ALL' ? convExamFiltered : convExamFiltered.filter((s) => (s.category || 'other') === convEffectiveCat);
   const hasUnverifiedConv = conversationSets.some((s) => !s.verified);
+  // ── แถบความสำเร็จ (พิชิตชุด) — นับเฉพาะชุดที่นักเรียนเห็น (ครูตรวจแล้ว) ──
+  const convMasteredCount = visibleConvSets.filter((s) => convMastered.has(s.id)).length;
+  const convCompletedCount = visibleConvSets.filter((s) => convCompleted.has(s.id)).length;
+  const convMasteryPct = visibleConvSets.length > 0 ? Math.round((convMasteredCount / visibleConvSets.length) * 100) : 0;
 
   return (
     <div
@@ -957,6 +972,35 @@ export default function Home() {
                   โหมดครู: แสดงชุดที่ยังไม่ได้ตรวจ (สำหรับทดสอบก่อนเปิดให้นักเรียน)
                 </label>
 
+                {/* ── แถบ % ความก้าวหน้าบทสนทนา (ดีไซน์เดียวกับห้องอ่าน) ── */}
+                {!convLoading && visibleConvSets.length > 0 && (
+                  <div className="bg-[#003399]/5 border-2 border-[#003399]/10 rounded-3xl p-5 mb-4 shadow-sm">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-xs font-black text-[#003399] uppercase tracking-wider">⭐ แถบความสำเร็จบทสนทนา</span>
+                      <span className="text-sm font-black text-[#003399] bg-[#FFD700] px-3 py-1 rounded-full shadow-sm">{convMasteryPct}%</span>
+                    </div>
+                    <div className="w-full bg-white h-4 rounded-full mb-3 overflow-hidden border border-[#003399]/10">
+                      <div
+                        className="bg-gradient-to-r from-[#FFD700] to-[#ffb800] h-full transition-all duration-1000 ease-out"
+                        style={{ width: `${convMasteryPct}%` }}
+                      ></div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-center">
+                      <div className="bg-white rounded-xl py-2 border border-[#003399]/10">
+                        <div className="text-lg font-black text-[#FFB800]">⭐ {convMasteredCount}</div>
+                        <div className="text-[10px] font-bold text-gray-500">พิชิตแล้ว (ถูกครบ)</div>
+                      </div>
+                      <div className="bg-white rounded-xl py-2 border border-[#003399]/10">
+                        <div className="text-lg font-black text-[#003399]">{convCompletedCount} / {visibleConvSets.length}</div>
+                        <div className="text-[10px] font-bold text-gray-500">ชุดที่เคยทำ</div>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-2 leading-relaxed text-center">
+                      ตอบถูกครบทุกข้อในชุด = พิชิตชุดนั้น ⭐ (ทำซ้ำได้จนกว่าจะพิชิต)
+                    </p>
+                  </div>
+                )}
+
                 {/* ── แท็บสนามสอบห้องสนทนา (TGAT/A-Level เท่านั้น — NETSAT ไม่มีพาร์ตนี้) ── */}
                 {!convLoading && convExamsPresent.length > 1 && (
                   <div className="flex flex-wrap gap-2 justify-center mb-2">
@@ -1042,6 +1086,11 @@ export default function Home() {
                         ) : (
                           <span className="text-[10px] font-black bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">⚠ รอครูตรวจ</span>
                         )}
+                        {convMastered.has(s.id) ? (
+                          <span className="text-[10px] font-black bg-[#FFD700]/40 text-[#8a6d00] px-2 py-0.5 rounded-full">⭐ พิชิตแล้ว</span>
+                        ) : convCompleted.has(s.id) ? (
+                          <span className="text-[10px] font-black bg-blue-100 text-[#003399] px-2 py-0.5 rounded-full">↻ ลองอีกครั้ง</span>
+                        ) : null}
                       </div>
                       <div className="font-black text-gray-900 text-[15px] leading-snug">{s.title}</div>
                       {s.scenario_th && <div className="text-xs text-gray-500 font-medium mt-0.5">{s.scenario_th}</div>}
