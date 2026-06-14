@@ -86,6 +86,9 @@ export interface CloudProgress {
   completedPassages?: string[]; // id บทที่เคยทำจบ (ถูกครบหรือไม่ก็ตาม)
   // ── บทที่พิชิต "สัปดาห์นี้" (รีเซ็ตทุกวันจันทร์) สำหรับ Top 3 หน้า Reading ──
   weeklyReading?: { weekId: string; masteredIds: string[] };
+  // ── แถบความสำเร็จห้องสนทนา ──
+  masteredConvos?: string[];  // id ชุดที่ "พิชิต" (ตอบถูกครบทุกข้อ) — สะสมตลอดกาล
+  completedConvos?: string[]; // id ชุดที่เคยทำจบ (ถูกครบหรือไม่ก็ตาม)
 }
 
 // ── โหลดความก้าวหน้าจากคลาวด์ (คืน null ถ้ายังไม่มี) ──
@@ -337,8 +340,10 @@ export async function saveConversationProgress(params: {
   total: number;
   byFormat: Record<string, ConvByFormat>;
   streak?: StreakState;
+  convId?: string;
+  mastered?: boolean;
 }): Promise<boolean> {
-  const { email, name, correct, total, byFormat, streak } = params;
+  const { email, name, correct, total, byFormat, streak, convId, mastered } = params;
   if (!email || !db) return false;
   try {
     const ref = doc(db, COLLECTION, emailToId(email));
@@ -347,6 +352,8 @@ export async function saveConversationProgress(params: {
     let prevConv: ConversationStat | undefined;
     let prevWeeklyXp = 0;
     let prevWeekId = "";
+    let prevMasteredConvos: string[] = [];
+    let prevCompletedConvos: string[] = [];
     try {
       const prev = await getDoc(ref);
       if (prev.exists()) {
@@ -354,6 +361,8 @@ export async function saveConversationProgress(params: {
         prevConv = pd.conversation;
         prevWeeklyXp = pd.weeklyXp ?? 0;
         prevWeekId = pd.weekId ?? "";
+        prevMasteredConvos = pd.masteredConvos ?? [];
+        prevCompletedConvos = pd.completedConvos ?? [];
       }
     } catch {
       // ใช้ค่าเริ่มต้น
@@ -381,6 +390,11 @@ export async function saveConversationProgress(params: {
 
     const weeklyXp = prevWeekId === weekId ? prevWeeklyXp + correct : correct;
 
+    const completedConvos = convId && !prevCompletedConvos.includes(convId)
+      ? [...prevCompletedConvos, convId] : prevCompletedConvos;
+    const masteredConvos = convId && mastered && !prevMasteredConvos.includes(convId)
+      ? [...prevMasteredConvos, convId] : prevMasteredConvos;
+
     await setDoc(
       ref,
       {
@@ -389,6 +403,7 @@ export async function saveConversationProgress(params: {
         conversation,
         weeklyXp,
         weekId,
+        ...(convId ? { masteredConvos, completedConvos } : {}),
         ...(streak
           ? {
               streak: streak.streak,
