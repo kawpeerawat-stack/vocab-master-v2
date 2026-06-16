@@ -220,7 +220,7 @@ export default function Home() {
   }, []);
 
   // ── useEffect 2: ชั้นป้องกัน/ตรวจจับการคัดลอก–จับภาพหน้าจอ ระหว่างทำข้อสอบทุกห้อง ──
-  //   หมายเหตุสำคัญ: เว็บ "บล็อก" สกรีนช็อตจริงไม่ได้ — นี่คือแรงเสียดทาน + ตรวจจับ + ลายน้ำระบุตัวตน
+  //   หมายเหตุสำคัญ: เว็บ "บล็อก" สกรีนช็อตจริงไม่ได้ — นี่คือแรงเสียดทาน + ตรวจจับ (เบลอตอนสลับแอป + ปิดคัดลอก)
   useEffect(() => {
     if (!inQuiz) { setScreenObscured(false); return; }
 
@@ -915,19 +915,6 @@ export default function Home() {
     <div
       className="min-h-screen bg-[#f8f9fa] flex flex-col items-center justify-center p-4 font-sans text-gray-800 select-none"
     >
-      {/* ── ลายน้ำระบุตัวตน (โชว์เฉพาะตอนทำข้อสอบ) — สกรีนช็อตจะติดชื่อผู้ทำเสมอ ── */}
-      {inQuiz && (studentName || email) && (
-        <div className="pointer-events-none fixed inset-0 z-[70] overflow-hidden" aria-hidden="true">
-          <div className="absolute inset-[-20%] flex flex-wrap content-center justify-center gap-x-10 gap-y-12 opacity-[0.12] rotate-[-24deg]">
-            {Array.from({ length: 70 }).map((_, i) => (
-              <span key={i} className="text-[#003399] font-black text-base whitespace-nowrap">
-                {(studentName || 'student')} · {email}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* ── เลเยอร์เบลอเมื่อออกนอกหน้าจอ/สลับแอประหว่างทำข้อสอบ (สกรีนช็อตหลังสลับจะเห็นแต่เลเยอร์นี้) ── */}
       {inQuiz && screenObscured && (
         <div className="fixed inset-0 z-[9999] bg-[#003399]/95 backdrop-blur-xl flex flex-col items-center justify-center text-center px-8">
