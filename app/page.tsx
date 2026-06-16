@@ -918,9 +918,9 @@ export default function Home() {
       {/* ── ลายน้ำระบุตัวตน (โชว์เฉพาะตอนทำข้อสอบ) — สกรีนช็อตจะติดชื่อผู้ทำเสมอ ── */}
       {inQuiz && (studentName || email) && (
         <div className="pointer-events-none fixed inset-0 z-[70] overflow-hidden" aria-hidden="true">
-          <div className="absolute inset-[-20%] flex flex-wrap content-center justify-center gap-x-12 gap-y-14 opacity-[0.07] rotate-[-24deg]">
-            {Array.from({ length: 60 }).map((_, i) => (
-              <span key={i} className="text-[#003399] font-black text-sm whitespace-nowrap">
+          <div className="absolute inset-[-20%] flex flex-wrap content-center justify-center gap-x-10 gap-y-12 opacity-[0.12] rotate-[-24deg]">
+            {Array.from({ length: 70 }).map((_, i) => (
+              <span key={i} className="text-[#003399] font-black text-base whitespace-nowrap">
                 {(studentName || 'student')} · {email}
               </span>
             ))}
