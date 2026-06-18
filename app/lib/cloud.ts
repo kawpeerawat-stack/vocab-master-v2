@@ -1,469 +1,393 @@
-// app/lib/cloud.ts
-// ─────────────────────────────────────────────────────────────
-// ซิงก์ความก้าวหน้า (SRS) ของนักเรียนแต่ละคนขึ้น Firestore
-//   - ใช้ "อีเมล" เป็นกุญแจระบุตัวนักเรียน (ไม่ต้องมีระบบล็อกอิน/รหัสผ่าน)
-//   - โหลดกลับตอนล็อกอิน → เด็กเปลี่ยนเครื่องแล้ว progress ไม่หาย
-//   - บันทึกตอนจบรอบ → ครูเห็นข้อมูลรายคนได้ (ใช้ในหน้า /admin)
-//
-// เก็บไว้ใน collection "students" โดย document id = อีเมล (ตัวพิมพ์เล็ก)
-// ─────────────────────────────────────────────────────────────
+"use client";
 
-import { db } from "./firebase";
-import { doc, getDoc, setDoc, serverTimestamp, collection, getDocs } from "firebase/firestore";
-import type { SrsStore } from "./srs";
-import type { StreakState } from "./streak";
+import React, { useEffect, useState } from "react";
+import { db } from "../lib/firebase";
+import { collection, getDocs } from "firebase/firestore";
+import type { SrsCard } from "../lib/srs";
+import { RQTYPE_LABELS } from "../lib/reading";
+import { CONV_FORMAT_LABELS } from "../lib/conversation";
 
-const COLLECTION = "students";
+type ReadingStatRow = {
+  attempts?: number;
+  totalAnswered?: number;
+  totalCorrect?: number;
+  bestPct?: number;
+  byType?: Record<string, { answered: number; correct: number }>;
+  totalLeaves?: number;
+};
+type ReadingLeaveRow = { title?: string; examStyle?: string; leaves: number; attempts: number; lastLeaves?: number };
+type ConversationStatRow = {
+  attempts?: number;
+  totalAnswered?: number;
+  totalCorrect?: number;
+  bestPct?: number;
+  byFormat?: Record<string, { answered: number; correct: number }>;
+};
 
-// แปลงอีเมลเป็น document id ที่ปลอดภัย (Firestore id ห้ามมี "/")
-function emailToId(email: string): string {
-  return email.trim().toLowerCase().replace(/\//g, "_");
-}
-
-// รหัสสัปดาห์ = วันที่ของ "วันจันทร์" ของสัปดาห์นั้น (เวลาท้องถิ่น) → อันดับรีเซ็ตทุกวันจันทร์
-export function currentWeekId(d: Date = new Date()): string {
-  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const day = (x.getDay() + 6) % 7; // จันทร์=0 ... อาทิตย์=6
-  x.setDate(x.getDate() - day);     // ถอยไปวันจันทร์
-  return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}`;
-}
-
-// ── สถิติห้อง Reading รายคน (เก็บใน students/{email}.reading) ──
-export interface ReadingByType {
-  answered: number;
-  correct: number;
-}
-export interface ReadingStat {
-  attempts: number; // จำนวนรอบที่ทำเสร็จ
-  totalAnswered: number; // ข้อสะสมที่ตอบทั้งหมด
-  totalCorrect: number; // ข้อสะสมที่ถูก
-  lastCorrect: number; // รอบล่าสุด: ถูกกี่ข้อ
-  lastTotal: number; // รอบล่าสุด: จากกี่ข้อ
-  bestPct: number; // เปอร์เซ็นต์ที่ดีที่สุด
-  byType: Record<string, ReadingByType>; // ความแม่นรายชนิดคำถาม
-}
-
-// ── สถิติห้อง Conversation รายคน (เก็บใน students/{email}.conversation) ──
-export interface ConvByFormat {
-  answered: number;
-  correct: number;
-}
-export interface ConversationStat {
-  attempts: number;
-  totalAnswered: number;
-  totalCorrect: number;
-  lastCorrect: number;
-  lastTotal: number;
-  bestPct: number;
-  byFormat: Record<string, ConvByFormat>; // ความแม่นรายรูปแบบบทสนทนา
-}
-
-export interface CloudProgress {
-  name: string;
-  email: string;
-  srs: SrsStore;
-  mastered: number;
-  learning: number;
-  seen: number;
-  total: number;
-  bestScore: number;
-  lastScore: number;
-  // ── สถิติห้องอ่าน (อาจไม่มีในเอกสารเก่า) ──
-  reading?: ReadingStat;
-  // ── สถิติห้องบทสนทนา (อาจไม่มีในเอกสารเก่า) ──
-  conversation?: ConversationStat;
-  // ── streak (อาจไม่มีในเอกสารเก่า) ──
+type StudentDoc = {
+  id: string;
+  name?: string;
+  email?: string;
+  mastered?: number;
+  learning?: number;
+  seen?: number;
+  total?: number;
+  bestScore?: number;
+  lastScore?: number;
+  score?: number;
   streak?: number;
-  bestStreak?: number;
-  lastStudyDate?: string;
-  todayCount?: number;
-  dailyGoal?: number;
-  // ── แต้มรายสัปดาห์ (รีเซ็ตทุกวันจันทร์) ──
-  weeklyXp?: number;
-  weekId?: string;
-  // ── แถบความสำเร็จห้องอ่าน ──
-  masteredPassages?: string[];  // id บทที่ "พิชิต" (ตอบถูกครบทุกข้อ) — สะสมตลอดกาล
-  completedPassages?: string[]; // id บทที่เคยทำจบ (ถูกครบหรือไม่ก็ตาม)
-  // ── บทที่พิชิต "สัปดาห์นี้" (รีเซ็ตทุกวันจันทร์) สำหรับ Top 3 หน้า Reading ──
-  weeklyReading?: { weekId: string; masteredIds: string[] };
-  // ── แถบความสำเร็จห้องสนทนา ──
-  masteredConvos?: string[];  // id ชุดที่ "พิชิต" (ตอบถูกครบทุกข้อ) — สะสมตลอดกาล
-  completedConvos?: string[]; // id ชุดที่เคยทำจบ (ถูกครบหรือไม่ก็ตาม)
+  srs?: Record<string, SrsCard>;
+  reading?: ReadingStatRow;
+  conversation?: ConversationStatRow;
+  readingLeaves?: Record<string, ReadingLeaveRow>;
+};
+
+type VocabMeaning = { thai: string; level: string };
+
+// คำถือว่า "ยังอ่อน" เมื่ออยู่กล่องต่ำ หรือเคยลืม (lapses > 0)
+function isWeak(card: SrsCard): boolean {
+  return card.box <= 1 || card.lapses > 0;
 }
 
-// ── โหลดความก้าวหน้าจากคลาวด์ (คืน null ถ้ายังไม่มี) ──
-export async function loadCloudProgress(email: string): Promise<CloudProgress | null> {
-  if (!email || !db) return null;
-  try {
-    const ref = doc(db, COLLECTION, emailToId(email));
-    const snap = await getDoc(ref);
-    if (!snap.exists()) return null;
-    return snap.data() as CloudProgress;
-  } catch (e) {
-    console.error("loadCloudProgress error:", e);
-    return null;
-  }
-}
+export default function AdminDashboard() {
+  const [students, setStudents] = useState<StudentDoc[]>([]);
+  const [vocabMap, setVocabMap] = useState<Record<string, VocabMeaning>>({});
+  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState<string | null>(null);
 
-// ── บันทึกความก้าวหน้าขึ้นคลาวด์ (merge — เก็บ bestScore สูงสุดไว้) ──
-export async function saveCloudProgress(params: {
-  email: string;
-  name: string;
-  srs: SrsStore;
-  stats: { mastered: number; learning: number; seen: number; total: number };
-  lastScore: number;
-  streak?: StreakState;
-}): Promise<boolean> {
-  const { email, name, srs, stats, lastScore, streak } = params;
-  if (!email || !db) return false;
-  try {
-    const ref = doc(db, COLLECTION, emailToId(email));
+  useEffect(() => {
+    const load = async () => {
+      try {
+        // 1) แผนที่ความหมายคำศัพท์ (ไว้แสดงภาษาไทย)
+        try {
+          const res = await fetch("/api/vocab");
+          if (res.ok) {
+            const words = (await res.json()) as { word: string; thai_meaning: string; level: string }[];
+            const map: Record<string, VocabMeaning> = {};
+            for (const w of words) map[w.word] = { thai: w.thai_meaning, level: w.level };
+            setVocabMap(map);
+          }
+        } catch (e) {
+          console.error("load vocab error:", e);
+        }
 
-    // ดึง bestScore เดิม + แต้มรายสัปดาห์เดิม มาคำนวณต่อ
-    const weekId = currentWeekId();
-    let bestScore = lastScore;
-    let weeklyXp = lastScore; // ค่าเริ่มต้น (สัปดาห์ใหม่ หรือยังไม่มีข้อมูล)
-    try {
-      const prev = await getDoc(ref);
-      if (prev.exists()) {
-        const pd = prev.data() as CloudProgress;
-        bestScore = Math.max(pd.bestScore ?? 0, lastScore);
-        // สัปดาห์เดิม → สะสมต่อ, สัปดาห์ใหม่ → เริ่มนับใหม่จากรอบนี้
-        weeklyXp = pd.weekId === weekId ? (pd.weeklyXp ?? 0) + lastScore : lastScore;
+        // 2) ข้อมูลนักเรียนจาก Firestore
+        const snap = await getDocs(collection(db, "students"));
+        const data: StudentDoc[] = [];
+        snap.forEach((d) => data.push({ id: d.id, ...(d.data() as object) } as StudentDoc));
+        data.sort((a, b) => (b.mastered ?? 0) - (a.mastered ?? 0));
+        setStudents(data);
+      } catch (error) {
+        console.error("Error fetching students:", error);
+      } finally {
+        setLoading(false);
       }
-    } catch {
-      // อ่านค่าเดิมไม่ได้ก็ใช้ค่าเริ่มต้นไปก่อน
-    }
+    };
+    load();
+  }, []);
 
-    await setDoc(
-      ref,
-      {
-        name,
-        email: email.trim().toLowerCase(),
-        srs,
-        mastered: stats.mastered,
-        learning: stats.learning,
-        seen: stats.seen,
-        total: stats.total,
-        // หน้า /admin เดิมเรียงตาม field "score" — ใส่ทั้ง score และ bestScore ให้เข้ากันได้
-        score: bestScore,
-        bestScore,
-        lastScore,
-        // แต้มรายสัปดาห์
-        weeklyXp,
-        weekId,
-        // streak (ถ้ามี)
-        ...(streak
-          ? {
-              streak: streak.streak,
-              bestStreak: streak.bestStreak,
-              lastStudyDate: streak.lastStudyDate,
-              todayCount: streak.todayCount,
-              dailyGoal: streak.dailyGoal,
-            }
-          : {}),
-        updatedAt: serverTimestamp(),
-      },
-      { merge: true }
-    );
-    return true;
-  } catch (e) {
-    console.error("saveCloudProgress error:", e);
-    return false;
-  }
-}
-
-// ── จัดอันดับ "คนขยัน" ──
-// แต้มสะสม = ผลรวมระดับกล่อง SRS ของทุกคำ (ยิ่งเลื่อนคำขึ้นกล่องเยอะ ยิ่งได้แต้ม)
-// สะท้อนความขยันสะสมจริง ไม่ใช่คะแนนรอบเดียว
-export interface LeaderboardEntry {
-  email: string;
-  name: string;
-  points: number;     // แต้มสะสมตลอดกาล (ผลรวมกล่อง SRS)
-  weeklyXp: number;   // แต้มสัปดาห์นี้ (0 ถ้าข้อมูลเป็นของสัปดาห์ก่อน)
-  mastered: number;
-  streak: number;
-}
-
-export async function loadLeaderboard(): Promise<LeaderboardEntry[]> {
-  if (!db) return [];
-  try {
-    const thisWeek = currentWeekId();
-    const snap = await getDocs(collection(db, COLLECTION));
-    const entries: LeaderboardEntry[] = [];
-    snap.forEach((d) => {
-      const data = d.data() as {
-        email?: string; name?: string; mastered?: number; streak?: number;
-        weeklyXp?: number; weekId?: string;
-        srs?: Record<string, { box?: number }>;
-      };
-      let points = 0;
-      if (data.srs) {
-        for (const k in data.srs) {
-          const c = data.srs[k];
-          if (c && typeof c.box === "number") points += c.box;
+  // คำที่ทั้งห้องพลาดบ่อย: รวมจำนวนคนที่ยังอ่อน + lapses รวม ของแต่ละคำ
+  const classHardWords = (() => {
+    const agg: Record<string, { strugglers: number; lapses: number }> = {};
+    for (const s of students) {
+      if (!s.srs) continue;
+      for (const [word, card] of Object.entries(s.srs)) {
+        if (!card) continue;
+        if (isWeak(card)) {
+          if (!agg[word]) agg[word] = { strugglers: 0, lapses: 0 };
+          agg[word].strugglers += 1;
+          agg[word].lapses += card.lapses || 0;
         }
       }
-      entries.push({
-        email: (data.email || d.id).toLowerCase(),
-        name: data.name || "(ไม่มีชื่อ)",
-        points,
-        // ถ้าแต้มรายสัปดาห์เป็นของสัปดาห์ก่อน ให้นับเป็น 0 (เริ่มใหม่)
-        weeklyXp: data.weekId === thisWeek ? (data.weeklyXp ?? 0) : 0,
-        mastered: data.mastered ?? 0,
-        streak: data.streak ?? 0,
-      });
+    }
+    return Object.entries(agg)
+      .map(([word, v]) => ({ word, ...v }))
+      .sort((a, b) => b.strugglers - a.strugglers || b.lapses - a.lapses)
+      .slice(0, 20);
+  })();
+
+  // คำที่อ่อนของนักเรียนแต่ละคน (เรียงตามเคยลืมบ่อย → กล่องต่ำ)
+  const weakWordsOf = (s: StudentDoc) => {
+    if (!s.srs) return [];
+    return Object.entries(s.srs)
+      .filter(([, c]) => c && isWeak(c))
+      .sort((a, b) => (b[1].lapses || 0) - (a[1].lapses || 0) || a[1].box - b[1].box)
+      .slice(0, 15)
+      .map(([word, c]) => ({ word, box: c.box, lapses: c.lapses }));
+  };
+
+  // นักเรียนที่ออกจากหน้าจอระหว่างทำ Reading (กันโกง) — เรียงมากไปน้อย
+  const flaggedStudents = students
+    .map((s) => ({ s, leaves: s.reading?.totalLeaves ?? 0 }))
+    .filter((x) => x.leaves > 0)
+    .sort((a, b) => b.leaves - a.leaves);
+
+  // ── ดาวน์โหลดข้อมูลนักเรียนทั้งห้องเป็นไฟล์ CSV (เปิดใน Excel ได้) ──
+  const escapeCsv = (val: string | number) => {
+    const s = String(val ?? "");
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+
+  const downloadCsv = () => {
+    const headers = ["ชื่อ", "อีเมล", "จำได้", "กำลังเรียน", "เคยเจอ", "คะแนนสูงสุด", "วันติด(streak)", "ออกจากจอรวม", "บทที่ออกจากจอ", "คำที่ยังอ่อน"];
+    const rows = students.map((s) => {
+      const weak = weakWordsOf(s)
+        .map((w) => (vocabMap[w.word] ? `${w.word}(${vocabMap[w.word].thai})` : w.word))
+        .join("; ");
+      const leaveDetail = Object.values(s.readingLeaves || {})
+        .sort((a, b) => b.leaves - a.leaves)
+        .map((lv) => `${lv.title || "(บท)"}(${lv.leaves}×)`)
+        .join("; ");
+      return [
+        s.name || "",
+        s.email || s.id,
+        s.mastered ?? 0,
+        s.learning ?? 0,
+        s.seen ?? 0,
+        s.bestScore ?? s.score ?? 0,
+        s.streak ?? 0,
+        s.reading?.totalLeaves ?? 0,
+        leaveDetail,
+        weak,
+      ].map(escapeCsv).join(",");
     });
-    entries.sort((a, b) => b.points - a.points || b.mastered - a.mastered || b.streak - a.streak);
-    return entries;
-  } catch (e) {
-    console.error("loadLeaderboard error:", e);
-    return [];
-  }
-}
+    // ใส่ BOM (\uFEFF) เพื่อให้ Excel อ่านภาษาไทยถูกต้อง
+    const csv = "\uFEFF" + [headers.join(","), ...rows].join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const date = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `vocab-master-students-${date}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
-// ── บันทึกผลรอบ Reading (merge) ──
-//   - อัปเดตสถิติสะสมใน field "reading"
-//   - บวกแต้มรายสัปดาห์ (weeklyXp) ด้วย เพื่อให้ "อันดับคนขยันรายสัปดาห์" นับรวมห้องอ่าน
-//   - เขียน streak (ส่งมาจากหน้าจอ) เพื่อให้ streak นับรวมกิจกรรมทุกห้อง
-export async function saveReadingProgress(params: {
-  email: string;
-  name: string;
-  correct: number;
-  total: number;
-  byType: Record<string, ReadingByType>;
-  streak?: StreakState;
-  passageId?: string;  // บทที่เพิ่งทำจบ (ใช้ทำ "แถบความสำเร็จ/พิชิตบท")
-  mastered?: boolean;  // ทำจบแบบถูกครบทุกข้อหรือไม่ (= พิชิตบท)
-}): Promise<boolean> {
-  const { email, name, correct, total, byType, streak, passageId, mastered } = params;
-  if (!email || !db) return false;
-  try {
-    const ref = doc(db, COLLECTION, emailToId(email));
-    const weekId = currentWeekId();
-
-    // ดึงค่าเดิมมาคำนวณต่อ
-    let prevReading: ReadingStat | undefined;
-    let prevWeeklyXp = 0;
-    let prevWeekId = "";
-    let prevMastered: string[] = [];
-    let prevCompleted: string[] = [];
-    let prevWeeklyReading: { weekId: string; masteredIds: string[] } | undefined;
-    try {
-      const prev = await getDoc(ref);
-      if (prev.exists()) {
-        const pd = prev.data() as CloudProgress;
-        prevReading = pd.reading;
-        prevWeeklyXp = pd.weeklyXp ?? 0;
-        prevWeekId = pd.weekId ?? "";
-        prevMastered = pd.masteredPassages ?? [];
-        prevCompleted = pd.completedPassages ?? [];
-        prevWeeklyReading = pd.weeklyReading;
-      }
-    } catch {
-      // อ่านค่าเดิมไม่ได้ก็ใช้ค่าเริ่มต้น
-    }
-
-    // รวม byType เดิม + รอบนี้
-    const mergedByType: Record<string, ReadingByType> = { ...(prevReading?.byType ?? {}) };
-    for (const k in byType) {
-      const cur = mergedByType[k] ?? { answered: 0, correct: 0 };
-      mergedByType[k] = {
-        answered: cur.answered + byType[k].answered,
-        correct: cur.correct + byType[k].correct,
-      };
-    }
-
-    const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
-    const reading: ReadingStat = {
-      attempts: (prevReading?.attempts ?? 0) + 1,
-      totalAnswered: (prevReading?.totalAnswered ?? 0) + total,
-      totalCorrect: (prevReading?.totalCorrect ?? 0) + correct,
-      lastCorrect: correct,
-      lastTotal: total,
-      bestPct: Math.max(prevReading?.bestPct ?? 0, pct),
-      byType: mergedByType,
-    };
-
-    // รวมรายการ "บทที่ทำจบ" และ "บทที่พิชิต" (union กันซ้ำ — Firestore merge ทับ array ทั้งก้อน จึงต้องรวมเอง)
-    const completedPassages = passageId && !prevCompleted.includes(passageId)
-      ? [...prevCompleted, passageId] : prevCompleted;
-    const masteredPassages = passageId && mastered && !prevMastered.includes(passageId)
-      ? [...prevMastered, passageId] : prevMastered;
-
-    // บทที่พิชิต "สัปดาห์นี้" — distinct (กันปั่นซ้ำ) + รีเซ็ตเมื่อขึ้นสัปดาห์ใหม่
-    const weeklyMasteredPrev = prevWeeklyReading && prevWeeklyReading.weekId === weekId
-      ? (prevWeeklyReading.masteredIds ?? []) : [];
-    const weeklyMasteredIds = passageId && mastered && !weeklyMasteredPrev.includes(passageId)
-      ? [...weeklyMasteredPrev, passageId] : weeklyMasteredPrev;
-    const weeklyReading = { weekId, masteredIds: weeklyMasteredIds };
-
-    // แต้มรายสัปดาห์ (สัปดาห์เดิม → บวกต่อ, สัปดาห์ใหม่ → เริ่มจากรอบนี้)
-    const weeklyXp = prevWeekId === weekId ? prevWeeklyXp + correct : correct;
-
-    await setDoc(
-      ref,
-      {
-        name,
-        email: email.trim().toLowerCase(),
-        reading,
-        weeklyXp,
-        weekId,
-        ...(passageId ? { masteredPassages, completedPassages, weeklyReading } : {}),
-        ...(streak
-          ? {
-              streak: streak.streak,
-              bestStreak: streak.bestStreak,
-              lastStudyDate: streak.lastStudyDate,
-              todayCount: streak.todayCount,
-              dailyGoal: streak.dailyGoal,
-            }
-          : {}),
-        updatedAt: serverTimestamp(),
-      },
-      { merge: true }
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-neutral-950 flex items-center justify-center text-amber-400 font-bold text-xl animate-pulse">
+        กำลังโหลดข้อมูลนักเรียน...
+      </div>
     );
-    return true;
-  } catch (e) {
-    console.error("saveReadingProgress error:", e);
-    return false;
   }
-}
 
-// ── บันทึกผลรอบ Conversation (merge) ──
-//   - อัปเดตสถิติสะสมใน field "conversation"
-//   - บวกแต้มรายสัปดาห์ (weeklyXp) + เขียน streak เพื่อให้นับรวมทุกห้อง
-export async function saveConversationProgress(params: {
-  email: string;
-  name: string;
-  correct: number;
-  total: number;
-  byFormat: Record<string, ConvByFormat>;
-  streak?: StreakState;
-  convId?: string;
-  mastered?: boolean;
-}): Promise<boolean> {
-  const { email, name, correct, total, byFormat, streak, convId, mastered } = params;
-  if (!email || !db) return false;
-  try {
-    const ref = doc(db, COLLECTION, emailToId(email));
-    const weekId = currentWeekId();
+  const totalStudents = students.length;
+  const avgMastered = totalStudents
+    ? Math.round(students.reduce((sum, s) => sum + (s.mastered ?? 0), 0) / totalStudents)
+    : 0;
 
-    let prevConv: ConversationStat | undefined;
-    let prevWeeklyXp = 0;
-    let prevWeekId = "";
-    let prevMasteredConvos: string[] = [];
-    let prevCompletedConvos: string[] = [];
-    try {
-      const prev = await getDoc(ref);
-      if (prev.exists()) {
-        const pd = prev.data() as CloudProgress;
-        prevConv = pd.conversation;
-        prevWeeklyXp = pd.weeklyXp ?? 0;
-        prevWeekId = pd.weekId ?? "";
-        prevMasteredConvos = pd.masteredConvos ?? [];
-        prevCompletedConvos = pd.completedConvos ?? [];
-      }
-    } catch {
-      // ใช้ค่าเริ่มต้น
-    }
+  return (
+    <div className="min-h-screen bg-neutral-950 text-neutral-200 p-6 md:p-10 font-sans">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex items-start justify-between gap-4 mb-8 flex-wrap">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-200 mb-1 tracking-tight">
+              📊 แดชบอร์ดครู — Vocab Master
+            </h1>
+            <p className="text-neutral-500 font-bold tracking-widest uppercase text-xs">
+              Student Progress · Live from Cloud
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={downloadCsv}
+            disabled={students.length === 0}
+            className="bg-amber-400 text-neutral-950 font-black px-5 py-3 rounded-2xl hover:bg-amber-300 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg"
+          >
+            📥 ดาวน์โหลด CSV
+          </button>
+        </div>
 
-    const mergedByFormat: Record<string, ConvByFormat> = { ...(prevConv?.byFormat ?? {}) };
-    for (const k in byFormat) {
-      const cur = mergedByFormat[k] ?? { answered: 0, correct: 0 };
-      mergedByFormat[k] = {
-        answered: cur.answered + byFormat[k].answered,
-        correct: cur.correct + byFormat[k].correct,
-      };
-    }
+        {/* สรุปภาพรวม */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5">
+            <div className="text-3xl font-black text-amber-400">{totalStudents}</div>
+            <div className="text-xs font-bold text-neutral-500 uppercase mt-1">นักเรียนที่มีข้อมูล</div>
+          </div>
+          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5">
+            <div className="text-3xl font-black text-green-400">{avgMastered}</div>
+            <div className="text-xs font-bold text-neutral-500 uppercase mt-1">เฉลี่ยคำที่จำได้/คน</div>
+          </div>
+          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 col-span-2 md:col-span-1">
+            <div className="text-3xl font-black text-rose-400">{classHardWords.length}</div>
+            <div className="text-xs font-bold text-neutral-500 uppercase mt-1">คำที่ห้องยังอ่อน</div>
+          </div>
+        </div>
 
-    const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
-    const conversation: ConversationStat = {
-      attempts: (prevConv?.attempts ?? 0) + 1,
-      totalAnswered: (prevConv?.totalAnswered ?? 0) + total,
-      totalCorrect: (prevConv?.totalCorrect ?? 0) + correct,
-      lastCorrect: correct,
-      lastTotal: total,
-      bestPct: Math.max(prevConv?.bestPct ?? 0, pct),
-      byFormat: mergedByFormat,
-    };
+        {/* คำที่ทั้งห้องพลาดบ่อย */}
+        <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 mb-8">
+          <h2 className="text-lg font-black text-rose-300 mb-1">🔥 คำที่ทั้งห้องยังอ่อน (ควรสอนซ้ำ)</h2>
+          <p className="text-xs text-neutral-500 mb-4">เรียงตามจำนวนนักเรียนที่ยังไม่แม่น</p>
+          {classHardWords.length === 0 ? (
+            <p className="text-neutral-600 text-sm">ยังไม่มีข้อมูล — เมื่อเด็กเล่นจบรอบ ข้อมูลจะขึ้นที่นี่</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {classHardWords.map((w) => (
+                <span key={w.word} className="bg-rose-500/10 border border-rose-500/30 rounded-xl px-3 py-2 text-sm">
+                  <span className="font-bold text-rose-200">{w.word}</span>
+                  {vocabMap[w.word] && <span className="text-neutral-400"> · {vocabMap[w.word].thai}</span>}
+                  <span className="text-neutral-500 text-xs"> ({w.strugglers} คน)</span>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
 
-    const weeklyXp = prevWeekId === weekId ? prevWeeklyXp + correct : correct;
+        {/* 🚨 กันโกง: ออกจากหน้าจอระหว่างทำ Reading */}
+        <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 mb-8">
+          <h2 className="text-lg font-black text-rose-300 mb-1">🚨 ออกจากหน้าจอระหว่างทำ Reading (กันโกง)</h2>
+          <p className="text-xs text-neutral-500 mb-4">นับเฉพาะตอนทำข้อสอบจริง — สลับแอป/สลับแท็บ เช่น เปิดแอปแปลภาษาหรือค้นเน็ต · คลิกชื่อเพื่อดูรายบท</p>
+          {flaggedStudents.length === 0 ? (
+            <p className="text-neutral-600 text-sm">ยังไม่พบใครออกจากหน้าจอ 👍</p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {flaggedStudents.map(({ s, leaves }) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setExpanded(s.id)}
+                  className="bg-rose-500/10 border border-rose-500/30 rounded-xl px-3 py-2 text-sm hover:bg-rose-500/20 transition-colors"
+                >
+                  <span className="font-bold text-rose-200">{s.name || "(ไม่มีชื่อ)"}</span>
+                  <span className="text-neutral-400"> · ออกจากจอ {leaves} ครั้ง</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
-    const completedConvos = convId && !prevCompletedConvos.includes(convId)
-      ? [...prevCompletedConvos, convId] : prevCompletedConvos;
-    const masteredConvos = convId && mastered && !prevMasteredConvos.includes(convId)
-      ? [...prevMasteredConvos, convId] : prevMasteredConvos;
+        {/* รายชื่อนักเรียน */}
+        <div className="bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden">
+          <div className="p-6 border-b border-neutral-800">
+            <h2 className="text-lg font-black text-amber-200">นักเรียนรายคน</h2>
+            <p className="text-xs text-neutral-500">คลิกที่แถวเพื่อดูคำที่นักเรียนคนนั้นยังอ่อน</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-neutral-950/60 border-b border-neutral-800 text-xs uppercase text-neutral-500">
+                <tr>
+                  <th className="p-4">ชื่อ</th>
+                  <th className="p-4 hidden md:table-cell">อีเมล</th>
+                  <th className="p-4 text-center">จำได้</th>
+                  <th className="p-4 text-center">กำลังเรียน</th>
+                  <th className="p-4 text-center">คะแนนสูงสุด</th>
+                  <th className="p-4 text-center hidden sm:table-cell">อ่าน %</th>
+                  <th className="p-4 text-center hidden sm:table-cell">สนทนา %</th>
+                  <th className="p-4 text-center">ออกจากจอ</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-800/50">
+                {students.map((s) => {
+                  const weak = weakWordsOf(s);
+                  const isOpen = expanded === s.id;
+                  return (
+                    <React.Fragment key={s.id}>
+                      <tr
+                        className="hover:bg-neutral-800/30 transition-colors cursor-pointer"
+                        onClick={() => setExpanded(isOpen ? null : s.id)}
+                      >
+                        <td className="p-4 font-bold text-white">{s.name || "(ไม่มีชื่อ)"}</td>
+                        <td className="p-4 text-neutral-500 text-sm font-mono hidden md:table-cell">{s.email}</td>
+                        <td className="p-4 text-center font-black text-green-400">{s.mastered ?? 0}</td>
+                        <td className="p-4 text-center font-bold text-amber-400">{s.learning ?? 0}</td>
+                        <td className="p-4 text-center font-bold text-neutral-200">{s.bestScore ?? s.score ?? 0}</td>
+                        <td className="p-4 text-center font-bold text-sky-400 hidden sm:table-cell">{s.reading?.bestPct != null ? `${s.reading.bestPct}%` : "–"}</td>
+                        <td className="p-4 text-center font-bold text-purple-400 hidden sm:table-cell">{s.conversation?.bestPct != null ? `${s.conversation.bestPct}%` : "–"}</td>
+                        <td className="p-4 text-center font-black">{(s.reading?.totalLeaves ?? 0) > 0 ? <span className="text-rose-400">{s.reading?.totalLeaves}×</span> : <span className="text-neutral-600">0</span>}</td>
+                      </tr>
+                      {isOpen && (
+                        <tr className="bg-neutral-950/40">
+                          <td colSpan={8} className="p-4">
+                            <div className="text-xs font-bold text-neutral-400 mb-2">คำที่ {s.name} ยังอ่อน:</div>
+                            {weak.length === 0 ? (
+                              <span className="text-neutral-600 text-sm">ยังไม่มีคำที่อ่อน หรือยังไม่มีข้อมูล</span>
+                            ) : (
+                              <div className="flex flex-wrap gap-2">
+                                {weak.map((w) => (
+                                  <span key={w.word} className="bg-neutral-800 rounded-lg px-2.5 py-1.5 text-xs">
+                                    <span className="font-bold text-neutral-100">{w.word}</span>
+                                    {vocabMap[w.word] && <span className="text-neutral-500"> · {vocabMap[w.word].thai}</span>}
+                                    {w.lapses > 0 && <span className="text-rose-400"> · ลืม {w.lapses}×</span>}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
 
-    await setDoc(
-      ref,
-      {
-        name,
-        email: email.trim().toLowerCase(),
-        conversation,
-        weeklyXp,
-        weekId,
-        ...(convId ? { masteredConvos, completedConvos } : {}),
-        ...(streak
-          ? {
-              streak: streak.streak,
-              bestStreak: streak.bestStreak,
-              lastStudyDate: streak.lastStudyDate,
-              todayCount: streak.todayCount,
-              dailyGoal: streak.dailyGoal,
-            }
-          : {}),
-        updatedAt: serverTimestamp(),
-      },
-      { merge: true }
-    );
-    return true;
-  } catch (e) {
-    console.error("saveConversationProgress error:", e);
-    return false;
-  }
-}
+                            {s.readingLeaves && Object.keys(s.readingLeaves).length > 0 && (
+                              <div className="mt-4 border-t border-neutral-800 pt-3">
+                                <div className="text-xs font-bold text-rose-300 mb-2">🚨 ออกจากหน้าจอราย​บท (กันโกง) — รวม {s.reading?.totalLeaves ?? 0} ครั้ง</div>
+                                <div className="flex flex-wrap gap-2">
+                                  {Object.values(s.readingLeaves)
+                                    .sort((a, b) => b.leaves - a.leaves)
+                                    .map((lv, i) => (
+                                      <span key={i} className="bg-rose-500/10 border border-rose-500/30 rounded-lg px-2.5 py-1.5 text-xs">
+                                        <span className="font-bold text-rose-200">{lv.title || "(บท)"}</span>
+                                        {lv.examStyle && <span className="text-neutral-500"> · {lv.examStyle}</span>}
+                                        <span className="text-rose-300"> · ออก {lv.leaves}× ใน {lv.attempts} รอบ</span>
+                                      </span>
+                                    ))}
+                                </div>
+                              </div>
+                            )}
 
-// ── อันดับ "นักพิชิตบทอ่าน" รายสัปดาห์ (Top 3 หน้า Reading) ──
-//   นับจากจำนวนบทที่ "พิชิต" (ตอบถูกครบทุกข้อ) ในสัปดาห์นี้ — รีเซ็ตทุกวันจันทร์
-//   เสมอกัน → ตัดสินด้วยจำนวนบทที่พิชิตสะสมตลอดกาล
-export interface ReadingLeaderboardEntry {
-  email: string;
-  name: string;
-  weeklyMastered: number; // บทที่พิชิตสัปดาห์นี้
-  totalMastered: number;  // บทที่พิชิตสะสมตลอดกาล
-}
+                            <div className="mt-4 grid sm:grid-cols-2 gap-3 border-t border-neutral-800 pt-3">
+                              <div>
+                                <div className="text-xs font-bold text-sky-300 mb-1">📖 การอ่าน (Reading)</div>
+                                {s.reading ? (
+                                  <div className="text-xs text-neutral-400 space-y-0.5">
+                                    <div>ทำไป {s.reading.attempts ?? 0} รอบ · ดีสุด {s.reading.bestPct ?? 0}% · สะสม {s.reading.totalCorrect ?? 0}/{s.reading.totalAnswered ?? 0}</div>
+                                    {s.reading.byType &&
+                                      Object.entries(s.reading.byType).map(([t, v]) => (
+                                        <div key={t} className="text-neutral-500">
+                                          • {(RQTYPE_LABELS as Record<string, string>)[t] ?? t}: {v.correct}/{v.answered}
+                                        </div>
+                                      ))}
+                                  </div>
+                                ) : (
+                                  <span className="text-neutral-600 text-xs">ยังไม่มีข้อมูล</span>
+                                )}
+                              </div>
+                              <div>
+                                <div className="text-xs font-bold text-purple-300 mb-1">💬 บทสนทนา (Conversation)</div>
+                                {s.conversation ? (
+                                  <div className="text-xs text-neutral-400 space-y-0.5">
+                                    <div>ทำไป {s.conversation.attempts ?? 0} รอบ · ดีสุด {s.conversation.bestPct ?? 0}% · สะสม {s.conversation.totalCorrect ?? 0}/{s.conversation.totalAnswered ?? 0}</div>
+                                    {s.conversation.byFormat &&
+                                      Object.entries(s.conversation.byFormat).map(([t, v]) => (
+                                        <div key={t} className="text-neutral-500">
+                                          • {(CONV_FORMAT_LABELS as Record<string, string>)[t] ?? t}: {v.correct}/{v.answered}
+                                        </div>
+                                      ))}
+                                  </div>
+                                ) : (
+                                  <span className="text-neutral-600 text-xs">ยังไม่มีข้อมูล</span>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+                {students.length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="p-10 text-center text-neutral-600 font-bold">
+                      ยังไม่มีข้อมูลนักเรียน — เมื่อเด็กเล่นจบรอบและซิงก์ขึ้นคลาวด์ จะปรากฏที่นี่
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-export async function loadReadingLeaderboard(): Promise<ReadingLeaderboardEntry[]> {
-  if (!db) return [];
-  try {
-    const thisWeek = currentWeekId();
-    const snap = await getDocs(collection(db, COLLECTION));
-    const entries: ReadingLeaderboardEntry[] = [];
-    snap.forEach((d) => {
-      const data = d.data() as {
-        email?: string; name?: string;
-        masteredPassages?: string[];
-        weeklyReading?: { weekId?: string; masteredIds?: string[] };
-      };
-      const weeklyMastered =
-        data.weeklyReading && data.weeklyReading.weekId === thisWeek
-          ? (data.weeklyReading.masteredIds?.length ?? 0) : 0;
-      const totalMastered = data.masteredPassages?.length ?? 0;
-      // เก็บเฉพาะคนที่เคยพิชิต (สัปดาห์นี้หรือสะสม) เพื่อไม่ให้ลิสต์รก
-      if (weeklyMastered > 0 || totalMastered > 0) {
-        entries.push({
-          email: (data.email || d.id).toLowerCase(),
-          name: data.name || "(ไม่มีชื่อ)",
-          weeklyMastered,
-          totalMastered,
-        });
-      }
-    });
-    entries.sort((a, b) => b.weeklyMastered - a.weeklyMastered || b.totalMastered - a.totalMastered);
-    return entries;
-  } catch (e) {
-    console.error("loadReadingLeaderboard error:", e);
-    return [];
-  }
+        <p className="text-center text-neutral-700 text-xs mt-8">
+          ข้อมูลนี้เป็นความลับของนักเรียน — อย่าเปิดเผยลิงก์หน้านี้ให้คนนอก
+        </p>
+      </div>
+    </div>
+  );
 }
