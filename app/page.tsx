@@ -113,6 +113,7 @@ export default function Home() {
   // ── ตัวจับเวลาห้อง Reading (เวลาที่ให้ขึ้นกับความยาวบท + จำนวนข้อ) ──
   const [rTimeLimit, setRTimeLimit] = useState(0); // เวลาที่ให้ทั้งหมด (วินาที)
   const [rTimeLeft, setRTimeLeft] = useState(0);   // เวลาที่เหลือ (วินาที; ค่าติดลบ = เกินเวลา)
+  const [rLeaveCount, setRLeaveCount] = useState(0); // กันโกง: จำนวนครั้งที่ออกจากหน้าจอระหว่างทำข้อสอบ
   // ── สถานะห้อง Conversation ──
   const [conversationSets, setConversationSets] = useState<ConvSet[]>([]);
   const [convLoading, setConvLoading] = useState(false);
@@ -651,6 +652,14 @@ export default function Home() {
     return () => clearInterval(id);
   }, [readingView, activePassage]);
 
+  // กันโกง: นับครั้งที่ออกจากหน้าจอ/สลับแท็บระหว่างทำ Reading (เช่น เปิดแอปแปลภาษา/ค้นเน็ต)
+  useEffect(() => {
+    if (readingView !== 'PLAY') return;
+    const onHidden = () => { if (document.hidden) setRLeaveCount((c) => c + 1); };
+    document.addEventListener('visibilitychange', onHidden);
+    return () => document.removeEventListener('visibilitychange', onHidden);
+  }, [readingView]);
+
   const startPassage = (p: ReadingPassage) => {
     // สลับลำดับคำถาม (Fisher–Yates) — กันลอกในห้องสอบ: ได้บทเดียวกันแต่ข้อไม่เรียงเหมือนกัน
     const shuffled = [...p.questions];
@@ -667,6 +676,7 @@ export default function Home() {
     const limit = readingTimeLimitSec(passage.wordCount, passage.questions.length);
     setRTimeLimit(limit);
     setRTimeLeft(limit);
+    setRLeaveCount(0);
     setReadingView('PLAY');
   };
 
@@ -1487,7 +1497,7 @@ export default function Home() {
             {readingView === 'PLAY' && activePassage && (() => {
               const q = activePassage.questions[rIndex];
               return (
-                <div>
+                <div onCopy={(e) => e.preventDefault()} onCut={(e) => e.preventDefault()} onContextMenu={(e) => e.preventDefault()} className="select-none" style={{ WebkitUserSelect: 'none', userSelect: 'none' }}>
                   {!activePassage.verified && (
                     <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-3 mb-3 text-[11px] font-bold text-amber-700 text-center">
                       ⚠ บทนี้ยังไม่ได้ตรวจ (โหมดครู) — คะแนนจะไม่ถูกบันทึก
@@ -1515,6 +1525,13 @@ export default function Home() {
                       </div>
                     );
                   })()}
+
+                  {/* กันโกง: เตือนเมื่อออกจากหน้าจอระหว่างทำข้อสอบ */}
+                  {rLeaveCount > 0 && (
+                    <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-3 mb-3 text-[11px] font-bold text-red-600 text-center">
+                      ⚠ ตรวจพบการออกจากหน้าจอ {rLeaveCount} ครั้ง — ห้ามเปิดแอปอื่น/แปลภาษาระหว่างทำข้อสอบ
+                    </div>
+                  )}
 
                   {/* บทอ่าน */}
                   <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-3 max-h-64 overflow-y-auto">
@@ -1692,6 +1709,9 @@ export default function Home() {
                         </div>
                       );
                     })()}
+                    {rLeaveCount > 0 && (
+                      <div className="text-xs font-bold mt-1 text-red-500">⚠ ออกจากหน้าจอระหว่างทำ {rLeaveCount} ครั้ง</div>
+                    )}
                     {total > 0 && correct === total ? (
                       <div className="mt-3 bg-[#FFD700]/20 border-2 border-[#FFD700] rounded-2xl py-3 px-4 animate-fadeIn">
                         <div className="text-2xl">⭐🎉</div>
