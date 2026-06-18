@@ -77,34 +77,6 @@ function correctAnswerFor(q: QuizQuestion): string {
   return q.questionType === 'MEANING' ? q.thai_meaning : q.word;
 }
 
-// ── สุ่มกันลอกในห้องสอบ ──
-// สลับลำดับสมาชิกในอาเรย์ (Fisher–Yates) คืนชุดใหม่ — ใช้สลับ "ลำดับข้อ"
-function shuffleArray<T>(arr: T[]): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-// สลับ "ตำแหน่งตัวเลือก" ในข้อ พร้อม remap เฉลยให้ตรงตำแหน่งใหม่ และแก้คำขึ้นต้น "ตอบข้อ X —" ให้ตรงกัน
-// ถ้าเฉลยอ้างตัวอักษร (เช่น "ข้อ A") ในเนื้อหา จะไม่สลับข้อนั้น เพื่อกันเฉลยเพี้ยน
-function shuffleChoices<T extends { choices: string[]; answerIndex: number; explanation_th: string }>(q: T): T {
-  const body = q.explanation_th.replace(/^ตอบข้อ\s*[A-Da-d]\s*—\s*/, '');
-  if (/(?:ข้อ|ตัวเลือก)\s*[A-D]/.test(body)) return q; // เฉลยอ้างตัวอักษรในเนื้อ → ไม่สลับ
-  const order = q.choices.map((_, i) => i);
-  for (let i = order.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [order[i], order[j]] = [order[j], order[i]];
-  }
-  const choices = order.map((i) => q.choices[i]);
-  const answerIndex = order.indexOf(q.answerIndex);
-  const letter = String.fromCharCode(65 + answerIndex);
-  const explanation_th = q.explanation_th.replace(/^ตอบข้อ\s*[A-Da-d]\s*—/, `ตอบข้อ ${letter} —`);
-  return { ...q, choices, answerIndex, explanation_th };
-}
-
 // ผลตรวจประโยคจาก AI
 type AiResult = {
   verdict: 'excellent' | 'good' | 'needs_work';
@@ -138,6 +110,9 @@ export default function Home() {
   const [readingCompleted, setReadingCompleted] = useState<Set<string>>(new Set()); // บทที่เคยทำจบ
   const [readingBoard, setReadingBoard] = useState<ReadingLeaderboardEntry[] | null>(null); // อันดับนักพิชิตรายสัปดาห์
   const [readingBoardLoading, setReadingBoardLoading] = useState(false);
+  // ── ตัวจับเวลาห้อง Reading (เวลาที่ให้ขึ้นกับความยาวบท + จำนวนข้อ) ──
+  const [rTimeLimit, setRTimeLimit] = useState(0); // เวลาที่ให้ทั้งหมด (วินาที)
+  const [rTimeLeft, setRTimeLeft] = useState(0);   // เวลาที่เหลือ (วินาที; ค่าติดลบ = เกินเวลา)
   // ── สถานะห้อง Conversation ──
   const [conversationSets, setConversationSets] = useState<ConvSet[]>([]);
   const [convLoading, setConvLoading] = useState(false);
@@ -196,10 +171,6 @@ export default function Home() {
   const [timedOutCount, setTimedOutCount] = useState(0);
 
   const [cheatWarnings, setCheatWarnings] = useState(0);
-  const [captureWarning, setCaptureWarning] = useState<string | null>(null); // ข้อความเตือนชั่วคราวเมื่อพยายามคัดลอก/จับภาพ
-  const [screenObscured, setScreenObscured] = useState(false); // true = เบลอจอ (ออกนอกหน้าจอ/สลับแอประหว่างทำข้อสอบ)
-  // กำลังทำข้อสอบอยู่ในห้องใดห้องหนึ่ง — ใช้เปิดชั้นป้องกันการคัดลอก/จับภาพ
-  const inQuiz = gameState === 'QUIZ' || convView === 'PLAY' || readingView === 'PLAY';
 
   const TOTAL_QUESTIONS_PER_ROUND = 10;
   const WRITE_MODE_QUESTIONS = 2;   // จำนวนข้อ "แต่งประโยค" ต่อรอบ (อยู่ท้ายสุด) — ปรับเลขนี้ได้
@@ -219,69 +190,18 @@ export default function Home() {
       .catch((err) => console.error("Error loading vocab:", err));
   }, []);
 
-  // ── useEffect 2: ชั้นป้องกัน/ตรวจจับการคัดลอก–จับภาพหน้าจอ ระหว่างทำข้อสอบทุกห้อง ──
-  //   หมายเหตุสำคัญ: เว็บ "บล็อก" สกรีนช็อตจริงไม่ได้ — นี่คือแรงเสียดทาน + ตรวจจับ (เบลอตอนสลับแอป + ปิดคัดลอก)
+  // ── useEffect 2: นับการออกนอกหน้าจอระหว่างทำข้อสอบ (แบบเงียบ ๆ ไม่เด้งเตือนกลางคัน) ──
   useEffect(() => {
-    if (!inQuiz) { setScreenObscured(false); return; }
-
-    let toastTimer: ReturnType<typeof setTimeout> | undefined;
-    const flashWarn = (msg: string) => {
-      setCaptureWarning(msg);
-      if (toastTimer) clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => setCaptureWarning(null), 2600);
-    };
-    const wipeClipboard = () => { try { navigator.clipboard?.writeText(' '); } catch { /* ไม่เป็นไร */ } };
-
-    const onContextMenu = (e: Event) => { e.preventDefault(); };
-    const onCopyCut = (e: Event) => { e.preventDefault(); wipeClipboard(); flashWarn('คัดลอกเนื้อหาข้อสอบไม่ได้นะ ✋'); };
-    const onKeyDown = (e: KeyboardEvent) => {
-      const k = e.key.toLowerCase();
-      // ปิดคีย์ลัด คัดลอก/พิมพ์/บันทึก/ดูซอร์ส ระหว่างทำข้อสอบ
-      if ((e.ctrlKey || e.metaKey) && ['c', 'x', 'p', 's', 'u'].includes(k)) {
-        e.preventDefault();
-        flashWarn('ปุ่มลัดนี้ถูกปิดระหว่างทำข้อสอบ ✋');
-      }
-      // best-effort: สกรีนช็อตบน Mac (Cmd+Shift+3/4/5) — กันไม่ได้จริง แต่บันทึก + เตือน
-      if (e.metaKey && e.shiftKey && ['3', '4', '5'].includes(e.key)) {
+    const handleVisibilityChange = () => {
+      if (document.hidden && gameState === 'QUIZ') {
         setCheatWarnings((prev) => prev + 1);
-        flashWarn('ตรวจพบความพยายามจับภาพหน้าจอ ⚠️ (ระบบบันทึกไว้แล้ว)');
       }
     };
-    const onKeyUp = (e: KeyboardEvent) => {
-      // ปุ่ม PrintScreen มักตรวจได้ตอน keyup → ล้างคลิปบอร์ด + เตือน + บันทึก
-      if (e.key === 'PrintScreen') {
-        wipeClipboard();
-        setCheatWarnings((prev) => prev + 1);
-        flashWarn('ตรวจพบการกดปุ่มจับภาพหน้าจอ ⚠️ (ระบบบันทึกไว้แล้ว)');
-      }
-    };
-    const onVisibility = () => {
-      if (document.hidden) { setScreenObscured(true); setCheatWarnings((prev) => prev + 1); }
-      else { setScreenObscured(false); }
-    };
-    const onBlur = () => setScreenObscured(true);
-    const onFocus = () => setScreenObscured(false);
-
-    document.addEventListener('contextmenu', onContextMenu);
-    document.addEventListener('copy', onCopyCut);
-    document.addEventListener('cut', onCopyCut);
-    document.addEventListener('keydown', onKeyDown);
-    document.addEventListener('keyup', onKeyUp);
-    document.addEventListener('visibilitychange', onVisibility);
-    window.addEventListener('blur', onBlur);
-    window.addEventListener('focus', onFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
-      if (toastTimer) clearTimeout(toastTimer);
-      document.removeEventListener('contextmenu', onContextMenu);
-      document.removeEventListener('copy', onCopyCut);
-      document.removeEventListener('cut', onCopyCut);
-      document.removeEventListener('keydown', onKeyDown);
-      document.removeEventListener('keyup', onKeyUp);
-      document.removeEventListener('visibilitychange', onVisibility);
-      window.removeEventListener('blur', onBlur);
-      window.removeEventListener('focus', onFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [inQuiz]);
+  }, [gameState]);
 
   // ── useEffect 3: จับเวลาแต่ละข้อ (ข้ามไปถ้าเป็นโหมดนึกเอง: WRITE/TYPE/LISTEN) ──
   useEffect(() => {
@@ -714,10 +634,26 @@ export default function Home() {
     }
   };
 
+  // เวลาที่เหมาะสมต่อบท: อ่าน ~120 คำ/นาที + ~45 วินาที/ข้อ ปัดเป็นครึ่งนาที (ขั้นต่ำ 3 นาที)
+  const readingTimeLimitSec = (wordCount: number, numQuestions: number) =>
+    Math.max(180, Math.round((wordCount * 0.5 + numQuestions * 45) / 30) * 30);
+
+  // จัดรูปแบบเวลา MM:SS (ค่าติดลบ = เกินเวลา แสดงนำหน้าด้วย +)
+  const fmtTime = (sec: number) => {
+    const s = Math.abs(sec);
+    return `${sec < 0 ? '+' : ''}${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+  };
+
+  // เดินเวลาถอยหลังเฉพาะตอนทำข้อสอบ (หยุดเองเมื่อออกจากหน้า PLAY); ปล่อยให้ติดลบเป็น "เกินเวลา"
+  useEffect(() => {
+    if (readingView !== 'PLAY' || !activePassage) return;
+    const id = setInterval(() => setRTimeLeft((t) => t - 1), 1000);
+    return () => clearInterval(id);
+  }, [readingView, activePassage]);
+
   const startPassage = (p: ReadingPassage) => {
-    // สลับกันลอกในห้องสอบ: สลับ "ตำแหน่งตัวเลือก" ทุกข้อ + สลับ "ลำดับข้อ" (Fisher–Yates)
-    // ได้บทเดียวกันแต่ทั้งลำดับข้อและตำแหน่งตัวเลือกไม่เหมือนกันในแต่ละคน
-    const shuffled = p.questions.map(shuffleChoices);
+    // สลับลำดับคำถาม (Fisher–Yates) — กันลอกในห้องสอบ: ได้บทเดียวกันแต่ข้อไม่เรียงเหมือนกัน
+    const shuffled = [...p.questions];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
@@ -728,6 +664,9 @@ export default function Home() {
     setRAnswers(new Array(passage.questions.length).fill(null));
     setRResults([]);
     setGlossWord(null);
+    const limit = readingTimeLimitSec(passage.wordCount, passage.questions.length);
+    setRTimeLimit(limit);
+    setRTimeLeft(limit);
     setReadingView('PLAY');
   };
 
@@ -830,11 +769,7 @@ export default function Home() {
   }, [section, conversationSets.length, convLoading]);
 
   const startConv = (s: ConvSet) => {
-    // สุ่มกันลอก: สลับตำแหน่งตัวเลือกทุกข้อ + สลับลำดับข้อ
-    // (ยกเว้น SHORT_CONVO ที่คำถามอ้างช่องเติม (1),(2)… ต้องเรียงตามบทสนทนา จึงสลับเฉพาะตัวเลือก)
-    let qs = s.questions.map(shuffleChoices);
-    if (s.format !== 'SHORT_CONVO') qs = shuffleArray(qs);
-    setActiveConv({ ...s, questions: qs });
+    setActiveConv(s);
     setCIndex(0);
     setCSelected(null);
     setCAnswered(false);
@@ -915,24 +850,6 @@ export default function Home() {
     <div
       className="min-h-screen bg-[#f8f9fa] flex flex-col items-center justify-center p-4 font-sans text-gray-800 select-none"
     >
-      {/* ── เลเยอร์เบลอเมื่อออกนอกหน้าจอ/สลับแอประหว่างทำข้อสอบ (สกรีนช็อตหลังสลับจะเห็นแต่เลเยอร์นี้) ── */}
-      {inQuiz && screenObscured && (
-        <div className="fixed inset-0 z-[9999] bg-[#003399]/95 backdrop-blur-xl flex flex-col items-center justify-center text-center px-8">
-          <div className="text-6xl mb-4">🛡️</div>
-          <div className="text-2xl font-black text-[#FFD700] mb-2">หยุดหน้าจอข้อสอบชั่วคราว</div>
-          <div className="text-white font-bold max-w-sm leading-relaxed">
-            กรุณากลับมาที่หน้าจอข้อสอบ — ห้ามสลับแอป/แท็บ หรือจับภาพหน้าจอระหว่างทำข้อสอบ ระบบบันทึกการออกนอกหน้าจอไว้แล้ว
-          </div>
-        </div>
-      )}
-
-      {/* ── ข้อความเตือนชั่วคราวเมื่อพยายามคัดลอก/จับภาพ ── */}
-      {captureWarning && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[10000] bg-red-600 text-white font-black text-sm px-5 py-3 rounded-2xl shadow-2xl animate-fadeIn max-w-[92%] text-center">
-          {captureWarning}
-        </div>
-      )}
-
       <div className="w-full max-w-2xl bg-white shadow-2xl rounded-3xl p-6 md:p-10 border-t-[12px] border-[#003399] relative overflow-hidden">
 
         <div className="absolute top-0 left-0 w-full h-2 bg-[#FFD700]"></div>
@@ -1559,7 +1476,7 @@ export default function Home() {
                         ) : null}
                       </div>
                       <div className="font-black text-gray-900 text-[15px] leading-snug">{p.title}</div>
-                      <div className="text-xs text-gray-500 font-bold mt-1">{p.questions.length} คำถาม · ~{p.wordCount} คำ</div>
+                      <div className="text-xs text-gray-500 font-bold mt-1">{p.questions.length} คำถาม · ~{p.wordCount} คำ · ⏱ ~{Math.round(readingTimeLimitSec(p.wordCount, p.questions.length) / 60)} นาที</div>
                     </button>
                   ))}
                 </div>
@@ -1576,6 +1493,28 @@ export default function Home() {
                       ⚠ บทนี้ยังไม่ได้ตรวจ (โหมดครู) — คะแนนจะไม่ถูกบันทึก
                     </div>
                   )}
+
+                  {/* ⏱ ตัวจับเวลา — เวลาที่ให้ขึ้นกับความยาวบท + จำนวนข้อ */}
+                  {(() => {
+                    const overtime = rTimeLeft < 0;
+                    const warn = !overtime && rTimeLeft <= 60;
+                    const usedFrac = rTimeLimit > 0 ? Math.min(1, (rTimeLimit - rTimeLeft) / rTimeLimit) : 0;
+                    const tone = overtime ? 'text-red-600' : warn ? 'text-amber-700' : 'text-[#003399]';
+                    return (
+                      <div className={`rounded-2xl p-3 mb-3 border-2 ${overtime ? 'bg-red-50 border-red-300' : warn ? 'bg-amber-50 border-amber-300' : 'bg-[#003399]/5 border-[#003399]/20'}`}>
+                        <div className="flex items-center justify-between">
+                          <span className={`text-[11px] font-bold ${tone}`}>{overtime ? '⏰ หมดเวลาแล้ว' : '⏱ เวลาที่เหลือ'}</span>
+                          <span className={`text-lg font-black tabular-nums ${tone}`}>{fmtTime(rTimeLeft)}</span>
+                        </div>
+                        <div className="mt-2 h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                          <div className={`h-full rounded-full transition-all ${overtime ? 'bg-red-500' : warn ? 'bg-amber-500' : 'bg-[#003399]'}`} style={{ width: `${usedFrac * 100}%` }} />
+                        </div>
+                        <div className="mt-1 text-[10px] text-gray-400 font-bold">
+                          เวลาที่ให้ {fmtTime(rTimeLimit)} (~{activePassage.wordCount} คำ · {activePassage.questions.length} ข้อ){overtime ? ' — ทำต่อได้ ไม่บังคับส่ง' : ''}
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* บทอ่าน */}
                   <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-3 max-h-64 overflow-y-auto">
@@ -1744,6 +1683,15 @@ export default function Home() {
                   <div className="text-center mb-5">
                     <div className="text-5xl font-black text-[#003399]">{correct}/{total}</div>
                     <div className="text-sm font-bold text-gray-500 mt-1">ตอบถูก {pct}%</div>
+                    {rTimeLimit > 0 && (() => {
+                      const used = rTimeLimit - rTimeLeft;
+                      const within = used <= rTimeLimit;
+                      return (
+                        <div className={`text-xs font-bold mt-1 ${within ? 'text-green-600' : 'text-red-500'}`}>
+                          ⏱ ใช้เวลา {fmtTime(Math.max(0, used))} / ได้เวลา {fmtTime(rTimeLimit)} {within ? '— อยู่ในเวลา ✓' : '— เกินเวลา'}
+                        </div>
+                      );
+                    })()}
                     {total > 0 && correct === total ? (
                       <div className="mt-3 bg-[#FFD700]/20 border-2 border-[#FFD700] rounded-2xl py-3 px-4 animate-fadeIn">
                         <div className="text-2xl">⭐🎉</div>
