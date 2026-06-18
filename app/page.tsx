@@ -18,6 +18,7 @@ import {
 import { loadCloudProgress, saveCloudProgress, loadLeaderboard, LeaderboardEntry, saveReadingProgress, ReadingByType, saveConversationProgress, ConvByFormat, loadReadingLeaderboard, ReadingLeaderboardEntry } from './lib/cloud';
 import {
   ReadingPassage,
+  ReadingQuestion,
   RQTYPE_LABELS,
   CATEGORY_LABELS,
   CATEGORY_ORDER,
@@ -736,14 +737,54 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rLeaveCount, readingView, activePassage]);
 
-  const startPassage = (p: ReadingPassage) => {
-    // สลับลำดับคำถาม (Fisher–Yates) — กันลอกในห้องสอบ: ได้บทเดียวกันแต่ข้อไม่เรียงเหมือนกัน
-    const shuffled = [...p.questions];
-    for (let i = shuffled.length - 1; i > 0; i--) {
+  // ── กันโกง: สลับตัวเลือก + remap อักษรในคำอธิบาย + สุ่มจำนวนข้อ ──
+  const READING_LETTERS = ['A', 'B', 'C', 'D'];
+
+  // remap อักษรอ้างตัวเลือกในคำอธิบาย (เช่น "ตอบข้อ B", "ส่วน A/C/D") ให้ตรงตำแหน่งใหม่
+  // remap เฉพาะอักษร A–D ที่ยืนเดี่ยว (เพื่อนบ้านไม่ใช่ตัวอักษร/ตัวเลขอังกฤษ) และไม่ใช่คำอังกฤษ เช่น "A second"
+  const remapExplanationLetters = (text: string, newPosOf: number[]) =>
+    text.replace(/[ABCD]/g, (ch: string, offset: number, str: string) => {
+      const isWord = (c: string) => /[A-Za-z0-9_]/.test(c);
+      const before = str[offset - 1] ?? ' ';
+      const after = str[offset + 1] ?? ' ';
+      if (isWord(before) || isWord(after)) return ch; // ส่วนของคำอังกฤษ เช่น AI, ABC, Dear
+      if (/\s[a-z]/.test(str.slice(offset + 1, offset + 3)) || /[a-z]\s/.test(str.slice(Math.max(0, offset - 2), offset))) return ch; // อยู่ในประโยคอังกฤษ
+      const orig = READING_LETTERS.indexOf(ch);
+      return orig >= 0 ? READING_LETTERS[newPosOf[orig]] : ch;
+    });
+
+  // สลับตัวเลือกของข้อหนึ่ง แล้วปรับ answerIndex + คำอธิบายให้ตรงกับตำแหน่งใหม่
+  const shuffleChoices = (q: ReadingQuestion): ReadingQuestion => {
+    const order = [0, 1, 2, 3];
+    for (let i = order.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      [order[i], order[j]] = [order[j], order[i]];
     }
-    const passage = { ...p, questions: shuffled };
+    const newPosOf: number[] = []; // อักษรเดิม orig → ตำแหน่งใหม่
+    order.forEach((orig, pos) => { newPosOf[orig] = pos; });
+    return {
+      ...q,
+      choices: order.map((orig) => q.choices[orig]),
+      answerIndex: newPosOf[q.answerIndex],
+      explanation_th: remapExplanationLetters(q.explanation_th, newPosOf),
+    };
+  };
+
+  const startPassage = (p: ReadingPassage) => {
+    // กันโกง: สลับตัวเลือก A/B/C/D ใหม่ทุกครั้ง (พร้อม remap คำอธิบาย) → เฉลยที่ถ่ายเก็บไว้ใช้ไม่ได้
+    let qs = p.questions.map(shuffleChoices);
+    // สลับลำดับข้อ (Fisher–Yates) — ได้บทเดียวกันแต่ข้อไม่เรียงเหมือนกัน
+    for (let i = qs.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [qs[i], qs[j]] = [qs[j], qs[i]];
+    }
+    // กันโกง: สุ่มจำนวนข้อที่แสดง (อย่างน้อย 5 ข้อ และตัดทิ้งอย่างน้อย 1) → ชุดเฉลยเต็มที่เก็บไว้ใช้ได้ไม่ครบ
+    if (qs.length > 5) {
+      const minKeep = Math.max(5, qs.length - 3);
+      const keep = minKeep + Math.floor(Math.random() * (qs.length - minKeep)); // minKeep..(N-1)
+      qs = qs.slice(0, keep);
+    }
+    const passage = { ...p, questions: qs };
     setActivePassage(passage);
     setRIndex(0);
     setRAnswers(new Array(passage.questions.length).fill(null));
