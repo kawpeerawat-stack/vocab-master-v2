@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   SrsStore,
   loadStore,
@@ -115,6 +115,9 @@ export default function Home() {
   const [rTimeLeft, setRTimeLeft] = useState(0);   // เวลาที่เหลือ (วินาที; ค่าติดลบ = เกินเวลา)
   const [rLeaveCount, setRLeaveCount] = useState(0); // กันโกง: จำนวนครั้งที่ออกจากหน้าจอระหว่างทำข้อสอบ
   const [rAutoSubmitted, setRAutoSubmitted] = useState(false); // กันโกง: ถูกส่งคำตอบอัตโนมัติเพราะออกจากจอเกินเกณฑ์
+  const [rWarnOpen, setRWarnOpen] = useState(false); // กันโกง: ป๊อปอัปเตือนเมื่อกลับเข้าหน้าจอ
+  const audioCtxRef = useRef<AudioContext | null>(null); // เสียงเตือน (Web Audio)
+  const leaveCountRef = useRef(0); // มิเรอร์ rLeaveCount ไว้ให้ event handler อ่านค่าล่าสุด
   const READING_MAX_LEAVES = 3; // กันโกง: ออกจากจอเกินจำนวนนี้ → ส่งคำตอบอัตโนมัติทันที
   // ── สถานะห้อง Conversation ──
   const [conversationSets, setConversationSets] = useState<ConvSet[]>([]);
@@ -647,6 +650,48 @@ export default function Home() {
     return `${sec < 0 ? '+' : ''}${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
   };
 
+  // มิเรอร์จำนวนครั้งออกจากจอไว้ให้ event handler อ่านค่าล่าสุด
+  useEffect(() => { leaveCountRef.current = rLeaveCount; }, [rLeaveCount]);
+
+  // ปลดล็อกระบบเสียง (ต้องเรียกจาก user gesture เช่นตอนกดเริ่มทำบท)
+  const unlockAudio = () => {
+    try {
+      if (!audioCtxRef.current) {
+        const AC = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+        if (AC) audioCtxRef.current = new AC();
+      }
+      audioCtxRef.current?.resume?.();
+    } catch { /* บางเครื่องไม่รองรับ — เงียบไว้ */ }
+  };
+
+  // เสียงเตือนไซเรนสองโทน (ดังเต็มที่เท่าที่เบราว์เซอร์ยอม) + สั่นบนมือถือ
+  const playAlarm = (strong = false) => {
+    try {
+      const ctx = audioCtxRef.current;
+      if (ctx) {
+        ctx.resume?.();
+        const now = ctx.currentTime;
+        const beeps = strong ? 6 : 3;
+        const master = ctx.createGain();
+        master.gain.value = 1; // ดังสุดในแอป (เบราว์เซอร์ปรับระดับเสียงของเครื่องเองไม่ได้)
+        master.connect(ctx.destination);
+        for (let i = 0; i < beeps; i++) {
+          const t = now + i * 0.18;
+          const osc = ctx.createOscillator();
+          const g = ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(i % 2 === 0 ? 1000 : 760, t);
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(0.9, t + 0.01);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+          osc.connect(g); g.connect(master);
+          osc.start(t); osc.stop(t + 0.17);
+        }
+      }
+    } catch { /* เงียบไว้ */ }
+    try { navigator.vibrate?.(strong ? [200, 80, 200, 80, 400] : [150, 80, 150]); } catch { /* ไม่รองรับ */ }
+  };
+
   // เดินเวลาถอยหลังเฉพาะตอนทำข้อสอบ (หยุดเองเมื่อออกจากหน้า PLAY); ปล่อยให้ติดลบเป็น "เกินเวลา"
   useEffect(() => {
     if (readingView !== 'PLAY' || !activePassage) return;
@@ -654,12 +699,23 @@ export default function Home() {
     return () => clearInterval(id);
   }, [readingView, activePassage]);
 
-  // กันโกง: นับครั้งที่ออกจากหน้าจอ/สลับแท็บระหว่างทำ Reading (เช่น เปิดแอปแปลภาษา/ค้นเน็ต)
+  // กันโกง: นับครั้งที่ออกจากหน้าจอ + เตือนเสียงดัง/ป๊อปอัปเมื่อกลับเข้าหน้าจอ
   useEffect(() => {
     if (readingView !== 'PLAY') return;
-    const onHidden = () => { if (document.hidden) setRLeaveCount((c) => c + 1); };
-    document.addEventListener('visibilitychange', onHidden);
-    return () => document.removeEventListener('visibilitychange', onHidden);
+    const onVis = () => {
+      if (document.hidden) {
+        setRLeaveCount((c) => c + 1);
+      } else {
+        const n = leaveCountRef.current;
+        if (n > 0 && n <= READING_MAX_LEAVES) {
+          playAlarm(n >= READING_MAX_LEAVES); // ครั้งสุดท้ายก่อนถูกส่ง → ดังกว่า
+          setRWarnOpen(true);
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [readingView]);
 
   // กันโกง: ออกจากจอเกินเกณฑ์ → ส่งคำตอบอัตโนมัติทันที (ข้อที่ยังไม่ตอบนับว่าผิด)
@@ -674,7 +730,9 @@ export default function Home() {
     }));
     setRResults(results);
     setRAutoSubmitted(true);
-    finishReading(results);
+    setRWarnOpen(false);
+    playAlarm(true);
+    finishReading(results, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rLeaveCount, readingView, activePassage]);
 
@@ -695,7 +753,10 @@ export default function Home() {
     setRTimeLimit(limit);
     setRTimeLeft(limit);
     setRLeaveCount(0);
+    leaveCountRef.current = 0;
     setRAutoSubmitted(false);
+    setRWarnOpen(false);
+    unlockAudio();
     setReadingView('PLAY');
   };
 
@@ -733,7 +794,7 @@ export default function Home() {
   };
 
   // สรุปผลเมื่อทำครบทุกข้อ
-  const finishReading = async (allResults: { qid: string; type: string; selected: number; correct: boolean }[]) => {
+  const finishReading = async (allResults: { qid: string; type: string; selected: number; correct: boolean }[], auto = false) => {
     setReadingView('RESULT');
     if (!activePassage) return;
     const total = allResults.length;
@@ -759,7 +820,7 @@ export default function Home() {
       saveStreak(email, updatedStreak);
       setRSaving(true);
       try {
-        await saveReadingProgress({ email, name: studentName, correct, total, byType, streak: updatedStreak, passageId: activePassage.id, mastered: allCorrect, leaves: rLeaveCount, passageTitle: activePassage.title, examStyle: activePassage.examStyle });
+        await saveReadingProgress({ email, name: studentName, correct, total, byType, streak: updatedStreak, passageId: activePassage.id, mastered: allCorrect, leaves: rLeaveCount, passageTitle: activePassage.title, examStyle: activePassage.examStyle, autoSubmitted: auto });
         loadReadingLeaderboard().then(setReadingBoard).catch(() => {}); // รีเฟรชอันดับให้เห็นผลทันที
       } catch (e) {
         console.error('บันทึกผล Reading ไม่สำเร็จ:', e);
@@ -1517,6 +1578,19 @@ export default function Home() {
               const q = activePassage.questions[rIndex];
               return (
                 <div onCopy={(e) => e.preventDefault()} onCut={(e) => e.preventDefault()} onContextMenu={(e) => e.preventDefault()} className="select-none" style={{ WebkitUserSelect: 'none', userSelect: 'none' }}>
+                  {/* กันโกง: ป๊อปอัปเตือนเมื่อกลับเข้าหน้าจอ */}
+                  {rWarnOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6" onClick={() => setRWarnOpen(false)}>
+                      <div className="bg-white rounded-3xl p-6 max-w-sm w-full text-center border-4 border-red-400 shadow-2xl animate-fadeIn" onClick={(e) => e.stopPropagation()}>
+                        <div className="text-5xl mb-2">🚨</div>
+                        <div className="text-lg font-black text-red-600 mb-1">ห้ามออกจากหน้าจอ!</div>
+                        <p className="text-sm font-bold text-gray-700">ระบบตรวจพบว่าคุณออกจากหน้าจอ {rLeaveCount} ครั้ง</p>
+                        <p className="text-sm font-black text-red-500 mt-2">ออกอีก {Math.max(0, READING_MAX_LEAVES + 1 - rLeaveCount)} ครั้ง ระบบจะส่งคำตอบอัตโนมัติทันที</p>
+                        <button type="button" onClick={() => setRWarnOpen(false)} className="mt-4 w-full py-3 bg-red-500 text-white font-black rounded-2xl active:scale-95 transition-all">เข้าใจแล้ว ทำต่อ</button>
+                      </div>
+                    </div>
+                  )}
+
                   {!activePassage.verified && (
                     <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-3 mb-3 text-[11px] font-bold text-amber-700 text-center">
                       ⚠ บทนี้ยังไม่ได้ตรวจ (โหมดครู) — คะแนนจะไม่ถูกบันทึก
