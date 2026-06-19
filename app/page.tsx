@@ -180,7 +180,7 @@ export default function Home() {
   const [cheatWarnings, setCheatWarnings] = useState(0);
 
   const TOTAL_QUESTIONS_PER_ROUND = 10;
-  const WRITE_MODE_QUESTIONS = 2;   // จำนวนข้อ "แต่งประโยค" ต่อรอบ (อยู่ท้ายสุด) — ปรับเลขนี้ได้
+  const WRITE_MODE_QUESTIONS = 1;   // จำนวนข้อ "แต่งประโยค" ต่อรอบ (อยู่ท้ายสุด) — ปรับเลขนี้ได้
   const WRITE_PASS_SCORE = 3;       // ได้ดาว >= ค่านี้ (จาก 5) ถือว่าตอบถูก
 
   const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwMmvxMfZZkIFsgeNndqMr7AmQVNADqR0SjywuccdiINPWgK4HafiJZoqmKTssEsCTGuA/exec";
