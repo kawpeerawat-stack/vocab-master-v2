@@ -1934,11 +1934,12 @@ export default function Home() {
                 ></div>
               </div>
               <div className="text-xs text-gray-600 font-bold flex justify-between">
-                <span>Mastered: <span className="text-[#003399]">{srsStats.mastered}</span></span>
-                <span>Total: <span className="text-[#003399]">{vocabData.length} Words</span></span>
+                <span>เรียนแล้ว: <span className="text-[#003399]">{srsStats.seen}</span></span>
+                <span>จำได้: <span className="text-[#003399]">{srsStats.mastered}</span></span>
+                <span>ทั้งหมด: <span className="text-[#003399]">{vocabData.length}</span></span>
               </div>
               <p className="text-[10px] text-gray-400 mt-1.5 leading-relaxed">
-                % คิดความคืบหน้าทุกขั้นของการจำ (ยิ่งเลื่อนคำขึ้นกล่อง % ยิ่งเพิ่ม) ส่วน &quot;Mastered&quot; คือคำที่จำได้สมบูรณ์แล้ว
+                % รวม = ครึ่งหนึ่งจากจำนวนคำที่เริ่มเรียนแล้ว + อีกครึ่งจากระดับความจำ (ยิ่งทบทวนจนคำขึ้นกล่อง % ยิ่งเพิ่ม จนเต็ม 100% เมื่อจำแม่นครบทุกคำ) ส่วน &quot;จำได้&quot; คือคำที่จำได้สมบูรณ์ (box 5)
               </p>
               <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                 <div className="bg-white rounded-xl py-2 border border-[#003399]/10">
