@@ -103,6 +103,7 @@ export interface SrsStats {
   mastered: number;    // เชี่ยวชาญจริง
   dueNow: number;      // ถึงกำหนดทบทวนตอนนี้
   newRemaining: number;// คำใหม่ที่ยังไม่เคยเจอ
+  coverage: number;    // % ของคำที่เริ่มเรียนแล้ว (เห็น ÷ ทั้งหมด)
   weightedProgress: number; // % ความก้าวหน้าแบบให้คะแนนบางส่วน (ตามกล่อง SRS)
 }
 
@@ -118,8 +119,14 @@ export function computeStats(store: SrsStore, allWords: string[]): SrsStats {
     if (card.due <= t) dueNow += 1;
   }
   const total = allWords.length;
-  // ความก้าวหน้า = ผลรวมกล่องทั้งหมด / (กล่องสูงสุด × จำนวนคำทั้งคลัง)
-  const weightedProgress = total > 0 ? (boxSum / (MAX_BOX * total)) * 100 : 0;
+  // ── ความก้าวหน้ารวม (headline %) ──
+  // ครึ่งหนึ่งจาก "จำนวนคำที่เริ่มเรียนแล้ว" (เห็น ÷ ทั้งหมด) → กดผ่านคำใหม่ % ขยับทันที
+  // อีกครึ่งจาก "ระดับความจำเฉลี่ย" (ผลรวมกล่อง ÷ (กล่องสูงสุด × ทั้งหมด)) → ทบทวนจนแม่น % ยิ่งเพิ่ม
+  // แตะ 100% เมื่อ "เรียนครบทุกคำ + จำแม่นทุกคำ (box 5)"
+  const COVERAGE_WEIGHT = 0.5; // น้ำหนัก "จำนวนคำที่เรียนแล้ว" (0–1) ปรับได้
+  const coverageRatio = total > 0 ? seen / total : 0;
+  const masteryRatio = total > 0 ? boxSum / (MAX_BOX * total) : 0;
+  const weightedProgress = (COVERAGE_WEIGHT * coverageRatio + (1 - COVERAGE_WEIGHT) * masteryRatio) * 100;
   return {
     total,
     seen,
@@ -127,6 +134,7 @@ export function computeStats(store: SrsStore, allWords: string[]): SrsStats {
     mastered,
     dueNow,
     newRemaining: total - seen,
+    coverage: coverageRatio * 100,
     weightedProgress,
   };
 }
