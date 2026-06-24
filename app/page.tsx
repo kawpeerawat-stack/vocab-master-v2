@@ -180,7 +180,7 @@ export default function Home() {
   const [cheatWarnings, setCheatWarnings] = useState(0);
 
   const TOTAL_QUESTIONS_PER_ROUND = 10;
-  const WRITE_MODE_QUESTIONS = 1;   // จำนวนข้อ "แต่งประโยค" ต่อรอบ (อยู่ท้ายสุด) — ปรับเลขนี้ได้
+  const WRITE_MODE_QUESTIONS = 0;   // จำนวนข้อ "แต่งประโยค" ต่อรอบ — ตั้ง 0 = ปิดโหมดแต่งประโยค (ไม่เรียก AI ตรวจ)
   const WRITE_PASS_SCORE = 3;       // ได้ดาว >= ค่านี้ (จาก 5) ถือว่าตอบถูก
 
   const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwMmvxMfZZkIFsgeNndqMr7AmQVNADqR0SjywuccdiINPWgK4HafiJZoqmKTssEsCTGuA/exec";
@@ -1934,12 +1934,11 @@ export default function Home() {
                 ></div>
               </div>
               <div className="text-xs text-gray-600 font-bold flex justify-between">
-                <span>เรียนแล้ว: <span className="text-[#003399]">{srsStats.seen}</span></span>
-                <span>จำได้: <span className="text-[#003399]">{srsStats.mastered}</span></span>
-                <span>ทั้งหมด: <span className="text-[#003399]">{vocabData.length}</span></span>
+                <span>Mastered: <span className="text-[#003399]">{srsStats.mastered}</span></span>
+                <span>Total: <span className="text-[#003399]">{vocabData.length} Words</span></span>
               </div>
               <p className="text-[10px] text-gray-400 mt-1.5 leading-relaxed">
-                % รวม = ครึ่งหนึ่งจากจำนวนคำที่เริ่มเรียนแล้ว + อีกครึ่งจากระดับความจำ (ยิ่งทบทวนจนคำขึ้นกล่อง % ยิ่งเพิ่ม จนเต็ม 100% เมื่อจำแม่นครบทุกคำ) ส่วน &quot;จำได้&quot; คือคำที่จำได้สมบูรณ์ (box 5)
+                % คิดความคืบหน้าทุกขั้นของการจำ (ยิ่งเลื่อนคำขึ้นกล่อง % ยิ่งเพิ่ม) ส่วน &quot;Mastered&quot; คือคำที่จำได้สมบูรณ์แล้ว
               </p>
               <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                 <div className="bg-white rounded-xl py-2 border border-[#003399]/10">
