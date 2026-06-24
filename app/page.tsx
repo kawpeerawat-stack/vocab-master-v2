@@ -79,6 +79,50 @@ function correctAnswerFor(q: QuizQuestion): string {
   return q.questionType === 'MEANING' ? q.thai_meaning : q.word;
 }
 
+// เจาะช่องว่างในประโยค Context Clue: คืน array ของชิ้นส่วน โดย null = ตำแหน่งช่องว่าง
+//  - ถ้าประโยคมี "___" อยู่แล้ว ใช้ตำแหน่งนั้น
+//  - ไม่งั้นเจาะคำเป้าหมาย (ทั้งคำตรงเป๊ะก่อน แล้วลองรูปผันของคำ)
+//  - เจาะไม่ได้จริง ๆ คืนประโยคเดิม (พบน้อยมาก)
+function blankContextSentence(sentence: string, word: string): (string | null)[] {
+  const s = (sentence || '').trim();
+  if (!s) return [s];
+  const esc = (x: string) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const cut = (str: string, idx: number, len: number): (string | null)[] => [
+    str.slice(0, idx),
+    null,
+    str.slice(idx + len),
+  ];
+  // 1) มีช่องว่างอยู่แล้ว เช่น "___"
+  let m = s.match(/_{2,}/);
+  if (m && m.index !== undefined) return cut(s, m.index, m[0].length);
+  // 2) คำตรงเป๊ะ (ทั้งคำ ไม่สนตัวพิมพ์)
+  m = s.match(new RegExp(`\\b${esc(word)}\\b`, 'i'));
+  if (m && m.index !== undefined) return cut(s, m.index, m[0].length);
+  // 3) รูปผันของคำ (เรียงยาวก่อนสั้น กันแทนซ้อน)
+  const w = word.toLowerCase();
+  const variants = [w + 's', w + 'es', w + 'ed', w + 'ing', w + 'd'];
+  if (w.endsWith('e')) variants.push(w.slice(0, -1) + 'ing', w.slice(0, -1) + 'ed');
+  if (w.endsWith('y')) variants.push(w.slice(0, -1) + 'ies', w.slice(0, -1) + 'ied');
+  // เบิ้ลตัวสะกด (CVC): grab→grabbed/grabbing, equip→equipped, infer→inferred
+  const vowel = (c: string) => 'aeiou'.includes(c);
+  if (
+    w.length >= 3 &&
+    !vowel(w[w.length - 1]) &&
+    vowel(w[w.length - 2]) &&
+    !vowel(w[w.length - 3]) &&
+    !'wxy'.includes(w[w.length - 1])
+  ) {
+    const d = w + w[w.length - 1];
+    variants.push(d + 'ed', d + 'ing');
+  }
+  variants.sort((a, b) => b.length - a.length);
+  for (const v of variants) {
+    m = s.match(new RegExp(`\\b${esc(v)}\\b`, 'i'));
+    if (m && m.index !== undefined) return cut(s, m.index, m[0].length);
+  }
+  return [s];
+}
+
 // ผลตรวจประโยคจาก AI
 type AiResult = {
   verdict: 'excellent' | 'good' | 'needs_work';
@@ -2218,7 +2262,22 @@ export default function Home() {
             <div className="bg-[#fcfcfc] rounded-3xl p-6 border-2 border-gray-50 mb-6 shadow-sm min-h-[140px] flex flex-col justify-center">
               <h2 className="text-xl md:text-2xl font-black mb-4 text-gray-900 leading-relaxed text-center">
                 {currentQuestions[currentIndex].questionType === 'SENTENCE' && (
-                  currentQuestions[currentIndex].example_sentence
+                  <span>
+                    {blankContextSentence(
+                      currentQuestions[currentIndex].example_sentence,
+                      currentQuestions[currentIndex].word
+                    ).map((p, i) =>
+                      p === null ? (
+                        <span
+                          key={i}
+                          className="inline-block align-middle mx-1 px-6 border-b-4 border-[#FFD700]"
+                          aria-label="ช่องว่าง"
+                        >&nbsp;</span>
+                      ) : (
+                        <span key={i}>{p}</span>
+                      )
+                    )}
+                  </span>
                 )}
                 {currentQuestions[currentIndex].questionType === 'SYNONYM' && (
                   <span>Select the <span className="text-[#003399] underline decoration-[#FFD700] decoration-4">SYNONYM</span> for: <br/>&quot;{currentQuestions[currentIndex].synonym}&quot;</span>
