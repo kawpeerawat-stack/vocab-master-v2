@@ -18,6 +18,13 @@ interface CheckBody {
 }
 
 export async function POST(request: NextRequest) {
+  // ⛔ โหมดแต่งประโยคถูกปิดใช้งาน — ไม่เรียก AI (Claude) เพื่อไม่ให้เกิดค่าใช้จ่าย API
+  // ถ้าต้องการเปิดกลับในอนาคต: ลบ 4 บรรทัดนี้ออก แล้วเติมเครดิตที่ console.anthropic.com
+  return NextResponse.json(
+    { error: "โหมดแต่งประโยคถูกปิดใช้งาน" },
+    { status: 503 }
+  );
+
   // กันการเรียกจากนอกเว็บแบบหลวมๆ (รูปแบบเดียวกับ /api/vocab เดิม)
   const referer = request.headers.get("referer") || "";
   const host = request.headers.get("host") || "";
