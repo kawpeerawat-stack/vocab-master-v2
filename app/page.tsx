@@ -939,7 +939,11 @@ export default function Home() {
   };
 
   // บทอ่านที่จะแสดง (เด็กเห็นเฉพาะที่ครูตรวจแล้ว / ครูเปิดสวิตช์เพื่อพรีวิวบทที่ยังไม่ตรวจ)
-  const visiblePassages = teacherPreview ? readingPassages : readingPassages.filter((p) => p.verified);
+  // จำนวนหัวข้อ Reading/Conversation ตามห้อง: 6/4-6/5 = 30, ห้องอื่น = 60 (ผูกกับ wordCap)
+  const topicCap = wordCap === 1000 ? 30 : 60;
+  const visiblePassages = teacherPreview
+    ? readingPassages
+    : readingPassages.filter((p) => p.verified).slice(0, topicCap);
   const hasUnverified = readingPassages.some((p) => !p.verified);
   // หมวดที่มีบทอ่านจริง (เรียงตามลำดับที่กำหนด) + รายการที่กรองตามหมวดที่เลือก
   // ── ชั้นกรองสนามสอบ (แท็บ) — โชว์เฉพาะสนามที่มีบทจริง ──
@@ -1030,7 +1034,9 @@ export default function Home() {
     }
   };
 
-  const visibleConvSets = convPreview ? conversationSets : conversationSets.filter((s) => s.verified);
+  const visibleConvSets = convPreview
+    ? conversationSets
+    : conversationSets.filter((s) => s.verified).slice(0, topicCap);
   // ── ชั้นกรองสนามสอบห้องสนทนา (โชว์เฉพาะสนามที่มีชุดจริง — NETSAT ไม่มีพาร์ต Conversation ตาม blueprint) ──
   const convExamsPresent = EXAM_ORDER.filter((e) => visibleConvSets.some((s) => s.examStyle === e));
   const convEffectiveExam = convExam !== 'ALL' && convExamsPresent.includes(convExam) ? convExam : 'ALL';
