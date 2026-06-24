@@ -158,7 +158,7 @@ export default function Home() {
   //   6/1–6/3 (LMS/CS) → 2,000 คำ | 6/4–6/5 (วิทย์พลังสิบ) → 1,000 คำ
   //   ระบุห้องไม่ได้ → ใช้ DEFAULT_WORD_CAP
   const DEFAULT_WORD_CAP = 2000; // ปรับได้: ห้องที่ระบบอ่านห้องไม่เจอจะได้ชุดนี้
-  const tierLookup = TIERS as Record<string, { tier: number; rank: number }>;
+  const tierLookup = TIERS as unknown as Record<string, { tier: number; rank: number }>;
   const roomInfo = React.useMemo(() => {
     const m = studentName.match(/6\s*[\/._-]\s*([1-5])/);
     if (!m) return { cap: DEFAULT_WORD_CAP, room: null as string | null };
