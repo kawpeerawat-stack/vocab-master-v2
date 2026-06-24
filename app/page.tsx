@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
+import TIERS from '../data/tiers.json';
 import {
   SrsStore,
   loadStore,
@@ -152,6 +153,28 @@ export default function Home() {
   const [rankingLoading, setRankingLoading] = useState(false);
   const [rankingTab, setRankingTab] = useState<'week' | 'all'>('week');
   const [vocabData, setVocabData] = useState<WordItem[]>([]);
+
+  // ── ชุดคำตามห้อง (auto): ดึงเลขห้องจากชื่อที่นักเรียนกรอก เช่น "M.6/4" ──
+  //   6/1–6/3 (LMS/CS) → 2,000 คำ | 6/4–6/5 (วิทย์พลังสิบ) → 1,000 คำ
+  //   ระบุห้องไม่ได้ → ใช้ DEFAULT_WORD_CAP
+  const DEFAULT_WORD_CAP = 2000; // ปรับได้: ห้องที่ระบบอ่านห้องไม่เจอจะได้ชุดนี้
+  const tierLookup = TIERS as Record<string, { tier: number; rank: number }>;
+  const roomInfo = React.useMemo(() => {
+    const m = studentName.match(/6\s*[\/._-]\s*([1-5])/);
+    if (!m) return { cap: DEFAULT_WORD_CAP, room: null as string | null };
+    const n = m[1];
+    return { cap: n === '4' || n === '5' ? 1000 : 2000, room: `6/${n}` };
+  }, [studentName]);
+  const wordCap = roomInfo.cap;
+  // คำที่ใช้จริงสำหรับนักเรียนคนนี้ (ซ่อนคลังเต็ม 4,253 — เหลือเฉพาะ tier ที่ปลดล็อก)
+  const activeVocab = React.useMemo(
+    () =>
+      vocabData.filter((w) => {
+        const t = tierLookup[w.word]?.tier ?? 0;
+        return t > 0 && t <= wordCap; // tier1000 เข้าได้ทุกห้อง, tier2000 เฉพาะ cap=2000
+      }),
+    [vocabData, wordCap]
+  );
   const [currentQuestions, setCurrentQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [options, setOptions] = useState<string[]>([]);
@@ -343,7 +366,7 @@ export default function Home() {
 
   // รายการคำที่เด็ก "ยังอ่อน" (กล่องต่ำ ≤1 หรือเคยลืม) เรียงตามควรทบทวนก่อน
   const getWeakWordList = (): WordItem[] => {
-    const wordMap = new Map(vocabData.map((w) => [w.word, w]));
+    const wordMap = new Map(activeVocab.map((w) => [w.word, w]));
     return Object.entries(srsStore)
       .filter(([, c]) => c && (c.box <= 1 || c.lapses > 0))
       .sort((a, b) => (b[1].lapses || 0) - (a[1].lapses || 0) || a[1].box - b[1].box)
@@ -361,12 +384,12 @@ export default function Home() {
     // ปรับสัดส่วนระดับตามโหมดติวที่เลือก (ใช้บันได CEFR ที่มีอยู่)
     const levelPlan =
       examFocus === 'foundation'
-        ? [{ level: 'B1', count: 10 }]
+        ? [{ level: 'B2', count: 10 }]
         : examFocus === 'exam'
-        ? [{ level: 'B2', count: 7 }, { level: 'C1', count: 3 }]
-        : [{ level: 'B1', count: 4 }, { level: 'B2', count: 4 }, { level: 'C1', count: 2 }];
-    const roundWords = pickRound(srsStore, vocabData, { total: TOTAL_QUESTIONS_PER_ROUND, levelPlan });
-    const wordMap = new Map(vocabData.map((w) => [w.word, w]));
+        ? [{ level: 'B2', count: 5 }, { level: 'C1', count: 5 }]
+        : [{ level: 'B2', count: 6 }, { level: 'C1', count: 4 }];
+    const roundWords = pickRound(srsStore, activeVocab, { total: TOTAL_QUESTIONS_PER_ROUND, levelPlan });
+    const wordMap = new Map(activeVocab.map((w) => [w.word, w]));
     const selectedRoundWords: WordItem[] = roundWords
       .map((w) => wordMap.get(w))
       .filter((w): w is WordItem => Boolean(w));
@@ -380,7 +403,7 @@ export default function Home() {
       alert("⚠️ ระบบยังโหลดคลังคำศัพท์ไม่สำเร็จ กรุณารีเฟรชหน้าเว็บแล้วลองใหม่ครับ");
       return;
     }
-    const weak = getWeakWordList().slice(0, TOTAL_QUESTIONS_PER_ROUND);
+    const weak = getWeakWordList().slice(0, TOTAL_QUESTIONS_PER_ROUND); // getWeakWordList กรองด้วย activeVocab แล้ว
     if (weak.length === 0) {
       alert("เยี่ยมมาก! ตอนนี้ยังไม่มีคำที่ต้องทบทวนเป็นพิเศษ ลองเล่นรอบปกติเพื่อเก็บคำใหม่ได้เลย 👍");
       return;
@@ -581,7 +604,7 @@ export default function Home() {
 
     // ซิงก์ความก้าวหน้า (SRS + สถิติ + streak) ขึ้น Firestore — ข้ามเครื่อง + ให้ครูเห็นรายคน
     try {
-      const stats = computeStats(srsStore, vocabData.map((w) => w.word));
+      const stats = computeStats(srsStore, activeVocab.map((w) => w.word));
       await saveCloudProgress({ email, name: studentName, srs: srsStore, stats, lastScore: score, streak: updatedStreak });
     } catch (error) {
       console.error("Error syncing progress to cloud:", error);
@@ -591,7 +614,7 @@ export default function Home() {
   };
 
   const isVocabLoading = vocabData.length === 0;
-  const srsStats = computeStats(srsStore, vocabData.map((w) => w.word));
+  const srsStats = computeStats(srsStore, activeVocab.map((w) => w.word));
   // ความก้าวหน้าแบบ "ให้คะแนนบางส่วน" ตามกล่อง SRS (ขยับทุกครั้งที่เลื่อนคำขึ้นกล่อง)
   const overallPercentage = srsStats.weightedProgress.toFixed(1);
   // จำนวนคำที่เด็กยังอ่อน (ไว้โชว์บนปุ่มทบทวนคำที่พลาด)
@@ -1052,7 +1075,7 @@ export default function Home() {
                 <span className="text-3xl">📚</span>
                 <span className="flex-1">
                   <span className="block font-black text-lg text-[#FFD700]">คำศัพท์ (Vocabulary)</span>
-                  <span className="block text-xs text-white/80 font-bold">ฝึกจำคำศัพท์ {vocabData.length} คำ ด้วยระบบ SRS</span>
+                  <span className="block text-xs text-white/80 font-bold">ฝึกจำคำศัพท์ {activeVocab.length.toLocaleString()} คำ ด้วยระบบ SRS</span>
                 </span>
                 <span className="text-[#FFD700] text-xl">→</span>
               </button>
@@ -1920,6 +1943,12 @@ export default function Home() {
               <img src={SCHOOL_LOGO_URL} alt="Anukoolnaree Logo" className="w-20 h-20 mb-3 object-contain" />
               <h1 className="text-2xl font-black text-gray-900 mb-1">Grade 12 Mastery Hub</h1>
               <p className="text-[#003399] font-bold text-sm tracking-widest uppercase">Anukoolnaree Vocabulary Essential</p>
+              <div className="mt-3 inline-flex items-center gap-2 bg-[#FFD700]/20 border-2 border-[#FFD700] rounded-full px-4 py-1.5">
+                <span className="text-base">🎯</span>
+                <span className="text-sm font-black text-[#003399]">
+                  {roomInfo.room ? `ห้อง ${roomInfo.room}` : 'ห้องพิเศษ'} · ชุดคำเป้าหมาย {activeVocab.length.toLocaleString()} คำ
+                </span>
+              </div>
             </div>
 
             <div className="bg-[#003399]/5 border-2 border-[#003399]/10 rounded-3xl p-6 text-left mb-6 shadow-sm">
@@ -1934,11 +1963,12 @@ export default function Home() {
                 ></div>
               </div>
               <div className="text-xs text-gray-600 font-bold flex justify-between">
-                <span>Mastered: <span className="text-[#003399]">{srsStats.mastered}</span></span>
-                <span>Total: <span className="text-[#003399]">{vocabData.length} Words</span></span>
+                <span>เรียนแล้ว: <span className="text-[#003399]">{srsStats.seen}</span></span>
+                <span>จำได้: <span className="text-[#003399]">{srsStats.mastered}</span></span>
+                <span>เป้าหมาย: <span className="text-[#003399]">{activeVocab.length.toLocaleString()} คำ</span></span>
               </div>
               <p className="text-[10px] text-gray-400 mt-1.5 leading-relaxed">
-                % คิดความคืบหน้าทุกขั้นของการจำ (ยิ่งเลื่อนคำขึ้นกล่อง % ยิ่งเพิ่ม) ส่วน &quot;Mastered&quot; คือคำที่จำได้สมบูรณ์แล้ว
+                % รวม = ครึ่งหนึ่งจากจำนวนคำที่เรียนแล้ว + อีกครึ่งจากระดับความจำ (ยิ่งทบทวนจนคำขึ้นกล่อง % ยิ่งเพิ่ม จนเต็ม 100% เมื่อจำแม่นครบทุกคำ) ส่วน &quot;จำได้&quot; คือคำที่จำได้สมบูรณ์
               </p>
               <div className="mt-3 grid grid-cols-3 gap-2 text-center">
                 <div className="bg-white rounded-xl py-2 border border-[#003399]/10">
