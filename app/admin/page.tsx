@@ -68,6 +68,16 @@ function fmtThaiTime(ms?: number): string {
   return `${d.getDate()} ${th[d.getMonth()]} ${hh}:${mm}`;
 }
 
+// ดึงห้องจากชื่อที่นักเรียนกรอก เช่น "...M.6/4" → "6/4" (ตรรกะเดียวกับฝั่งนักเรียน)
+function roomOf(name?: string): string | null {
+  const m = (name || "").match(/6\s*[\/._-]\s*([1-5])/);
+  return m ? `6/${m[1]}` : null;
+}
+const ROOMS = ["6/1", "6/2", "6/3", "6/4", "6/5"];
+function roomTarget(room: string | null): number {
+  return room === "6/4" || room === "6/5" ? 1000 : 2000;
+}
+
 function isWeak(card: SrsCard): boolean {
   return card.box <= 1 || card.lapses > 0;
 }
@@ -77,6 +87,7 @@ export default function AdminDashboard() {
   const [vocabMap, setVocabMap] = useState<Record<string, VocabMeaning>>({});
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [roomFilter, setRoomFilter] = useState<string>("ALL");
 
   useEffect(() => {
     const load = async () => {
@@ -144,6 +155,21 @@ export default function AdminDashboard() {
     .map((s) => ({ s, leaves: s.reading?.totalLeaves ?? 0, autos: s.reading?.autoSubmits ?? 0 }))
     .filter((x) => x.leaves > 0 || x.autos > 0)
     .sort((a, b) => b.autos - a.autos || b.leaves - a.leaves);
+
+  // ── แยกตามห้อง + กรอง ──
+  const roomCounts: Record<string, number> = { ALL: students.length, __none: 0 };
+  for (const r of ROOMS) roomCounts[r] = 0;
+  for (const s of students) {
+    const r = roomOf(s.name);
+    if (r) roomCounts[r] = (roomCounts[r] ?? 0) + 1;
+    else roomCounts.__none += 1;
+  }
+  const filteredStudents =
+    roomFilter === "ALL"
+      ? students
+      : roomFilter === "__none"
+      ? students.filter((s) => !roomOf(s.name))
+      : students.filter((s) => roomOf(s.name) === roomFilter);
 
   // ── ดาวน์โหลดข้อมูลนักเรียนทั้งห้องเป็นไฟล์ CSV (เปิดใน Excel ได้) ──
   const escapeCsv = (val: string | number) => {
@@ -292,7 +318,29 @@ export default function AdminDashboard() {
         <div className="bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden">
           <div className="p-6 border-b border-neutral-800">
             <h2 className="text-lg font-black text-amber-200">นักเรียนรายคน</h2>
-            <p className="text-xs text-neutral-500">คลิกที่แถวเพื่อดูคำที่นักเรียนคนนั้นยังอ่อน</p>
+            <p className="text-xs text-neutral-500">เรียงตาม % ก้าวหน้า (มากสุดก่อน) · คลิกที่แถวเพื่อดูประวัติ + คำที่ยังอ่อน</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {[
+                { key: "ALL", label: "ทั้งหมด" },
+                ...ROOMS.map((r) => ({ key: r, label: `ห้อง ${r}` })),
+                { key: "__none", label: "ไม่ระบุห้อง" },
+              ].map((t) => (
+                <button
+                  key={t.key}
+                  onClick={() => setRoomFilter(t.key)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
+                    roomFilter === t.key
+                      ? "bg-amber-300 text-neutral-900"
+                      : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+                  }`}
+                >
+                  {t.label} ({roomCounts[t.key] ?? 0})
+                  {t.key !== "ALL" && t.key !== "__none" && (
+                    <span className="ml-1 opacity-70">· {roomTarget(t.key).toLocaleString()} คำ</span>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -312,7 +360,14 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-800/50">
-                {students.map((s) => {
+                {filteredStudents.length === 0 && (
+                  <tr>
+                    <td colSpan={11} className="p-8 text-center text-neutral-500 text-sm">
+                      ยังไม่มีข้อมูลนักเรียนในห้องนี้ (นักเรียนต้องเข้าทำอย่างน้อย 1 รอบหลังอัปเดต)
+                    </td>
+                  </tr>
+                )}
+                {filteredStudents.map((s) => {
                   const weak = weakWordsOf(s);
                   const isOpen = expanded === s.id;
                   return (
