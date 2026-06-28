@@ -41,11 +41,33 @@ type StudentDoc = {
   reading?: ReadingStatRow;
   conversation?: ConversationStatRow;
   readingLeaves?: Record<string, ReadingLeaveRow>;
+  percent?: number;
+  answered?: number;
+  lastDeltaPercent?: number;
+  lastDeltaAnswered?: number;
+  lastActiveAt?: number;
+  history?: { ts: number; percent: number; answered: number; seen: number }[];
 };
 
 type VocabMeaning = { thai: string; level: string };
 
 // คำถือว่า "ยังอ่อน" เมื่ออยู่กล่องต่ำ หรือเคยลืม (lapses > 0)
+// แปลงเวลา (ms) เป็นข้อความไทยแบบสั้น เช่น "5 นาทีที่แล้ว", "2 ชม.ที่แล้ว", "24 มิ.ย. 21:45"
+function fmtThaiTime(ms?: number): string {
+  if (!ms) return "–";
+  const diff = Date.now() - ms;
+  const min = Math.floor(diff / 60000);
+  if (min < 1) return "เมื่อสักครู่";
+  if (min < 60) return `${min} นาทีที่แล้ว`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr} ชม.ที่แล้ว`;
+  const d = new Date(ms);
+  const th = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${d.getDate()} ${th[d.getMonth()]} ${hh}:${mm}`;
+}
+
 function isWeak(card: SrsCard): boolean {
   return card.box <= 1 || card.lapses > 0;
 }
@@ -76,7 +98,7 @@ export default function AdminDashboard() {
         const snap = await getDocs(collection(db, "students"));
         const data: StudentDoc[] = [];
         snap.forEach((d) => data.push({ id: d.id, ...(d.data() as object) } as StudentDoc));
-        data.sort((a, b) => (b.mastered ?? 0) - (a.mastered ?? 0));
+        data.sort((a, b) => (b.percent ?? 0) - (a.percent ?? 0) || (b.mastered ?? 0) - (a.mastered ?? 0));
         setStudents(data);
       } catch (error) {
         console.error("Error fetching students:", error);
@@ -130,7 +152,7 @@ export default function AdminDashboard() {
   };
 
   const downloadCsv = () => {
-    const headers = ["ชื่อ", "อีเมล", "จำได้", "กำลังเรียน", "เคยเจอ", "คะแนนสูงสุด", "วันติด(streak)", "ออกจากจอรวม", "ส่งอัตโนมัติ", "บทที่ออกจากจอ", "คำที่ยังอ่อน"];
+    const headers = ["ชื่อ", "อีเมล", "ก้าวหน้า %", "ขยับล่าสุด %", "ทำเพิ่มล่าสุด (ข้อ)", "ตอบสะสม (ข้อ)", "เข้าทำล่าสุด", "จำได้", "กำลังเรียน", "เคยเจอ", "คะแนนสูงสุด", "วันติด(streak)", "ออกจากจอรวม", "ส่งอัตโนมัติ", "บทที่ออกจากจอ", "คำที่ยังอ่อน"];
     const rows = students.map((s) => {
       const weak = weakWordsOf(s)
         .map((w) => (vocabMap[w.word] ? `${w.word}(${vocabMap[w.word].thai})` : w.word))
@@ -142,6 +164,11 @@ export default function AdminDashboard() {
       return [
         s.name || "",
         s.email || s.id,
+        (s.percent ?? 0).toFixed(1),
+        (s.lastDeltaPercent ?? 0).toFixed(1),
+        s.lastDeltaAnswered ?? 0,
+        s.answered ?? 0,
+        fmtThaiTime(s.lastActiveAt),
         s.mastered ?? 0,
         s.learning ?? 0,
         s.seen ?? 0,
@@ -273,9 +300,12 @@ export default function AdminDashboard() {
                 <tr>
                   <th className="p-4">ชื่อ</th>
                   <th className="p-4 hidden md:table-cell">อีเมล</th>
+                  <th className="p-4 text-center">ก้าวหน้า</th>
+                  <th className="p-4 text-center">ขยับล่าสุด</th>
+                  <th className="p-4 text-center hidden lg:table-cell">เข้าทำล่าสุด</th>
                   <th className="p-4 text-center">จำได้</th>
-                  <th className="p-4 text-center">กำลังเรียน</th>
-                  <th className="p-4 text-center">คะแนนสูงสุด</th>
+                  <th className="p-4 text-center hidden md:table-cell">กำลังเรียน</th>
+                  <th className="p-4 text-center hidden sm:table-cell">คะแนนสูงสุด</th>
                   <th className="p-4 text-center hidden sm:table-cell">อ่าน %</th>
                   <th className="p-4 text-center hidden sm:table-cell">สนทนา %</th>
                   <th className="p-4 text-center">ออกจากจอ</th>
@@ -293,18 +323,58 @@ export default function AdminDashboard() {
                       >
                         <td className="p-4 font-bold text-white">{s.name || "(ไม่มีชื่อ)"}</td>
                         <td className="p-4 text-neutral-500 text-sm font-mono hidden md:table-cell">{s.email}</td>
+                        <td className="p-4 text-center">
+                          <div className="font-black text-lg text-emerald-400">{(s.percent ?? 0).toFixed(1)}%</div>
+                          <div className="text-[10px] text-neutral-500">{s.seen ?? 0}/{s.total ?? 0} คำ</div>
+                        </td>
+                        <td className="p-4 text-center">
+                          {(s.lastDeltaPercent ?? 0) > 0 || (s.lastDeltaAnswered ?? 0) > 0 ? (
+                            <div>
+                              <div className="font-black text-sky-300">▲ +{(s.lastDeltaPercent ?? 0).toFixed(1)}%</div>
+                              <div className="text-[10px] text-neutral-500">ทำเพิ่ม {s.lastDeltaAnswered ?? 0} ข้อ</div>
+                            </div>
+                          ) : (
+                            <span className="text-neutral-600">–</span>
+                          )}
+                        </td>
+                        <td className="p-4 text-center text-xs text-neutral-400 hidden lg:table-cell">{fmtThaiTime(s.lastActiveAt)}</td>
                         <td className="p-4 text-center font-black text-green-400">{s.mastered ?? 0}</td>
-                        <td className="p-4 text-center font-bold text-amber-400">{s.learning ?? 0}</td>
-                        <td className="p-4 text-center font-bold text-neutral-200">{s.bestScore ?? s.score ?? 0}</td>
+                        <td className="p-4 text-center font-bold text-amber-400 hidden md:table-cell">{s.learning ?? 0}</td>
+                        <td className="p-4 text-center font-bold text-neutral-200 hidden sm:table-cell">{s.bestScore ?? s.score ?? 0}</td>
                         <td className="p-4 text-center font-bold text-sky-400 hidden sm:table-cell">{s.reading?.bestPct != null ? `${s.reading.bestPct}%` : "–"}</td>
                         <td className="p-4 text-center font-bold text-purple-400 hidden sm:table-cell">{s.conversation?.bestPct != null ? `${s.conversation.bestPct}%` : "–"}</td>
                         <td className="p-4 text-center font-black">{(s.reading?.totalLeaves ?? 0) > 0 || (s.reading?.autoSubmits ?? 0) > 0 ? <span className="text-rose-400">{s.reading?.totalLeaves ?? 0}×{(s.reading?.autoSubmits ?? 0) > 0 ? <span className="text-red-300"> ⛔{s.reading?.autoSubmits}</span> : null}</span> : <span className="text-neutral-600">0</span>}</td>
                       </tr>
                       {isOpen && (
                         <tr className="bg-neutral-950/40">
-                          <td colSpan={8} className="p-4">
-                            <div className="text-xs font-bold text-neutral-400 mb-2">คำที่ {s.name} ยังอ่อน:</div>
-                            {weak.length === 0 ? (
+                          <td colSpan={11} className="p-4">
+                            {s.history && s.history.length > 0 && (
+                              <div className="mb-4">
+                                <div className="text-xs font-bold text-emerald-300 mb-2">
+                                  📈 ประวัติความก้าวหน้า (ล่าสุด {Math.min(s.history.length, 8)} ครั้ง · เข้าทำล่าสุด {fmtThaiTime(s.lastActiveAt)})
+                                </div>
+                                <div className="flex flex-col gap-1">
+                                  {s.history.slice(-8).reverse().map((h, i, arr) => {
+                                    const prev = arr[i + 1];
+                                    const dPct = prev ? Math.round((h.percent - prev.percent) * 10) / 10 : 0;
+                                    const dAns = prev ? Math.max(0, h.answered - prev.answered) : 0;
+                                    return (
+                                      <div key={h.ts} className="flex items-center gap-3 text-xs bg-neutral-900/60 rounded-lg px-3 py-1.5">
+                                        <span className="text-neutral-500 w-32 shrink-0">{fmtThaiTime(h.ts)}</span>
+                                        <span className="font-black text-emerald-400 w-16">{h.percent.toFixed(1)}%</span>
+                                        {prev && (dPct > 0 || dAns > 0) ? (
+                                          <span className="text-sky-300">▲ +{dPct.toFixed(1)}% · ทำเพิ่ม {dAns} ข้อ</span>
+                                        ) : (
+                                          <span className="text-neutral-600">—</span>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+
+                            <div className="text-xs font-bold text-neutral-400 mb-2">คำที่ {s.name} ยังอ่อน:</div>                            {weak.length === 0 ? (
                               <span className="text-neutral-600 text-sm">ยังไม่มีคำที่อ่อน หรือยังไม่มีข้อมูล</span>
                             ) : (
                               <div className="flex flex-wrap gap-2">
