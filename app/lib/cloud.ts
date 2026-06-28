@@ -103,6 +103,13 @@ export interface CloudProgress {
   // ── แถบความสำเร็จห้องสนทนา ──
   masteredConvos?: string[];  // id ชุดที่ "พิชิต" (ตอบถูกครบทุกข้อ) — สะสมตลอดกาล
   completedConvos?: string[]; // id ชุดที่เคยทำจบ (ถูกครบหรือไม่ก็ตาม)
+  // ── ความก้าวหน้าคำศัพท์ (สำหรับหน้า /admin) ──
+  percent?: number;            // % ก้าวหน้า ณ บันทึกล่าสุด
+  answered?: number;           // จำนวนข้อที่ตอบสะสม (ผลรวม reps ของทุกคำ)
+  lastDeltaPercent?: number;   // % ที่ขยับจากการบันทึกครั้งก่อน
+  lastDeltaAnswered?: number;  // จำนวนข้อที่ทำเพิ่มจากครั้งก่อน
+  lastActiveAt?: number;       // เวลา (ms) ที่เข้าทำล่าสุด
+  history?: { ts: number; percent: number; answered: number; seen: number }[]; // snapshot ย้อนหลัง
 }
 
 // ── โหลดความก้าวหน้าจากคลาวด์ (คืน null ถ้ายังไม่มี) ──
@@ -124,7 +131,7 @@ export async function saveCloudProgress(params: {
   email: string;
   name: string;
   srs: SrsStore;
-  stats: { mastered: number; learning: number; seen: number; total: number };
+  stats: { mastered: number; learning: number; seen: number; total: number; weightedProgress?: number };
   lastScore: number;
   streak?: StreakState;
 }): Promise<boolean> {
@@ -135,8 +142,16 @@ export async function saveCloudProgress(params: {
 
     // ดึง bestScore เดิม + แต้มรายสัปดาห์เดิม มาคำนวณต่อ
     const weekId = currentWeekId();
+    const nowMs = Date.now();
+    // จำนวนข้อที่ตอบสะสม = ผลรวม reps ของทุกคำใน SRS
+    const answered = Object.values(srs).reduce((sum, c) => sum + (c?.reps ?? 0), 0);
+    // % ก้าวหน้าปัจจุบัน (สูตรเดียวกับที่นักเรียนเห็นบนแถบ)
+    const percent = Math.round((stats.weightedProgress ?? 0) * 10) / 10;
     let bestScore = lastScore;
     let weeklyXp = lastScore; // ค่าเริ่มต้น (สัปดาห์ใหม่ หรือยังไม่มีข้อมูล)
+    let prevPercent = 0;
+    let prevAnswered = 0;
+    let history: { ts: number; percent: number; answered: number; seen: number }[] = [];
     try {
       const prev = await getDoc(ref);
       if (prev.exists()) {
@@ -144,10 +159,17 @@ export async function saveCloudProgress(params: {
         bestScore = Math.max(pd.bestScore ?? 0, lastScore);
         // สัปดาห์เดิม → สะสมต่อ, สัปดาห์ใหม่ → เริ่มนับใหม่จากรอบนี้
         weeklyXp = pd.weekId === weekId ? (pd.weeklyXp ?? 0) + lastScore : lastScore;
+        prevPercent = pd.percent ?? 0;
+        prevAnswered = pd.answered ?? 0;
+        history = Array.isArray(pd.history) ? pd.history : [];
       }
     } catch {
       // อ่านค่าเดิมไม่ได้ก็ใช้ค่าเริ่มต้นไปก่อน
     }
+    // ส่วนต่างจากการบันทึกครั้งก่อน + เก็บ snapshot (เก็บ 60 ครั้งล่าสุด)
+    const lastDeltaPercent = Math.round((percent - prevPercent) * 10) / 10;
+    const lastDeltaAnswered = Math.max(0, answered - prevAnswered);
+    const history2 = [...history, { ts: nowMs, percent, answered, seen: stats.seen }].slice(-60);
 
     await setDoc(
       ref,
@@ -159,6 +181,13 @@ export async function saveCloudProgress(params: {
         learning: stats.learning,
         seen: stats.seen,
         total: stats.total,
+        // ── ความก้าวหน้า + ส่วนต่าง + เวลา + ประวัติ (สำหรับ /admin) ──
+        percent,
+        answered,
+        lastDeltaPercent,
+        lastDeltaAnswered,
+        lastActiveAt: nowMs,
+        history: history2,
         // หน้า /admin เดิมเรียงตาม field "score" — ใส่ทั้ง score และ bestScore ให้เข้ากันได้
         score: bestScore,
         bestScore,
