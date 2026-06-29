@@ -15,6 +15,8 @@ type ReadingStatRow = {
   byType?: Record<string, { answered: number; correct: number }>;
   totalLeaves?: number;
   autoSubmits?: number;
+  lastActiveAt?: number;
+  history?: { ts: number; pct: number; answered: number }[];
 };
 type ReadingLeaveRow = { title?: string; examStyle?: string; leaves: number; attempts: number; lastLeaves?: number; autoSubmits?: number };
 type ConversationStatRow = {
@@ -23,6 +25,8 @@ type ConversationStatRow = {
   totalCorrect?: number;
   bestPct?: number;
   byFormat?: Record<string, { answered: number; correct: number }>;
+  lastActiveAt?: number;
+  history?: { ts: number; pct: number; answered: number }[];
 };
 
 type StudentDoc = {
@@ -78,8 +82,82 @@ function roomTarget(room: string | null): number {
   return room === "6/4" || room === "6/5" ? 1000 : 2000;
 }
 
+// ── สิทธิ์เข้าหน้า /admin ──
+const ADMIN_EMAIL = "kawpeerawat@gmail.com";
+// ตั้งรหัสผ่านจริงผ่าน Vercel → Environment Variables: NEXT_PUBLIC_ADMIN_PASSWORD
+// ถ้ายังไม่ตั้ง จะใช้ค่าเริ่มต้นชั่วคราวด้านล่าง (ควรเปลี่ยนโดยเร็ว)
+const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "anukoolnaree2025";
+const ADMIN_USING_DEFAULT_PW = !process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
+
 function isWeak(card: SrsCard): boolean {
   return card.box <= 1 || card.lapses > 0;
+}
+
+// แสดงความก้าวหน้ารายหมวด (Reading/Conversation) ในรูปแบบเดียวกับคำศัพท์
+function SubjectProgress({
+  title,
+  icon,
+  accent,
+  stat,
+}: {
+  title: string;
+  icon: string;
+  accent: string;
+  stat?: {
+    attempts?: number;
+    totalAnswered?: number;
+    totalCorrect?: number;
+    bestPct?: number;
+    lastActiveAt?: number;
+    history?: { ts: number; pct: number; answered: number }[];
+  };
+}) {
+  if (!stat || !stat.attempts) {
+    return (
+      <div className="mb-4">
+        <div className={`text-xs font-bold ${accent} mb-1`}>{icon} {title}</div>
+        <div className="text-xs text-neutral-600">ยังไม่มีข้อมูล (นักเรียนยังไม่ได้เข้าทำหมวดนี้)</div>
+      </div>
+    );
+  }
+  const acc =
+    (stat.totalAnswered ?? 0) > 0 ? Math.round(((stat.totalCorrect ?? 0) / (stat.totalAnswered ?? 1)) * 100) : 0;
+  const hist = stat.history ?? [];
+  return (
+    <div className="mb-4">
+      <div className={`text-xs font-bold ${accent} mb-2`}>
+        {icon} {title} · เข้าทำล่าสุด {fmtThaiTime(stat.lastActiveAt)}
+      </div>
+      <div className="flex flex-wrap gap-2 mb-2 text-xs">
+        <span className="bg-neutral-900/60 rounded-lg px-3 py-1.5 text-neutral-300">ความแม่น <b className={accent}>{acc}%</b></span>
+        <span className="bg-neutral-900/60 rounded-lg px-3 py-1.5 text-neutral-300">ดีที่สุด <b>{stat.bestPct ?? 0}%</b></span>
+        <span className="bg-neutral-900/60 rounded-lg px-3 py-1.5 text-neutral-300">ทำไป <b>{stat.attempts ?? 0}</b> รอบ</span>
+        <span className="bg-neutral-900/60 rounded-lg px-3 py-1.5 text-neutral-300">ตอบสะสม <b>{stat.totalAnswered ?? 0}</b> ข้อ</span>
+      </div>
+      {hist.length > 0 && (
+        <div className="flex flex-col gap-1">
+          {hist.slice(-6).reverse().map((h, i, arr) => {
+            const prev = arr[i + 1];
+            const dPct = prev ? Math.round((h.pct - prev.pct) * 10) / 10 : 0;
+            const dAns = prev ? Math.max(0, h.answered - prev.answered) : 0;
+            return (
+              <div key={h.ts} className="flex items-center gap-3 text-xs bg-neutral-900/40 rounded-lg px-3 py-1.5">
+                <span className="text-neutral-500 w-32 shrink-0">{fmtThaiTime(h.ts)}</span>
+                <span className={`font-black ${accent} w-14`}>{h.pct}%</span>
+                {prev ? (
+                  <span className="text-sky-300">
+                    {dPct >= 0 ? "▲ +" : "▼ "}{dPct}% · ทำเพิ่ม {dAns} ข้อ
+                  </span>
+                ) : (
+                  <span className="text-neutral-600">—</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function AdminDashboard() {
@@ -88,8 +166,19 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [roomFilter, setRoomFilter] = useState<string>("ALL");
+  const [authed, setAuthed] = useState(false);
+  const [pw, setPw] = useState("");
+  const [pwError, setPwError] = useState(false);
+
+  // ตรวจสิทธิ์จาก session (ผ่านรหัสแล้วไม่ต้องกรอกซ้ำในเบราว์เซอร์เดิม)
+  useEffect(() => {
+    if (typeof window !== "undefined" && sessionStorage.getItem("vocab_admin_ok") === "1") {
+      setAuthed(true);
+    }
+  }, []);
 
   useEffect(() => {
+    if (!authed) return; // ยังไม่ผ่านรหัสผ่าน → ไม่โหลด/ไม่อ่านข้อมูลนักเรียน
     const load = async () => {
       try {
         // 1) แผนที่ความหมายคำศัพท์ (ไว้แสดงภาษาไทย)
@@ -219,6 +308,52 @@ export default function AdminDashboard() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+
+  const submitPw = () => {
+    if (pw === ADMIN_PASSWORD) {
+      setAuthed(true);
+      setPwError(false);
+      try { sessionStorage.setItem("vocab_admin_ok", "1"); } catch {}
+    } else {
+      setPwError(true);
+    }
+  };
+
+  if (!authed) {
+    return (
+      <div className="min-h-screen bg-neutral-950 flex items-center justify-center p-6">
+        <div className="w-full max-w-sm bg-neutral-900 border border-neutral-800 rounded-3xl p-8 shadow-2xl">
+          <div className="text-center mb-6">
+            <div className="text-4xl mb-2">🔒</div>
+            <h1 className="text-xl font-black text-amber-200">หน้าผู้ดูแลระบบ</h1>
+            <p className="text-xs text-neutral-500 mt-1">สำหรับ {ADMIN_EMAIL} เท่านั้น</p>
+          </div>
+          <label className="block text-xs font-bold text-neutral-400 mb-1">รหัสผ่าน</label>
+          <input
+            type="password"
+            value={pw}
+            onChange={(e) => { setPw(e.target.value); setPwError(false); }}
+            onKeyDown={(e) => { if (e.key === "Enter") submitPw(); }}
+            autoFocus
+            className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-white outline-none focus:border-amber-400"
+            placeholder="กรอกรหัสผ่าน"
+          />
+          {pwError && <p className="text-rose-400 text-xs mt-2 font-bold">รหัสผ่านไม่ถูกต้อง</p>}
+          <button
+            onClick={submitPw}
+            className="w-full mt-4 bg-amber-300 hover:bg-amber-200 text-neutral-900 font-black rounded-xl py-3 transition-colors"
+          >
+            เข้าสู่ระบบ
+          </button>
+          {ADMIN_USING_DEFAULT_PW && (
+            <p className="text-amber-500/70 text-[10px] mt-4 leading-relaxed">
+              ⚠️ กำลังใช้รหัสผ่านเริ่มต้น — แนะนำให้ตั้งค่า <span className="font-mono">NEXT_PUBLIC_ADMIN_PASSWORD</span> ใน Vercel แล้ว redeploy เพื่อความปลอดภัย
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -428,6 +563,9 @@ export default function AdminDashboard() {
                                 </div>
                               </div>
                             )}
+
+                            <SubjectProgress title="ความก้าวหน้า Reading (การอ่าน)" icon="📖" accent="text-sky-300" stat={s.reading} />
+                            <SubjectProgress title="ความก้าวหน้า Conversation (บทสนทนา)" icon="💬" accent="text-purple-300" stat={s.conversation} />
 
                             <div className="text-xs font-bold text-neutral-400 mb-2">คำที่ {s.name} ยังอ่อน:</div>                            {weak.length === 0 ? (
                               <span className="text-neutral-600 text-sm">ยังไม่มีคำที่อ่อน หรือยังไม่มีข้อมูล</span>
