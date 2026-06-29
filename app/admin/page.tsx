@@ -207,7 +207,7 @@ export default function AdminDashboard() {
       }
     };
     load();
-  }, []);
+  }, [authed]);
 
   // คำที่ทั้งห้องพลาดบ่อย: รวมจำนวนคนที่ยังอ่อน + lapses รวม ของแต่ละคำ
   const classHardWords = (() => {
