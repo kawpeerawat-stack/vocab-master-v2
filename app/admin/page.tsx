@@ -6,6 +6,7 @@ import { collection, getDocs } from "firebase/firestore";
 import type { SrsCard } from "../lib/srs";
 import { RQTYPE_LABELS } from "../lib/reading";
 import { CONV_FORMAT_LABELS } from "../lib/conversation";
+import ROSTER_JSON from "../../data/roster.json";
 
 type ReadingStatRow = {
   attempts?: number;
@@ -80,6 +81,32 @@ function roomOf(name?: string): string | null {
 const ROOMS = ["6/1", "6/2", "6/3", "6/4", "6/5"];
 function roomTarget(room: string | null): number {
   return room === "6/4" || room === "6/5" ? 1000 : 2000;
+}
+
+// ── รายชื่อทางการ + จับคู่ชื่อที่นักเรียนพิมพ์ ──
+type RosterEntry = { room: string; no: number; name: string };
+const ROSTER = ROSTER_JSON as RosterEntry[];
+function normName(s?: string): string {
+  return (s || "")
+    .replace(/(นางสาว|เด็กชาย|เด็กหญิง|นาย|นาง|ด\.ช\.|ด\.ญ\.|น\.ส\.)/g, "")
+    .replace(/no\.?\s*\d+|เลขที่\s*\d+|m\.?\s*6\s*\/\s*[1-5]|ม\.?\s*6\s*\/\s*[1-5]|6\s*\/\s*[1-5]/gi, "")
+    .replace(/[^ก-๙a-zA-Z]/g, "")
+    .toLowerCase();
+}
+const rosterIndex: Record<string, RosterEntry[]> = {};
+for (const r of ROSTER) {
+  const k = normName(r.name);
+  (rosterIndex[k] ||= []).push(r);
+}
+function matchRoster(name?: string): RosterEntry | null {
+  const n = normName(name);
+  if (!n) return null;
+  if (rosterIndex[n]) return rosterIndex[n][0];
+  const cand: RosterEntry[] = [];
+  for (const k in rosterIndex) {
+    if (k.startsWith(n) || n.startsWith(k)) cand.push(...rosterIndex[k]);
+  }
+  return cand.length === 1 ? cand[0] : null; // จับคู่บางส่วนเฉพาะเมื่อไม่กำกวม
 }
 
 // ── สิทธิ์เข้าหน้า /admin ──
@@ -260,6 +287,20 @@ export default function AdminDashboard() {
       : roomFilter === "__none"
       ? students.filter((s) => !roomOf(s.name))
       : students.filter((s) => roomOf(s.name) === roomFilter);
+
+  // ── เทียบรายชื่อทางการ: ใครเข้าทำแล้ว/ยัง + ชื่อที่จับคู่ไม่ได้ ──
+  const rosterMatched = new Set<string>(); // key = "ห้อง|เลขที่" ที่มีนักเรียนเข้าทำแล้ว
+  const rosterUnmatched: StudentDoc[] = []; // นักเรียนที่พิมพ์ชื่อไม่ตรงรายชื่อใด ๆ
+  for (const s of students) {
+    const m = matchRoster(s.name);
+    if (m) rosterMatched.add(`${m.room}|${m.no}`);
+    else rosterUnmatched.push(s);
+  }
+  const shownUnmatched =
+    roomFilter === "ALL" || roomFilter === "__none"
+      ? rosterUnmatched
+      : rosterUnmatched.filter((s) => roomOf(s.name) === roomFilter);
+  const panelRooms = roomFilter === "__none" ? [] : roomFilter === "ALL" ? ROOMS : [roomFilter];
 
   // ── ดาวน์โหลดข้อมูลนักเรียนทั้งห้องเป็นไฟล์ CSV (เปิดใน Excel ได้) ──
   const escapeCsv = (val: string | number) => {
@@ -545,6 +586,39 @@ export default function AdminDashboard() {
                 </button>
               ))}
             </div>
+
+            {/* สถานะการเข้าทำเทียบรายชื่อทางการ */}
+            {panelRooms.length > 0 && (
+              <div className="mt-4 bg-neutral-950/50 border border-neutral-800 rounded-2xl p-4">
+                <div className="text-xs font-bold text-amber-200 mb-2">📋 เทียบรายชื่อทางการ — ใครเข้าทำแล้ว/ยัง</div>
+                {panelRooms.map((r) => {
+                  const list = ROSTER.filter((x) => x.room === r);
+                  const notDone = list.filter((x) => !rosterMatched.has(`${r}|${x.no}`));
+                  const doneCount = list.length - notDone.length;
+                  return (
+                    <div key={r} className="mb-3 last:mb-0">
+                      <div className="text-sm font-bold text-neutral-200">
+                        ห้อง {r}: เข้าทำแล้ว <span className="text-emerald-400">{doneCount}</span> / {list.length} คน
+                        {notDone.length > 0 && <span className="text-neutral-500 font-normal"> · ยังไม่เข้าทำ {notDone.length} คน</span>}
+                      </div>
+                      {notDone.length > 0 && (
+                        <div className="text-xs text-neutral-400 mt-1 leading-relaxed">
+                          <span className="text-rose-300 font-bold">ยังไม่เข้าทำ:</span>{" "}
+                          {notDone.map((x) => `${x.no}.${x.name.replace(/^(นางสาว|นาย|นาง)/, "")}`).join(" · ")}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                {shownUnmatched.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-neutral-800 text-xs">
+                    <span className="text-amber-300 font-bold">⚠️ พิมพ์ชื่อไม่ตรงรายชื่อ ({shownUnmatched.length} บัญชี):</span>{" "}
+                    <span className="text-neutral-300">{shownUnmatched.map((s) => s.name || "(ไม่มีชื่อ)").join(" · ")}</span>
+                    <div className="text-neutral-500 mt-1">→ อาจพิมพ์ผิด/ใช้ชื่ออังกฤษ หรือเป็นบัญชีทดสอบ (ระบบนับให้เฉพาะชื่อที่ตรงรายชื่อไทย)</div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
