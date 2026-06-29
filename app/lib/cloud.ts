@@ -43,6 +43,8 @@ export interface ReadingStat {
   byType: Record<string, ReadingByType>; // ความแม่นรายชนิดคำถาม
   totalLeaves?: number; // กันโกง: ครั้งที่ออกจากหน้าจอสะสมรวมทุกบท
   autoSubmits?: number; // กันโกง: ถูกส่งคำตอบอัตโนมัติสะสมรวมทุกบท
+  lastActiveAt?: number; // เวลา (ms) ที่เข้าทำล่าสุด
+  history?: { ts: number; pct: number; answered: number }[]; // ประวัติความแม่น/ข้อสะสม
 }
 
 // กันโกง: รายละเอียดการออกจากหน้าจอราย "บท" (เก็บเฉพาะบทที่เคยออกจากจอ)
@@ -68,6 +70,8 @@ export interface ConversationStat {
   lastTotal: number;
   bestPct: number;
   byFormat: Record<string, ConvByFormat>; // ความแม่นรายรูปแบบบทสนทนา
+  lastActiveAt?: number; // เวลา (ms) ที่เข้าทำล่าสุด
+  history?: { ts: number; pct: number; answered: number }[];
 }
 
 export interface CloudProgress {
@@ -324,16 +328,23 @@ export async function saveReadingProgress(params: {
     }
 
     const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+    const rNow = Date.now();
+    const rTotalAnswered = (prevReading?.totalAnswered ?? 0) + total;
+    const rTotalCorrect = (prevReading?.totalCorrect ?? 0) + correct;
+    const rAccPct = rTotalAnswered > 0 ? Math.round((rTotalCorrect / rTotalAnswered) * 100) : 0;
+    const rHistory = [...(prevReading?.history ?? []), { ts: rNow, pct: rAccPct, answered: rTotalAnswered }].slice(-60);
     const reading: ReadingStat = {
       attempts: (prevReading?.attempts ?? 0) + 1,
-      totalAnswered: (prevReading?.totalAnswered ?? 0) + total,
-      totalCorrect: (prevReading?.totalCorrect ?? 0) + correct,
+      totalAnswered: rTotalAnswered,
+      totalCorrect: rTotalCorrect,
       lastCorrect: correct,
       lastTotal: total,
       bestPct: Math.max(prevReading?.bestPct ?? 0, pct),
       byType: mergedByType,
       totalLeaves: (prevReading?.totalLeaves ?? 0) + (leaves ?? 0),
       autoSubmits: (prevReading?.autoSubmits ?? 0) + (autoSubmitted ? 1 : 0),
+      lastActiveAt: rNow,
+      history: rHistory,
     };
 
     // รวมรายการ "บทที่ทำจบ" และ "บทที่พิชิต" (union กันซ้ำ — Firestore merge ทับ array ทั้งก้อน จึงต้องรวมเอง)
@@ -446,14 +457,21 @@ export async function saveConversationProgress(params: {
     }
 
     const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+    const cNow = Date.now();
+    const cTotalAnswered = (prevConv?.totalAnswered ?? 0) + total;
+    const cTotalCorrect = (prevConv?.totalCorrect ?? 0) + correct;
+    const cAccPct = cTotalAnswered > 0 ? Math.round((cTotalCorrect / cTotalAnswered) * 100) : 0;
+    const cHistory = [...(prevConv?.history ?? []), { ts: cNow, pct: cAccPct, answered: cTotalAnswered }].slice(-60);
     const conversation: ConversationStat = {
       attempts: (prevConv?.attempts ?? 0) + 1,
-      totalAnswered: (prevConv?.totalAnswered ?? 0) + total,
-      totalCorrect: (prevConv?.totalCorrect ?? 0) + correct,
+      totalAnswered: cTotalAnswered,
+      totalCorrect: cTotalCorrect,
       lastCorrect: correct,
       lastTotal: total,
       bestPct: Math.max(prevConv?.bestPct ?? 0, pct),
       byFormat: mergedByFormat,
+      lastActiveAt: cNow,
+      history: cHistory,
     };
 
     const weeklyXp = prevWeekId === weekId ? prevWeeklyXp + correct : correct;
