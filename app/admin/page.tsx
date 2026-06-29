@@ -169,6 +169,7 @@ export default function AdminDashboard() {
   const [authed, setAuthed] = useState(false);
   const [pw, setPw] = useState("");
   const [pwError, setPwError] = useState(false);
+  const [subject, setSubject] = useState<"vocab" | "reading" | "conversation">("vocab");
 
   // ตรวจสิทธิ์จาก session (ผ่านรหัสแล้วไม่ต้องกรอกซ้ำในเบราว์เซอร์เดิม)
   useEffect(() => {
@@ -368,6 +369,45 @@ export default function AdminDashboard() {
     ? Math.round(students.reduce((sum, s) => sum + (s.mastered ?? 0), 0) / totalStudents)
     : 0;
 
+  // มุมมองรายหมวดของนักเรียนหนึ่งคน (ใช้กับ Tab คำศัพท์/Reading/Conversation)
+  const subjectView = (s: StudentDoc) => {
+    if (subject === "vocab") {
+      return {
+        pct: s.percent ?? 0,
+        sub: `${s.seen ?? 0}/${s.total ?? 0} คำ`,
+        deltaPct: s.lastDeltaPercent ?? 0,
+        deltaAns: s.lastDeltaAnswered ?? 0,
+        lastActive: s.lastActiveAt,
+      };
+    }
+    const st = subject === "reading" ? s.reading : s.conversation;
+    const acc = (st?.totalAnswered ?? 0) > 0 ? Math.round(((st?.totalCorrect ?? 0) / (st?.totalAnswered ?? 1)) * 100) : 0;
+    const hist = st?.history ?? [];
+    const last = hist[hist.length - 1];
+    const prev = hist[hist.length - 2];
+    return {
+      pct: acc,
+      sub: `ทำไป ${st?.attempts ?? 0} รอบ`,
+      deltaPct: last && prev ? Math.round((last.pct - prev.pct) * 10) / 10 : 0,
+      deltaAns: last && prev ? Math.max(0, last.answered - prev.answered) : 0,
+      lastActive: st?.lastActiveAt,
+    };
+  };
+  // เรียงตาม % ของหมวดที่เลือก (มากสุดก่อน)
+  const sortedStudents = [...filteredStudents].sort((a, b) => subjectView(b).pct - subjectView(a).pct);
+
+  // ค่าการ์ดสรุป (เปลี่ยนตามหมวด)
+  const subjLabel = subject === "vocab" ? "คำศัพท์" : subject === "reading" ? "Reading" : "Conversation";
+  const subjAcct = students.filter((s) => (subject === "reading" ? s.reading : s.conversation)?.attempts);
+  const avgAcc = subjAcct.length
+    ? Math.round(
+        subjAcct.reduce((a, s) => {
+          const st = subject === "reading" ? s.reading : s.conversation;
+          return a + ((st?.totalAnswered ?? 0) > 0 ? ((st?.totalCorrect ?? 0) / (st?.totalAnswered ?? 1)) * 100 : 0);
+        }, 0) / subjAcct.length
+      )
+    : 0;
+
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-200 p-6 md:p-10 font-sans">
       <div className="max-w-6xl mx-auto">
@@ -391,22 +431,48 @@ export default function AdminDashboard() {
         </div>
 
         {/* สรุปภาพรวม */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
           <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5">
             <div className="text-3xl font-black text-amber-400">{totalStudents}</div>
             <div className="text-xs font-bold text-neutral-500 uppercase mt-1">นักเรียนที่มีข้อมูล</div>
           </div>
           <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5">
-            <div className="text-3xl font-black text-green-400">{avgMastered}</div>
-            <div className="text-xs font-bold text-neutral-500 uppercase mt-1">เฉลี่ยคำที่จำได้/คน</div>
+            <div className="text-3xl font-black text-green-400">{subject === "vocab" ? avgMastered : `${avgAcc}%`}</div>
+            <div className="text-xs font-bold text-neutral-500 uppercase mt-1">
+              {subject === "vocab" ? "เฉลี่ยคำที่จำได้/คน" : `เฉลี่ยความแม่น ${subjLabel}/คน`}
+            </div>
           </div>
           <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 col-span-2 md:col-span-1">
-            <div className="text-3xl font-black text-rose-400">{classHardWords.length}</div>
-            <div className="text-xs font-bold text-neutral-500 uppercase mt-1">คำที่ห้องยังอ่อน</div>
+            <div className="text-3xl font-black text-rose-400">{subject === "vocab" ? classHardWords.length : subjAcct.length}</div>
+            <div className="text-xs font-bold text-neutral-500 uppercase mt-1">
+              {subject === "vocab" ? "คำที่ห้องยังอ่อน" : `เข้าทำ ${subjLabel} แล้ว`}
+            </div>
           </div>
         </div>
 
-        {/* คำที่ทั้งห้องพลาดบ่อย */}
+        {/* Tab สลับหมวดความก้าวหน้า */}
+        <div className="flex flex-wrap gap-2 mb-8">
+          {[
+            { key: "vocab", label: "📚 คำศัพท์" },
+            { key: "reading", label: "📖 Reading" },
+            { key: "conversation", label: "💬 Conversation" },
+          ].map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setSubject(t.key as "vocab" | "reading" | "conversation")}
+              className={`px-5 py-2.5 rounded-2xl text-sm font-black transition-colors ${
+                subject === t.key
+                  ? "bg-amber-300 text-neutral-900 shadow-lg"
+                  : "bg-neutral-900 border border-neutral-800 text-neutral-400 hover:bg-neutral-800"
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* คำที่ทั้งห้องพลาดบ่อย (เฉพาะหมวดคำศัพท์) */}
+        {subject === "vocab" && (
         <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 mb-8">
           <h2 className="text-lg font-black text-rose-300 mb-1">🔥 คำที่ทั้งห้องยังอ่อน (ควรสอนซ้ำ)</h2>
           <p className="text-xs text-neutral-500 mb-4">เรียงตามจำนวนนักเรียนที่ยังไม่แม่น</p>
@@ -424,8 +490,10 @@ export default function AdminDashboard() {
             </div>
           )}
         </div>
+        )}
 
-        {/* 🚨 กันโกง: ออกจากหน้าจอระหว่างทำ Reading */}
+        {/* 🚨 กันโกง: ออกจากหน้าจอระหว่างทำ Reading (เฉพาะหมวด Reading) */}
+        {subject === "reading" && (
         <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 mb-8">
           <h2 className="text-lg font-black text-rose-300 mb-1">🚨 ออกจากหน้าจอระหว่างทำ Reading (กันโกง)</h2>
           <p className="text-xs text-neutral-500 mb-4">นับเฉพาะตอนทำข้อสอบจริง — สลับแอป/สลับแท็บ เช่น เปิดแอปแปลภาษาหรือค้นเน็ต · คลิกชื่อเพื่อดูรายบท</p>
@@ -448,12 +516,13 @@ export default function AdminDashboard() {
             </div>
           )}
         </div>
+        )}
 
         {/* รายชื่อนักเรียน */}
         <div className="bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden">
           <div className="p-6 border-b border-neutral-800">
-            <h2 className="text-lg font-black text-amber-200">นักเรียนรายคน</h2>
-            <p className="text-xs text-neutral-500">เรียงตาม % ก้าวหน้า (มากสุดก่อน) · คลิกที่แถวเพื่อดูประวัติ + คำที่ยังอ่อน</p>
+            <h2 className="text-lg font-black text-amber-200">นักเรียนรายคน — {subjLabel}</h2>
+            <p className="text-xs text-neutral-500">เรียงตาม % ก้าวหน้าของ {subjLabel} (มากสุดก่อน) · คลิกที่แถวเพื่อดูประวัติทุกหมวด</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {[
                 { key: "ALL", label: "ทั้งหมด" },
@@ -495,15 +564,16 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-neutral-800/50">
-                {filteredStudents.length === 0 && (
+                {sortedStudents.length === 0 && (
                   <tr>
                     <td colSpan={11} className="p-8 text-center text-neutral-500 text-sm">
                       ยังไม่มีข้อมูลนักเรียนในห้องนี้ (นักเรียนต้องเข้าทำอย่างน้อย 1 รอบหลังอัปเดต)
                     </td>
                   </tr>
                 )}
-                {filteredStudents.map((s) => {
+                {sortedStudents.map((s) => {
                   const weak = weakWordsOf(s);
+                  const v = subjectView(s);
                   const isOpen = expanded === s.id;
                   return (
                     <React.Fragment key={s.id}>
@@ -514,20 +584,20 @@ export default function AdminDashboard() {
                         <td className="p-4 font-bold text-white">{s.name || "(ไม่มีชื่อ)"}</td>
                         <td className="p-4 text-neutral-500 text-sm font-mono hidden md:table-cell">{s.email}</td>
                         <td className="p-4 text-center">
-                          <div className="font-black text-lg text-emerald-400">{(s.percent ?? 0).toFixed(1)}%</div>
-                          <div className="text-[10px] text-neutral-500">{s.seen ?? 0}/{s.total ?? 0} คำ</div>
+                          <div className="font-black text-lg text-emerald-400">{v.pct.toFixed(1)}%</div>
+                          <div className="text-[10px] text-neutral-500">{v.sub}</div>
                         </td>
                         <td className="p-4 text-center">
-                          {(s.lastDeltaPercent ?? 0) > 0 || (s.lastDeltaAnswered ?? 0) > 0 ? (
+                          {(v.deltaPct ?? 0) > 0 || (v.deltaAns ?? 0) > 0 ? (
                             <div>
-                              <div className="font-black text-sky-300">▲ +{(s.lastDeltaPercent ?? 0).toFixed(1)}%</div>
-                              <div className="text-[10px] text-neutral-500">ทำเพิ่ม {s.lastDeltaAnswered ?? 0} ข้อ</div>
+                              <div className="font-black text-sky-300">▲ +{(v.deltaPct ?? 0).toFixed(1)}%</div>
+                              <div className="text-[10px] text-neutral-500">ทำเพิ่ม {v.deltaAns ?? 0} ข้อ</div>
                             </div>
                           ) : (
                             <span className="text-neutral-600">–</span>
                           )}
                         </td>
-                        <td className="p-4 text-center text-xs text-neutral-400 hidden lg:table-cell">{fmtThaiTime(s.lastActiveAt)}</td>
+                        <td className="p-4 text-center text-xs text-neutral-400 hidden lg:table-cell">{fmtThaiTime(v.lastActive)}</td>
                         <td className="p-4 text-center font-black text-green-400">{s.mastered ?? 0}</td>
                         <td className="p-4 text-center font-bold text-amber-400 hidden md:table-cell">{s.learning ?? 0}</td>
                         <td className="p-4 text-center font-bold text-neutral-200 hidden sm:table-cell">{s.bestScore ?? s.score ?? 0}</td>
