@@ -1,38 +1,5 @@
 [
   {
-    "word": "give up",
-    "thai_meaning": "ยอมแพ้, เลิกล้ม",
-    "eng_definition": "to stop trying to do something",
-    "synonym": "quit",
-    "antonym": "continue",
-    "example_sentence": "Don't give up — you are almost there.",
-    "level": "B1",
-    "part_of_speech": "phrasal verb",
-    "type": "phrasal_verb"
-  },
-  {
-    "word": "look after",
-    "thai_meaning": "ดูแล, เอาใจใส่",
-    "eng_definition": "to take care of someone or something",
-    "synonym": "care for",
-    "antonym": "neglect",
-    "example_sentence": "She looks after her little brother after school.",
-    "level": "B1",
-    "part_of_speech": "phrasal verb",
-    "type": "phrasal_verb"
-  },
-  {
-    "word": "find out",
-    "thai_meaning": "ค้นพบ, รู้ความจริง",
-    "eng_definition": "to discover information about something",
-    "synonym": "discover",
-    "antonym": "-",
-    "example_sentence": "I need to find out when the train leaves.",
-    "level": "B1",
-    "part_of_speech": "phrasal verb",
-    "type": "phrasal_verb"
-  },
-  {
     "word": "put off",
     "thai_meaning": "เลื่อนออกไป, ผัดผ่อน",
     "eng_definition": "to delay or postpone something",
@@ -66,17 +33,6 @@
     "type": "phrasal_verb"
   },
   {
-    "word": "run out of",
-    "thai_meaning": "ใช้จนหมด, ไม่มีเหลือ",
-    "eng_definition": "to have no more of something left",
-    "synonym": "-",
-    "antonym": "-",
-    "example_sentence": "We ran out of milk this morning.",
-    "level": "B1",
-    "part_of_speech": "phrasal verb",
-    "type": "phrasal_verb"
-  },
-  {
     "word": "turn down",
     "thai_meaning": "ปฏิเสธ (ข้อเสนอ)",
     "eng_definition": "to refuse an offer or request",
@@ -99,17 +55,6 @@
     "type": "phrasal_verb"
   },
   {
-    "word": "get along",
-    "thai_meaning": "เข้ากันได้ดี",
-    "eng_definition": "to have a friendly relationship with someone",
-    "synonym": "-",
-    "antonym": "-",
-    "example_sentence": "The two new students get along very well.",
-    "level": "B1",
-    "part_of_speech": "phrasal verb",
-    "type": "phrasal_verb"
-  },
-  {
     "word": "once in a blue moon",
     "thai_meaning": "นาน ๆ ครั้ง, แทบจะไม่เคย",
     "eng_definition": "very rarely",
@@ -117,28 +62,6 @@
     "antonym": "-",
     "example_sentence": "We eat at expensive restaurants once in a blue moon.",
     "level": "B2",
-    "part_of_speech": "idiom",
-    "type": "idiom"
-  },
-  {
-    "word": "hit the books",
-    "thai_meaning": "ตั้งใจอ่านหนังสือ (อย่างหนัก)",
-    "eng_definition": "to study hard",
-    "synonym": "-",
-    "antonym": "-",
-    "example_sentence": "Exams are next week, so I need to hit the books.",
-    "level": "B1",
-    "part_of_speech": "idiom",
-    "type": "idiom"
-  },
-  {
-    "word": "piece of cake",
-    "thai_meaning": "ง่ายมาก, เรื่องกล้วย ๆ",
-    "eng_definition": "something very easy to do",
-    "synonym": "-",
-    "antonym": "-",
-    "example_sentence": "The grammar test was a piece of cake.",
-    "level": "B1",
     "part_of_speech": "idiom",
     "type": "idiom"
   },
@@ -209,17 +132,6 @@
     "type": "idiom"
   },
   {
-    "word": "keep an eye on",
-    "thai_meaning": "คอยเฝ้าดู, คอยระวัง",
-    "eng_definition": "to watch someone or something carefully",
-    "synonym": "-",
-    "antonym": "-",
-    "example_sentence": "Could you keep an eye on my bag for a moment?",
-    "level": "B1",
-    "part_of_speech": "idiom",
-    "type": "idiom"
-  },
-  {
     "word": "figure out",
     "thai_meaning": "คิดออก, แก้ปัญหา, ทำความเข้าใจ",
     "eng_definition": "to finally understand something or someone, or find the solution to a problem",
@@ -253,28 +165,6 @@
     "type": "phrasal_verb"
   },
   {
-    "word": "pass out",
-    "thai_meaning": "หมดสติ, เป็นลม",
-    "eng_definition": "to become unconscious for a short time",
-    "synonym": "faint",
-    "antonym": "revive",
-    "example_sentence": "It was so hot in the crowded room that she almost passed out.",
-    "level": "B1",
-    "part_of_speech": "phrasal verb",
-    "type": "phrasal_verb"
-  },
-  {
-    "word": "set up",
-    "thai_meaning": "ก่อตั้ง, จัดเตรียม",
-    "eng_definition": "to arrange, organize, or establish something",
-    "synonym": "establish",
-    "antonym": "dismantle",
-    "example_sentence": "They are planning to set up a new branch in London.",
-    "level": "B1",
-    "part_of_speech": "phrasal verb",
-    "type": "phrasal_verb"
-  },
-  {
     "word": "call off",
     "thai_meaning": "ยกเลิก",
     "eng_definition": "to decide that a planned event will not happen",
@@ -293,17 +183,6 @@
     "antonym": "look down on",
     "example_sentence": "Many students look up to their principal as a great role model.",
     "level": "B2",
-    "part_of_speech": "phrasal verb",
-    "type": "phrasal_verb"
-  },
-  {
-    "word": "show up",
-    "thai_meaning": "ปรากฏตัว, มาถึง",
-    "eng_definition": "to arrive where you have arranged to meet somebody or do something",
-    "synonym": "arrive",
-    "antonym": "disappear",
-    "example_sentence": "I waited for an hour, but he didn't show up for the meeting.",
-    "level": "B1",
     "part_of_speech": "phrasal verb",
     "type": "phrasal_verb"
   },
@@ -418,17 +297,6 @@
     "type": "idiom"
   },
   {
-    "word": "so far, so good",
-    "thai_meaning": "จนถึงตอนนี้ยังดีอยู่, ตอนนี้ยังราบรื่นดี",
-    "eng_definition": "used to say that an activity has gone well until now",
-    "synonym": "-",
-    "antonym": "-",
-    "example_sentence": "How is your new job going? So far, so good.",
-    "level": "B1",
-    "part_of_speech": "idiom",
-    "type": "idiom"
-  },
-  {
     "word": "out of the blue",
     "thai_meaning": "จู่ ๆ ก็เกิดขึ้น, ทันทีทันใด",
     "eng_definition": "happening unexpectedly and completely without warning",
@@ -449,17 +317,6 @@
     "level": "B2",
     "part_of_speech": "phrasal verb",
     "type": "phrasal_verb"
-  },
-  {
-    "word": "no worries",
-    "thai_meaning": "ไม่เป็นไร, ไม่ต้องกังวล",
-    "eng_definition": "used to tell someone that something is not a problem",
-    "synonym": "no problem",
-    "antonym": "-",
-    "example_sentence": "\"Sorry I'm late!\" \"No worries!\"",
-    "level": "B1",
-    "part_of_speech": "idiom",
-    "type": "idiom"
   },
   {
     "word": "take into account",
