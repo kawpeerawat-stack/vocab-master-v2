@@ -93,20 +93,34 @@ function normName(s?: string): string {
     .replace(/[^ก-๙a-zA-Z]/g, "")
     .toLowerCase();
 }
+// ดึง "เลขที่" จากชื่อที่พิมพ์ เช่น "Phichaya no31 m.6/5" → 31 (รองรับ no./เลขที่/#)
+function extractNo(s?: string): number | null {
+  const m = (s || "").match(/no\.?\s*(\d{1,2})\b/i) || (s || "").match(/เลขที่\s*(\d{1,2})/) || (s || "").match(/#\s*(\d{1,2})/);
+  return m ? parseInt(m[1], 10) : null;
+}
 const rosterIndex: Record<string, RosterEntry[]> = {};
 for (const r of ROSTER) {
   const k = normName(r.name);
   (rosterIndex[k] ||= []).push(r);
 }
-function matchRoster(name?: string): RosterEntry | null {
+function matchRoster(name?: string): { entry: RosterEntry; via: "name" | "roomNo" } | null {
   const n = normName(name);
+  // 1) ชื่อไทยตรงเป๊ะ (แม่นที่สุด)
+  if (n && rosterIndex[n]) return { entry: rosterIndex[n][0], via: "name" };
+  // 2) ห้อง + เลขที่ (แม่นยำแม้พิมพ์ชื่อเป็นภาษาอังกฤษ เช่น "Phichaya no31 m.6/5")
+  const room = roomOf(name);
+  const no = extractNo(name);
+  if (room && no != null) {
+    const hit = ROSTER.find((r) => r.room === room && r.no === no);
+    if (hit) return { entry: hit, via: "roomNo" };
+  }
+  // 3) จับคู่ชื่อบางส่วน (เฉพาะเมื่อไม่กำกวม)
   if (!n) return null;
-  if (rosterIndex[n]) return rosterIndex[n][0];
   const cand: RosterEntry[] = [];
   for (const k in rosterIndex) {
     if (k.startsWith(n) || n.startsWith(k)) cand.push(...rosterIndex[k]);
   }
-  return cand.length === 1 ? cand[0] : null; // จับคู่บางส่วนเฉพาะเมื่อไม่กำกวม
+  return cand.length === 1 ? { entry: cand[0], via: "name" } : null;
 }
 
 // ── สิทธิ์เข้าหน้า /admin ──
@@ -290,16 +304,25 @@ export default function AdminDashboard() {
 
   // ── เทียบรายชื่อทางการ: ใครเข้าทำแล้ว/ยัง + ชื่อที่จับคู่ไม่ได้ ──
   const rosterMatched = new Set<string>(); // key = "ห้อง|เลขที่" ที่มีนักเรียนเข้าทำแล้ว
-  const rosterUnmatched: StudentDoc[] = []; // นักเรียนที่พิมพ์ชื่อไม่ตรงรายชื่อใด ๆ
+  const rosterUnmatched: StudentDoc[] = []; // นักเรียนที่พิมพ์ชื่อไม่ตรงรายชื่อใด ๆ เลย
+  const rosterByNumber: { s: StudentDoc; entry: RosterEntry }[] = []; // จับคู่ได้ด้วยห้อง+เลขที่ (ชื่อมักเป็นอังกฤษ) — ควรตรวจสอบ
   for (const s of students) {
     const m = matchRoster(s.name);
-    if (m) rosterMatched.add(`${m.room}|${m.no}`);
-    else rosterUnmatched.push(s);
+    if (m) {
+      rosterMatched.add(`${m.entry.room}|${m.entry.no}`);
+      if (m.via === "roomNo") rosterByNumber.push({ s, entry: m.entry });
+    } else {
+      rosterUnmatched.push(s);
+    }
   }
   const shownUnmatched =
     roomFilter === "ALL" || roomFilter === "__none"
       ? rosterUnmatched
       : rosterUnmatched.filter((s) => roomOf(s.name) === roomFilter);
+  const shownByNumber =
+    roomFilter === "ALL" || roomFilter === "__none"
+      ? rosterByNumber
+      : rosterByNumber.filter((x) => x.entry.room === roomFilter);
   const panelRooms = roomFilter === "__none" ? [] : roomFilter === "ALL" ? ROOMS : [roomFilter];
 
   // ── ดาวน์โหลดข้อมูลนักเรียนทั้งห้องเป็นไฟล์ CSV (เปิดใน Excel ได้) ──
@@ -615,6 +638,21 @@ export default function AdminDashboard() {
                     <span className="text-amber-300 font-bold">⚠️ พิมพ์ชื่อไม่ตรงรายชื่อ ({shownUnmatched.length} บัญชี):</span>{" "}
                     <span className="text-neutral-300">{shownUnmatched.map((s) => s.name || "(ไม่มีชื่อ)").join(" · ")}</span>
                     <div className="text-neutral-500 mt-1">→ อาจพิมพ์ผิด/ใช้ชื่ออังกฤษ หรือเป็นบัญชีทดสอบ (ระบบนับให้เฉพาะชื่อที่ตรงรายชื่อไทย)</div>
+                  </div>
+                )}
+                {shownByNumber.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-neutral-800 text-xs">
+                    <span className="text-sky-300 font-bold">🔢 จับคู่ด้วยห้อง+เลขที่ ({shownByNumber.length} บัญชี — ชื่อที่พิมพ์ไม่ใช่ภาษาไทย โปรดตรวจสอบว่าตรงคน):</span>
+                    <div className="mt-1 flex flex-col gap-1">
+                      {shownByNumber.map(({ s, entry }) => (
+                        <div key={s.id} className="text-neutral-300">
+                          พิมพ์ว่า <span className="text-neutral-100 font-bold">&quot;{s.name}&quot;</span> → จับคู่กับ{" "}
+                          <span className="text-emerald-300 font-bold">
+                            {entry.room} เลขที่ {entry.no} {entry.name}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
