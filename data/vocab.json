@@ -1,14 +1,5 @@
 [
   {
-    "word": "คำศัพท์ภาษาอังกฤษ",
-    "thai_meaning": "คำแปลภาษาไทย",
-    "eng_definition": "ความหมายภาษาอังกฤษแบบกระชับ",
-    "synonym": "กลุ่มคำเหมือน1, กลุ่มคำเหมือน2, กลุ่มคำเหมือน3",
-    "antonym": "กลุ่มคำตรงข้าม1, กลุ่มคำตรงข้าม2, กลุ่มคำตรงข้าม3",
-    "example_sentence": "ประโยคที่มีช่อง ___ ให้เด็กเติมคำศัพท์",
-    "level": "ระบุระดับความยากตรงนี้ B1 หรือ B2 หรือ C1"
-  },
-  {
     "word": "abandon",
     "thai_meaning": "ละทิ้ง, ทิ้งไว้",
     "eng_definition": "to leave someone or something behind, often permanently",
@@ -29,46 +20,6 @@
     "part_of_speech": "adjective"
   },
   {
-    "word": "aware",
-    "thai_meaning": "ตระหนัก, รู้ตัว",
-    "eng_definition": "having knowledge of a fact",
-    "synonym": "conscious of, informed about, mindful of",
-    "antonym": "unaware, ignorant of, oblivious to",
-    "example_sentence": "Be ___ of the deadlines.",
-    "level": "B1",
-    "part_of_speech": "adjective"
-  },
-  {
-    "word": "calm",
-    "thai_meaning": "สงบ, ใจเย็น",
-    "eng_definition": "not excited or upset",
-    "synonym": "tranquil, composed, relaxed",
-    "antonym": "agitated, anxious, upset",
-    "example_sentence": "Stay ___ before the test.",
-    "level": "B1",
-    "part_of_speech": "adjective"
-  },
-  {
-    "word": "challenge",
-    "thai_meaning": "ความท้าทาย, ท้าทาย",
-    "eng_definition": "a difficult task",
-    "synonym": "difficulty, test, obstacle",
-    "antonym": "ease, simplicity, comfort",
-    "example_sentence": "Learning grammar is a ___.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "conclude",
-    "thai_meaning": "สรุป, ลงความเห็น",
-    "eng_definition": "to reach a decision or opinion after consideration",
-    "synonym": "finish, infer, deduce",
-    "antonym": "start, begin, open",
-    "example_sentence": "From the evidence, we can ___ that the hypothesis is supported.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
     "word": "contribute",
     "thai_meaning": "มีส่วนร่วม, ร่วมให้",
     "eng_definition": "to give something (such as money, help, ideas) to achieve a common purpose",
@@ -76,26 +27,6 @@
     "antonym": "withhold, deprive, keep back",
     "example_sentence": "All group members should ___ ideas during the meeting.",
     "level": "B2",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "convenient",
-    "thai_meaning": "สะดวกสบาย, เหมาะสม",
-    "eng_definition": "suitable or useful for a particular situation; easy to use",
-    "synonym": "handy, practical, accessible",
-    "antonym": "inconvenient, troublesome, difficult",
-    "example_sentence": "The library's hours are very ___ for late-night study sessions.",
-    "level": "B1",
-    "part_of_speech": "adjective"
-  },
-  {
-    "word": "convince",
-    "thai_meaning": "โน้มน้าวใจ, ทำให้เชื่อถือ",
-    "eng_definition": "to make someone believe or feel certain about something",
-    "synonym": "persuade, assure, win over",
-    "antonym": "dissuade, discourage, deter",
-    "example_sentence": "He tried to ___ his parents to let him study abroad.",
-    "level": "B1",
     "part_of_speech": "verb"
   },
   {
@@ -126,16 +57,6 @@
     "antonym": "rush, hasten, act impulsively",
     "example_sentence": "The committee will ___ the proposal before making a decision.",
     "level": "B2",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "determine",
-    "thai_meaning": "กำหนด, ตัดสินใจ",
-    "eng_definition": "to officially decide something",
-    "synonym": "establish, decide, ascertain",
-    "antonym": "uncertain, doubt, leave open",
-    "example_sentence": "The committee will ___ the winners.",
-    "level": "B1",
     "part_of_speech": "verb"
   },
   {
@@ -179,16 +100,6 @@
     "part_of_speech": "verb"
   },
   {
-    "word": "encourage",
-    "thai_meaning": "สนับสนุน, ให้กำลังใจ",
-    "eng_definition": "to give support or confidence",
-    "synonym": "inspire, motivate, support",
-    "antonym": "discourage, dishearten, deter",
-    "example_sentence": "Teachers ___ students to ask questions.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
     "word": "establish",
     "thai_meaning": "ก่อตั้ง, สร้าง",
     "eng_definition": "to set up on a firm basis",
@@ -216,16 +127,6 @@
     "antonym": "ignore, overlook, undervalue",
     "example_sentence": "Teachers will ___ the essays.",
     "level": "B2",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "expand",
-    "thai_meaning": "ขยาย, ขยาย",
-    "eng_definition": "to increase in size or amount",
-    "synonym": "grow, enlarge, extend",
-    "antonym": "shrink, reduce, contract",
-    "example_sentence": "Metal ___ when heated.",
-    "level": "B1",
     "part_of_speech": "verb"
   },
   {
@@ -279,16 +180,6 @@
     "part_of_speech": "verb"
   },
   {
-    "word": "highlight",
-    "thai_meaning": "เน้น, เน้นจุดสำคัญ",
-    "eng_definition": "to emphasize or make something stand out",
-    "synonym": "emphasize, underscore, spotlight",
-    "antonym": "downplay, minimize, ignore",
-    "example_sentence": "Please ___ the main points in your summary.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
     "word": "implement",
     "thai_meaning": "นำมาปฏิบัติ, ดำเนินการ",
     "eng_definition": "to put a plan or system into operation",
@@ -339,16 +230,6 @@
     "part_of_speech": "verb"
   },
   {
-    "word": "investigate",
-    "thai_meaning": "สืบสวน, สืบสวน",
-    "eng_definition": "to carry out research",
-    "synonym": "examine, explore, research",
-    "antonym": "ignore, neglect, overlook",
-    "example_sentence": "Police will ___ the case.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
     "word": "maintain",
     "thai_meaning": "รักษา, ดูแลให้คงอยู่",
     "eng_definition": "to keep something at the same level or in good condition",
@@ -367,16 +248,6 @@
     "example_sentence": "A teacher was asked to ___ the disagreement between classmates.",
     "level": "B2",
     "part_of_speech": "verb"
-  },
-  {
-    "word": "obvious",
-    "thai_meaning": "ชัดเจน, เด่นชัด",
-    "eng_definition": "easily perceived or understood; clear",
-    "synonym": "clear, evident, apparent",
-    "antonym": "unclear, obscure, ambiguous",
-    "example_sentence": "It was ___ that more practice would improve performance.",
-    "level": "B1",
-    "part_of_speech": "adjective"
   },
   {
     "word": "ongoing",
@@ -449,16 +320,6 @@
     "part_of_speech": "verb"
   },
   {
-    "word": "confirm",
-    "thai_meaning": "ยืนยัน",
-    "eng_definition": "to state or show that something is definitely true or correct",
-    "synonym": "verify, validate, prove",
-    "antonym": "deny, refute, reject",
-    "example_sentence": "Please ___ your attendance by replying to the email.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
     "word": "estimate",
     "thai_meaning": "ประมาณการ, คาด",
     "eng_definition": "a rough calculation of value or number",
@@ -466,46 +327,6 @@
     "antonym": "exact calculation, precise, measure",
     "example_sentence": "Give an ___ of the cost.",
     "level": "B2",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "impact",
-    "thai_meaning": "ผลกระทบ, ผลกระทบ",
-    "eng_definition": "a strong effect or influence",
-    "synonym": "effect, influence, consequence",
-    "antonym": "no effect, neutral, none",
-    "example_sentence": "The storm had a huge ___.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "require",
-    "thai_meaning": "ต้องการ, ร้องขอ",
-    "eng_definition": "to need something or make something necessary",
-    "synonym": "need, demand, necessitate",
-    "antonym": "allow, permit, optional",
-    "example_sentence": "The course will ___ students to complete weekly assignments.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "version",
-    "thai_meaning": "เวอร์ชัน, รูปแบบหนึ่ง",
-    "eng_definition": "a particular form or variant of something",
-    "synonym": "edition, variant, form",
-    "antonym": "original, prototype, source",
-    "example_sentence": "She preferred the simplified ___ of the textbook for revision.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "access",
-    "thai_meaning": "การเข้าถึง, เข้าถึงได้",
-    "eng_definition": "the ability or right to approach, enter, or use something",
-    "synonym": "entry, admission, approach",
-    "antonym": "barrier, restriction, denial",
-    "example_sentence": "Students need a password to ___ the online portal.",
-    "level": "B1",
     "part_of_speech": "noun"
   },
   {
@@ -579,16 +400,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "define",
-    "thai_meaning": "กำหนด, นิยาม",
-    "eng_definition": "to state the meaning of a word",
-    "synonym": "explain, describe, specify",
-    "antonym": "confuse, obscure, misinterpret",
-    "example_sentence": "Can you ___ this term?",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
     "word": "derive",
     "thai_meaning": "ได้มาจาก, มาจาก",
     "eng_definition": "to obtain something from a source or origin",
@@ -596,16 +407,6 @@
     "antonym": "lead to, result in, produce",
     "example_sentence": "Many English words ___ from Latin and Greek roots.",
     "level": "B2",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "indicate",
-    "thai_meaning": "บ่งชี้, แสดง",
-    "eng_definition": "to point out or show",
-    "synonym": "show, signal, point to",
-    "antonym": "hide, conceal, obscure",
-    "example_sentence": "The sign ___ no entry.",
-    "level": "B1",
     "part_of_speech": "verb"
   },
   {
@@ -619,16 +420,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "policy",
-    "thai_meaning": "นโยบาย",
-    "eng_definition": "a set of ideas or a plan used as a basis for making decisions",
-    "synonym": "strategy, plan, guideline",
-    "antonym": "improvisation, randomness, spontaneity",
-    "example_sentence": "The school updated its attendance ___ this semester.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "principle",
     "thai_meaning": "หลักการ",
     "eng_definition": "a fundamental truth or proposition that serves as the foundation for a system",
@@ -636,16 +427,6 @@
     "antonym": "exception, anomaly, deviation",
     "example_sentence": "One ___ of scientific research is reproducibility.",
     "level": "B2",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "range",
-    "thai_meaning": "ช่วง, ขอบเขต",
-    "eng_definition": "the area of variation between upper and lower limits; a set of different things of the same general type",
-    "synonym": "variety, spectrum, scope",
-    "antonym": "narrowness, limitation, restriction",
-    "example_sentence": "Scores showed a wide ___ across all classes.",
-    "level": "B1",
     "part_of_speech": "noun"
   },
   {
@@ -789,16 +570,6 @@
     "part_of_speech": "verb"
   },
   {
-    "word": "advise",
-    "thai_meaning": "ให้คำแนะนำ",
-    "eng_definition": "to tell someone what you think they should do",
-    "synonym": "suggest, recommend, counsel",
-    "antonym": "discourage, dissuade, advise against",
-    "example_sentence": "The teacher will ___ students on choosing the right courses.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
     "word": "assess",
     "thai_meaning": "ประเมิน, ตัดสิน",
     "eng_definition": "to judge the quality of something",
@@ -806,26 +577,6 @@
     "antonym": "overlook, ignore, undervalue",
     "example_sentence": "Teachers will ___ the essays.",
     "level": "B2",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "assist",
-    "thai_meaning": "ช่วยเหลือ, ช่วยงาน",
-    "eng_definition": "to help someone by doing part of the work",
-    "synonym": "help, support, aid",
-    "antonym": "hinder, obstruct, block",
-    "example_sentence": "Volunteers will ___ the event.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "attach",
-    "thai_meaning": "แนบ, ติด",
-    "eng_definition": "to fasten or join one thing to another",
-    "synonym": "connect, fasten, secure",
-    "antonym": "detach, disconnect, unfasten",
-    "example_sentence": "Please ___ your resume.",
-    "level": "B1",
     "part_of_speech": "verb"
   },
   {
@@ -837,16 +588,6 @@
     "example_sentence": "She will ___ the challenge test.",
     "level": "B2",
     "part_of_speech": "verb"
-  },
-  {
-    "word": "base",
-    "thai_meaning": "พื้นฐาน, ตั้งอยู่บน",
-    "eng_definition": "the underlying support or foundation for an idea or argument",
-    "synonym": "foundation, basis, ground",
-    "antonym": "top, peak, summit",
-    "example_sentence": "Your essay should ___ on reliable sources and evidence.",
-    "level": "B1",
-    "part_of_speech": "noun"
   },
   {
     "word": "broad",
@@ -879,26 +620,6 @@
     "part_of_speech": "verb"
   },
   {
-    "word": "candidate",
-    "thai_meaning": "ผู้สมัคร, ผู้เข้าแข่งขัน",
-    "eng_definition": "a person applying for a job or exam",
-    "synonym": "applicant, contender, hopeful",
-    "antonym": "reject, noncandidate, nonapplicant",
-    "example_sentence": "Each ___ must bring ID.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "central",
-    "thai_meaning": "สำคัญที่สุด, ตรงกลาง",
-    "eng_definition": "at the most important part",
-    "synonym": "core, main, primary",
-    "antonym": "peripheral, secondary, minor",
-    "example_sentence": "Time is ___ to success.",
-    "level": "B1",
-    "part_of_speech": "adjective"
-  },
-  {
     "word": "classify",
     "thai_meaning": "จัดชนิด, แบ่งประเภท",
     "eng_definition": "to arrange in classes or categories according to shared qualities",
@@ -929,26 +650,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "concentrate",
-    "thai_meaning": "มุ่งมั่น, ตั้งใจ",
-    "eng_definition": "to focus all attention or mental effort on one thing",
-    "synonym": "focus, center on, devote attention",
-    "antonym": "distract, scatter attention, neglect",
-    "example_sentence": "You must ___ on the task to finish it on time.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "consequence",
-    "thai_meaning": "ผลลัพธ์, ผลที่ตามมา",
-    "eng_definition": "a result or effect of an action or condition",
-    "synonym": "result, outcome, effect",
-    "antonym": "cause, origin, source",
-    "example_sentence": "You must accept the ___ of not submitting your assignment.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "construct",
     "thai_meaning": "สร้าง, ก่อสร้าง",
     "eng_definition": "to build or form something by putting parts together",
@@ -967,26 +668,6 @@
     "example_sentence": "You should ___ your teacher if you are unsure about the problem.",
     "level": "B2",
     "part_of_speech": "verb"
-  },
-  {
-    "word": "contact",
-    "thai_meaning": "ติดต่อ, ติดต่อ",
-    "eng_definition": "to get in touch with someone by phone, email, or in person",
-    "synonym": "reach, get in touch with, connect with",
-    "antonym": "avoid, ignore, disconnect from",
-    "example_sentence": "Please ___ the admin office to confirm your registration.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "content",
-    "thai_meaning": "เนื้อหา, สารบัญ",
-    "eng_definition": "the things that are held or included in something",
-    "synonym": "subject matter, material, substance",
-    "antonym": "form, structure, container",
-    "example_sentence": "Check the ___ of the chapter before answering the questions.",
-    "level": "B1",
-    "part_of_speech": "noun"
   },
   {
     "word": "convenience",
@@ -1019,26 +700,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "current",
-    "thai_meaning": "ปัจจุบัน, ปัจจุบัน",
-    "eng_definition": "happening or existing at the present time",
-    "synonym": "present, ongoing, contemporary",
-    "antonym": "past, former, outdated",
-    "example_sentence": "The ___ edition of the textbook includes updated examples.",
-    "level": "B1",
-    "part_of_speech": "adjective"
-  },
-  {
-    "word": "deliver",
-    "thai_meaning": "ส่งมอบ, นำส่ง",
-    "eng_definition": "to bring and hand over",
-    "synonym": "hand over, present, submit",
-    "antonym": "withhold, keep, retain",
-    "example_sentence": "The company will ___ the package today.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
     "word": "demand",
     "thai_meaning": "เรียกร้อง, ต้องการ",
     "eng_definition": "to ask forcefully for something",
@@ -1049,16 +710,6 @@
     "part_of_speech": "verb"
   },
   {
-    "word": "despite",
-    "thai_meaning": "แม้ว่า, แม้จะมี",
-    "eng_definition": "without being affected by something; in spite of",
-    "synonym": "notwithstanding, regardless of, in spite of",
-    "antonym": "because of, due to, owing to",
-    "example_sentence": "___ the heavy rain, the event continued as planned.",
-    "level": "B1",
-    "part_of_speech": "adjective"
-  },
-  {
     "word": "detect",
     "thai_meaning": "ตรวจพบ, ค้นหา",
     "eng_definition": "to discover the presence of something",
@@ -1067,16 +718,6 @@
     "example_sentence": "The sensor can ___ small changes.",
     "level": "B2",
     "part_of_speech": "verb"
-  },
-  {
-    "word": "essential",
-    "thai_meaning": "จำเป็นมาก, สำคัญ",
-    "eng_definition": "absolutely necessary; extremely important",
-    "synonym": "vital, crucial, indispensable",
-    "antonym": "optional, unnecessary, trivial",
-    "example_sentence": "Water is ___ for life.",
-    "level": "B1",
-    "part_of_speech": "adjective"
   },
   {
     "word": "exceed",
@@ -1109,16 +750,6 @@
     "part_of_speech": "verb"
   },
   {
-    "word": "account",
-    "thai_meaning": "บัญชี, รายงาน",
-    "eng_definition": "a record of financial transactions or a report",
-    "synonym": "record, report, statement",
-    "antonym": "omission, guess, speculation",
-    "example_sentence": "Keep an ___ of all your expenses.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "accuracy",
     "thai_meaning": "ความแม่นยำ, ความถูกต้อง",
     "eng_definition": "the quality of being correct or precise",
@@ -1149,36 +780,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "afford",
-    "thai_meaning": "จ่ายได้, มีเพียงพอ",
-    "eng_definition": "to have enough money to pay for something",
-    "synonym": "be able to pay, manage financially, cover cost",
-    "antonym": "cannot afford, struggle to pay, lack funds for",
-    "example_sentence": "Many families cannot ___ private tutoring.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "ahead",
-    "thai_meaning": "ข้างหน้า, ไปข้างหน้า",
-    "eng_definition": "in front of or in advance of someone or something",
-    "synonym": "forward, in advance, ahead of time",
-    "antonym": "behind, backward, late",
-    "example_sentence": "She finished her work ___ of schedule.",
-    "level": "B1",
-    "part_of_speech": "adverb"
-  },
-  {
-    "word": "aim",
-    "thai_meaning": "เป้าหมาย, ตั้งเป้า",
-    "eng_definition": "a purpose or intention; to direct efforts toward a goal",
-    "synonym": "goal, objective, target",
-    "antonym": "aimlessness, lack of purpose, drift",
-    "example_sentence": "Our main ___ is to improve reading comprehension skills.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "alert",
     "thai_meaning": "ตื่นตัว, ตระหนัก",
     "eng_definition": "watchful and quick to notice danger",
@@ -1187,16 +788,6 @@
     "example_sentence": "Stay ___ during the fire drill.",
     "level": "C1",
     "part_of_speech": "adjective"
-  },
-  {
-    "word": "analysis",
-    "thai_meaning": "การวิเคราะห์, การวิเคราะห์",
-    "eng_definition": "detailed examination of elements",
-    "synonym": "examination, study, investigation",
-    "antonym": "oversimplification, summary, generalization",
-    "example_sentence": "The ___ of the text revealed hidden themes.",
-    "level": "B1",
-    "part_of_speech": "noun"
   },
   {
     "word": "annual",
@@ -1249,16 +840,6 @@
     "part_of_speech": "verb"
   },
   {
-    "word": "appreciate",
-    "thai_meaning": "เห็นคุณค่า, ขอบคุณ",
-    "eng_definition": "to recognize the full worth of something",
-    "synonym": "value, prize, be grateful for",
-    "antonym": "undervalue, ignore, despise",
-    "example_sentence": "I ___ your help with the project.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
     "word": "appropriate",
     "thai_meaning": "เหมาะสม, เหมาะสม",
     "eng_definition": "suitable or proper in the circumstances",
@@ -1299,26 +880,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "attitude",
-    "thai_meaning": "ทัศนคติ, ท่าที",
-    "eng_definition": "a settled way of thinking",
-    "synonym": "mindset, outlook, perspective",
-    "antonym": "indifference, apathy, neutrality",
-    "example_sentence": "A positive ___ helps success.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "authority",
-    "thai_meaning": "อำนาจ, หน่วยงาน",
-    "eng_definition": "the power or right to give orders and enforce rules",
-    "synonym": "power, control, jurisdiction",
-    "antonym": "powerlessness, subordination, dependency",
-    "example_sentence": "Only school ___ can approve field trip requests.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "automatic",
     "thai_meaning": "อัตโนมัติ, ทำงานเอง",
     "eng_definition": "operating by itself",
@@ -1336,16 +897,6 @@
     "antonym": "ignorance, unawareness, obliviousness",
     "example_sentence": "Raising ___ about climate change is important for students.",
     "level": "B2",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "balance",
-    "thai_meaning": "ความสมดุล, สมดุล",
-    "eng_definition": "an even distribution of weight or elements; equilibrium",
-    "synonym": "equilibrium, stability, evenness",
-    "antonym": "imbalance, instability, unevenness",
-    "example_sentence": "It is important to maintain a healthy ___ between study and rest.",
-    "level": "B1",
     "part_of_speech": "noun"
   },
   {
@@ -1369,16 +920,6 @@
     "part_of_speech": "adverb"
   },
   {
-    "word": "basic",
-    "thai_meaning": "พื้นฐาน, พื้นฐาน",
-    "eng_definition": "forming an essential foundation; fundamental",
-    "synonym": "fundamental, elementary, primary",
-    "antonym": "advanced, complex, sophisticated",
-    "example_sentence": "Students must master ___ grammar before writing essays.",
-    "level": "B1",
-    "part_of_speech": "adjective"
-  },
-  {
     "word": "beam",
     "thai_meaning": "คาน, รอยยิ้มกว้าง",
     "eng_definition": "a long sturdy piece of timber or metal used in construction",
@@ -1386,16 +927,6 @@
     "antonym": "post, pillar, column",
     "example_sentence": "The roof was supported by a large wooden ___.",
     "level": "C1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "behavior",
-    "thai_meaning": "พฤติกรรม, การปฏิบัติ",
-    "eng_definition": "the way in which one acts or conducts oneself",
-    "synonym": "conduct, demeanor, actions",
-    "antonym": "misconduct, bad conduct, rudeness",
-    "example_sentence": "Good ___ is expected in class.",
-    "level": "B1",
     "part_of_speech": "noun"
   },
   {
@@ -1416,16 +947,6 @@
     "antonym": "unbind, loosen, release",
     "example_sentence": "The teacher will ___ the booklets.",
     "level": "C1",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "block",
-    "thai_meaning": "บล็อก, กีดขวาง",
-    "eng_definition": "to obstruct passage or movement",
-    "synonym": "obstruct, bar, hinder",
-    "antonym": "open, clear, unblock",
-    "example_sentence": "A tree can ___ the road.",
-    "level": "B1",
     "part_of_speech": "verb"
   },
   {
@@ -1479,16 +1000,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "campaign",
-    "thai_meaning": "แคมเปญ, การรณรงค์",
-    "eng_definition": "organized activities for a goal",
-    "synonym": "drive, initiative, effort",
-    "antonym": "inaction, passivity, neglect",
-    "example_sentence": "The school launched a recycling ___.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "capable",
     "thai_meaning": "มีความสามารถ, สามารถทำ",
     "eng_definition": "having the ability or quality necessary to do something",
@@ -1529,16 +1040,6 @@
     "part_of_speech": "adjective"
   },
   {
-    "word": "category",
-    "thai_meaning": "หมวดหมู่, ประเภท",
-    "eng_definition": "a class or division of people or things regarded as having shared attributes",
-    "synonym": "class, group, type",
-    "antonym": "individual, single item, specific",
-    "example_sentence": "Sort the books by ___ on the library shelves.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "caution",
     "thai_meaning": "ความระมัดระวัง, ระวัง",
     "eng_definition": "care taken to avoid danger",
@@ -1546,26 +1047,6 @@
     "antonym": "recklessness, carelessness, negligence",
     "example_sentence": "Handle with ___.",
     "level": "C1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "chain",
-    "thai_meaning": "โซ่, โซ่",
-    "eng_definition": "connected metal rings",
-    "synonym": "link, series, sequence",
-    "antonym": "break, disconnect, separate",
-    "example_sentence": "The dog is tied with a ___.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "champion",
-    "thai_meaning": "ผู้ชนะ, ผู้สนับสนุน",
-    "eng_definition": "a winner of a competition",
-    "synonym": "winner, victor, advocate",
-    "antonym": "loser, opponent, critic",
-    "example_sentence": "The ___ gave a speech.",
-    "level": "B1",
     "part_of_speech": "noun"
   },
   {
@@ -1577,16 +1058,6 @@
     "example_sentence": "One ___ of successful students is consistent study habits.",
     "level": "B2",
     "part_of_speech": "noun"
-  },
-  {
-    "word": "charge",
-    "thai_meaning": "ชาร์จ, ค่าธรรมเนียม",
-    "eng_definition": "to demand payment; to load energy",
-    "synonym": "fee, cost, price",
-    "antonym": "free, gratis, complimentary",
-    "example_sentence": "There is no ___ for entry.",
-    "level": "B1",
-    "part_of_speech": "verb"
   },
   {
     "word": "circular",
@@ -1629,16 +1100,6 @@
     "part_of_speech": "adjective"
   },
   {
-    "word": "claim",
-    "thai_meaning": "อ้างสิทธิ์, อ้าง",
-    "eng_definition": "to state that something is true or that one has a right to something",
-    "synonym": "assert, state, maintain",
-    "antonym": "deny, refute, contradict",
-    "example_sentence": "He made a ___ that he had finished the task.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
     "word": "clarify",
     "thai_meaning": "ทำให้ชัดเจน, อธิบายให้ชัดเจน",
     "eng_definition": "to make a statement or situation less confused and more clear",
@@ -1647,16 +1108,6 @@
     "example_sentence": "Could you ___ your answer so everyone understands?",
     "level": "B2",
     "part_of_speech": "verb"
-  },
-  {
-    "word": "client",
-    "thai_meaning": "ลูกค้า, ผู้รับบริการ",
-    "eng_definition": "a person or organization using the services of a professional",
-    "synonym": "customer, patron, consumer",
-    "antonym": "provider, supplier, vendor",
-    "example_sentence": "The lawyer met with her ___ to discuss the case.",
-    "level": "B1",
-    "part_of_speech": "noun"
   },
   {
     "word": "cling",
@@ -1719,16 +1170,6 @@
     "part_of_speech": "adjective"
   },
   {
-    "word": "combine",
-    "thai_meaning": "รวมกัน, ผสม",
-    "eng_definition": "to join or merge to form a single entity",
-    "synonym": "merge, unite, blend",
-    "antonym": "separate, divide, split",
-    "example_sentence": "You can ___ theory with practice in this course.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
     "word": "comfort",
     "thai_meaning": "ความสบาย, ปลอบใจ",
     "eng_definition": "a state of physical ease and freedom from pain",
@@ -1749,16 +1190,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "commercial",
-    "thai_meaning": "เชิงพาณิชย์, การค้า",
-    "eng_definition": "relating to commerce or business activities",
-    "synonym": "business, profit-oriented, trade",
-    "antonym": "nonprofit, charitable, public service",
-    "example_sentence": "The school banned ___ ads during the event.",
-    "level": "B1",
-    "part_of_speech": "adjective"
-  },
-  {
     "word": "commission",
     "thai_meaning": "คณะกรรมการ, ค่าคอมมิชชัน",
     "eng_definition": "a group of people appointed to perform a function",
@@ -1767,16 +1198,6 @@
     "example_sentence": "The ___ will review the new curriculum next month.",
     "level": "B2",
     "part_of_speech": "noun"
-  },
-  {
-    "word": "commit",
-    "thai_meaning": "อุทิศ, ทำผิด",
-    "eng_definition": "to carry out or perpetrate; to bind oneself to a course",
-    "synonym": "perform, undertake, pledge",
-    "antonym": "avoid, abstain, refrain from",
-    "example_sentence": "Students should ___ to their study goals.",
-    "level": "B1",
-    "part_of_speech": "verb"
   },
   {
     "word": "comparable",
@@ -1806,26 +1227,6 @@
     "antonym": "incompetent, unskilled, unqualified",
     "example_sentence": "She is a ___ driver and follows all rules.",
     "level": "C1",
-    "part_of_speech": "adjective"
-  },
-  {
-    "word": "complaint",
-    "thai_meaning": "การร้องเรียน, คำร้องเรียน",
-    "eng_definition": "a statement that something is unsatisfactory or unacceptable",
-    "synonym": "grievance, objection, protest",
-    "antonym": "praise, compliment, approval",
-    "example_sentence": "She filed a ___ about the noisy classroom.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "complex",
-    "thai_meaning": "ซับซ้อน, ยาก",
-    "eng_definition": "consisting of many interconnecting parts; intricate",
-    "synonym": "complicated, intricate, involved",
-    "antonym": "simple, straightforward, basic",
-    "example_sentence": "The problem is too ___ for a beginner to solve alone.",
-    "level": "B1",
     "part_of_speech": "adjective"
   },
   {
@@ -1949,16 +1350,6 @@
     "part_of_speech": "verb"
   },
   {
-    "word": "confident",
-    "thai_meaning": "มั่นใจ, มั่นใจในตัวเอง",
-    "eng_definition": "feeling or showing certainty about something",
-    "synonym": "sure, self-assured, positive",
-    "antonym": "uncertain, doubtful, insecure",
-    "example_sentence": "She was ___ about passing the English exam.",
-    "level": "B1",
-    "part_of_speech": "adjective"
-  },
-  {
     "word": "conflict",
     "thai_meaning": "ความขัดแย้ง, แย้ง",
     "eng_definition": "a serious disagreement or argument",
@@ -1967,16 +1358,6 @@
     "example_sentence": "There was a ___ between the two schedules.",
     "level": "B2",
     "part_of_speech": "noun"
-  },
-  {
-    "word": "confuse",
-    "thai_meaning": "ทำให้สับสน, ทำให้สับสน",
-    "eng_definition": "to make someone unable to think clearly",
-    "synonym": "bewilder, perplex, puzzle",
-    "antonym": "clarify, enlighten, explain",
-    "example_sentence": "Too many rules may ___ the students.",
-    "level": "B1",
-    "part_of_speech": "verb"
   },
   {
     "word": "congratulate",
@@ -2039,16 +1420,6 @@
     "part_of_speech": "adjective"
   },
   {
-    "word": "consist",
-    "thai_meaning": "ประกอบด้วย, ประกอบด้วย",
-    "eng_definition": "to be made up of; to be composed of",
-    "synonym": "comprise, contain, include",
-    "antonym": "exclude, omit, leave out",
-    "example_sentence": "The team ___ of five students and one teacher.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
     "word": "console",
     "thai_meaning": "ปลอบโยน, เครื่องควบคุม",
     "eng_definition": "to comfort someone who is distressed",
@@ -2067,16 +1438,6 @@
     "example_sentence": "Practice is ___ necessary for language improvement.",
     "level": "B2",
     "part_of_speech": "adjective"
-  },
-  {
-    "word": "consume",
-    "thai_meaning": "บริโภค, กิน",
-    "eng_definition": "to eat, drink, or use up something",
-    "synonym": "eat, use up, exhaust",
-    "antonym": "produce, generate, create",
-    "example_sentence": "People ___ large amounts of sugar daily.",
-    "level": "B1",
-    "part_of_speech": "verb"
   },
   {
     "word": "absence",
@@ -2146,16 +1507,6 @@
     "antonym": "standard speech, neutral accent, plain speech",
     "example_sentence": "She speaks English with a strong ___.",
     "level": "B2",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "accommodation",
-    "thai_meaning": "ที่พัก, ที่อยู่อาศัย",
-    "eng_definition": "a room, group of rooms, or building for people to live in",
-    "synonym": "lodging, housing, residence",
-    "antonym": "homelessness, outing, camping",
-    "example_sentence": "The hotel offers free ___ for students.",
-    "level": "B1",
     "part_of_speech": "noun"
   },
   {
@@ -2279,16 +1630,6 @@
     "part_of_speech": "adjective"
   },
   {
-    "word": "agreement",
-    "thai_meaning": "ข้อตกลง, ความเห็นตรงกัน",
-    "eng_definition": "a negotiated arrangement between parties",
-    "synonym": "contract, pact, accord",
-    "antonym": "disagreement, conflict, dispute",
-    "example_sentence": "Both sides signed the ___ yesterday.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "agriculture",
     "thai_meaning": "เกษตรกรรม, การเกษตร",
     "eng_definition": "the science or practice of farming",
@@ -2296,26 +1637,6 @@
     "antonym": "industry, manufacturing, urbanization",
     "example_sentence": "___ is vital to the country's economy.",
     "level": "B2",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "alarm",
-    "thai_meaning": "สัญญาณเตือนภัย, ความตกใจ",
-    "eng_definition": "a sudden fear or anxiety about danger",
-    "synonym": "fear, panic, alarm bell",
-    "antonym": "calm, reassurance, safety",
-    "example_sentence": "The fire ___ woke everyone up.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "alcohol",
-    "thai_meaning": "แอลกอฮอล์, สุรา",
-    "eng_definition": "a intoxicating drink containing ethanol",
-    "synonym": "booze, spirits, drink",
-    "antonym": "water, soft drink, nonalcoholic beverage",
-    "example_sentence": "___ is illegal for people under 20 in Thailand.",
-    "level": "B1",
     "part_of_speech": "noun"
   },
   {
@@ -2349,36 +1670,6 @@
     "part_of_speech": "preposition"
   },
   {
-    "word": "amaze",
-    "thai_meaning": "ทำให้ประหลาดใจ, ทำให้ทึ่ง",
-    "eng_definition": "to cause great surprise or wonder",
-    "synonym": "astonish, astound, surprise",
-    "antonym": "bore, disappoint, unimpress",
-    "example_sentence": "Her performance ___ the audience.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "ambition",
-    "thai_meaning": "ความทะเยอทะยาน, ความใฝ่ฝัน",
-    "eng_definition": "a strong desire to achieve something",
-    "synonym": "drive, aspiration, goal",
-    "antonym": "apathy, lack of desire, indifference",
-    "example_sentence": "His ___ is to become a pilot.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "amuse",
-    "thai_meaning": "ให้ความบันเทิง, ทำให้ขบขัน",
-    "eng_definition": "to cause someone to find something funny",
-    "synonym": "entertain, make laugh, delight",
-    "antonym": "bore, dull, depress",
-    "example_sentence": "The clown ___ the children at the party.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
     "word": "analyst",
     "thai_meaning": "นักวิเคราะห์, ผู้วิเคราะห์",
     "eng_definition": "a person who analyzes data or information",
@@ -2399,26 +1690,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "annoy",
-    "thai_meaning": "ทำให้รำคาญ, ทำให้โกรธ",
-    "eng_definition": "to make someone slightly angry",
-    "synonym": "irritate, bother, bother",
-    "antonym": "please, delight, comfort",
-    "example_sentence": "The noise began to ___ me.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "announce",
-    "thai_meaning": "ประกาศ, แจ้ง",
-    "eng_definition": "to make something known publicly",
-    "synonym": "declare, proclaim, state",
-    "antonym": "conceal, hide, suppress",
-    "example_sentence": "The winners will be ___ tomorrow.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
     "word": "annually",
     "thai_meaning": "ทุกปี, ปีละครั้ง",
     "eng_definition": "once every year",
@@ -2426,16 +1697,6 @@
     "antonym": "rarely, sporadically, occasionally",
     "example_sentence": "The festival is held ___.",
     "level": "B2",
-    "part_of_speech": "adverb"
-  },
-  {
-    "word": "apart",
-    "thai_meaning": "แยกจาก, แยกออก",
-    "eng_definition": "separated by distance or time",
-    "synonym": "separated, away, distant",
-    "antonym": "together, united, joined",
-    "example_sentence": "The two houses are miles ___.",
-    "level": "B1",
     "part_of_speech": "adverb"
   },
   {
@@ -2479,16 +1740,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "application",
-    "thai_meaning": "การสมัคร, แอปพลิเคชัน",
-    "eng_definition": "a formal request or the act of putting to use",
-    "synonym": "request, form, submission",
-    "antonym": "rejection, withdrawal, cancellation",
-    "example_sentence": "The ___ deadline is next Friday.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "appraisal",
     "thai_meaning": "การประเมิน, การประเมินค่า",
     "eng_definition": "an assessment of someone's work or value",
@@ -2507,16 +1758,6 @@
     "example_sentence": "The plan received board ___.",
     "level": "B2",
     "part_of_speech": "noun"
-  },
-  {
-    "word": "approximately",
-    "thai_meaning": "โดยประมาณ, ประมาณ",
-    "eng_definition": "close to but not exactly a number",
-    "synonym": "about, roughly, around",
-    "antonym": "exactly, precisely, accurately",
-    "example_sentence": "The trip took ___ three hours.",
-    "level": "B1",
-    "part_of_speech": "adverb"
   },
   {
     "word": "archive",
@@ -2549,26 +1790,6 @@
     "part_of_speech": "adjective"
   },
   {
-    "word": "arrest",
-    "thai_meaning": "จับกุม, กักขัง",
-    "eng_definition": "to seize someone legally",
-    "synonym": "detain, capture, apprehend",
-    "antonym": "release, free, set free",
-    "example_sentence": "Police ___ the suspect last night.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "arrival",
-    "thai_meaning": "การมาถึง, การมาถึง",
-    "eng_definition": "the act of reaching a destination",
-    "synonym": "coming, approach, entrance",
-    "antonym": "departure, leaving, exit",
-    "example_sentence": "We waited for his ___ at the station.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "artistic",
     "thai_meaning": "ทางศิลปะ, เกี่ยวกับศิลปะ",
     "eng_definition": "relating to art or artists",
@@ -2577,16 +1798,6 @@
     "example_sentence": "She has an ___ talent.",
     "level": "B2",
     "part_of_speech": "adjective"
-  },
-  {
-    "word": "assignment",
-    "thai_meaning": "งานที่มอบหมาย, การมอบหมาย",
-    "eng_definition": "a task given to a person to complete",
-    "synonym": "task, project, duty",
-    "antonym": "leisure, free time, hobby",
-    "example_sentence": "The ___ is due tomorrow.",
-    "level": "B1",
-    "part_of_speech": "noun"
   },
   {
     "word": "associate",
@@ -2619,36 +1830,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "atmosphere",
-    "thai_meaning": "บรรยากาศ, อากาศ",
-    "eng_definition": "the mood or feeling of a place",
-    "synonym": "mood, ambiance, environment",
-    "antonym": "discomfort, unpleasantness, foul mood",
-    "example_sentence": "The café has a cozy ___.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "attract",
-    "thai_meaning": "ดึงดูด, ดึงดูด",
-    "eng_definition": "to cause interest or pleasure",
-    "synonym": "draw, appeal to, pull",
-    "antonym": "repel, push away, discourage",
-    "example_sentence": "Flowers ___ bees.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "awake",
-    "thai_meaning": "ตื่น, ไม่หลับ",
-    "eng_definition": "not asleep; conscious",
-    "synonym": "alert, conscious",
-    "antonym": "asleep, unconscious, sleeping",
-    "example_sentence": "Stay ___ during the lecture.",
-    "level": "B1",
-    "part_of_speech": "adjective"
-  },
-  {
     "word": "awkward",
     "thai_meaning": "เขิน, ลังเล",
     "eng_definition": "causing difficulty; not smooth",
@@ -2659,16 +1840,6 @@
     "part_of_speech": "adjective"
   },
   {
-    "word": "bakery",
-    "thai_meaning": "ร้านขนมปัง, ร้านเบเกอรี่",
-    "eng_definition": "a place where bread and cakes are made or sold",
-    "synonym": "bread shop, cake shop, pastry shop",
-    "antonym": "butcher, fish market, grocery store",
-    "example_sentence": "She buys fresh bread from the ___ every morning.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "bare",
     "thai_meaning": "โล่ง, เปลือย",
     "eng_definition": "without covering or clothing; naked",
@@ -2677,16 +1848,6 @@
     "example_sentence": "The room was ___ except for a small table.",
     "level": "C1",
     "part_of_speech": "adjective"
-  },
-  {
-    "word": "battle",
-    "thai_meaning": "การต่อสู้, สงคราม",
-    "eng_definition": "a sustained fight between large armies or groups",
-    "synonym": "fight, conflict, struggle",
-    "antonym": "peace, truce, ceasefire",
-    "example_sentence": "The team fought hard in the final ___ of the tournament.",
-    "level": "B1",
-    "part_of_speech": "noun"
   },
   {
     "word": "bay",
@@ -2709,16 +1870,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "bell",
-    "thai_meaning": "ระฆัง, กระดิ่ง",
-    "eng_definition": "a hollow metal object that makes a ringing sound",
-    "synonym": "gong, chime, buzzer",
-    "antonym": "silence, quiet, hush",
-    "example_sentence": "The school ___ rings at 8 a.m.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "bench",
     "thai_meaning": "ม้านั่ง, ม้านั่งยาว",
     "eng_definition": "a long seat for several people",
@@ -2737,16 +1888,6 @@
     "example_sentence": "The village lies ___ the hills.",
     "level": "B2",
     "part_of_speech": "preposition"
-  },
-  {
-    "word": "bite",
-    "thai_meaning": "กัด, กัด",
-    "eng_definition": "to use teeth to cut or grip something",
-    "synonym": "chew, gnaw, snap",
-    "antonym": "kiss, lick, stroke",
-    "example_sentence": "The dog might ___ if provoked.",
-    "level": "B1",
-    "part_of_speech": "verb"
   },
   {
     "word": "blade",
@@ -2829,66 +1970,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "border",
-    "thai_meaning": "พรมแดน, ขอบ",
-    "eng_definition": "a line separating two countries or areas",
-    "synonym": "boundary, frontier, limit",
-    "antonym": "center, middle, interior",
-    "example_sentence": "They crossed the ___ into Laos.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "bother",
-    "thai_meaning": "รบกวน, ทำให้รำคาญ",
-    "eng_definition": "to annoy or interrupt someone",
-    "synonym": "disturb, annoy, trouble",
-    "antonym": "help, assist, leave alone",
-    "example_sentence": "Don't ___ him while he studies.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "boxing",
-    "thai_meaning": "มวย, การชกมวย",
-    "eng_definition": "a sport in which two people fight with gloves",
-    "synonym": "fighting sport, ring sport, pugilism",
-    "antonym": "non-contact sport, swimming, chess",
-    "example_sentence": "He trains in ___ twice a week.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "branch",
-    "thai_meaning": "สาขา, กิ่ง",
-    "eng_definition": "a division of a business or tree limb",
-    "synonym": "division, limb, subunit",
-    "antonym": "main, trunk, root",
-    "example_sentence": "The bank has a ___ downtown.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "brand",
-    "thai_meaning": "แบรนด์, เครื่องหมายการค้า",
-    "eng_definition": "a type of product manufactured by a company",
-    "synonym": "make, label, trademark",
-    "antonym": "generic, unbranded, no-name",
-    "example_sentence": "This ___ of shoes is popular.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "brave",
-    "thai_meaning": "กล้าหาญ, องอาจ",
-    "eng_definition": "willing to face danger or pain",
-    "synonym": "courageous, fearless, bold",
-    "antonym": "cowardly, timid, fearful",
-    "example_sentence": "She was ___ enough to speak up.",
-    "level": "B1",
-    "part_of_speech": "adjective"
-  },
-  {
     "word": "breast",
     "thai_meaning": "หน้าอก, อก",
     "eng_definition": "the front part of a person's chest",
@@ -2897,26 +1978,6 @@
     "example_sentence": "He placed his hand on his ___.",
     "level": "B2",
     "part_of_speech": "noun"
-  },
-  {
-    "word": "breath",
-    "thai_meaning": "ลมหายใจ, ลมหายใจ",
-    "eng_definition": "the air taken into or expelled from the lungs",
-    "synonym": "breathing, respiration, air",
-    "antonym": "asphyxia, no air, suffocation",
-    "example_sentence": "Hold your ___ for ten seconds.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "breathe",
-    "thai_meaning": "หายใจ, ดม",
-    "eng_definition": "to take air into the lungs and expel it",
-    "synonym": "respire, inhale and exhale, gasp",
-    "antonym": "hold breath, suffocate, choke",
-    "example_sentence": "Breathe deeply and ___ slowly.",
-    "level": "B1",
-    "part_of_speech": "verb"
   },
   {
     "word": "brick",
@@ -2969,16 +2030,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "bury",
-    "thai_meaning": "ฝัง, ฝัง",
-    "eng_definition": "to put something underground",
-    "synonym": "inter, hide underground, bury deeply",
-    "antonym": "dig up, unearth, excavate",
-    "example_sentence": "They will ___ the time capsule.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
     "word": "bush",
     "thai_meaning": "พุ่มไม้, ไม้พุ่ม",
     "eng_definition": "a low shrub with many branches",
@@ -3029,26 +2080,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "calendar",
-    "thai_meaning": "ปฏิทิน, ปฏิทิน",
-    "eng_definition": "a chart of days and months",
-    "synonym": "timetable, schedule, planner",
-    "antonym": "no schedule, no timing, free time",
-    "example_sentence": "Mark the date on your ___.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "campus",
-    "thai_meaning": "วิทยาเขต, มหาวิทยาลัย",
-    "eng_definition": "the grounds of a school or university",
-    "synonym": "university grounds, school grounds, college area",
-    "antonym": "off-campus, city, home",
-    "example_sentence": "The library is on ___.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "canal",
     "thai_meaning": "คลอง, คลองส่งน้ำ",
     "eng_definition": "an artificial waterway",
@@ -3079,26 +2110,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "candy",
-    "thai_meaning": "ลูกอม, ขนมหวาน",
-    "eng_definition": "sweet confectionery",
-    "synonym": "sweets, chocolates, sugar treat",
-    "antonym": "vegetable, health food, plain food",
-    "example_sentence": "Children love ___.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "cap",
-    "thai_meaning": "หมวกแก๊ป, ฝาปิด",
-    "eng_definition": "a close-fitting head covering",
-    "synonym": "hat, headgear, lid",
-    "antonym": "no hat, bare head, uncovered",
-    "example_sentence": "Wear a ___ to protect from sun.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "cast",
     "thai_meaning": "ขว้าง, ถ่ายทำ",
     "eng_definition": "to throw something; to assign roles",
@@ -3109,16 +2120,6 @@
     "part_of_speech": "verb"
   },
   {
-    "word": "ceiling",
-    "thai_meaning": "เพดาน, เพดาน",
-    "eng_definition": "the upper interior surface of a room",
-    "synonym": "roof, overhead, top inside",
-    "antonym": "floor, ground, bottom",
-    "example_sentence": "The fan is on the ___.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "cell",
     "thai_meaning": "เซลล์, ห้องเล็ก",
     "eng_definition": "the smallest unit of life; small room",
@@ -3126,16 +2127,6 @@
     "antonym": "organ, whole, large space",
     "example_sentence": "Plant ___ have walls.",
     "level": "B2",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "cellphone",
-    "thai_meaning": "โทรศัพท์มือถือ, มือถือ",
-    "eng_definition": "a portable telephone",
-    "synonym": "mobile, smartphone, phone",
-    "antonym": "landline, desk phone, fixed phone",
-    "example_sentence": "Please turn off your ___.",
-    "level": "B1",
     "part_of_speech": "noun"
   },
   {
@@ -3149,16 +2140,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "center",
-    "thai_meaning": "ศูนย์กลาง, ตรงกลาง",
-    "eng_definition": "the middle point of something",
-    "synonym": "middle, core, heart",
-    "antonym": "edge, border, periphery",
-    "example_sentence": "Draw a circle in the ___.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "chairman",
     "thai_meaning": "ประธาน, ประธาน",
     "eng_definition": "the presiding officer of a meeting",
@@ -3166,16 +2147,6 @@
     "antonym": "member, participant, attendee",
     "example_sentence": "The ___ called the meeting.",
     "level": "B2",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "channel",
-    "thai_meaning": "ช่อง, ช่องทาง",
-    "eng_definition": "a television station or route",
-    "synonym": "station, station channel, route",
-    "antonym": "no channel, blank, void",
-    "example_sentence": "Switch to a different ___.",
-    "level": "B1",
     "part_of_speech": "noun"
   },
   {
@@ -3189,16 +2160,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "chapter",
-    "thai_meaning": "บท, บทที่",
-    "eng_definition": "a main division of a book",
-    "synonym": "section, part, division",
-    "antonym": "whole book, volume, summary",
-    "example_sentence": "Read ___ 3 for tomorrow.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "chase",
     "thai_meaning": "ไล่ตาม, ติดตาม",
     "eng_definition": "to pursue in order to catch",
@@ -3206,16 +2167,6 @@
     "antonym": "avoid, flee, run away",
     "example_sentence": "The dog will ___ the ball.",
     "level": "B2",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "cheat",
-    "thai_meaning": "โกง, หลอกลวง",
-    "eng_definition": "to act dishonestly to gain advantage",
-    "synonym": "deceive, trick, swindle",
-    "antonym": "honor, be honest, be fair",
-    "example_sentence": "Do not ___ on the exam.",
-    "level": "B1",
     "part_of_speech": "verb"
   },
   {
@@ -3239,16 +2190,6 @@
     "part_of_speech": "verb"
   },
   {
-    "word": "chemical",
-    "thai_meaning": "สารเคมี, เคมี",
-    "eng_definition": "a substance produced by chemistry",
-    "synonym": "compound, substance, chemical agent",
-    "antonym": "natural product, organic matter, food",
-    "example_sentence": "Handle ___ with care.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "chemist",
     "thai_meaning": "นักเคมี, เภสัชกร",
     "eng_definition": "a scientist who studies chemicals",
@@ -3259,16 +2200,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "chest",
-    "thai_meaning": "หน้าอก, หีบ",
-    "eng_definition": "the upper front part of the body",
-    "synonym": "thorax, breast, trunk",
-    "antonym": "back, rear, spine",
-    "example_sentence": "He rubbed his ___.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "chief",
     "thai_meaning": "หัวหน้า, หลัก",
     "eng_definition": "the most important person",
@@ -3276,16 +2207,6 @@
     "antonym": "follower, subordinate, junior",
     "example_sentence": "She is the ___ editor.",
     "level": "B2",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "damage",
-    "thai_meaning": "ความเสียหาย, ทำลาย",
-    "eng_definition": "harm that reduces value or usefulness",
-    "synonym": "harm, injury, destruction",
-    "antonym": "repair, fix, restore",
-    "example_sentence": "The storm caused serious ___ to the roof.",
-    "level": "B1",
     "part_of_speech": "noun"
   },
   {
@@ -3306,16 +2227,6 @@
     "antonym": "credit, asset, payment",
     "example_sentence": "He is working to pay off his ___.",
     "level": "B2",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "decade",
-    "thai_meaning": "สิบปี, หนึ่งทศวรรษ",
-    "eng_definition": "a period of ten years",
-    "synonym": "ten-year period, ten years, decade period",
-    "antonym": "year, month, single year",
-    "example_sentence": "In the last ___, technology improved rapidly.",
-    "level": "B1",
     "part_of_speech": "noun"
   },
   {
@@ -3449,16 +2360,6 @@
     "part_of_speech": "verb"
   },
   {
-    "word": "departure",
-    "thai_meaning": "การออกเดินทาง, การจากไป",
-    "eng_definition": "the act of leaving",
-    "synonym": "leaving, exit, going away",
-    "antonym": "arrival, coming, entrance",
-    "example_sentence": "His ___ was sudden.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "deposit",
     "thai_meaning": "ฝาก, เงินฝาก",
     "eng_definition": "to put money into a bank account",
@@ -3519,26 +2420,6 @@
     "part_of_speech": "verb"
   },
   {
-    "word": "diamond",
-    "thai_meaning": "เพชร",
-    "eng_definition": "a precious hard stone",
-    "synonym": "gem, jewel, precious stone",
-    "antonym": "rock, stone, common mineral",
-    "example_sentence": "The ring has a ___ stone.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "diagram",
-    "thai_meaning": "แผนภาพ, แผน",
-    "eng_definition": "a simplified drawing showing how something works",
-    "synonym": "chart, drawing, sketch",
-    "antonym": "photo, real image, actual object",
-    "example_sentence": "The teacher showed a ___ of the heart.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "dictation",
     "thai_meaning": "การเขียนตามคำบอก, การบอกให้เขียน",
     "eng_definition": "speaking words for others to write",
@@ -3546,16 +2427,6 @@
     "antonym": "writing freely, composition, free writing",
     "example_sentence": "The teacher gave a ___ exercise.",
     "level": "B2",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "difficulty",
-    "thai_meaning": "ความยาก, ความลำบาก",
-    "eng_definition": "the state of being hard to do",
-    "synonym": "problem, challenge, hardship",
-    "antonym": "ease, simplicity, comfort",
-    "example_sentence": "She faced ___ with the project.",
-    "level": "B1",
     "part_of_speech": "noun"
   },
   {
@@ -3579,16 +2450,6 @@
     "part_of_speech": "adjective"
   },
   {
-    "word": "dirt",
-    "thai_meaning": "สิ่งสกปรก, ดิน",
-    "eng_definition": "mud or other soil materials",
-    "synonym": "grime, soil, filth",
-    "antonym": "cleanliness, purity, hygiene",
-    "example_sentence": "Wipe the ___ off the table.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "discipline",
     "thai_meaning": "วินัย, วิชา",
     "eng_definition": "training to obey rules",
@@ -3607,16 +2468,6 @@
     "example_sentence": "The company will ___ the results.",
     "level": "C1",
     "part_of_speech": "verb"
-  },
-  {
-    "word": "discount",
-    "thai_meaning": "ส่วนลด, ลดราคา",
-    "eng_definition": "a reduction in price",
-    "synonym": "reduction, markdown, price cut",
-    "antonym": "surcharge, increase, extra fee",
-    "example_sentence": "Students get a 10% ___.",
-    "level": "B1",
-    "part_of_speech": "noun"
   },
   {
     "word": "discriminate",
@@ -3699,16 +2550,6 @@
     "part_of_speech": "verb"
   },
   {
-    "word": "divide",
-    "thai_meaning": "แบ่ง, แยก",
-    "eng_definition": "to separate into parts",
-    "synonym": "split, separate, partition",
-    "antonym": "combine, unite, merge",
-    "example_sentence": "___ the class into pairs.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
     "word": "divorce",
     "thai_meaning": "การหย่า, หย่า",
     "eng_definition": "legal ending of a marriage",
@@ -3716,26 +2557,6 @@
     "antonym": "marriage, wedding, union",
     "example_sentence": "Their ___ was final.",
     "level": "B2",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "documentary",
-    "thai_meaning": "สารคดี, ภาพยนตร์สารคดี",
-    "eng_definition": "a nonfictional film",
-    "synonym": "nonfiction film, factual film, reportage",
-    "antonym": "fiction film, movie, drama",
-    "example_sentence": "We watched a ___ about oceans.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "doll",
-    "thai_meaning": "ตุ๊กตา, หุ่นจำลอง",
-    "eng_definition": "a small model of a human",
-    "synonym": "toy, figure, puppet",
-    "antonym": "real person, adult, human",
-    "example_sentence": "The child played with a ___.",
-    "level": "B1",
     "part_of_speech": "noun"
   },
   {
@@ -3749,26 +2570,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "economy",
-    "thai_meaning": "เศรษฐกิจ, ระบบเศรษฐกิจ",
-    "eng_definition": "the system of production and consumption in a region",
-    "synonym": "financial system, market, economic system",
-    "antonym": "waste, extravagance, inefficiency",
-    "example_sentence": "The country's ___ is growing steadily.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "edge",
-    "thai_meaning": "ขอบ, คม",
-    "eng_definition": "the outside limit of an object or area",
-    "synonym": "border, rim, margin",
-    "antonym": "center, middle, core",
-    "example_sentence": "Sit on the ___ of the chair.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "edition",
     "thai_meaning": "ฉบับ, ครั้งที่พิมพ์",
     "eng_definition": "a particular form or version of a published text",
@@ -3776,26 +2577,6 @@
     "antonym": "original, first copy, prototype",
     "example_sentence": "This is the latest ___ of the textbook.",
     "level": "B2",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "editor",
-    "thai_meaning": "บรรณาธิการ, ผู้แก้ไข",
-    "eng_definition": "a person who prepares content for publication",
-    "synonym": "reviser, proofreader, compiler",
-    "antonym": "author, writer, creator",
-    "example_sentence": "The ___ approved the final article.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "effort",
-    "thai_meaning": "ความพยายาม, พยายาม",
-    "eng_definition": "a vigorous or determined attempt",
-    "synonym": "attempt, try, exertion",
-    "antonym": "laziness, ease, relaxation",
-    "example_sentence": "Success requires hard ___.",
-    "level": "B1",
     "part_of_speech": "noun"
   },
   {
@@ -3839,16 +2620,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "element",
-    "thai_meaning": "องค์ประกอบ, ธาตุ",
-    "eng_definition": "a basic or essential part of something",
-    "synonym": "component, factor, part",
-    "antonym": "whole, entirety, totality",
-    "example_sentence": "Trust is a key ___ of friendship.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "elementary",
     "thai_meaning": "ระดับเบื้องต้น, พื้นฐาน",
     "eng_definition": "relating to basic principles",
@@ -3867,26 +2638,6 @@
     "example_sentence": "He was ___ by his mistake.",
     "level": "B2",
     "part_of_speech": "verb"
-  },
-  {
-    "word": "emergency",
-    "thai_meaning": "สถานการณ์ฉุกเฉิน, ภัย",
-    "eng_definition": "a serious situation requiring immediate action",
-    "synonym": "crisis, urgent situation, emergency case",
-    "antonym": "routine, normal, calm",
-    "example_sentence": "Call 911 in an ___.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "emotion",
-    "thai_meaning": "อารมณ์, ความรู้สึก",
-    "eng_definition": "a strong feeling such as joy or anger",
-    "synonym": "feeling, sentiment, passion",
-    "antonym": "logic, reason, rationality",
-    "example_sentence": "She showed strong ___ during the speech.",
-    "level": "B1",
-    "part_of_speech": "noun"
   },
   {
     "word": "emphasize",
@@ -3917,16 +2668,6 @@
     "example_sentence": "Please find the ___ document.",
     "level": "B2",
     "part_of_speech": "adjective"
-  },
-  {
-    "word": "enemy",
-    "thai_meaning": "ศัตรู, ศัตรู",
-    "eng_definition": "a person who actively opposes another",
-    "synonym": "foe, adversary, opponent",
-    "antonym": "friend, ally, supporter",
-    "example_sentence": "The army defeated the ___.",
-    "level": "B1",
-    "part_of_speech": "noun"
   },
   {
     "word": "enforce",
@@ -3969,16 +2710,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "entertain",
-    "thai_meaning": "ให้ความบันเทิง, จัดเลี้ยง",
-    "eng_definition": "to provide amusement or enjoyment",
-    "synonym": "amuse, delight, host",
-    "antonym": "bore, annoy, upset",
-    "example_sentence": "The clown ___ the children.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
     "word": "enthusiastic",
     "thai_meaning": "กระตือรือร้น, มีใจจดจ่อ",
     "eng_definition": "having intense and eager interest",
@@ -3997,26 +2728,6 @@
     "example_sentence": "He read the ___ book.",
     "level": "B2",
     "part_of_speech": "adjective"
-  },
-  {
-    "word": "entrance",
-    "thai_meaning": "ทางเข้า, ประตู",
-    "eng_definition": "a means of entering a place",
-    "synonym": "entry, doorway, gate",
-    "antonym": "exit, departure, way out",
-    "example_sentence": "The ___ is on the left.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "entry",
-    "thai_meaning": "การเข้า, รายการ",
-    "eng_definition": "the act of entering or a record",
-    "synonym": "admission, access, record",
-    "antonym": "exit, departure, leaving",
-    "example_sentence": "Free ___ is allowed for students.",
-    "level": "B1",
-    "part_of_speech": "noun"
   },
   {
     "word": "envelope",
@@ -4039,36 +2750,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "episode",
-    "thai_meaning": "ตอน, เหตุการณ์",
-    "eng_definition": "an event or a series of events",
-    "synonym": "event, incident, chapter",
-    "antonym": "whole story, summary, overview",
-    "example_sentence": "This ___ is the best of the series.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "equal",
-    "thai_meaning": "เท่ากัน, เท่าเทียม",
-    "eng_definition": "the same in size, amount, or value",
-    "synonym": "same, identical, equivalent",
-    "antonym": "unequal, different, unequal",
-    "example_sentence": "All people are ___ under the law.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "escape",
-    "thai_meaning": "หลบหนี, หลุดพ้น",
-    "eng_definition": "to get away from confinement",
-    "synonym": "flee, run away, break out",
-    "antonym": "capture, catch, trap",
-    "example_sentence": "The bird managed to ___.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
     "word": "estate",
     "thai_meaning": "ทรัพย์สิน, ฟาร์ม",
     "eng_definition": "a large area of land with a house",
@@ -4087,36 +2768,6 @@
     "example_sentence": "The festival celebrates ___ diversity.",
     "level": "B2",
     "part_of_speech": "adjective"
-  },
-  {
-    "word": "eventually",
-    "thai_meaning": "ในที่สุด, สุดท้าย",
-    "eng_definition": "in the end, after a long time",
-    "synonym": "finally, ultimately, at last",
-    "antonym": "initially, at first, before",
-    "example_sentence": "She ___ passed the exam.",
-    "level": "B1",
-    "part_of_speech": "adverb"
-  },
-  {
-    "word": "examine",
-    "thai_meaning": "ตรวจสอบ, ตรวจ",
-    "eng_definition": "to inspect closely",
-    "synonym": "inspect, check, investigate",
-    "antonym": "ignore, overlook, neglect",
-    "example_sentence": "The doctor will ___ the patient.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "exchange",
-    "thai_meaning": "แลกเปลี่ยน, แลกเปลี่ยน",
-    "eng_definition": "to give one thing and receive another",
-    "synonym": "swap, trade, barter",
-    "antonym": "keep, retain, hold",
-    "example_sentence": "They ___ ideas in the meeting.",
-    "level": "B1",
-    "part_of_speech": "verb"
   },
   {
     "word": "excuse",
@@ -4159,16 +2810,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "expedition",
-    "thai_meaning": "การสำรวจ, การเดินทาง",
-    "eng_definition": "a journey for a purpose",
-    "synonym": "journey, voyage, exploration",
-    "antonym": "stay, inactivity, rest",
-    "example_sentence": "The ___ reached the summit.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "expense",
     "thai_meaning": "ค่าใช้จ่าย, ต้นทุน",
     "eng_definition": "the cost required for something",
@@ -4177,36 +2818,6 @@
     "example_sentence": "Travel ___ is high.",
     "level": "B2",
     "part_of_speech": "noun"
-  },
-  {
-    "word": "explode",
-    "thai_meaning": "ระเบิด, แตก",
-    "eng_definition": "to burst or shatter violently",
-    "synonym": "detonate, blow up, burst",
-    "antonym": "implode, collapse, shrink",
-    "example_sentence": "The balloon will ___ if heated.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "explore",
-    "thai_meaning": "สำรวจ, ค้นคว้า",
-    "eng_definition": "to travel to discover new places",
-    "synonym": "investigate, survey, examine",
-    "antonym": "ignore, overlook, avoid",
-    "example_sentence": "They ___ the cave carefully.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "export",
-    "thai_meaning": "ส่งออก, ส่งออกไป",
-    "eng_definition": "to send goods to another country",
-    "synonym": "ship abroad, send out, sell overseas",
-    "antonym": "import, bring in, buy abroad",
-    "example_sentence": "They ___ rice globally.",
-    "level": "B1",
-    "part_of_speech": "verb"
   },
   {
     "word": "expose",
@@ -4259,26 +2870,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "familiar",
-    "thai_meaning": "คุ้นเคย, รู้จักดี",
-    "eng_definition": "well known from long or close contact",
-    "synonym": "known, acquainted, recognized",
-    "antonym": "unfamiliar, unknown, strange",
-    "example_sentence": "I am ___ with this route.",
-    "level": "B1",
-    "part_of_speech": "adjective"
-  },
-  {
-    "word": "fancy",
-    "thai_meaning": "หรูหรา, ประดับ",
-    "eng_definition": "elaborate or decorative in style",
-    "synonym": "ornate, elegant, stylish",
-    "antonym": "plain, simple, ordinary",
-    "example_sentence": "They wore ___ dresses to the party.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "fault",
     "thai_meaning": "ความผิด, ข้อบกพร่อง",
     "eng_definition": "a responsibility for an accident or problem",
@@ -4287,16 +2878,6 @@
     "example_sentence": "It was not my ___.",
     "level": "B2",
     "part_of_speech": "noun"
-  },
-  {
-    "word": "favorite",
-    "thai_meaning": "โปรดปราน, ที่รัก",
-    "eng_definition": "preferred before all others of the same kind",
-    "synonym": "preferred, best-loved, top choice",
-    "antonym": "least favorite, disliked, hated",
-    "example_sentence": "Blue is my ___ color.",
-    "level": "B1",
-    "part_of_speech": "adjective"
   },
   {
     "word": "fetch",
@@ -4316,16 +2897,6 @@
     "antonym": "normal temp, health, wellness",
     "example_sentence": "He has a high ___.",
     "level": "B2",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "file",
-    "thai_meaning": "แฟ้ม, ไฟล์",
-    "eng_definition": "a folder for holding documents",
-    "synonym": "folder, record, archive",
-    "antonym": "loose paper, no folder, open",
-    "example_sentence": "Save the document in a ___.",
-    "level": "B1",
     "part_of_speech": "noun"
   },
   {
@@ -4349,16 +2920,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "flag",
-    "thai_meaning": "ธง, ธงชาติ",
-    "eng_definition": "a piece of cloth with a design",
-    "synonym": "banner, standard, emblem",
-    "antonym": "no flag, plain cloth, neutral",
-    "example_sentence": "The ___ waved in the wind.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "flesh",
     "thai_meaning": "เนื้อ, เนื้อสัตว์",
     "eng_definition": "the soft substance of the body",
@@ -4366,26 +2927,6 @@
     "antonym": "bone, skeleton, hard part",
     "example_sentence": "The fruit has sweet ___.",
     "level": "C1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "flour",
-    "thai_meaning": "แป้ง, แป้งสาลี",
-    "eng_definition": "powder made from grain",
-    "synonym": "flour powder, meal, grain powder",
-    "antonym": "salt, sugar, rice",
-    "example_sentence": "We need ___ to make bread.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "force",
-    "thai_meaning": "แรง, บังคับ",
-    "eng_definition": "strength or energy as an attribute",
-    "synonym": "power, strength, might",
-    "antonym": "weakness, frailty, feebleness",
-    "example_sentence": "The ___ of the wind was strong.",
-    "level": "B1",
     "part_of_speech": "noun"
   },
   {
@@ -4439,46 +2980,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "freeze",
-    "thai_meaning": "แข็งตัว, เย็นจัด",
-    "eng_definition": "to become ice due to cold",
-    "synonym": "solidify, congeal, harden",
-    "antonym": "melt, thaw, dissolve",
-    "example_sentence": "Water will ___ at 0°C.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "friendship",
-    "thai_meaning": "มิตรภาพ, มิตร",
-    "eng_definition": "the state of being friends",
-    "synonym": "companionship, bond, friendship bond",
-    "antonym": "enmity, hostility, hatred",
-    "example_sentence": "Their ___ lasted years.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "fuel",
-    "thai_meaning": "เชื้อเพลิง, เชื้อเพลิง",
-    "eng_definition": "a material burned to produce energy",
-    "synonym": "energy source, combustible, oil",
-    "antonym": "waste, ash, residue",
-    "example_sentence": "The car needs ___.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "function",
-    "thai_meaning": "หน้าที่, การทำงาน",
-    "eng_definition": "the purpose or role of something",
-    "synonym": "duty, role, purpose",
-    "antonym": "irrelevance, useless, nonfunction",
-    "example_sentence": "The ___ of a heart is to pump.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "fund",
     "thai_meaning": "เงินกองทุน, เงินทุน",
     "eng_definition": "a sum of money saved for a purpose",
@@ -4509,26 +3010,6 @@
     "part_of_speech": "verb"
   },
   {
-    "word": "generous",
-    "thai_meaning": "ใจกว้าง, ใจดี",
-    "eng_definition": "showing a readiness to give",
-    "synonym": "charitable, giving, liberal",
-    "antonym": "stingy, selfish, mean",
-    "example_sentence": "She is very ___ with money.",
-    "level": "B1",
-    "part_of_speech": "adjective"
-  },
-  {
-    "word": "gentle",
-    "thai_meaning": "อ่อนโยน, อ่อนน้อม",
-    "eng_definition": "mild in temperament",
-    "synonym": "kind, soft, tender",
-    "antonym": "harsh, rough, cruel",
-    "example_sentence": "Speak in a ___ voice.",
-    "level": "B1",
-    "part_of_speech": "adjective"
-  },
-  {
     "word": "gesture",
     "thai_meaning": "ท่าทาง, ท่า",
     "eng_definition": "a movement of the body expressing an idea",
@@ -4536,66 +3017,6 @@
     "antonym": "word, written, silence",
     "example_sentence": "He made a ___ to come closer.",
     "level": "B2",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "ghost",
-    "thai_meaning": "ผี, วิญญาณ",
-    "eng_definition": "a spirit of a dead person",
-    "synonym": "spirit, apparition, phantom",
-    "antonym": "living person, human, body",
-    "example_sentence": "They say a ___ haunts this house.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "giant",
-    "thai_meaning": "ยักษ์, ใหญ่โต",
-    "eng_definition": "a mythical being of great size",
-    "synonym": "colossus, titan, huge being",
-    "antonym": "dwarf, small person, tiny",
-    "example_sentence": "The ___ lived in the castle.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "glad",
-    "thai_meaning": "ยินดี, ดีใจ",
-    "eng_definition": "feeling pleasure or happiness",
-    "synonym": "happy, pleased, delighted",
-    "antonym": "sad, upset, unhappy",
-    "example_sentence": "I am ___ to see you.",
-    "level": "B1",
-    "part_of_speech": "adjective"
-  },
-  {
-    "word": "glove",
-    "thai_meaning": "ถุงมือ, ถุงมือ",
-    "eng_definition": "a covering for the hand",
-    "synonym": "hand cover, mitt, covering",
-    "antonym": "bare hand, no glove, skin",
-    "example_sentence": "Wear ___ in winter.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "goods",
-    "thai_meaning": "สินค้า, ทรัพย์สิน",
-    "eng_definition": "movable personal property",
-    "synonym": "merchandise, products, wares",
-    "antonym": "services, labor, work",
-    "example_sentence": "The store sells ___",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "goose",
-    "thai_meaning": "ห่าน, ห่าน",
-    "eng_definition": "a large waterbird",
-    "synonym": "bird, waterfowl, swan",
-    "antonym": "duck, chicken, fish",
-    "example_sentence": "The ___ lays eggs.",
-    "level": "B1",
     "part_of_speech": "noun"
   },
   {
@@ -4609,16 +3030,6 @@
     "part_of_speech": "verb"
   },
   {
-    "word": "grade",
-    "thai_meaning": "ระดับ, คะแนน",
-    "eng_definition": "a level in a scale",
-    "synonym": "level, rank, score",
-    "antonym": "lower rank, bottom, low",
-    "example_sentence": "She got a high ___ in math.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "gradual",
     "thai_meaning": "ทีละนิด, ค่อยเป็นค่อยไป",
     "eng_definition": "taking place in steps",
@@ -4627,26 +3038,6 @@
     "example_sentence": "There was a ___ improvement.",
     "level": "B2",
     "part_of_speech": "adjective"
-  },
-  {
-    "word": "graduate",
-    "thai_meaning": "สำเร็จการศึกษา,บัณฑิต",
-    "eng_definition": "to complete a course of study",
-    "synonym": "complete, finish, receive degree",
-    "antonym": "drop out, fail, interrupt",
-    "example_sentence": "She will ___ from university.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "grain",
-    "thai_meaning": "เมล็ดพืช, เมล็ด",
-    "eng_definition": "small hard seeds of cereals",
-    "synonym": "seed, cereal, grain kernel",
-    "antonym": "fruit, meat, vegetable",
-    "example_sentence": "Rice is a type of ___.",
-    "level": "B1",
-    "part_of_speech": "noun"
   },
   {
     "word": "grand",
@@ -4689,36 +3080,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "growth",
-    "thai_meaning": "การเติบโต, การเจริญเติบโต",
-    "eng_definition": "the process of increasing in size",
-    "synonym": "development, expansion, increase",
-    "antonym": "decline, decrease, reduction",
-    "example_sentence": "The company shows strong ___.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "guard",
-    "thai_meaning": "ยาม, ป้องกัน",
-    "eng_definition": "a person who protects",
-    "synonym": "protector, sentinel, watchman",
-    "antonym": "attacker, intruder, enemy",
-    "example_sentence": "The ___ stopped the car.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "guilty",
-    "thai_meaning": "มีความผิด, โทษ",
-    "eng_definition": "responsible for a crime",
-    "synonym": "culpable, responsible, blameworthy",
-    "antonym": "innocent, clear, blameless",
-    "example_sentence": "The jury found him ___.",
-    "level": "B1",
-    "part_of_speech": "adjective"
-  },
-  {
     "word": "handle",
     "thai_meaning": "จับ, ด้ามจับ",
     "eng_definition": "the part used to hold or operate",
@@ -4729,26 +3090,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "handsome",
-    "thai_meaning": "หล่อ, หล่อ",
-    "eng_definition": "good-looking in a man",
-    "synonym": "attractive, good-looking, appealing",
-    "antonym": "ugly, unattractive, plain",
-    "example_sentence": "He is a ___ man.",
-    "level": "B1",
-    "part_of_speech": "adjective"
-  },
-  {
-    "word": "hang",
-    "thai_meaning": "แขวน, แขวน",
-    "eng_definition": "to support from above",
-    "synonym": "suspend, dangle, attach",
-    "antonym": "drop, release, let fall",
-    "example_sentence": "___ the picture on the wall.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
     "word": "harvest",
     "thai_meaning": "ฤดูเก็บเกี่ยว, การเก็บเกี่ยว",
     "eng_definition": "the process of gathering crops",
@@ -4756,16 +3097,6 @@
     "antonym": "planting, sowing, growing",
     "example_sentence": "The ___ season is autumn.",
     "level": "C1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "haircut",
-    "thai_meaning": "การตัดผม, ตัดผม",
-    "eng_definition": "the act of cutting hair",
-    "synonym": "hair trim, hair cut, style trim",
-    "antonym": "hair growth, long hair, no cut",
-    "example_sentence": "He needs a ___ soon.",
-    "level": "B1",
     "part_of_speech": "noun"
   },
   {
@@ -4889,16 +3220,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "helicopter",
-    "thai_meaning": "เฮลิคอปเตอร์, เครื่องบินปีกหมุน",
-    "eng_definition": "an aircraft with rotating blades",
-    "synonym": "chopper, rotorcraft, air vehicle",
-    "antonym": "plane, car, boat",
-    "example_sentence": "The ___ landed on the roof.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "hell",
     "thai_meaning": "นรก, ขุมนรก",
     "eng_definition": "a place of punishment after death",
@@ -4919,36 +3240,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "hire",
-    "thai_meaning": "จ้าง, จ้างงาน",
-    "eng_definition": "to employ someone for wages",
-    "synonym": "employ, recruit, engage",
-    "antonym": "fire, dismiss, let go",
-    "example_sentence": "They will ___ a new manager.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "honest",
-    "thai_meaning": "ซื่อสัตย์, จริงใจ",
-    "eng_definition": "truthful and trustworthy",
-    "synonym": "truthful, sincere, genuine",
-    "antonym": "dishonest, deceitful, false",
-    "example_sentence": "He is an ___ person.",
-    "level": "B1",
-    "part_of_speech": "adjective"
-  },
-  {
-    "word": "host",
-    "thai_meaning": "เจ้าบ้าน, ผู้จัด",
-    "eng_definition": "a person who receives guests",
-    "synonym": "greeter, organizer, presenter",
-    "antonym": "guest, visitor, attendee",
-    "example_sentence": "The ___ welcomed everyone.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "housework",
     "thai_meaning": "งานบ้าน, งานบ้าน",
     "eng_definition": "work done to maintain a home",
@@ -4957,36 +3248,6 @@
     "example_sentence": "She does ___ every day.",
     "level": "B2",
     "part_of_speech": "noun"
-  },
-  {
-    "word": "hug",
-    "thai_meaning": "กอด, กอด",
-    "eng_definition": "to hold tightly in one's arms",
-    "synonym": "embrace, cuddle, hold close",
-    "antonym": "push away, avoid, reject",
-    "example_sentence": "She gave him a warm ___.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "hunt",
-    "thai_meaning": "ล่า, ล่าสัตว์",
-    "eng_definition": "to chase animals for food",
-    "synonym": "search, track, pursue",
-    "antonym": "protect, save, shield",
-    "example_sentence": "They ___ deer in the forest.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "hurry",
-    "thai_meaning": "รีบ, รีบ",
-    "eng_definition": "to move with speed",
-    "synonym": "rush, speed up, hasten",
-    "antonym": "slow down, delay, linger",
-    "example_sentence": "___ up or you'll be late.",
-    "level": "B1",
-    "part_of_speech": "verb"
   },
   {
     "word": "hypothetical",
@@ -4999,56 +3260,6 @@
     "part_of_speech": "adjective"
   },
   {
-    "word": "identity",
-    "thai_meaning": "ตัวตน, ระบุตัวตน",
-    "eng_definition": "who a person is",
-    "synonym": "self, personality, individuality",
-    "antonym": "anonymity, unknown, stranger",
-    "example_sentence": "She proved her ___.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "ignore",
-    "thai_meaning": "เพิกเฉย, ไม่สนใจ",
-    "eng_definition": "to refuse to take notice",
-    "synonym": "disregard, overlook, neglect",
-    "antonym": "notice, pay attention, heed",
-    "example_sentence": "He ___ my message.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "illegal",
-    "thai_meaning": "ผิดกฎหมาย, ไม่ถูกกฎหมาย",
-    "eng_definition": "against the law",
-    "synonym": "unlawful, illicit, criminal",
-    "antonym": "legal, lawful, permitted",
-    "example_sentence": "It is ___ to park here.",
-    "level": "B1",
-    "part_of_speech": "adjective"
-  },
-  {
-    "word": "immediate",
-    "thai_meaning": "ทันที, ทันทีทันใด",
-    "eng_definition": "occurring at once",
-    "synonym": "instant, prompt, speedy",
-    "antonym": "delayed, slow, late",
-    "example_sentence": "We need an ___ response.",
-    "level": "B1",
-    "part_of_speech": "adjective"
-  },
-  {
-    "word": "immigrant",
-    "thai_meaning": "ผู้อพยพ, ผู้อพยพ",
-    "eng_definition": "a person who moves to a country",
-    "synonym": "migrant, newcomer, settler",
-    "antonym": "native, local, citizen",
-    "example_sentence": "Many ___ live here.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "imply",
     "thai_meaning": "พาดพิง, บ่งบอก",
     "eng_definition": "to suggest without stating directly",
@@ -5057,26 +3268,6 @@
     "example_sentence": "His tone ___ disapproval.",
     "level": "B2",
     "part_of_speech": "verb"
-  },
-  {
-    "word": "import",
-    "thai_meaning": "นำเข้า, นำเข้า",
-    "eng_definition": "to bring goods into a country",
-    "synonym": "bring in, introduce, import goods",
-    "antonym": "export, send out, ship out",
-    "example_sentence": "They ___ coffee from Brazil.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "impression",
-    "thai_meaning": "ความประทับใจ, ภาพ",
-    "eng_definition": "an idea or feeling about something",
-    "synonym": "perception, notion, feeling",
-    "antonym": "ignorance, anonymity, neutral",
-    "example_sentence": "First ___ is important.",
-    "level": "B1",
-    "part_of_speech": "noun"
   },
   {
     "word": "inappropriate",
@@ -5097,16 +3288,6 @@
     "example_sentence": "His ___ is high.",
     "level": "B2",
     "part_of_speech": "noun"
-  },
-  {
-    "word": "indeed",
-    "thai_meaning": "แท้จริงแล้ว, จริงๆ",
-    "eng_definition": "used to emphasize a statement",
-    "synonym": "truly, certainly, really",
-    "antonym": "possibly, maybe, perhaps",
-    "example_sentence": "It is ___ a problem.",
-    "level": "B1",
-    "part_of_speech": "adverb"
   },
   {
     "word": "index",
@@ -5139,26 +3320,6 @@
     "part_of_speech": "verb"
   },
   {
-    "word": "influence",
-    "thai_meaning": "อิทธิพล, มีอิทธิพล",
-    "eng_definition": "the capacity to have an effect",
-    "synonym": "power, effect, impact",
-    "antonym": "no power, weakness, none",
-    "example_sentence": "She has ___ over him.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "ingredient",
-    "thai_meaning": "ส่วนผสม, ส่วนประกอบ",
-    "eng_definition": "a component of a mixture",
-    "synonym": "component, element, part",
-    "antonym": "whole, final product, mixture",
-    "example_sentence": "Flour is a key ___.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "initial",
     "thai_meaning": "เริ่มต้น, ตอนแรก",
     "eng_definition": "coming at the beginning",
@@ -5166,26 +3327,6 @@
     "antonym": "final, last, concluding",
     "example_sentence": "The ___ cost was high.",
     "level": "B2",
-    "part_of_speech": "adjective"
-  },
-  {
-    "word": "injure",
-    "thai_meaning": "ทำร้าย, ทำลาย",
-    "eng_definition": "to cause physical harm",
-    "synonym": "hurt, damage, harm",
-    "antonym": "heal, protect, save",
-    "example_sentence": "He was ___ in the accident.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "innocent",
-    "thai_meaning": "ไร้เดียงสา, ไม่ผิด",
-    "eng_definition": "not guilty of a crime",
-    "synonym": "guiltless, blameless, pure",
-    "antonym": "guilty, culpable, responsible",
-    "example_sentence": "He was found ___.",
-    "level": "B1",
     "part_of_speech": "adjective"
   },
   {
@@ -5269,16 +3410,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "intend",
-    "thai_meaning": "ตั้งใจ, วางแผน",
-    "eng_definition": "to have as a plan",
-    "synonym": "plan, mean, aim",
-    "antonym": "unintend, not plan, ignore",
-    "example_sentence": "I ___ to study hard.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
     "word": "internal",
     "thai_meaning": "ภายใน, ภายใน",
     "eng_definition": "inside the body or mind",
@@ -5287,36 +3418,6 @@
     "example_sentence": "The ___ organs are vital.",
     "level": "B2",
     "part_of_speech": "adjective"
-  },
-  {
-    "word": "invest",
-    "thai_meaning": "ลงทุน, ลงทุน",
-    "eng_definition": "to put money into something",
-    "synonym": "put in, fund, risk capital",
-    "antonym": "withdraw, spend, waste",
-    "example_sentence": "They ___ in stocks.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
-    "word": "iron",
-    "thai_meaning": "เหล็ก, รีดผ้า",
-    "eng_definition": "a strong gray metal",
-    "synonym": "metal, steel, ferrous",
-    "antonym": "wood, plastic, soft",
-    "example_sentence": "The bridge is made of ___.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "issue",
-    "thai_meaning": "ปัญหา, เรื่อง",
-    "eng_definition": "an important topic for debate",
-    "synonym": "problem, topic, matter",
-    "antonym": "solution, answer, fix",
-    "example_sentence": "We must solve this ___.",
-    "level": "B1",
-    "part_of_speech": "noun"
   },
   {
     "word": "joint",
@@ -5329,16 +3430,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "journal",
-    "thai_meaning": "วารสาร, นิตยสาร",
-    "eng_definition": "a periodical publication",
-    "synonym": "magazine, periodical, paper",
-    "antonym": "book, novel, story",
-    "example_sentence": "She reads a scientific ___.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
     "word": "joy",
     "thai_meaning": "ความยินดี, ความสุข",
     "eng_definition": "a feeling of great happiness",
@@ -5346,16 +3437,6 @@
     "antonym": "sorrow, sadness, grief",
     "example_sentence": "She felt great ___.",
     "level": "B2",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "judge",
-    "thai_meaning": "ผู้พิพากษา, ตัดสิน",
-    "eng_definition": "an official who decides cases",
-    "synonym": "magistrate, justice, arbiter",
-    "antonym": "lawyer, defendant, accused",
-    "example_sentence": "The ___ made a ruling.",
-    "level": "B1",
     "part_of_speech": "noun"
   },
   {
@@ -5379,36 +3460,6 @@
     "part_of_speech": "noun"
   },
   {
-    "word": "keen",
-    "thai_meaning": "กระตือรือร้น, ฉลาด",
-    "eng_definition": "having sharp interest",
-    "synonym": "eager, enthusiastic, sharp",
-    "antonym": "indifferent, uninterested, dull",
-    "example_sentence": "She is ___ on sports.",
-    "level": "B1",
-    "part_of_speech": "adjective"
-  },
-  {
-    "word": "keyboard",
-    "thai_meaning": "คีย์บอร์ด, แป้นพิมพ์",
-    "eng_definition": "a set of keys for typing",
-    "synonym": "typing pad, input device, keys",
-    "antonym": "mouse, screen, monitor",
-    "example_sentence": "Type on the ___.",
-    "level": "B1",
-    "part_of_speech": "noun"
-  },
-  {
-    "word": "kick",
-    "thai_meaning": "เตะ, เตะ",
-    "eng_definition": "to strike with the foot",
-    "synonym": "strike, punt, boot",
-    "antonym": "catch, hold, hug",
-    "example_sentence": "He will ___ the ball.",
-    "level": "B1",
-    "part_of_speech": "verb"
-  },
-  {
     "word": "kingdom",
     "thai_meaning": "ราชอาณาจักร, อาณาจักร",
     "eng_definition": "a nation ruled by a king",
@@ -5417,16 +3468,6 @@
     "example_sentence": "The ___ lasted centuries.",
     "level": "C1",
     "part_of_speech": "noun"
-  },
-  {
-    "word": "kiss",
-    "thai_meaning": "จูบ,จูบ",
-    "eng_definition": "to touch with lips",
-    "synonym": "smooch, peck, embrace",
-    "antonym": "push, avoid, hate",
-    "example_sentence": "She gave him a ___",
-    "level": "B1",
-    "part_of_speech": "verb"
   },
   {
     "word": "knight",
