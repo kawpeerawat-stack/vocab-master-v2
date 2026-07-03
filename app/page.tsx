@@ -188,7 +188,7 @@ export default function Home() {
   // ── คลังความก้าวหน้าแบบ SRS (แทนระบบ masteredWords เดิม) ──
   const [srsStore, setSrsStore] = useState<SrsStore>({});
   const [streakState, setStreakState] = useState<StreakState>(emptyStreak());
-  // โหมดติว: ทั้งหมด / พื้นฐาน(B1) / ระดับสอบเข้ามหาลัย(B2·C1)
+  // โหมดติว: ทั้งหมด / พื้นฐาน(B2) / ระดับสอบเข้ามหาลัย(B2·C1)
   const [examFocus, setExamFocus] = useState<'all' | 'foundation' | 'exam'>('all');
   // เลือกเจาะพาร์ท: null = ผสมทุกแนว, หรือเจาะประเภทเดียว
   // จัดอันดับคนขยัน
@@ -2156,8 +2156,8 @@ export default function Home() {
                 <div className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2 text-center">เลือกโหมดติว</div>
                 <div className="grid grid-cols-3 gap-2">
                   {([
-                    { key: 'all', label: 'ทั้งหมด', sub: 'B1·B2·C1' },
-                    { key: 'foundation', label: 'พื้นฐาน', sub: 'B1' },
+                    { key: 'all', label: 'ทั้งหมด', sub: 'B2·C1' },
+                    { key: 'foundation', label: 'พื้นฐาน', sub: 'B2' },
                     { key: 'exam', label: 'ระดับสอบ', sub: 'B2·C1' },
                   ] as const).map((opt) => (
                     <button
