@@ -2151,14 +2151,14 @@ export default function Home() {
             </div>
 
             <div className="space-y-4">
-              {/* ── เลือกโหมดติว (ใช้บันได CEFR) ── */}
+              {/* ── เลือกโหมดติว (สัดส่วน B2/C1 ต่างกันตามโหมด) ── */}
               <div>
                 <div className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2 text-center">เลือกโหมดติว</div>
                 <div className="grid grid-cols-3 gap-2">
                   {([
-                    { key: 'all', label: 'ทั้งหมด', sub: 'B2·C1' },
-                    { key: 'foundation', label: 'พื้นฐาน', sub: 'B2' },
-                    { key: 'exam', label: 'ระดับสอบ', sub: 'B2·C1' },
+                    { key: 'all', icon: '🔀', label: 'ทั้งหมด', sub: 'B2 60% · C1 40%' },
+                    { key: 'foundation', icon: '🌱', label: 'พื้นฐาน', sub: 'B2 ล้วน 100%' },
+                    { key: 'exam', icon: '🎯', label: 'ระดับสอบ', sub: 'B2 : C1 = 50 : 50' },
                   ] as const).map((opt) => (
                     <button
                       key={opt.key}
@@ -2170,8 +2170,9 @@ export default function Home() {
                           : 'bg-white border-gray-200 text-gray-600 hover:border-[#003399]/40'
                       }`}
                     >
+                      <div className="text-base leading-none mb-0.5">{opt.icon}</div>
                       <div className="text-sm font-black">{opt.label}</div>
-                      <div className="text-[9px] font-bold opacity-70">{opt.sub}</div>
+                      <div className="text-[9px] font-bold opacity-70 leading-tight">{opt.sub}</div>
                     </button>
                   ))}
                 </div>
