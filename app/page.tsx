@@ -219,6 +219,15 @@ export default function Home() {
       }),
     [vocabData, wordCap]
   );
+  // ชุดคำ "หลัก" สำหรับคำนวณ % ความก้าวหน้า (แยกจากชุดคำที่ฝึกได้จริง)
+  //   ห้อง 2,000 คำ: ใช้แค่คำสำคัญอันดับ 1-800 (rank) เป็นเป้าหมาย 100% เพื่อให้ทันเดดไลน์ 10 ก.ย. 2569
+  //     (นักเรียนยังฝึกคำที่เหลือทั้ง 2,000 คำได้ตามปกติ แค่ % จะนับจากชุด 800 คำนี้เป็นหลัก)
+  //   ห้อง 1,000 คำ: ใช้ชุดเต็มเหมือนเดิม (1,000 คำ ก็ถึง 100% ได้ทันอยู่แล้วตามที่คำนวณไว้)
+  const CORE_TARGET_FOR_2000 = 800;
+  const coreVocab = React.useMemo(() => {
+    if (wordCap !== 2000) return activeVocab;
+    return activeVocab.filter((w) => (tierLookup[w.word]?.rank ?? 9999) <= CORE_TARGET_FOR_2000);
+  }, [activeVocab, wordCap]);
   const [currentQuestions, setCurrentQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [options, setOptions] = useState<string[]>([]);
@@ -648,7 +657,7 @@ export default function Home() {
 
     // ซิงก์ความก้าวหน้า (SRS + สถิติ + streak) ขึ้น Firestore — ข้ามเครื่อง + ให้ครูเห็นรายคน
     try {
-      const stats = computeStats(srsStore, activeVocab.map((w) => w.word));
+      const stats = computeStats(srsStore, coreVocab.map((w) => w.word));
       await saveCloudProgress({ email, name: studentName, srs: srsStore, stats, lastScore: score, streak: updatedStreak });
     } catch (error) {
       console.error("Error syncing progress to cloud:", error);
@@ -658,7 +667,7 @@ export default function Home() {
   };
 
   const isVocabLoading = vocabData.length === 0;
-  const srsStats = computeStats(srsStore, activeVocab.map((w) => w.word));
+  const srsStats = computeStats(srsStore, coreVocab.map((w) => w.word));
   // ความก้าวหน้าแบบ "ให้คะแนนบางส่วน" ตามกล่อง SRS (ขยับทุกครั้งที่เลื่อนคำขึ้นกล่อง)
   const overallPercentage = srsStats.weightedProgress.toFixed(1);
   // จำนวนคำที่เด็กยังอ่อน (ไว้โชว์บนปุ่มทบทวนคำที่พลาด)
@@ -1996,7 +2005,7 @@ export default function Home() {
               <div className="mt-3 inline-flex items-center gap-2 bg-[#FFD700]/20 border-2 border-[#FFD700] rounded-full px-4 py-1.5">
                 <span className="text-base">🎯</span>
                 <span className="text-sm font-black text-[#003399]">
-                  {roomInfo.room ? `ห้อง ${roomInfo.room}` : 'ห้องพิเศษ'} · ชุดคำเป้าหมาย {activeVocab.length.toLocaleString()} คำ
+                  {roomInfo.room ? `ห้อง ${roomInfo.room}` : 'ห้องพิเศษ'} · ชุดคำเป้าหมาย {coreVocab.length.toLocaleString()} คำ
                 </span>
               </div>
             </div>
@@ -2015,7 +2024,7 @@ export default function Home() {
               <div className="text-xs text-gray-600 font-bold flex justify-between">
                 <span>เรียนแล้ว: <span className="text-[#003399]">{srsStats.seen}</span></span>
                 <span>จำได้: <span className="text-[#003399]">{srsStats.mastered}</span></span>
-                <span>เป้าหมาย: <span className="text-[#003399]">{activeVocab.length.toLocaleString()} คำ</span></span>
+                <span>เป้าหมาย: <span className="text-[#003399]">{coreVocab.length.toLocaleString()} คำ</span></span>
               </div>
               <p className="text-[10px] text-gray-400 mt-1.5 leading-relaxed">
                 % รวม = ครึ่งหนึ่งจากจำนวนคำที่เรียนแล้ว + อีกครึ่งจากระดับความจำ (ยิ่งทบทวนจนคำขึ้นกล่อง % ยิ่งเพิ่ม จนเต็ม 100% เมื่อจำแม่นครบทุกคำ) ส่วน &quot;จำได้&quot; คือคำที่จำได้สมบูรณ์
