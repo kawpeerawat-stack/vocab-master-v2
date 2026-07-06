@@ -45,9 +45,8 @@ const BOX_INTERVALS_MS: number[] = [
   35 * DAY,   // box 5 (ทบทวนนาน ๆ ครั้งเพื่อกันลืม)
 ];
 
-// ถือว่า "เชี่ยวชาญจริง" เมื่อถึงกล่องบนสุด และตอบถูกติดต่อกันพอควร
+// ถือว่า "ผ่าน/เชี่ยวชาญ" ทันทีที่ตอบถูก 1 ครั้ง (ไม่ต้องไต่กล่องทีละขั้นอีกต่อไป — เน้นให้เจอคำใหม่ได้กว้างที่สุด)
 const MASTERED_BOX = MAX_BOX;
-const MASTERED_MIN_STREAK = 2;
 
 const STORAGE_PREFIX = 'vocab_srs::';
 const LEGACY_KEY = 'vocab_mastered_progress'; // ระบบเก่า: array ของคำที่ผ่านแล้ว
@@ -78,11 +77,12 @@ export function review(card: SrsCard | undefined, correct: boolean): SrsCard {
   if (correct) {
     c.reps += 1;
     c.streak += 1;
-    c.box = Math.min(MAX_BOX, c.box + 1);
+    // ตอบถูก = "ผ่าน" ทันที (ไม่ต้องไต่กล่องทีละขั้นแบบเดิมอีกแล้ว)
+    //   ทั้งตอบถูกครั้งแรกเจอเลย และตอบถูกตอนกลับมาแก้คำที่เคยพลาด ล้วนถือว่าผ่านเท่ากัน
+    c.box = MAX_BOX;
   } else {
-    // ตอบผิด: ถ้าเคยจำได้แล้วลืม นับเป็น lapse, แล้วตกกลับกล่อง 0
-    // (กล่อง "ปัจจุบัน" ตกลงมาเพื่อให้ระบบนัดทบทวนใหม่เร็วขึ้น แต่ไม่แตะ bestBox/masteredEver
-    //  เพราะ % ความก้าวหน้าต้องไม่ลดจากการตอบผิด — นับเฉพาะจุดสูงสุดที่เคยทำได้)
+    // ตอบผิด: ถ้าเคยผ่านไปแล้วแล้วมาตอบผิดอีกครั้ง (ไม่ค่อยเกิดเพราะคำที่ผ่านแล้วจะไม่ถูกดึงมาถามซ้ำ)
+    // นับเป็น lapse แล้วต้องกลับไปเริ่มใหม่ที่กล่อง 0 (รอกลับมาแก้ตัว)
     if (c.box > 0) c.lapses += 1;
     c.box = 0;
     c.streak = 0;
@@ -90,7 +90,7 @@ export function review(card: SrsCard | undefined, correct: boolean): SrsCard {
 
   // อัปเดตสถิติ "จุดสูงสุดที่เคยทำได้" — เพิ่มขึ้นได้อย่างเดียว ไม่มีวันลดจากตอบผิด
   c.bestBox = Math.max(c.bestBox, c.box);
-  if (c.box >= MASTERED_BOX && c.streak >= MASTERED_MIN_STREAK) c.masteredEver = true;
+  if (c.box >= MASTERED_BOX) c.masteredEver = true;
 
   c.due = t + BOX_INTERVALS_MS[c.box];
   return c;
@@ -98,8 +98,8 @@ export function review(card: SrsCard | undefined, correct: boolean): SrsCard {
 
 export function isMastered(card: SrsCard | undefined): boolean {
   if (!card) return false;
-  // เคยเชี่ยวชาญจริงมาก่อน (ค้างตลอดไป) หรือกำลังอยู่ในสถานะเชี่ยวชาญตอนนี้พอดี
-  return !!card.masteredEver || (card.box >= MASTERED_BOX && card.streak >= MASTERED_MIN_STREAK);
+  // เคยผ่านมาก่อน (ค้างตลอดไป) หรือกำลังอยู่ในสถานะผ่านตอนนี้พอดี — ไม่ต้องเช็ค streak อีกต่อไป
+  return !!card.masteredEver || card.box >= MASTERED_BOX;
 }
 
 export function isDue(card: SrsCard | undefined, at: number = now()): boolean {
@@ -138,7 +138,10 @@ export function computeStats(store: SrsStore, allWords: string[]): SrsStats {
   // แตะ 100% เมื่อ "เรียนครบทุกคำ + จำแม่นทุกคำ (box 5)"
   const COVERAGE_WEIGHT = 0.5; // น้ำหนัก "จำนวนคำที่เรียนแล้ว" (0–1) ปรับได้
   const coverageRatio = total > 0 ? seen / total : 0;
-  const masteryRatio = total > 0 ? boxSum / (MAX_BOX * total) : 0;
+  // มาสเตอรี่คิดจาก "เฉลี่ยกล่องของคำที่เคยเจอแล้ว" (หารด้วย seen ไม่ใช่ total)
+  //   เดิมหารด้วย total ทำให้แม้เชี่ยวชาญคำที่เจอครบ 100% ก็ยังโชว์ % ต่ำ (ถูกเจือจางด้วยคำที่ยังไม่เจอ)
+  //   ตอนนี้ coverageRatio (เจอไปกี่% ของคลัง) รับหน้าที่นับคำที่ยังไม่เจอแทนอยู่แล้ว ไม่ต้องนับซ้ำสองรอบ
+  const masteryRatio = seen > 0 ? boxSum / (MAX_BOX * seen) : 0;
   const weightedProgress = (COVERAGE_WEIGHT * coverageRatio + (1 - COVERAGE_WEIGHT) * masteryRatio) * 100;
   return {
     total,
@@ -195,14 +198,16 @@ export function pickRound(
     if (count <= 0) return;
     const candidates = pool.filter((w) => !chosenSet.has(w.word));
 
+    // ทบทวนเฉพาะคำที่ "ยังไม่ผ่าน" (เคยตอบผิดค้างอยู่ที่กล่อง 0) — คำที่ผ่านแล้ว (box สูงสุด) จะไม่ถูกดึงมาถามซ้ำอัตโนมัติอีกเลย
+    //   เพื่อเปิดทางให้เจอ "คำใหม่" ได้กว้างที่สุด แทนที่จะเสียโควตาไปกับคำที่ทำได้แล้ว
     const due = candidates
-      .filter((w) => store[w.word] && store[w.word].due <= t)
+      .filter((w) => store[w.word] && store[w.word].box < MAX_BOX && store[w.word].due <= t)
       .sort((a, b) => store[a.word].due - store[b.word].due); // ด่วนสุดก่อน
 
     const fresh = shuffle(candidates.filter((w) => !store[w.word]));
 
     const seenNotDue = candidates
-      .filter((w) => store[w.word] && store[w.word].due > t)
+      .filter((w) => store[w.word] && store[w.word].box < MAX_BOX && store[w.word].due > t)
       .sort((a, b) => store[a.word].due - store[b.word].due); // ใกล้ครบกำหนดก่อน (กันคำที่เพิ่งตอบถูกหมาด ๆ ถูกดึงกลับมาซ้ำเร็วเกินไป)
 
     const ordered = [...due, ...fresh, ...seenNotDue];
