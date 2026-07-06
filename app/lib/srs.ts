@@ -13,7 +13,9 @@
 // ─────────────────────────────────────────────────────────────
 
 export interface SrsCard {
-  box: number;          // 0..MAX_BOX
+  box: number;          // 0..MAX_BOX (กล่อง "ปัจจุบัน" — ใช้กำหนดว่าจะถามซ้ำเมื่อไหร่)
+  bestBox: number;      // กล่องสูงสุดที่เคยทำได้ (ใช้คำนวณ % ความก้าวหน้า — ตอบผิดภายหลังไม่ลดค่านี้)
+  masteredEver: boolean;// เคย "เชี่ยวชาญ" มาก่อนไหม (ติดค้างตลอดไป แม้ภายหลังจะตอบผิด)
   due: number;          // timestamp (ms) ครั้งต่อไปที่ควรทบทวน
   reps: number;         // จำนวนครั้งที่ตอบถูกสะสม
   lapses: number;       // จำนวนครั้งที่ "ลืม" (ตอบผิดหลังเคยถูก)
@@ -61,12 +63,15 @@ function now(): number {
 
 // ── สร้างการ์ดใหม่สำหรับคำที่ยังไม่เคยเจอ ──
 export function newCard(): SrsCard {
-  return { box: 0, due: 0, reps: 0, lapses: 0, streak: 0, lastReviewed: 0 };
+  return { box: 0, bestBox: 0, masteredEver: false, due: 0, reps: 0, lapses: 0, streak: 0, lastReviewed: 0 };
 }
 
 // ── อัปเดตการ์ดหลังตอบ 1 ข้อ (correct = true/false) ──
 export function review(card: SrsCard | undefined, correct: boolean): SrsCard {
   const c: SrsCard = card ? { ...card } : newCard();
+  // รองรับการ์ดเก่าจาก localStorage/cloud ที่ยังไม่มี field ใหม่ (กันพัง)
+  if (c.bestBox == null) c.bestBox = c.box;
+  if (c.masteredEver == null) c.masteredEver = false;
   const t = now();
   c.lastReviewed = t;
 
@@ -76,10 +81,16 @@ export function review(card: SrsCard | undefined, correct: boolean): SrsCard {
     c.box = Math.min(MAX_BOX, c.box + 1);
   } else {
     // ตอบผิด: ถ้าเคยจำได้แล้วลืม นับเป็น lapse, แล้วตกกลับกล่อง 0
+    // (กล่อง "ปัจจุบัน" ตกลงมาเพื่อให้ระบบนัดทบทวนใหม่เร็วขึ้น แต่ไม่แตะ bestBox/masteredEver
+    //  เพราะ % ความก้าวหน้าต้องไม่ลดจากการตอบผิด — นับเฉพาะจุดสูงสุดที่เคยทำได้)
     if (c.box > 0) c.lapses += 1;
     c.box = 0;
     c.streak = 0;
   }
+
+  // อัปเดตสถิติ "จุดสูงสุดที่เคยทำได้" — เพิ่มขึ้นได้อย่างเดียว ไม่มีวันลดจากตอบผิด
+  c.bestBox = Math.max(c.bestBox, c.box);
+  if (c.box >= MASTERED_BOX && c.streak >= MASTERED_MIN_STREAK) c.masteredEver = true;
 
   c.due = t + BOX_INTERVALS_MS[c.box];
   return c;
@@ -87,7 +98,8 @@ export function review(card: SrsCard | undefined, correct: boolean): SrsCard {
 
 export function isMastered(card: SrsCard | undefined): boolean {
   if (!card) return false;
-  return card.box >= MASTERED_BOX && card.streak >= MASTERED_MIN_STREAK;
+  // เคยเชี่ยวชาญจริงมาก่อน (ค้างตลอดไป) หรือกำลังอยู่ในสถานะเชี่ยวชาญตอนนี้พอดี
+  return !!card.masteredEver || (card.box >= MASTERED_BOX && card.streak >= MASTERED_MIN_STREAK);
 }
 
 export function isDue(card: SrsCard | undefined, at: number = now()): boolean {
@@ -114,7 +126,8 @@ export function computeStats(store: SrsStore, allWords: string[]): SrsStats {
     const card = store[w];
     if (!card) continue;
     seen += 1;
-    boxSum += card.box;            // สะสมระดับกล่องของทุกคำ (ให้คะแนนบางส่วน)
+    // ใช้ "กล่องสูงสุดที่เคยทำได้" (bestBox) ไม่ใช่กล่องปัจจุบัน — กันไม่ให้ % ลดลงเมื่อตอบผิดคำที่เคยทำถูกแล้ว
+    boxSum += card.bestBox ?? card.box;
     if (isMastered(card)) mastered += 1;
     if (card.due <= t) dueNow += 1;
   }
@@ -190,7 +203,7 @@ export function pickRound(
 
     const seenNotDue = candidates
       .filter((w) => store[w.word] && store[w.word].due > t)
-      .sort((a, b) => store[a.word].box - store[b.word].box); // กล่องต่ำก่อน
+      .sort((a, b) => store[a.word].due - store[b.word].due); // ใกล้ครบกำหนดก่อน (กันคำที่เพิ่งตอบถูกหมาด ๆ ถูกดึงกลับมาซ้ำเร็วเกินไป)
 
     const ordered = [...due, ...fresh, ...seenNotDue];
     for (const w of ordered) {
@@ -257,6 +270,8 @@ export function migrateLegacyIfNeeded(email: string, store: SrsStore): SrsStore 
       // ใส่ไว้กล่องกลาง ๆ (box 3) เพื่อให้ระบบพากลับมาทบทวนยืนยันอีกครั้ง
       migrated[w] = {
         box: 3,
+        bestBox: 3,
+        masteredEver: false,
         due: t + BOX_INTERVALS_MS[3],
         reps: 1,
         lapses: 0,
