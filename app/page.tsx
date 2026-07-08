@@ -52,6 +52,7 @@ type WordItem = {
   level: string;
   part_of_speech?: string;
   type?: 'word' | 'phrasal_verb' | 'idiom';
+  pronunciation_th?: string; // คำอ่านสัทอักษรไทย เช่น "อะ-แบน-เดิน"
 };
 
 // แปลงชนิดคำเป็นป้ายสั้น ๆ สำหรับแสดงผล
@@ -2315,6 +2316,9 @@ export default function Home() {
                         aria-label="ฟังเสียงคำ"
                       >🔊</button>
                     </span>
+                    {currentQuestions[currentIndex].pronunciation_th && (
+                      <div className="text-sm font-bold text-gray-400 normal-case mt-0.5">/{currentQuestions[currentIndex].pronunciation_th}/</div>
+                    )}
                   </span>
                 )}
                 {currentQuestions[currentIndex].questionType === 'WRITE' && (
@@ -2491,6 +2495,11 @@ export default function Home() {
                       btnStyle = "bg-gray-50 text-gray-300 border-gray-100 opacity-50 cursor-not-allowed";
                     }
                   }
+                  // ช้อยที่เป็นคำอังกฤษ (ไม่ใช่โหมด MEANING ที่ช้อยเป็นความหมายไทย) แสดงคำอ่านกำกับด้วย
+                  const optionPron =
+                    currentQuestions[currentIndex].questionType !== 'MEANING'
+                      ? vocabByWord[option.toLowerCase()]?.pronunciation_th
+                      : undefined;
                   return (
                     <button
                       key={idx}
@@ -2498,7 +2507,12 @@ export default function Home() {
                       disabled={isAnswered}
                       className={`w-full p-4 border-2 rounded-2xl text-left text-base md:text-lg transition-all duration-200 flex items-center justify-between ${btnStyle}`}
                     >
-                      <span>{option}</span>
+                      <span>
+                        {option}
+                        {optionPron && (
+                          <span className="block text-xs font-bold opacity-60 normal-case">/{optionPron}/</span>
+                        )}
+                      </span>
                       {isAnswered && isCorrectChoice && <span className="text-[#FFD700]">✓</span>}
                     </button>
                   );
@@ -2537,6 +2551,9 @@ export default function Home() {
                       aria-label="ฟังเสียงคำ"
                     >🔊</button>
                   </div>
+                  {cq.pronunciation_th && (
+                    <p className="text-sm font-bold text-gray-400 mb-1">/{cq.pronunciation_th}/</p>
+                  )}
                   <p className="text-base font-bold text-[#003399] mb-1">{cq.thai_meaning}</p>
                   {cq.eng_definition && (
                     <p className="text-sm text-gray-600 mb-2">{cq.eng_definition}</p>
