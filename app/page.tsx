@@ -200,7 +200,7 @@ export default function Home() {
   const [vocabData, setVocabData] = useState<WordItem[]>([]);
 
   // ── ชุดคำตามห้อง (auto): ดึงเลขห้องจากชื่อที่นักเรียนกรอก เช่น "M.6/4" ──
-  //   6/1–6/3 (LMS/CS) → 2,000 คำ | 6/4–6/5 (วิทย์พลังสิบ) → 1,000 คำ
+  //   6/1–6/3 (LMS/CS) → คลังเต็ม 3,497 คำ | 6/4–6/5 (วิทย์พลังสิบ) → 1,000 คำ
   //   ระบุห้องไม่ได้ → ใช้ DEFAULT_WORD_CAP
   const DEFAULT_WORD_CAP = 2000; // ปรับได้: ห้องที่ระบบอ่านห้องไม่เจอจะได้ชุดนี้
   const tierLookup = TIERS as unknown as Record<string, { tier: number; rank: number }>;
@@ -220,15 +220,10 @@ export default function Home() {
       }),
     [vocabData, wordCap]
   );
-  // ชุดคำ "หลัก" สำหรับคำนวณ % ความก้าวหน้า (แยกจากชุดคำที่ฝึกได้จริง)
-  //   ห้อง 2,000 คำ: ใช้แค่คำสำคัญอันดับ 1-800 (rank) เป็นเป้าหมาย 100% เพื่อให้ทันเดดไลน์ 10 ก.ย. 2569
-  //     (นักเรียนยังฝึกคำที่เหลือทั้ง 2,000 คำได้ตามปกติ แค่ % จะนับจากชุด 800 คำนี้เป็นหลัก)
-  //   ห้อง 1,000 คำ: ใช้ชุดเต็มเหมือนเดิม (1,000 คำ ก็ถึง 100% ได้ทันอยู่แล้วตามที่คำนวณไว้)
-  const CORE_TARGET_FOR_2000 = 800;
-  const coreVocab = React.useMemo(() => {
-    if (wordCap !== 2000) return activeVocab;
-    return activeVocab.filter((w) => (tierLookup[w.word]?.rank ?? 9999) <= CORE_TARGET_FOR_2000);
-  }, [activeVocab, wordCap]);
+  // ชุดคำ "หลัก" สำหรับคำนวณ % ความก้าวหน้า
+  //   เดิมจำกัดห้อง 2,000 คำไว้แค่ 800 คำ (เผื่อเวลาไม่พอ) — ตอนนี้เป้าสอบเลื่อนเป็นรอบปี 2570
+  //   มีเวลาเพียงพอให้ทุกห้องนับ % จากคลังเต็มที่ตัวเองฝึกได้จริง ไม่ต้องจำกัดอีกต่อไป
+  const coreVocab = activeVocab;
   const [currentQuestions, setCurrentQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [options, setOptions] = useState<string[]>([]);
