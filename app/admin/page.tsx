@@ -80,7 +80,7 @@ function roomOf(name?: string): string | null {
 }
 const ROOMS = ["6/1", "6/2", "6/3", "6/4", "6/5"];
 function roomTarget(room: string | null): number {
-  return room === "6/4" || room === "6/5" ? 1000 : 2000;
+  return room === "6/4" || room === "6/5" ? 1000 : 3497;
 }
 
 // ── รายชื่อทางการ + จับคู่ชื่อที่นักเรียนพิมพ์ ──
