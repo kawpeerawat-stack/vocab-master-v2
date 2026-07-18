@@ -262,6 +262,44 @@ export function saveStore(email: string, store: SrsStore): void {
   }
 }
 
+// ─────────────────────────────────────────────────────────────
+// ── cache สำรองในเครื่องสำหรับ "บทที่ทำจบ/พิชิตแล้ว" ของ Reading + Conversation ──
+//   เดิม Reading/Conversation พึ่งข้อมูลจาก cloud อย่างเดียวตอนล็อกอิน — ถ้าดึงจาก cloud
+//   พลาด (เน็ตสะดุด/ช้า) จะเห็นเป็น "ยังไม่ได้ทำ" ทั้งหมดทันที ทั้งที่ข้อมูลจริงยังอยู่ปลอดภัยใน cloud
+//   จึงเพิ่ม cache สำรองแบบเดียวกับคำศัพท์ กันเคสนี้ไว้
+// ─────────────────────────────────────────────────────────────
+export interface ProgressSetsCache {
+  completedPassages: string[];
+  masteredPassages: string[];
+  completedConvos: string[];
+  masteredConvos: string[];
+}
+const PROGRESS_CACHE_PREFIX = 'vocab_progress_sets::';
+function progressCacheKeyFor(email: string): string {
+  return PROGRESS_CACHE_PREFIX + email.trim().toLowerCase();
+}
+
+export function loadProgressSetsCache(email: string): ProgressSetsCache {
+  const empty: ProgressSetsCache = { completedPassages: [], masteredPassages: [], completedConvos: [], masteredConvos: [] };
+  if (typeof window === 'undefined' || !email) return empty;
+  try {
+    const raw = window.localStorage.getItem(progressCacheKeyFor(email));
+    if (raw) return { ...empty, ...(JSON.parse(raw) as Partial<ProgressSetsCache>) };
+  } catch (e) {
+    console.error('loadProgressSetsCache error:', e);
+  }
+  return empty;
+}
+
+export function saveProgressSetsCache(email: string, cache: ProgressSetsCache): void {
+  if (typeof window === 'undefined' || !email) return;
+  try {
+    window.localStorage.setItem(progressCacheKeyFor(email), JSON.stringify(cache));
+  } catch (e) {
+    console.error('saveProgressSetsCache error:', e);
+  }
+}
+
 // ── ย้ายข้อมูลจากระบบเก่า (array ของคำที่ "ผ่านแล้ว") มาเป็นการ์ด box สูง ──
 // เรียกครั้งเดียวตอนล็อกอิน ถ้ายังไม่มีข้อมูล SRS ของอีเมลนี้
 export function migrateLegacyIfNeeded(email: string, store: SrsStore): SrsStore {
