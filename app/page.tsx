@@ -10,6 +10,8 @@ import {
   review as srsReview,
   pickRound,
   computeStats,
+  loadProgressSetsCache,
+  saveProgressSetsCache,
 } from './lib/srs';
 import {
   checkTypedAnswer,
@@ -298,18 +300,45 @@ export default function Home() {
   }, [timeLeft, gameState, isAnswered, currentIndex]);
 
   // ── อ่านออกเสียงคำ (ใช้เสียงในเบราว์เซอร์ ฟรี) สำหรับโหมดฟังเสียง ──
-  const speakWord = (word: string) => {
+  // เล่นเสียงคำ/ประโยคภาษาอังกฤษ (Web Speech API) — ทนทานขึ้น: ถ้ารายชื่อเสียงยังโหลดไม่เสร็จ
+  //   (พบบ่อยตอนเพิ่งเปิดหน้าเว็บครั้งแรก โดยเฉพาะมือถือ Android) จะรอให้พร้อมก่อนค่อยเล่น
+  //   แทนที่จะเงียบไปเฉย ๆ แบบเดิม — และเลือกเสียงภาษาอังกฤษให้ชัดเจนถ้าเบราว์เซอร์มีให้เลือก
+  const speakText = (text: string) => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    try {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(word);
-      u.lang = 'en-US';
-      u.rate = 0.9;
-      window.speechSynthesis.speak(u);
-    } catch (e) {
-      console.error('speak error:', e);
+    const synth = window.speechSynthesis;
+    let spoken = false;
+    const doSpeak = () => {
+      if (spoken) return;
+      spoken = true;
+      try {
+        synth.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'en-US';
+        u.rate = 0.9;
+        const voices = synth.getVoices();
+        const enVoice = voices.find((v) => v.lang?.toLowerCase().startsWith('en'));
+        if (enVoice) u.voice = enVoice;
+        synth.speak(u);
+      } catch (e) {
+        console.error('speak error:', e);
+      }
+    };
+    if (synth.getVoices().length === 0) {
+      // เสียงยังไม่พร้อม — รอ event 'voiceschanged' หรือ timeout สำรอง (บางเบราว์เซอร์ไม่ยิง event นี้)
+      const onVoicesReady = () => {
+        synth.removeEventListener('voiceschanged', onVoicesReady);
+        doSpeak();
+      };
+      synth.addEventListener('voiceschanged', onVoicesReady);
+      setTimeout(() => {
+        synth.removeEventListener('voiceschanged', onVoicesReady);
+        doSpeak();
+      }, 300);
+    } else {
+      doSpeak();
     }
   };
+  const speakWord = (word: string) => speakText(word);
 
   // ── useEffect: เล่นเสียงอัตโนมัติเมื่อถึงข้อแบบฟังเสียง ──
   useEffect(() => {
@@ -329,16 +358,33 @@ export default function Home() {
       store = migrateLegacyIfNeeded(email, store);
       setSrsStore(store);
       setStreakState(loadStreak(email));
+      // แถบ Reading/Conversation ที่ทำจบแล้ว — โหลดจาก cache เครื่องก่อนเป็นค่าตั้งต้น
+      //   กันเคส "ดึงจาก cloud ไม่สำเร็จแล้วเห็นเป็นว่างเปล่าทั้งที่เคยทำไปแล้ว"
+      const progressCache = loadProgressSetsCache(email);
+      setReadingMastered(new Set(progressCache.masteredPassages));
+      setReadingCompleted(new Set(progressCache.completedPassages));
+      setConvMastered(new Set(progressCache.masteredConvos));
+      setConvCompleted(new Set(progressCache.completedConvos));
       setIsLoggedIn(true);
       setSection('HUB');
 
-      // 2) ดึงจากคลาวด์มาทับถ้ามี (ทำให้ progress ตามข้ามเครื่อง)
+      // 2) ดึงจากคลาวด์มาทับถ้ามี (ทำให้ progress ตามข้ามเครื่อง) — สำเร็จค่อยอัปเดต cache เครื่องให้ตรงกัน
       try {
         const cloud = await loadCloudProgress(email);
-        if (cloud?.masteredPassages) setReadingMastered(new Set(cloud.masteredPassages));
-        if (cloud?.completedPassages) setReadingCompleted(new Set(cloud.completedPassages));
-        if (cloud?.masteredConvos) setConvMastered(new Set(cloud.masteredConvos));
-        if (cloud?.completedConvos) setConvCompleted(new Set(cloud.completedConvos));
+        const nextMasteredPassages = cloud?.masteredPassages ?? progressCache.masteredPassages;
+        const nextCompletedPassages = cloud?.completedPassages ?? progressCache.completedPassages;
+        const nextMasteredConvos = cloud?.masteredConvos ?? progressCache.masteredConvos;
+        const nextCompletedConvos = cloud?.completedConvos ?? progressCache.completedConvos;
+        if (cloud?.masteredPassages) setReadingMastered(new Set(nextMasteredPassages));
+        if (cloud?.completedPassages) setReadingCompleted(new Set(nextCompletedPassages));
+        if (cloud?.masteredConvos) setConvMastered(new Set(nextMasteredConvos));
+        if (cloud?.completedConvos) setConvCompleted(new Set(nextCompletedConvos));
+        saveProgressSetsCache(email, {
+          masteredPassages: nextMasteredPassages,
+          completedPassages: nextCompletedPassages,
+          masteredConvos: nextMasteredConvos,
+          completedConvos: nextCompletedConvos,
+        });
         if (cloud && cloud.srs && Object.keys(cloud.srs).length > 0) {
           setSrsStore(cloud.srs);
           saveStore(email, cloud.srs); // เก็บลงเครื่องเป็น cache ด้วย
@@ -700,18 +746,7 @@ export default function Home() {
 
   // เริ่มทำบทอ่านที่เลือก
   // อ่านออกเสียงคำศัพท์ (Web Speech API ของเบราว์เซอร์ — ไม่ต้องพึ่งบริการภายนอก)
-  const speak = (text: string) => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    try {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'en-US';
-      u.rate = 0.9;
-      window.speechSynthesis.speak(u);
-    } catch {
-      /* เบราว์เซอร์บางตัวไม่รองรับ — เงียบไว้ */
-    }
-  };
+  const speak = (text: string) => speakText(text);
 
   // เวลาที่เหมาะสมต่อบท: อ่าน ~120 คำ/นาที + ~45 วินาที/ข้อ ปัดเป็นครึ่งนาที (ขั้นต่ำ 3 นาที)
   const readingTimeLimitSec = (wordCount: number, numQuestions: number) =>
@@ -918,6 +953,17 @@ export default function Home() {
       const pid = activePassage.id;
       setReadingCompleted((prev) => { const n = new Set(prev); n.add(pid); return n; });
       if (allCorrect) setReadingMastered((prev) => { const n = new Set(prev); n.add(pid); return n; });
+      // อัปเดต cache เครื่องทันที กันเคสปิดแอป/รีเฟรชก่อนที่จะ sync ขึ้น cloud สำเร็จ
+      if (email) {
+        const newCompleted = new Set(readingCompleted); newCompleted.add(pid);
+        const newMastered = new Set(readingMastered); if (allCorrect) newMastered.add(pid);
+        saveProgressSetsCache(email, {
+          completedPassages: Array.from(newCompleted),
+          masteredPassages: Array.from(newMastered),
+          completedConvos: Array.from(convCompleted),
+          masteredConvos: Array.from(convMastered),
+        });
+      }
     }
     // บันทึกคะแนนเฉพาะบทที่ครูตรวจแล้ว (ไม่บันทึกตอนครูพรีวิวบทที่ยัง verified:false)
     if (activePassage.verified && email) {
@@ -1005,6 +1051,17 @@ export default function Home() {
       const cid = activeConv.id;
       setConvCompleted((prev) => { const n = new Set(prev); n.add(cid); return n; });
       if (allCorrect) setConvMastered((prev) => { const n = new Set(prev); n.add(cid); return n; });
+      // อัปเดต cache เครื่องทันที กันเคสปิดแอป/รีเฟรชก่อนที่จะ sync ขึ้น cloud สำเร็จ
+      if (email) {
+        const newCompleted = new Set(convCompleted); newCompleted.add(cid);
+        const newMastered = new Set(convMastered); if (allCorrect) newMastered.add(cid);
+        saveProgressSetsCache(email, {
+          completedPassages: Array.from(readingCompleted),
+          masteredPassages: Array.from(readingMastered),
+          completedConvos: Array.from(newCompleted),
+          masteredConvos: Array.from(newMastered),
+        });
+      }
     }
     // บันทึกเฉพาะชุดที่ครูตรวจแล้ว (ไม่บันทึกตอนครูพรีวิว)
     if (activeConv.verified && email) {
