@@ -52,6 +52,10 @@ type StudentDoc = {
   lastDeltaAnswered?: number;
   lastActiveAt?: number;
   history?: { ts: number; percent: number; answered: number; seen: number }[];
+  completedPassages?: string[]; // id บท Reading ที่ทำจบแล้ว
+  masteredPassages?: string[];  // id บท Reading ที่ "พิชิต" (ถูกครบทุกข้อ)
+  completedConvos?: string[];   // id ชุด Conversation ที่ทำจบแล้ว
+  masteredConvos?: string[];    // id ชุด Conversation ที่ "พิชิต"
 };
 
 type VocabMeaning = { thai: string; level: string };
@@ -81,6 +85,10 @@ function roomOf(name?: string): string | null {
 const ROOMS = ["6/1", "6/2", "6/3", "6/4", "6/5"];
 function roomTarget(room: string | null): number {
   return room === "6/4" || room === "6/5" ? 1000 : 3497;
+}
+// จำนวนหัวข้อ Reading/Conversation ทั้งหมดที่ห้องนั้นเห็น (ตรงกับ topicCap ฝั่งหน้านักเรียนใน page.tsx)
+function topicTarget(room: string | null): number {
+  return room === "6/4" || room === "6/5" ? 30 : 60;
 }
 
 // ── รายชื่อทางการ + จับคู่ชื่อที่นักเรียนพิมพ์ ──
@@ -140,6 +148,8 @@ function SubjectProgress({
   icon,
   accent,
   stat,
+  topicsDone,
+  topicsTarget,
 }: {
   title: string;
   icon: string;
@@ -152,12 +162,14 @@ function SubjectProgress({
     lastActiveAt?: number;
     history?: { ts: number; pct: number; answered: number }[];
   };
+  topicsDone: number;
+  topicsTarget: number;
 }) {
   if (!stat || !stat.attempts) {
     return (
       <div className="mb-4">
         <div className={`text-xs font-bold ${accent} mb-1`}>{icon} {title}</div>
-        <div className="text-xs text-neutral-600">ยังไม่มีข้อมูล (นักเรียนยังไม่ได้เข้าทำหมวดนี้)</div>
+        <div className="text-xs text-neutral-600">ยังไม่มีข้อมูล (นักเรียนยังไม่ได้เข้าทำหมวดนี้) — สำเร็จ 0/{topicsTarget} หัวข้อ</div>
       </div>
     );
   }
@@ -170,6 +182,9 @@ function SubjectProgress({
         {icon} {title} · เข้าทำล่าสุด {fmtThaiTime(stat.lastActiveAt)}
       </div>
       <div className="flex flex-wrap gap-2 mb-2 text-xs">
+        <span className="bg-neutral-900/60 rounded-lg px-3 py-1.5 text-neutral-300">
+          หัวข้อสำเร็จ <b className={accent}>{topicsDone}/{topicsTarget}</b>
+        </span>
         <span className="bg-neutral-900/60 rounded-lg px-3 py-1.5 text-neutral-300">ความแม่น <b className={accent}>{acc}%</b></span>
         <span className="bg-neutral-900/60 rounded-lg px-3 py-1.5 text-neutral-300">ดีที่สุด <b>{stat.bestPct ?? 0}%</b></span>
         <span className="bg-neutral-900/60 rounded-lg px-3 py-1.5 text-neutral-300">ทำไป <b>{stat.attempts ?? 0}</b> รอบ</span>
@@ -332,7 +347,7 @@ export default function AdminDashboard() {
   };
 
   const downloadCsv = () => {
-    const headers = ["ชื่อ", "อีเมล", "ก้าวหน้า %", "ขยับล่าสุด %", "ทำเพิ่มล่าสุด (ข้อ)", "ตอบสะสม (ข้อ)", "เข้าทำล่าสุด", "จำได้", "กำลังเรียน", "เคยเจอ", "คะแนนสูงสุด", "วันติด(streak)", "ออกจากจอรวม", "ส่งอัตโนมัติ", "บทที่ออกจากจอ", "คำที่ยังอ่อน"];
+    const headers = ["ชื่อ", "อีเมล", "ก้าวหน้า %", "ขยับล่าสุด %", "ทำเพิ่มล่าสุด (ข้อ)", "ตอบสะสม (ข้อ)", "เข้าทำล่าสุด", "จำได้", "กำลังเรียน", "เคยเจอ", "คะแนนสูงสุด", "วันติด(streak)", "Reading สำเร็จ", "Reading เป้าหมาย", "Conversation สำเร็จ", "Conversation เป้าหมาย", "ออกจากจอรวม", "ส่งอัตโนมัติ", "บทที่ออกจากจอ", "คำที่ยังอ่อน"];
     const rows = students.map((s) => {
       const weak = weakWordsOf(s)
         .map((w) => (vocabMap[w.word] ? `${w.word}(${vocabMap[w.word].thai})` : w.word))
@@ -341,6 +356,7 @@ export default function AdminDashboard() {
         .sort((a, b) => b.leaves - a.leaves)
         .map((lv) => `${lv.title || "(บท)"}(${lv.leaves}×${(lv.autoSubmits ?? 0) > 0 ? `, ส่งอัตโนมัติ ${lv.autoSubmits}` : ""})`)
         .join("; ");
+      const target = topicTarget(roomOf(s.name));
       return [
         s.name || "",
         s.email || s.id,
@@ -354,6 +370,10 @@ export default function AdminDashboard() {
         s.seen ?? 0,
         s.bestScore ?? s.score ?? 0,
         s.streak ?? 0,
+        (s.completedPassages ?? []).length,
+        target,
+        (s.completedConvos ?? []).length,
+        target,
         s.reading?.totalLeaves ?? 0,
         s.reading?.autoSubmits ?? 0,
         leaveDetail,
@@ -449,12 +469,16 @@ export default function AdminDashboard() {
     const hist = st?.history ?? [];
     const last = hist[hist.length - 1];
     const prev = hist[hist.length - 2];
+    const completedIds = (subject === "reading" ? s.completedPassages : s.completedConvos) ?? [];
+    const target = topicTarget(roomOf(s.name));
     return {
       pct: acc,
-      sub: `ทำไป ${st?.attempts ?? 0} รอบ`,
+      sub: `สำเร็จ ${completedIds.length}/${target} หัวข้อ · ทำไป ${st?.attempts ?? 0} รอบ`,
       deltaPct: last && prev ? Math.round((last.pct - prev.pct) * 10) / 10 : 0,
       deltaAns: last && prev ? Math.max(0, last.answered - prev.answered) : 0,
       lastActive: st?.lastActiveAt,
+      topicsDone: completedIds.length,
+      topicsTarget: target,
     };
   };
   // เรียงตาม % ของหมวดที่เลือก (มากสุดก่อน)
@@ -746,8 +770,22 @@ export default function AdminDashboard() {
                               </div>
                             )}
 
-                            <SubjectProgress title="ความก้าวหน้า Reading (การอ่าน)" icon="📖" accent="text-sky-300" stat={s.reading} />
-                            <SubjectProgress title="ความก้าวหน้า Conversation (บทสนทนา)" icon="💬" accent="text-purple-300" stat={s.conversation} />
+                            <SubjectProgress
+                              title="ความก้าวหน้า Reading (การอ่าน)"
+                              icon="📖"
+                              accent="text-sky-300"
+                              stat={s.reading}
+                              topicsDone={(s.completedPassages ?? []).length}
+                              topicsTarget={topicTarget(roomOf(s.name))}
+                            />
+                            <SubjectProgress
+                              title="ความก้าวหน้า Conversation (บทสนทนา)"
+                              icon="💬"
+                              accent="text-purple-300"
+                              stat={s.conversation}
+                              topicsDone={(s.completedConvos ?? []).length}
+                              topicsTarget={topicTarget(roomOf(s.name))}
+                            />
 
                             <div className="text-xs font-bold text-neutral-400 mb-2">คำที่ {s.name} ยังอ่อน:</div>                            {weak.length === 0 ? (
                               <span className="text-neutral-600 text-sm">ยังไม่มีคำที่อ่อน หรือยังไม่มีข้อมูล</span>
