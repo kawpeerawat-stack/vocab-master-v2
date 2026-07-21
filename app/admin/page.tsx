@@ -458,7 +458,7 @@ export default function AdminDashboard() {
     if (subject === "vocab") {
       return {
         pct: s.percent ?? 0,
-        sub: `${s.seen ?? 0}/${s.total ?? 0} คำ`,
+        sub: `ทำได้ ${s.mastered ?? 0}/${s.total ?? 0} คำ`,
         deltaPct: s.lastDeltaPercent ?? 0,
         deltaAns: s.lastDeltaAnswered ?? 0,
         lastActive: s.lastActiveAt,
@@ -482,7 +482,16 @@ export default function AdminDashboard() {
     };
   };
   // เรียงตาม % ของหมวดที่เลือก (มากสุดก่อน)
-  const sortedStudents = [...filteredStudents].sort((a, b) => subjectView(b).pct - subjectView(a).pct);
+  // เรียงตาม "เลขที่" (1,2,3,...) ทุกแท็บ — ง่ายต่อการดูรายเลขที่ว่าทำได้กี่คำ/กี่% แล้ว
+  //   คนที่จับคู่รายชื่อทางการไม่ได้ (ไม่มีเลขที่) จะถูกจัดไว้ท้ายสุด เรียงตามชื่อ
+  const sortedStudents = [...filteredStudents].sort((a, b) => {
+    const noA = matchRoster(a.name)?.entry.no;
+    const noB = matchRoster(b.name)?.entry.no;
+    if (noA != null && noB != null) return noA - noB;
+    if (noA != null) return -1; // มีเลขที่มาก่อนคนที่ไม่มี
+    if (noB != null) return 1;
+    return (a.name || "").localeCompare(b.name || "", "th");
+  });
 
   // ค่าการ์ดสรุป (เปลี่ยนตามหมวด)
   const subjLabel = subject === "vocab" ? "คำศัพท์" : subject === "reading" ? "Reading" : "Conversation";
@@ -610,7 +619,7 @@ export default function AdminDashboard() {
         <div className="bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden">
           <div className="p-6 border-b border-neutral-800">
             <h2 className="text-lg font-black text-amber-200">นักเรียนรายคน — {subjLabel}</h2>
-            <p className="text-xs text-neutral-500">เรียงตาม % ก้าวหน้าของ {subjLabel} (มากสุดก่อน) · คลิกที่แถวเพื่อดูประวัติทุกหมวด</p>
+            <p className="text-xs text-neutral-500">เรียงตามเลขที่ (1, 2, 3, ...) · คลิกที่แถวเพื่อดูประวัติทุกหมวด</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {[
                 { key: "ALL", label: "ทั้งหมด" },
@@ -717,7 +726,12 @@ export default function AdminDashboard() {
                         className="hover:bg-neutral-800/30 transition-colors cursor-pointer"
                         onClick={() => setExpanded(isOpen ? null : s.id)}
                       >
-                        <td className="p-4 font-bold text-white">{s.name || "(ไม่มีชื่อ)"}</td>
+                        <td className="p-4 font-bold text-white">
+                          {matchRoster(s.name) && (
+                            <span className="inline-block w-6 text-amber-300 font-black">{matchRoster(s.name)?.entry.no}.</span>
+                          )}
+                          {s.name || "(ไม่มีชื่อ)"}
+                        </td>
                         <td className="p-4 text-neutral-500 text-sm font-mono hidden md:table-cell">{s.email}</td>
                         <td className="p-4 text-center">
                           <div className="font-black text-lg text-emerald-400">{v.pct.toFixed(1)}%</div>
