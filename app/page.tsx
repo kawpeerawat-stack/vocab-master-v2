@@ -340,6 +340,23 @@ export default function Home() {
   };
   const speakWord = (word: string) => speakText(word);
 
+  // "ปลดล็อก" ระบบเสียงตอนผู้ใช้กดปุ่มจริง (ต้องเรียกจาก event handler ของการคลิกโดยตรง)
+  //   เบราว์เซอร์ (โดยเฉพาะมือถือ/Safari) จะบล็อกเสียงที่พยายามเล่น "อัตโนมัติ" แบบเงียบ ๆ
+  //   ถ้าไม่ได้มาจากการกดของผู้ใช้โดยตรง — โหมด 🎧 ฟังเสียง เล่นเสียงผ่าน setTimeout ตอนคำถามโหลด
+  //   ซึ่งไม่นับเป็นการกดของผู้ใช้ จึงมักโดนบล็อกเงียบ ๆ ทำให้ "เห็นคำถามแต่ไม่มีเสียง"
+  //   วิธีแก้: เล่นเสียงเบา ๆ (volume 0) ตอนกดปุ่มเริ่มรอบจริง ๆ เพื่อปลดล็อกไว้ล่วงหน้า
+  const unlockSpeech = () => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    try {
+      const synth = window.speechSynthesis;
+      const u = new SpeechSynthesisUtterance(' ');
+      u.volume = 0;
+      synth.speak(u);
+    } catch {
+      /* เงียบไว้ ไม่ต้องแจ้งเตือนผู้ใช้ */
+    }
+  };
+
   // ── useEffect: เล่นเสียงอัตโนมัติเมื่อถึงข้อแบบฟังเสียง ──
   useEffect(() => {
     if (gameState !== 'QUIZ') return;
@@ -352,6 +369,7 @@ export default function Home() {
 
   const handleStudentLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    unlockSpeech(); // ปลดล็อกเสียงไว้ตั้งแต่จุดแรกที่ผู้ใช้กด (บางเบราว์เซอร์ต้องการแค่ครั้งเดียวต่อหน้าเว็บ)
     if (studentName.trim() && email.trim() && email.includes('@')) {
       // 1) โหลดจากเครื่อง (เร็ว) ให้เห็นทันที
       let store = loadStore(email);
@@ -429,6 +447,7 @@ export default function Home() {
   // สร้างรอบจากรายการคำที่กำหนด (ใช้ร่วมกันทั้งรอบปกติและรอบทบทวนคำที่พลาด)
   // forcedType: ถ้ากำหนด ทุกข้อจะเป็นประเภทเดียวกัน (โหมดเจาะพาร์ท ไม่มีข้อแต่งประโยค)
   const beginRoundWithWords = (words: WordItem[], forcedType?: QuizQuestion['questionType']) => {
+    unlockSpeech(); // เรียกตอนนี้ (มาจากการกดปุ่มของผู้ใช้โดยตรง) เพื่อปลดล็อกเสียงไว้ล่วงหน้า
     const formattedQuestions: QuizQuestion[] = words.map((item, i) => {
       // วลี/สำนวนหลายคำ ไม่เหมาะกับโหมดพิมพ์เป๊ะ ๆ (TYPE) → ใช้โหมดความหมายแทน
       const isMultiWord = item.word.includes(' ');
