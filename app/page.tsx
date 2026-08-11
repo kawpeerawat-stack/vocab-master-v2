@@ -202,23 +202,27 @@ export default function Home() {
   const [vocabData, setVocabData] = useState<WordItem[]>([]);
 
   // ── ชุดคำตามห้อง (auto): ดึงเลขห้องจากชื่อที่นักเรียนกรอก เช่น "M.6/4" ──
-  //   6/1–6/3 (LMS/CS) → คลังเต็ม 3,497 คำ | 6/4–6/5 (วิทย์พลังสิบ) → 1,000 คำ
-  //   ระบุห้องไม่ได้ → ใช้ DEFAULT_WORD_CAP
-  const DEFAULT_WORD_CAP = 2000; // ปรับได้: ห้องที่ระบบอ่านห้องไม่เจอจะได้ชุดนี้
+  //   6/1–6/3 (LMS/CS) → คลังเต็ม 3,497 คำ | 6/4 → 2,000 คำ | 6/5 (วิทย์พลังสิบ) → 1,000 คำ
+  //   ระบุห้องไม่ได้ → ให้คลังเต็มไว้ก่อน (กันเคสบัญชีทดสอบ/ครูโดนจำกัดโดยไม่ตั้งใจ)
+  const FULL_BANK_CAP = Infinity;
+  const DEFAULT_WORD_CAP = FULL_BANK_CAP; // ห้องที่ระบบอ่านห้องไม่เจอจะได้ชุดนี้
   const tierLookup = TIERS as unknown as Record<string, { tier: number; rank: number }>;
   const roomInfo = React.useMemo(() => {
     const m = studentName.match(/6\s*[\/._-]\s*([1-5])/);
     if (!m) return { cap: DEFAULT_WORD_CAP, room: null as string | null };
     const n = m[1];
-    return { cap: n === '4' || n === '5' ? 1000 : 2000, room: `6/${n}` };
+    // ใช้ "อันดับ (rank)" เป็นตัวตัดจริง ไม่ใช่ tier bucket — เพราะ tier2000 ตอนนี้ครอบคลุมถึง rank 3497 แล้ว
+    //   เทียบ tier bucket เฉย ๆ จะแยก "2,000 คำพอดี" ออกจาก "คลังเต็ม" ไม่ได้อีกต่อไป
+    const cap = n === '5' ? 1000 : n === '4' ? 2000 : FULL_BANK_CAP;
+    return { cap, room: `6/${n}` };
   }, [studentName]);
   const wordCap = roomInfo.cap;
-  // คำที่ใช้จริงสำหรับนักเรียนคนนี้ (ซ่อนคลังเต็ม 4,253 — เหลือเฉพาะ tier ที่ปลดล็อก)
+  // คำที่ใช้จริงสำหรับนักเรียนคนนี้ (ซ่อนคลังเต็ม — เหลือเฉพาะอันดับ 1..wordCap)
   const activeVocab = React.useMemo(
     () =>
       vocabData.filter((w) => {
-        const t = tierLookup[w.word]?.tier ?? 0;
-        return t > 0 && t <= wordCap; // tier1000 เข้าได้ทุกห้อง, tier2000 เฉพาะ cap=2000
+        const rank = tierLookup[w.word]?.rank ?? Infinity;
+        return rank <= wordCap; // rank 1..1000 ทุกห้อง, 1001..2000 เฉพาะ 6/1-6/4, 2001+ เฉพาะ 6/1-6/3
       }),
     [vocabData, wordCap]
   );
@@ -1010,7 +1014,9 @@ export default function Home() {
 
   // บทอ่านที่จะแสดง (เด็กเห็นเฉพาะที่ครูตรวจแล้ว / ครูเปิดสวิตช์เพื่อพรีวิวบทที่ยังไม่ตรวจ)
   // จำนวนหัวข้อ Reading/Conversation ตามห้อง: 6/4-6/5 = 30, ห้องอื่น = 60 (ผูกกับ wordCap)
-  const topicCap = wordCap === 1000 ? 30 : 60;
+  // จำนวนหัวข้อ Reading/Conversation ตามห้อง — ผูกกับ "ห้อง" โดยตรง ไม่ใช้ wordCap
+  //   (แยกอิสระจากจำนวนคำศัพท์ กันเคสปรับคำศัพท์ห้องใดห้องหนึ่งแล้วกระทบจำนวนหัวข้ออ่าน/สนทนาโดยไม่ตั้งใจ)
+  const topicCap = roomInfo.room === '6/4' || roomInfo.room === '6/5' ? 30 : 60;
   const visiblePassages = teacherPreview
     ? readingPassages
     : readingPassages.filter((p) => p.verified).slice(0, topicCap);
