@@ -84,7 +84,9 @@ function roomOf(name?: string): string | null {
 }
 const ROOMS = ["6/1", "6/2", "6/3", "6/4", "6/5"];
 function roomTarget(room: string | null): number {
-  return room === "6/4" || room === "6/5" ? 1000 : 3497;
+  if (room === "6/5") return 1000;
+  if (room === "6/4") return 2000;
+  return 3497; // 6/1-6/3 หรือไม่ระบุห้อง (บัญชีทดสอบ/ครู) — คลังเต็ม
 }
 // จำนวนหัวข้อ Reading/Conversation ทั้งหมดที่ห้องนั้นเห็น (ตรงกับ topicCap ฝั่งหน้านักเรียนใน page.tsx)
 function topicTarget(room: string | null): number {
