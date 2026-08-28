@@ -82,6 +82,13 @@ function correctAnswerFor(q: QuizQuestion): string {
   return q.questionType === 'MEANING' ? q.thai_meaning : q.word;
 }
 
+// ควรโชว์ "หน้าพรีวิวความหมาย" ก่อนเข้าข้อสอบจริงไหม — เฉพาะคำที่ยังไม่เคยเจอเลย (ไม่มีการ์ด SRS)
+//   และเป็นโหมดที่ตัวเลือกเป็นคำอังกฤษให้ต้องคิดเชื่อมโยง (ไม่ใช่ MEANING ที่ตัวเลือกเป็นไทยอยู่แล้ว)
+function needsMeaningPreview(q: QuizQuestion, srsStore: SrsStore): boolean {
+  if (srsStore[q.word]) return false; // เคยเจอมาก่อนแล้ว ไม่ต้องพรีวิวซ้ำ
+  return q.questionType === 'SENTENCE' || q.questionType === 'SYNONYM' || q.questionType === 'ANTONYM';
+}
+
 // เจาะช่องว่างในประโยค Context Clue: คืน array ของชิ้นส่วน โดย null = ตำแหน่งช่องว่าง
 //  - ถ้าประโยคมี "___" อยู่แล้ว ใช้ตำแหน่งนั้น
 //  - ไม่งั้นเจาะคำเป้าหมาย (ทั้งคำตรงเป๊ะก่อน แล้วลองรูปผันของคำ)
@@ -232,6 +239,8 @@ export default function Home() {
   const coreVocab = activeVocab;
   const [currentQuestions, setCurrentQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  // หน้าพรีวิว "อ่านความหมายก่อน" สำหรับคำใหม่ (โจทย์+ตัวเลือกครบพร้อมคำแปล) ก่อนเข้าหน้าข้อสอบจริงที่เป็นอังกฤษล้วน
+  const [showWordPreview, setShowWordPreview] = useState(false);
   const [options, setOptions] = useState<string[]>([]);
 
   const [wrongAnswers, setWrongAnswers] = useState<{question: QuizQuestion, selected: string, feedback?: AiResult}[]>([]);
@@ -479,6 +488,7 @@ export default function Home() {
     setTimedOutCount(0);
     generateOptionsForQuestion(formattedQuestions[0], vocabData);
     resetTimerAndQuestionState();
+    setShowWordPreview(needsMeaningPreview(formattedQuestions[0], srsStore));
     setGameState('QUIZ');
   };
 
@@ -690,6 +700,7 @@ export default function Home() {
       setCurrentIndex(nextIndex);
       generateOptionsForQuestion(currentQuestions[nextIndex], vocabData);
       resetTimerAndQuestionState();
+      setShowWordPreview(needsMeaningPreview(currentQuestions[nextIndex], srsStore));
     } else {
       setGameState('END');
       submitScoreToGoogleSheet();
@@ -2300,6 +2311,76 @@ export default function Home() {
 
         {/* ── หน้า Quiz ── */}
         {gameState === 'QUIZ' && currentQuestions.length > 0 && (
+          showWordPreview ? (
+            <div className="animate-fadeIn">
+              <div className="mb-2">
+                <button
+                  type="button"
+                  onClick={() => setGameState('START')}
+                  className="text-sm font-bold text-[#003399] hover:underline flex items-center gap-1"
+                >
+                  ← เมนูคำศัพท์
+                </button>
+              </div>
+              <div className="text-center mb-4">
+                <span className="inline-block px-4 py-1.5 bg-[#FFD700]/20 text-[#003399] rounded-full text-xs font-black">
+                  📖 หน้าเรียนรู้คำศัพท์ · ดูความหมายทั้งโจทย์และตัวเลือกให้เข้าใจก่อน
+                </span>
+              </div>
+
+              <div className="bg-[#fcfcfc] rounded-3xl p-6 border-2 border-gray-50 mb-6 shadow-sm min-h-[100px] flex flex-col justify-center">
+                <h2 className="text-lg md:text-xl font-black text-gray-900 leading-relaxed text-center">
+                  {currentQuestions[currentIndex].questionType === 'SENTENCE' && (
+                    <span>{currentQuestions[currentIndex].example_sentence}</span>
+                  )}
+                  {currentQuestions[currentIndex].questionType === 'SYNONYM' && (
+                    <span>
+                      Select the <span className="text-[#003399] underline decoration-[#FFD700] decoration-4">SYNONYM</span> for: <br />
+                      &quot;
+                      {currentQuestions[currentIndex].synonym.split(',').map((w) => w.trim()).filter(Boolean).map((w) => {
+                        const m = vocabByWord[w.toLowerCase()]?.thai_meaning;
+                        return m ? `${w} (${m})` : w;
+                      }).join(', ')}
+                      &quot;
+                    </span>
+                  )}
+                  {currentQuestions[currentIndex].questionType === 'ANTONYM' && (
+                    <span>
+                      Select the <span className="text-red-600 underline decoration-[#FFD700] decoration-4">ANTONYM</span> for: <br />
+                      &quot;
+                      {currentQuestions[currentIndex].antonym.split(',').map((w) => w.trim()).filter(Boolean).map((w) => {
+                        const m = vocabByWord[w.toLowerCase()]?.thai_meaning;
+                        return m ? `${w} (${m})` : w;
+                      }).join(', ')}
+                      &quot;
+                    </span>
+                  )}
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 mb-6">
+                {options.map((option, idx) => {
+                  const meaning = vocabByWord[option.toLowerCase()]?.thai_meaning;
+                  const pron = vocabByWord[option.toLowerCase()]?.pronunciation_th;
+                  return (
+                    <div key={idx} className="w-full p-4 border-2 border-gray-100 rounded-2xl text-left bg-white">
+                      <span className="text-base md:text-lg font-bold text-gray-800">{option}</span>
+                      {pron && <span className="block text-xs font-bold text-gray-400">/{pron}/</span>}
+                      {meaning && <span className="block text-sm font-bold text-[#003399] mt-0.5">{meaning}</span>}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowWordPreview(false)}
+                className="w-full bg-[#003399] hover:bg-[#002266] text-[#FFD700] font-black text-lg py-4 rounded-2xl shadow-lg transition-all active:scale-[0.98]"
+              >
+                ✅ เรียนรู้คำศัพท์เสร็จแล้ว พร้อมทำแบบฝึกหัด →
+              </button>
+            </div>
+          ) : (
           <div className="animate-fadeIn">
             <div className="mb-2">
               <button
@@ -2559,12 +2640,6 @@ export default function Home() {
               </div>
             ) : (
               <>
-              {/* คำใหม่ที่ยังไม่เคยเจอเลย: โชว์ความหมายไทยใต้ทุกตัวเลือก ให้ใช้เหตุผล/บริบทหาคำตอบเอง แทนการเดาสุ่ม */}
-              {!srsStore[currentQuestions[currentIndex].word] && currentQuestions[currentIndex].questionType !== 'MEANING' && (
-                <div className="mb-3 px-4 py-2 bg-[#FFD700]/15 text-[#003399] rounded-xl text-xs font-bold text-center">
-                  🆕 คำใหม่ · ใช้ความหมายด้านล่างช่วยเลือกคำที่เข้ากับโจทย์
-                </div>
-              )}
               <div className="grid grid-cols-1 gap-3">
                 {options.map((option, idx) => {
                   const isCorrectChoice = option === correctAnswerFor(currentQuestions[currentIndex]);
@@ -2579,12 +2654,10 @@ export default function Home() {
                     }
                   }
                   // ช้อยที่เป็นคำอังกฤษ (ไม่ใช่โหมด MEANING ที่ช้อยเป็นความหมายไทย) แสดงคำอ่านกำกับด้วย
-                  const isRecognitionChoice = currentQuestions[currentIndex].questionType !== 'MEANING';
-                  const optionPron = isRecognitionChoice ? vocabByWord[option.toLowerCase()]?.pronunciation_th : undefined;
-                  // คำใหม่: แสดงความหมายไทยกำกับใต้ตัวเลือกด้วย (ตัวช่วยให้เหตุผล)
-                  const optionMeaning =
-                    isRecognitionChoice && !srsStore[currentQuestions[currentIndex].word]
-                      ? vocabByWord[option.toLowerCase()]?.thai_meaning
+                  // (หน้านี้คือ "ข้อสอบจริง" เป็นอังกฤษล้วน ไม่มีคำแปล — คำแปลอยู่ในหน้าพรีวิวก่อนหน้านี้แล้ว)
+                  const optionPron =
+                    currentQuestions[currentIndex].questionType !== 'MEANING'
+                      ? vocabByWord[option.toLowerCase()]?.pronunciation_th
                       : undefined;
                   return (
                     <button
@@ -2597,9 +2670,6 @@ export default function Home() {
                         {option}
                         {optionPron && (
                           <span className="block text-xs font-bold opacity-60 normal-case">/{optionPron}/</span>
-                        )}
-                        {optionMeaning && (
-                          <span className={`block text-sm font-bold normal-case ${isAnswered ? 'opacity-90' : 'text-[#003399]/70'}`}>{optionMeaning}</span>
                         )}
                       </span>
                       {isAnswered && isCorrectChoice && <span className="text-[#FFD700]">✓</span>}
@@ -2675,6 +2745,7 @@ export default function Home() {
               </button>
             )}
           </div>
+          )
         )}
 
         {/* ── หน้า สรุปผล ── */}
