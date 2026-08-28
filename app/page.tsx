@@ -232,8 +232,6 @@ export default function Home() {
   const coreVocab = activeVocab;
   const [currentQuestions, setCurrentQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  // การ์ดพรีวิว "คำใหม่" ก่อนเข้าคำถามจริง (เฉพาะคำที่ยังไม่เคยเจอเลย — ลดความกดดันเจอคำแปลกครั้งแรก)
-  const [showWordPreview, setShowWordPreview] = useState(false);
   const [options, setOptions] = useState<string[]>([]);
 
   const [wrongAnswers, setWrongAnswers] = useState<{question: QuizQuestion, selected: string, feedback?: AiResult}[]>([]);
@@ -481,8 +479,6 @@ export default function Home() {
     setTimedOutCount(0);
     generateOptionsForQuestion(formattedQuestions[0], vocabData);
     resetTimerAndQuestionState();
-    // คำแรกของรอบ ถ้าเป็นคำที่ยังไม่เคยเจอเลย (ไม่มีการ์ด SRS มาก่อน) โชว์การ์ดพรีวิวก่อนเข้าคำถาม
-    setShowWordPreview(!srsStore[formattedQuestions[0].word]);
     setGameState('QUIZ');
   };
 
@@ -694,8 +690,6 @@ export default function Home() {
       setCurrentIndex(nextIndex);
       generateOptionsForQuestion(currentQuestions[nextIndex], vocabData);
       resetTimerAndQuestionState();
-      // คำถัดไป ถ้ายังไม่เคยเจอมาก่อนเลย โชว์การ์ดพรีวิวก่อนเข้าคำถามเหมือนกัน
-      setShowWordPreview(!srsStore[currentQuestions[nextIndex].word]);
     } else {
       setGameState('END');
       submitScoreToGoogleSheet();
@@ -2306,59 +2300,6 @@ export default function Home() {
 
         {/* ── หน้า Quiz ── */}
         {gameState === 'QUIZ' && currentQuestions.length > 0 && (
-          showWordPreview ? (
-            <div className="animate-fadeIn text-center">
-              <div className="mb-2">
-                <button
-                  type="button"
-                  onClick={() => setGameState('START')}
-                  className="text-sm font-bold text-[#003399] hover:underline flex items-center gap-1"
-                >
-                  ← เมนูคำศัพท์
-                </button>
-              </div>
-              <div className="inline-block px-4 py-1.5 bg-[#FFD700]/20 text-[#003399] rounded-full text-xs font-black mb-4">
-                🆕 คำใหม่ · ดูให้คุ้นก่อนลองทำโจทย์
-              </div>
-              <div className="bg-white border-2 border-[#003399]/10 rounded-3xl p-8 shadow-lg mb-6">
-                <div className="flex items-center justify-center gap-2 flex-wrap mb-2">
-                  <span className="text-3xl md:text-4xl font-black text-[#003399]">{currentQuestions[currentIndex].word}</span>
-                  {currentQuestions[currentIndex].part_of_speech && (
-                    <span className="text-sm font-bold text-gray-400">({posLabel(currentQuestions[currentIndex].part_of_speech)})</span>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => speakWord(currentQuestions[currentIndex].word)}
-                    className="text-lg bg-[#003399]/10 text-[#003399] w-10 h-10 rounded-full inline-flex items-center justify-center hover:bg-[#003399]/20 transition-all active:scale-95"
-                    aria-label="ฟังเสียงคำ"
-                  >🔊</button>
-                </div>
-                {currentQuestions[currentIndex].pronunciation_th && (
-                  <p className="text-sm font-bold text-gray-400 mb-3">/{currentQuestions[currentIndex].pronunciation_th}/</p>
-                )}
-                <p className="text-2xl font-black text-[#003399] mb-3">{currentQuestions[currentIndex].thai_meaning}</p>
-                {currentQuestions[currentIndex].eng_definition && (
-                  <p className="text-sm text-gray-500 italic mb-4">{currentQuestions[currentIndex].eng_definition}</p>
-                )}
-                {currentQuestions[currentIndex].example_sentence && (
-                  <div className="bg-gray-50 rounded-2xl p-4 text-left">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">ตัวอย่างประโยค</p>
-                    <p className="text-base text-gray-700">{currentQuestions[currentIndex].example_sentence}</p>
-                  </div>
-                )}
-                {(currentQuestions[currentIndex].synonym && currentQuestions[currentIndex].synonym !== '-') && (
-                  <p className="text-xs text-gray-400 mt-3">🔁 คำใกล้เคียง: {currentQuestions[currentIndex].synonym}</p>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowWordPreview(false)}
-                className="w-full max-w-md mx-auto bg-[#003399] hover:bg-[#002266] text-[#FFD700] font-black text-lg py-4 rounded-2xl shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-              >
-                เข้าใจแล้ว พร้อมลองทำโจทย์ →
-              </button>
-            </div>
-          ) : (
           <div className="animate-fadeIn">
             <div className="mb-2">
               <button
@@ -2618,6 +2559,12 @@ export default function Home() {
               </div>
             ) : (
               <>
+              {/* คำใหม่ที่ยังไม่เคยเจอเลย: โชว์ความหมายไทยใต้ทุกตัวเลือก ให้ใช้เหตุผล/บริบทหาคำตอบเอง แทนการเดาสุ่ม */}
+              {!srsStore[currentQuestions[currentIndex].word] && currentQuestions[currentIndex].questionType !== 'MEANING' && (
+                <div className="mb-3 px-4 py-2 bg-[#FFD700]/15 text-[#003399] rounded-xl text-xs font-bold text-center">
+                  🆕 คำใหม่ · ใช้ความหมายด้านล่างช่วยเลือกคำที่เข้ากับโจทย์
+                </div>
+              )}
               <div className="grid grid-cols-1 gap-3">
                 {options.map((option, idx) => {
                   const isCorrectChoice = option === correctAnswerFor(currentQuestions[currentIndex]);
@@ -2632,9 +2579,12 @@ export default function Home() {
                     }
                   }
                   // ช้อยที่เป็นคำอังกฤษ (ไม่ใช่โหมด MEANING ที่ช้อยเป็นความหมายไทย) แสดงคำอ่านกำกับด้วย
-                  const optionPron =
-                    currentQuestions[currentIndex].questionType !== 'MEANING'
-                      ? vocabByWord[option.toLowerCase()]?.pronunciation_th
+                  const isRecognitionChoice = currentQuestions[currentIndex].questionType !== 'MEANING';
+                  const optionPron = isRecognitionChoice ? vocabByWord[option.toLowerCase()]?.pronunciation_th : undefined;
+                  // คำใหม่: แสดงความหมายไทยกำกับใต้ตัวเลือกด้วย (ตัวช่วยให้เหตุผล)
+                  const optionMeaning =
+                    isRecognitionChoice && !srsStore[currentQuestions[currentIndex].word]
+                      ? vocabByWord[option.toLowerCase()]?.thai_meaning
                       : undefined;
                   return (
                     <button
@@ -2647,6 +2597,9 @@ export default function Home() {
                         {option}
                         {optionPron && (
                           <span className="block text-xs font-bold opacity-60 normal-case">/{optionPron}/</span>
+                        )}
+                        {optionMeaning && (
+                          <span className={`block text-sm font-bold normal-case ${isAnswered ? 'opacity-90' : 'text-[#003399]/70'}`}>{optionMeaning}</span>
                         )}
                       </span>
                       {isAnswered && isCorrectChoice && <span className="text-[#FFD700]">✓</span>}
@@ -2722,7 +2675,6 @@ export default function Home() {
               </button>
             )}
           </div>
-          )
         )}
 
         {/* ── หน้า สรุปผล ── */}
