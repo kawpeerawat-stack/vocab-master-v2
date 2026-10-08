@@ -82,11 +82,35 @@ function correctAnswerFor(q: QuizQuestion): string {
   return q.questionType === 'MEANING' ? q.thai_meaning : q.word;
 }
 
-// ควรโชว์ "หน้าพรีวิวความหมาย" ก่อนเข้าข้อสอบจริงไหม — เฉพาะคำที่ยังไม่เคยเจอเลย (ไม่มีการ์ด SRS)
-//   และเป็นโหมดที่ตัวเลือกเป็นคำอังกฤษให้ต้องคิดเชื่อมโยง (ไม่ใช่ MEANING ที่ตัวเลือกเป็นไทยอยู่แล้ว)
-function needsMeaningPreview(q: QuizQuestion, srsStore: SrsStore): boolean {
-  if (srsStore[q.word]) return false; // เคยเจอมาก่อนแล้ว ไม่ต้องพรีวิวซ้ำ
-  return q.questionType === 'SENTENCE' || q.questionType === 'SYNONYM' || q.questionType === 'ANTONYM';
+// คำที่ตอบผิดสะสมถึงจำนวนนี้ (และยังไม่ผ่าน) จะถูกพากลับไป "หน้าเรียนรู้คำศัพท์" อีกครั้ง
+const RELEARN_AFTER_WRONG = 2;
+
+// ข้อนี้ต้องผ่าน "ช่วงเรียนรู้คำศัพท์" ก่อนทำแบบฝึกหัดไหม
+//   'new'     = คำใหม่ ไม่เคยเจอมาก่อนเลย (ไม่มีการ์ด SRS)
+//   'relearn' = เคยตอบผิดสะสม >= RELEARN_AFTER_WRONG ครั้ง และยังไม่ผ่าน
+//   null      = ไม่ต้องเรียนรู้ ทำแบบฝึกหัดได้เลย
+//   ใช้เฉพาะโหมดเลือกตอบ (บริบท / คำเหมือน / คำตรงข้าม / เลือกความหมาย) ที่มีตัวเลือกให้เรียนรู้คู่กัน
+function learningReason(q: QuizQuestion, srsStore: SrsStore): 'new' | 'relearn' | null {
+  const isChoiceType =
+    q.questionType === 'SENTENCE' ||
+    q.questionType === 'SYNONYM' ||
+    q.questionType === 'ANTONYM' ||
+    q.questionType === 'MEANING';
+  if (!isChoiceType) return null;
+  const card = srsStore[q.word];
+  if (!card) return 'new';
+  // การ์ดเก่าที่ยังไม่มี wrongCount: ใช้ lapses แทนชั่วคราว
+  const wrongs = card.wrongCount ?? card.lapses ?? 0;
+  if (card.box < 5 && wrongs >= RELEARN_AFTER_WRONG) return 'relearn';
+  return null;
+}
+
+// สลับลำดับตัวเลือกใหม่ — กันกรณีสุ่มได้ลำดับเดิมเป๊ะ (ให้ต้องจำ "คำ" ไม่ใช่ "ตำแหน่ง" จากช่วงเรียนรู้)
+function reshuffle(arr: string[]): string[] {
+  if (arr.length < 2) return [...arr];
+  let next = [...arr].sort(() => 0.5 - Math.random());
+  if (next.every((v, i) => v === arr[i])) next = [...arr.slice(1), arr[0]];
+  return next;
 }
 
 // เจาะช่องว่างในประโยค Context Clue: คืน array ของชิ้นส่วน โดย null = ตำแหน่งช่องว่าง
@@ -144,7 +168,7 @@ type AiResult = {
 };
 
 export default function Home() {
-  const [gameState, setGameState] = useState<'START' | 'QUIZ' | 'END'>('START');
+  const [gameState, setGameState] = useState<'START' | 'LEARN' | 'QUIZ' | 'END'>('START');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   // ── ห้องที่กำลังเปิดอยู่หลังล็อกอิน (Dashboard) ──
   // HUB = หน้าเลือกห้อง, VOCAB = ห้องคำศัพท์เดิม, READING/CONVERSATION = ห้องใหม่
@@ -239,8 +263,13 @@ export default function Home() {
   const coreVocab = activeVocab;
   const [currentQuestions, setCurrentQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  // หน้าพรีวิว "อ่านความหมายก่อน" สำหรับคำใหม่ (โจทย์+ตัวเลือกครบพร้อมคำแปล) ก่อนเข้าหน้าข้อสอบจริงที่เป็นอังกฤษล้วน
-  const [showWordPreview, setShowWordPreview] = useState(false);
+  // ── ช่วงเรียนรู้คำศัพท์ (ก่อนทำแบบฝึกหัดทั้งชุด) ──
+  //   roundOptions: ตัวเลือกของทุกข้อในรอบ สร้างไว้ล่วงหน้า (ช่วงเรียนรู้กับแบบฝึกหัดใช้ชุดเดียวกัน แต่สลับตำแหน่ง)
+  //   learnQueue:   ลำดับข้อ (index ใน currentQuestions) ที่ต้องเรียนรู้ก่อน — คำใหม่ + คำที่ตอบผิดบ่อย
+  //   learnIndex:   กำลังเรียนรู้คำที่เท่าไหร่ใน learnQueue
+  const [roundOptions, setRoundOptions] = useState<string[][]>([]);
+  const [learnQueue, setLearnQueue] = useState<{ qIdx: number; reason: 'new' | 'relearn' }[]>([]);
+  const [learnIndex, setLearnIndex] = useState(0);
   const [options, setOptions] = useState<string[]>([]);
 
   const [wrongAnswers, setWrongAnswers] = useState<{question: QuizQuestion, selected: string, feedback?: AiResult}[]>([]);
@@ -299,7 +328,7 @@ export default function Home() {
 
   // ── useEffect 3: จับเวลาแต่ละข้อ (ข้ามไปถ้าเป็นโหมดนึกเอง: WRITE/TYPE/LISTEN) ──
   useEffect(() => {
-    if (gameState !== 'QUIZ' || isAnswered) return;
+    if (gameState !== 'QUIZ' || isAnswered) return; // ช่วงเรียนรู้ (LEARN) ไม่จับเวลา
     const qt = currentQuestions[currentIndex]?.questionType;
     if (qt === 'WRITE' || qt === 'TYPE' || qt === 'LISTEN') return; // โหมดนึกเองไม่จับเวลา
     if (timeLeft === 0) {
@@ -486,10 +515,23 @@ export default function Home() {
     setCheatWarnings(0);
     setWrongAnswers([]);
     setTimedOutCount(0);
-    generateOptionsForQuestion(formattedQuestions[0], vocabData);
+    // สร้างตัวเลือกของทุกข้อไว้ล่วงหน้า (ช่วงเรียนรู้และแบบฝึกหัดใช้ชุดเดียวกัน)
+    const opts = formattedQuestions.map((q) => buildOptionsForQuestion(q, vocabData));
+    setRoundOptions(opts);
     resetTimerAndQuestionState();
-    setShowWordPreview(needsMeaningPreview(formattedQuestions[0], srsStore));
-    setGameState('QUIZ');
+    // คำที่ต้องเรียนรู้ก่อน (คำใหม่ + คำที่ตอบผิดบ่อย) → เรียนรู้ให้ครบทั้งชุดก่อน แล้วค่อยทำแบบฝึกหัด 10 ข้อรวดเดียว
+    const queue = formattedQuestions
+      .map((q, qIdx) => ({ qIdx, reason: learningReason(q, srsStore) }))
+      .filter((x): x is { qIdx: number; reason: 'new' | 'relearn' } => x.reason !== null);
+    setLearnQueue(queue);
+    setLearnIndex(0);
+    if (queue.length > 0) {
+      setOptions(opts[0]);
+      setGameState('LEARN');
+    } else {
+      setOptions(opts[0]);
+      setGameState('QUIZ');
+    }
   };
 
   // รายการคำที่เด็ก "ยังอ่อน" (กล่องต่ำ ≤1 หรือเคยลืม) เรียงตามควรทบทวนก่อน
@@ -544,7 +586,7 @@ export default function Home() {
     startNewQuizRound();
   };
 
-  const generateOptionsForQuestion = (correctItem: QuizQuestion, allItems: WordItem[]) => {
+  const buildOptionsForQuestion = (correctItem: QuizQuestion, allItems: WordItem[]): string[] => {
     // หา pool คำระดับเดียวกันก่อน (ถ้าไม่พอค่อยใช้ทั้งคลัง)
     let pool = allItems.filter(item => item.word !== correctItem.word && item.level === correctItem.level);
     if (pool.length < 3) {
@@ -561,14 +603,13 @@ export default function Home() {
         if (distractorMeanings.length === 3) break;
       }
       const choices = [correctItem.thai_meaning, ...distractorMeanings];
-      setOptions(choices.sort(() => 0.5 - Math.random()));
-      return;
+      return choices.sort(() => 0.5 - Math.random());
     }
 
     // โหมดอื่น: ตัวเลือกเป็น "คำอังกฤษ" (เลือกตัวลวงที่ชวนสับสน)
     const distractors = pickSmartDistractors(correctItem.word, pool.map(p => p.word), 3);
     const finalChoices = [correctItem.word, ...distractors];
-    setOptions(finalChoices.sort(() => 0.5 - Math.random()));
+    return finalChoices.sort(() => 0.5 - Math.random());
   };
 
   const resetTimerAndQuestionState = () => {
@@ -580,6 +621,16 @@ export default function Home() {
     setAiChecking(false);
     setTypedAnswer('');
     setTimedOut(false);
+  };
+
+  // กด "เรียนรู้คำศัพท์ครบแล้ว" → เริ่มทำแบบฝึกหัดข้อ 1 ของชุด
+  //   - เริ่มจับเวลาเต็มจำนวน (เวลาที่ใช้ในช่วงเรียนรู้ไม่ถูกนับ)
+  //   - ตัวเลือกสลับตำแหน่งใหม่จากช่วงเรียนรู้
+  const startExercisesAfterLearning = () => {
+    setCurrentIndex(0);
+    setOptions(reshuffle(roundOptions[0] ?? []));
+    resetTimerAndQuestionState();
+    setGameState('QUIZ');
   };
 
   const handleAnswerSelection = (answer: string) => {
@@ -698,9 +749,9 @@ export default function Home() {
     const nextIndex = currentIndex + 1;
     if (nextIndex < currentQuestions.length) {
       setCurrentIndex(nextIndex);
-      generateOptionsForQuestion(currentQuestions[nextIndex], vocabData);
+      // ใช้ตัวเลือกชุดเดิมที่สร้างไว้ตอนเริ่มรอบ แต่สลับตำแหน่งใหม่ (คำที่เพิ่งเรียนรู้จะไม่อยู่ตำแหน่งเดิม)
+      setOptions(reshuffle(roundOptions[nextIndex] ?? buildOptionsForQuestion(currentQuestions[nextIndex], vocabData)));
       resetTimerAndQuestionState();
-      setShowWordPreview(needsMeaningPreview(currentQuestions[nextIndex], srsStore));
     } else {
       setGameState('END');
       submitScoreToGoogleSheet();
@@ -775,6 +826,12 @@ export default function Home() {
   const vocabByWord = React.useMemo(() => {
     const m: Record<string, WordItem> = {};
     for (const w of vocabData) m[w.word.toLowerCase()] = w;
+    return m;
+  }, [vocabData]);
+  // แผนที่ย้อนกลับ ความหมายไทย → คำศัพท์ (ใช้ในหน้าเรียนรู้ของโหมด MEANING ที่ตัวเลือกเป็นภาษาไทย)
+  const vocabByThai = React.useMemo(() => {
+    const m: Record<string, WordItem> = {};
+    for (const w of vocabData) if (w.thai_meaning && !m[w.thai_meaning]) m[w.thai_meaning] = w;
     return m;
   }, [vocabData]);
 
@@ -2310,8 +2367,21 @@ export default function Home() {
         )}
 
         {/* ── หน้า Quiz ── */}
-        {gameState === 'QUIZ' && currentQuestions.length > 0 && (
-          showWordPreview ? (
+        {/* ── ช่วงเรียนรู้คำศัพท์: เรียนให้ครบทุกคำของชุดก่อน แล้วค่อยทำแบบฝึกหัด 10 ข้อรวดเดียว ── */}
+        {gameState === 'LEARN' && learnQueue.length > 0 && currentQuestions.length > 0 && (() => {
+          const item = learnQueue[Math.min(learnIndex, learnQueue.length - 1)];
+          const lq = currentQuestions[item.qIdx];
+          const lopts = roundOptions[item.qIdx] ?? [];
+          const isLast = learnIndex >= learnQueue.length - 1;
+          const isMeaningMode = lq.questionType === 'MEANING';
+          const cardInfo = srsStore[lq.word];
+          const wrongs = cardInfo ? (cardInfo.wrongCount ?? cardInfo.lapses ?? 0) : 0;
+          const glossList = (raw: string) =>
+            raw.split(',').map((w) => w.trim()).filter(Boolean).map((w) => {
+              const m = vocabByWord[w.toLowerCase()]?.thai_meaning;
+              return m ? `${w} (${m})` : w;
+            }).join(', ');
+          return (
             <div className="animate-fadeIn">
               <div className="mb-2">
                 <button
@@ -2322,65 +2392,169 @@ export default function Home() {
                   ← เมนูคำศัพท์
                 </button>
               </div>
-              <div className="text-center mb-4">
-                <span className="inline-block px-4 py-1.5 bg-[#FFD700]/20 text-[#003399] rounded-full text-xs font-black">
-                  📖 หน้าเรียนรู้คำศัพท์ · ดูความหมายทั้งโจทย์และตัวเลือกให้เข้าใจก่อน
+
+              {/* หัว: ความคืบหน้าช่วงเรียนรู้ */}
+              <div className="flex justify-between items-center mb-2 pb-3 border-b-2 border-gray-50">
+                <span className="text-xs font-black px-3 py-1.5 bg-[#FFD700]/25 text-[#003399] rounded-full">
+                  📖 ขั้นที่ 1 · เรียนรู้คำศัพท์
+                </span>
+                <span className="text-sm font-black px-4 py-2 bg-[#003399] rounded-xl text-[#FFD700] shadow-sm">
+                  คำที่ {learnIndex + 1} / {learnQueue.length}
                 </span>
               </div>
+              <div className="w-full bg-gray-100 rounded-full h-2 mb-2 overflow-hidden">
+                <div
+                  className="bg-[#FFD700] h-full rounded-full transition-all duration-300"
+                  style={{ width: `${((learnIndex + 1) / learnQueue.length) * 100}%` }}
+                />
+              </div>
+              <p className="text-[11px] text-gray-400 text-center mb-4">
+                เรียนรู้ให้ครบ {learnQueue.length} คำก่อน แล้วจึงทำแบบฝึกหัดทั้ง {currentQuestions.length} ข้อ (ไม่มีคำแปล)
+              </p>
 
-              <div className="bg-[#fcfcfc] rounded-3xl p-6 border-2 border-gray-50 mb-6 shadow-sm min-h-[100px] flex flex-col justify-center">
-                <h2 className="text-lg md:text-xl font-black text-gray-900 leading-relaxed text-center">
-                  {currentQuestions[currentIndex].questionType === 'SENTENCE' && (
-                    <span>{currentQuestions[currentIndex].example_sentence}</span>
+              {/* การ์ดคำศัพท์หลัก */}
+              <div className="bg-white border-2 border-[#003399]/15 rounded-3xl p-6 mb-5 shadow-sm text-center">
+                {item.reason === 'relearn' ? (
+                  <span className="inline-block text-[11px] font-black px-3 py-1 rounded-full bg-rose-100 text-rose-700 mb-2">
+                    🔁 ทบทวนอีกครั้ง · เคยตอบผิด {wrongs} ครั้ง
+                  </span>
+                ) : (
+                  <span className="inline-block text-[11px] font-black px-3 py-1 rounded-full bg-[#FFD700]/30 text-[#003399] mb-2">
+                    🆕 คำศัพท์ใหม่
+                  </span>
+                )}
+                <div className="flex items-center justify-center gap-2 flex-wrap">
+                  <span className="text-3xl md:text-4xl font-black text-[#003399]">{lq.word}</span>
+                  {lq.part_of_speech && (
+                    <span className="text-sm font-bold text-gray-400">({posLabel(lq.part_of_speech)})</span>
                   )}
-                  {currentQuestions[currentIndex].questionType === 'SYNONYM' && (
+                  <button
+                    type="button"
+                    onClick={() => speakWord(lq.word)}
+                    className="text-lg bg-[#003399]/10 text-[#003399] w-10 h-10 rounded-full inline-flex items-center justify-center hover:bg-[#003399]/20 transition-all active:scale-95"
+                    aria-label="ฟังเสียงคำ"
+                  >🔊</button>
+                </div>
+                {lq.pronunciation_th && (
+                  <p className="text-sm font-bold text-gray-400 mt-1">/{lq.pronunciation_th}/</p>
+                )}
+                <p className="text-xl md:text-2xl font-black text-gray-900 mt-3">{lq.thai_meaning}</p>
+                {lq.eng_definition && (
+                  <p className="text-sm text-gray-500 italic mt-1">{lq.eng_definition}</p>
+                )}
+                {lq.example_sentence && lq.questionType !== 'SENTENCE' && (
+                  <div className="bg-gray-50 rounded-2xl p-3 mt-4 text-left">
+                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-1">ตัวอย่างประโยค</p>
+                    <p className="text-sm text-gray-700">{lq.example_sentence.replace(/_{2,}/g, lq.word)}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* โจทย์ของข้อนี้ (พร้อมคำแปล) */}
+              <p className="text-xs font-black text-gray-400 uppercase tracking-wider mb-2 text-center">โจทย์และตัวเลือก (พร้อมคำแปล)</p>
+              <div className="bg-[#fcfcfc] rounded-3xl p-6 border-2 border-gray-50 mb-4 shadow-sm min-h-[90px] flex flex-col justify-center">
+                <h2 className="text-lg md:text-xl font-black text-gray-900 leading-relaxed text-center">
+                  {lq.questionType === 'SENTENCE' && (
+                    <span>{lq.example_sentence.replace(/_{2,}/g, lq.word)}</span>
+                  )}
+                  {lq.questionType === 'MEANING' && (
                     <span>
-                      Select the <span className="text-[#003399] underline decoration-[#FFD700] decoration-4">SYNONYM</span> for: <br />
-                      &quot;
-                      {currentQuestions[currentIndex].synonym.split(',').map((w) => w.trim()).filter(Boolean).map((w) => {
-                        const m = vocabByWord[w.toLowerCase()]?.thai_meaning;
-                        return m ? `${w} (${m})` : w;
-                      }).join(', ')}
-                      &quot;
+                      คำว่า <span className="text-[#003399] underline decoration-[#FFD700] decoration-4">{lq.word}</span> แปลว่า
+                      <br />
+                      <span className="text-[#003399]">{lq.thai_meaning}</span>
                     </span>
                   )}
-                  {currentQuestions[currentIndex].questionType === 'ANTONYM' && (
+                  {lq.questionType === 'SYNONYM' && (
+                    <span>
+                      Select the <span className="text-[#003399] underline decoration-[#FFD700] decoration-4">SYNONYM</span> for: <br />
+                      &quot;{glossList(lq.synonym)}&quot;
+                    </span>
+                  )}
+                  {lq.questionType === 'ANTONYM' && (
                     <span>
                       Select the <span className="text-red-600 underline decoration-[#FFD700] decoration-4">ANTONYM</span> for: <br />
-                      &quot;
-                      {currentQuestions[currentIndex].antonym.split(',').map((w) => w.trim()).filter(Boolean).map((w) => {
-                        const m = vocabByWord[w.toLowerCase()]?.thai_meaning;
-                        return m ? `${w} (${m})` : w;
-                      }).join(', ')}
-                      &quot;
+                      &quot;{glossList(lq.antonym)}&quot;
                     </span>
                   )}
                 </h2>
               </div>
 
               <div className="grid grid-cols-1 gap-3 mb-6">
-                {options.map((option, idx) => {
-                  const meaning = vocabByWord[option.toLowerCase()]?.thai_meaning;
-                  const pron = vocabByWord[option.toLowerCase()]?.pronunciation_th;
+                {lopts.map((option, idx) => {
+                  // โหมด MEANING ตัวเลือกเป็นภาษาไทย → แสดงคำอังกฤษเจ้าของความหมายคู่กัน
+                  // โหมดอื่น ตัวเลือกเป็นคำอังกฤษ → แสดงคำอ่าน + ความหมายไทยคู่กัน
+                  const entry = isMeaningMode ? vocabByThai[option] : vocabByWord[option.toLowerCase()];
+                  const isAnswerChoice = option === correctAnswerFor(lq);
                   return (
-                    <div key={idx} className="w-full p-4 border-2 border-gray-100 rounded-2xl text-left bg-white">
-                      <span className="text-base md:text-lg font-bold text-gray-800">{option}</span>
-                      {pron && <span className="block text-xs font-bold text-gray-400">/{pron}/</span>}
-                      {meaning && <span className="block text-sm font-bold text-[#003399] mt-0.5">{meaning}</span>}
+                    <div
+                      key={idx}
+                      className={`w-full p-4 border-2 rounded-2xl text-left bg-white ${isAnswerChoice ? 'border-green-500/60' : 'border-gray-100'}`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <span className="text-base md:text-lg font-bold text-gray-800">{option}</span>
+                          {isMeaningMode ? (
+                            entry && (
+                              <span className="block text-sm font-bold text-[#003399] mt-0.5">
+                                = {entry.word}
+                                {entry.pronunciation_th && <span className="font-normal text-gray-400"> /{entry.pronunciation_th}/</span>}
+                              </span>
+                            )
+                          ) : (
+                            <>
+                              {entry?.pronunciation_th && <span className="block text-xs font-bold text-gray-400">/{entry.pronunciation_th}/</span>}
+                              {entry?.thai_meaning && <span className="block text-sm font-bold text-[#003399] mt-0.5">{entry.thai_meaning}</span>}
+                            </>
+                          )}
+                        </div>
+                        {isAnswerChoice && (
+                          <span className="shrink-0 text-[10px] font-black px-2 py-1 rounded-full bg-green-100 text-green-700">✓ คำตอบ</span>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
               </div>
 
-              <button
-                type="button"
-                onClick={() => setShowWordPreview(false)}
-                className="w-full bg-[#003399] hover:bg-[#002266] text-[#FFD700] font-black text-lg py-4 rounded-2xl shadow-lg transition-all active:scale-[0.98]"
-              >
-                ✅ เรียนรู้คำศัพท์เสร็จแล้ว พร้อมทำแบบฝึกหัด →
-              </button>
+              {/* ปุ่มเลื่อนคำ */}
+              <div className="flex gap-3">
+                {learnIndex > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setLearnIndex((i) => Math.max(0, i - 1))}
+                    className="px-5 py-4 rounded-2xl border-2 border-[#003399]/20 text-[#003399] font-black hover:bg-[#003399]/5 transition-all"
+                  >
+                    ← ก่อนหน้า
+                  </button>
+                )}
+                {!isLast ? (
+                  <button
+                    type="button"
+                    onClick={() => setLearnIndex((i) => Math.min(learnQueue.length - 1, i + 1))}
+                    className="flex-1 bg-[#003399] hover:bg-[#002266] text-[#FFD700] font-black text-lg py-4 rounded-2xl shadow-lg transition-all active:scale-[0.98]"
+                  >
+                    คำถัดไป →
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={startExercisesAfterLearning}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white font-black text-lg py-4 rounded-2xl shadow-lg transition-all active:scale-[0.98]"
+                  >
+                    ✅ เรียนรู้คำศัพท์ครบแล้ว พร้อมทำแบบฝึกหัด →
+                  </button>
+                )}
+              </div>
+              {isLast && (
+                <p className="text-xs text-gray-400 text-center mt-3">
+                  แบบฝึกหัดเป็นภาษาอังกฤษล้วน ไม่มีคำแปล · ตัวเลือกจะสลับตำแหน่งใหม่ · เริ่มจับเวลาเมื่อกดปุ่ม
+                </p>
+              )}
             </div>
-          ) : (
+          );
+        })()}
+
+        {gameState === 'QUIZ' && currentQuestions.length > 0 && (
           <div className="animate-fadeIn">
             <div className="mb-2">
               <button
@@ -2745,7 +2919,6 @@ export default function Home() {
               </button>
             )}
           </div>
-          )
         )}
 
         {/* ── หน้า สรุปผล ── */}
