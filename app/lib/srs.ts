@@ -21,6 +21,7 @@ export interface SrsCard {
   lapses: number;       // จำนวนครั้งที่ "ลืม" (ตอบผิดหลังเคยถูก)
   streak: number;       // ตอบถูกติดต่อกันกี่ครั้ง
   lastReviewed: number; // timestamp ครั้งล่าสุดที่ทบทวน
+  wrongCount?: number;  // จำนวนครั้งที่ตอบผิดสะสม (ใช้ตัดสินว่าควรพากลับไปหน้าเรียนรู้คำศัพท์อีกครั้ง — ไม่เกี่ยวกับ %)
 }
 
 export type SrsStore = Record<string, SrsCard>; // key = word
@@ -89,6 +90,7 @@ export function review(card: SrsCard | undefined, correct: boolean): SrsCard {
   } else {
     // ตอบผิด: ถ้าเคยจำได้แล้วลืม นับเป็น lapse, แล้วตกกลับกล่อง 0 และเริ่มนับยืนยันใหม่
     if (c.box > 0) c.lapses += 1;
+    c.wrongCount = (c.wrongCount ?? 0) + 1;
     c.box = 0;
     c.streak = 0;
   }
