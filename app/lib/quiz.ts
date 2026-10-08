@@ -122,6 +122,8 @@ export function chooseQuestionType(box: number, flags: TypeFlags): QType {
   // กล่อง 2–3: ครึ่งหนึ่งเริ่มให้พิมพ์เอง
   if (box <= 3) return Math.random() < 0.5 ? 'TYPE' : pick(recognition);
 
-  // กล่อง 4–5: เน้น recall (พิมพ์เอง/ฟังเสียง)
-  return Math.random() < 0.5 ? 'TYPE' : 'LISTEN';
+  // กล่อง 4–5: เน้น recall (พิมพ์เอง) สลับกับเลือกตอบ
+  //   ยกเลิกโหมด LISTEN (ฟังเสียงอย่างเดียวแล้วพิมพ์) แล้ว — ถ้านักเรียนยังไม่มีคลังคำในหัว
+  //   การได้ยินเสียงอย่างเดียวไม่ช่วยให้รู้ว่าคำนั้นสะกด/แปลว่าอะไร จึงยากเกินจำเป็น
+  return Math.random() < 0.5 ? 'TYPE' : pick(recognition);
 }
