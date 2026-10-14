@@ -1,67 +1,92 @@
 "use client";
+// app/admin/page.tsx
+// ─────────────────────────────────────────────────────────────
+// แดชบอร์ดครู (สร้างใหม่ทั้งหมด) — ติดตามบทเรียนแบบแบ่งบท เช่น Root Words Decoder
+//   • ตารางรายคน: นักเรียนแต่ละคนผ่านบทไหนแล้ว (ผ่าน = ตอบถูกครบ 20/20)
+//   • มุมมองรายบท: ใครผ่าน / ทำแล้วยังไม่ผ่าน / ยังไม่ทำ + ข้อที่นักเรียนพลาดบ่อย
+//   • จับคู่ชื่อที่นักเรียนพิมพ์กับรายชื่อทางการ (data/roster.json) → เรียงตามห้องและเลขที่
+//   • ส่งออก CSV
+// เพิ่มคอร์สใหม่ในอนาคต: เพิ่มใน app/lib/courseRegistry.ts แล้วหน้านี้จะมีแท็บคอร์สใหม่ให้เอง
+// ─────────────────────────────────────────────────────────────
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { db } from "../lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
-import type { SrsCard } from "../lib/srs";
-import { RQTYPE_LABELS } from "../lib/reading";
-import { CONV_FORMAT_LABELS } from "../lib/conversation";
 import ROSTER_JSON from "../../data/roster.json";
+import {
+  COURSE_REGISTRY,
+  Course,
+  CourseProgress,
+  LessonProgress,
+  loadCourse,
+  mergeCourseProgress,
+} from "../lib/courses";
 
-type ReadingStatRow = {
-  attempts?: number;
-  totalAnswered?: number;
-  totalCorrect?: number;
-  bestPct?: number;
-  byType?: Record<string, { answered: number; correct: number }>;
-  totalLeaves?: number;
-  autoSubmits?: number;
-  lastActiveAt?: number;
-  history?: { ts: number; pct: number; answered: number }[];
-};
-type ReadingLeaveRow = { title?: string; examStyle?: string; leaves: number; attempts: number; lastLeaves?: number; autoSubmits?: number };
-type ConversationStatRow = {
-  attempts?: number;
-  totalAnswered?: number;
-  totalCorrect?: number;
-  bestPct?: number;
-  byFormat?: Record<string, { answered: number; correct: number }>;
-  lastActiveAt?: number;
-  history?: { ts: number; pct: number; answered: number }[];
-};
+// ── สิทธิ์เข้าหน้า /admin (เหมือนเดิม) ──
+const ADMIN_EMAIL = "kawpeerawat@gmail.com";
+// ตั้งรหัสผ่านจริงผ่าน Vercel → Environment Variables: NEXT_PUBLIC_ADMIN_PASSWORD
+const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "anukoolnaree2025";
+const ADMIN_USING_DEFAULT_PW = !process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
 
+// ── รายชื่อทางการ + จับคู่ชื่อที่นักเรียนพิมพ์ ──
+type RosterEntry = { room: string; no: number; name: string };
+const ROSTER = ROSTER_JSON as RosterEntry[];
+const ROOMS = Array.from(new Set(ROSTER.map((r) => r.room))).sort();
+
+function roomOf(name?: string): string | null {
+  const m = (name || "").match(/6\s*[\/._-]\s*([1-9])/);
+  return m ? `6/${m[1]}` : null;
+}
+function normName(s?: string): string {
+  return (s || "")
+    .replace(/(นางสาว|เด็กชาย|เด็กหญิง|นาย|นาง|ด\.ช\.|ด\.ญ\.|น\.ส\.)/g, "")
+    .replace(/no\.?\s*\d+|เลขที่\s*\d+|m\.?\s*6\s*\/\s*[1-9]|ม\.?\s*6\s*\/\s*[1-9]|6\s*\/\s*[1-9]/gi, "")
+    .replace(/[^ก-๙a-zA-Z]/g, "")
+    .toLowerCase();
+}
+function extractNo(s?: string): number | null {
+  const m = (s || "").match(/no\.?\s*(\d{1,2})\b/i) || (s || "").match(/เลขที่\s*(\d{1,2})/) || (s || "").match(/#\s*(\d{1,2})/);
+  return m ? parseInt(m[1], 10) : null;
+}
+const rosterIndex: Record<string, RosterEntry[]> = {};
+for (const r of ROSTER) (rosterIndex[normName(r.name)] ||= []).push(r);
+function matchRoster(name?: string): RosterEntry | null {
+  const n = normName(name);
+  if (n && rosterIndex[n]) return rosterIndex[n][0]; // 1) ชื่อไทยตรง
+  const room = roomOf(name);
+  const no = extractNo(name);
+  if (room && no != null) {
+    const hit = ROSTER.find((r) => r.room === room && r.no === no); // 2) ห้อง + เลขที่
+    if (hit) return hit;
+  }
+  if (!n) return null;
+  const cand: RosterEntry[] = []; // 3) ชื่อบางส่วน (เฉพาะเมื่อไม่กำกวม)
+  for (const k in rosterIndex) if (k.startsWith(n) || n.startsWith(k)) cand.push(...rosterIndex[k]);
+  return cand.length === 1 ? cand[0] : null;
+}
+const rosterKey = (r: RosterEntry) => `${r.room}|${r.no}`;
+
+// ── ข้อมูลนักเรียนจาก Firestore (อ่านเฉพาะฟิลด์ที่ใช้) ──
 type StudentDoc = {
   id: string;
   name?: string;
   email?: string;
-  mastered?: number;
-  learning?: number;
-  seen?: number;
-  total?: number;
-  bestScore?: number;
-  lastScore?: number;
-  score?: number;
-  streak?: number;
-  srs?: Record<string, SrsCard>;
-  reading?: ReadingStatRow;
-  conversation?: ConversationStatRow;
-  readingLeaves?: Record<string, ReadingLeaveRow>;
-  percent?: number;
-  answered?: number;
-  lastDeltaPercent?: number;
-  lastDeltaAnswered?: number;
-  lastActiveAt?: number;
-  history?: { ts: number; percent: number; answered: number; seen: number }[];
-  completedPassages?: string[]; // id บท Reading ที่ทำจบแล้ว
-  masteredPassages?: string[];  // id บท Reading ที่ "พิชิต" (ถูกครบทุกข้อ)
-  completedConvos?: string[];   // id ชุด Conversation ที่ทำจบแล้ว
-  masteredConvos?: string[];    // id ชุด Conversation ที่ "พิชิต"
+  courses?: Record<string, CourseProgress>;
+  courseActiveAt?: number;
 };
 
-type VocabMeaning = { thai: string; level: string };
+type Row = {
+  key: string;
+  room: string | null;
+  no: number | null;
+  name: string;          // ชื่อทางการ (หรือชื่อที่พิมพ์ ถ้าจับคู่ไม่ได้)
+  typedNames: string[];  // ชื่อที่นักเรียนพิมพ์ในแอป
+  emails: string[];
+  progress: CourseProgress;
+  activeAt: number;
+  inRoster: boolean;
+};
 
-// คำถือว่า "ยังอ่อน" เมื่ออยู่กล่องต่ำ หรือเคยลืม (lapses > 0)
-// แปลงเวลา (ms) เป็นข้อความไทยแบบสั้น เช่น "5 นาทีที่แล้ว", "2 ชม.ที่แล้ว", "24 มิ.ย. 21:45"
 function fmtThaiTime(ms?: number): string {
   if (!ms) return "–";
   const diff = Date.now() - ms;
@@ -72,324 +97,164 @@ function fmtThaiTime(ms?: number): string {
   if (hr < 24) return `${hr} ชม.ที่แล้ว`;
   const d = new Date(ms);
   const th = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
-  const hh = String(d.getHours()).padStart(2, "0");
-  const mm = String(d.getMinutes()).padStart(2, "0");
-  return `${d.getDate()} ${th[d.getMonth()]} ${hh}:${mm}`;
+  return `${d.getDate()} ${th[d.getMonth()]} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+function fmtDate(ms?: number): string {
+  if (!ms) return "";
+  const d = new Date(ms);
+  return `${d.getDate()}/${d.getMonth() + 1}`;
 }
 
-// ดึงห้องจากชื่อที่นักเรียนกรอก เช่น "...M.6/4" → "6/4" (ตรรกะเดียวกับฝั่งนักเรียน)
-function roomOf(name?: string): string | null {
-  const m = (name || "").match(/6\s*[\/._-]\s*([1-5])/);
-  return m ? `6/${m[1]}` : null;
-}
-const ROOMS = ["6/1", "6/2", "6/3", "6/4", "6/5"];
-function roomTarget(room: string | null): number {
-  if (room === "6/5") return 1000;
-  if (room === "6/4") return 2000;
-  return 3497; // 6/1-6/3 หรือไม่ระบุห้อง (บัญชีทดสอบ/ครู) — คลังเต็ม
-}
-// จำนวนหัวข้อ Reading/Conversation ทั้งหมดที่ห้องนั้นเห็น (ตรงกับ topicCap ฝั่งหน้านักเรียนใน page.tsx)
-function topicTarget(room: string | null): number {
-  return room === "6/4" || room === "6/5" ? 30 : 60;
-}
-
-// ── รายชื่อทางการ + จับคู่ชื่อที่นักเรียนพิมพ์ ──
-type RosterEntry = { room: string; no: number; name: string };
-const ROSTER = ROSTER_JSON as RosterEntry[];
-function normName(s?: string): string {
-  return (s || "")
-    .replace(/(นางสาว|เด็กชาย|เด็กหญิง|นาย|นาง|ด\.ช\.|ด\.ญ\.|น\.ส\.)/g, "")
-    .replace(/no\.?\s*\d+|เลขที่\s*\d+|m\.?\s*6\s*\/\s*[1-5]|ม\.?\s*6\s*\/\s*[1-5]|6\s*\/\s*[1-5]/gi, "")
-    .replace(/[^ก-๙a-zA-Z]/g, "")
-    .toLowerCase();
-}
-// ดึง "เลขที่" จากชื่อที่พิมพ์ เช่น "Phichaya no31 m.6/5" → 31 (รองรับ no./เลขที่/#)
-function extractNo(s?: string): number | null {
-  const m = (s || "").match(/no\.?\s*(\d{1,2})\b/i) || (s || "").match(/เลขที่\s*(\d{1,2})/) || (s || "").match(/#\s*(\d{1,2})/);
-  return m ? parseInt(m[1], 10) : null;
-}
-const rosterIndex: Record<string, RosterEntry[]> = {};
-for (const r of ROSTER) {
-  const k = normName(r.name);
-  (rosterIndex[k] ||= []).push(r);
-}
-function matchRoster(name?: string): { entry: RosterEntry; via: "name" | "roomNo" } | null {
-  const n = normName(name);
-  // 1) ชื่อไทยตรงเป๊ะ (แม่นที่สุด)
-  if (n && rosterIndex[n]) return { entry: rosterIndex[n][0], via: "name" };
-  // 2) ห้อง + เลขที่ (แม่นยำแม้พิมพ์ชื่อเป็นภาษาอังกฤษ เช่น "Phichaya no31 m.6/5")
-  const room = roomOf(name);
-  const no = extractNo(name);
-  if (room && no != null) {
-    const hit = ROSTER.find((r) => r.room === room && r.no === no);
-    if (hit) return { entry: hit, via: "roomNo" };
-  }
-  // 3) จับคู่ชื่อบางส่วน (เฉพาะเมื่อไม่กำกวม)
-  if (!n) return null;
-  const cand: RosterEntry[] = [];
-  for (const k in rosterIndex) {
-    if (k.startsWith(n) || n.startsWith(k)) cand.push(...rosterIndex[k]);
-  }
-  return cand.length === 1 ? { entry: cand[0], via: "name" } : null;
-}
-
-// ── สิทธิ์เข้าหน้า /admin ──
-const ADMIN_EMAIL = "kawpeerawat@gmail.com";
-// ตั้งรหัสผ่านจริงผ่าน Vercel → Environment Variables: NEXT_PUBLIC_ADMIN_PASSWORD
-// ถ้ายังไม่ตั้ง จะใช้ค่าเริ่มต้นชั่วคราวด้านล่าง (ควรเปลี่ยนโดยเร็ว)
-const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "anukoolnaree2025";
-const ADMIN_USING_DEFAULT_PW = !process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
-
-function isWeak(card: SrsCard): boolean {
-  return card.box <= 1 || card.lapses > 0;
-}
-
-// แสดงความก้าวหน้ารายหมวด (Reading/Conversation) ในรูปแบบเดียวกับคำศัพท์
-function SubjectProgress({
-  title,
-  icon,
-  accent,
-  stat,
-  topicsDone,
-  topicsTarget,
-}: {
-  title: string;
-  icon: string;
-  accent: string;
-  stat?: {
-    attempts?: number;
-    totalAnswered?: number;
-    totalCorrect?: number;
-    bestPct?: number;
-    lastActiveAt?: number;
-    history?: { ts: number; pct: number; answered: number }[];
-  };
-  topicsDone: number;
-  topicsTarget: number;
-}) {
-  if (!stat || !stat.attempts) {
-    return (
-      <div className="mb-4">
-        <div className={`text-xs font-bold ${accent} mb-1`}>{icon} {title}</div>
-        <div className="text-xs text-neutral-600">ยังไม่มีข้อมูล (นักเรียนยังไม่ได้เข้าทำหมวดนี้) — สำเร็จ 0/{topicsTarget} หัวข้อ</div>
-      </div>
-    );
-  }
-  const acc =
-    (stat.totalAnswered ?? 0) > 0 ? Math.round(((stat.totalCorrect ?? 0) / (stat.totalAnswered ?? 1)) * 100) : 0;
-  const hist = stat.history ?? [];
-  return (
-    <div className="mb-4">
-      <div className={`text-xs font-bold ${accent} mb-2`}>
-        {icon} {title} · เข้าทำล่าสุด {fmtThaiTime(stat.lastActiveAt)}
-      </div>
-      <div className="flex flex-wrap gap-2 mb-2 text-xs">
-        <span className="bg-neutral-900/60 rounded-lg px-3 py-1.5 text-neutral-300">
-          หัวข้อสำเร็จ <b className={accent}>{topicsDone}/{topicsTarget}</b>
-        </span>
-        <span className="bg-neutral-900/60 rounded-lg px-3 py-1.5 text-neutral-300">ความแม่น <b className={accent}>{acc}%</b></span>
-        <span className="bg-neutral-900/60 rounded-lg px-3 py-1.5 text-neutral-300">ดีที่สุด <b>{stat.bestPct ?? 0}%</b></span>
-        <span className="bg-neutral-900/60 rounded-lg px-3 py-1.5 text-neutral-300">ทำไป <b>{stat.attempts ?? 0}</b> รอบ</span>
-        <span className="bg-neutral-900/60 rounded-lg px-3 py-1.5 text-neutral-300">ตอบสะสม <b>{stat.totalAnswered ?? 0}</b> ข้อ</span>
-      </div>
-      {hist.length > 0 && (
-        <div className="flex flex-col gap-1">
-          {hist.slice(-6).reverse().map((h, i, arr) => {
-            const prev = arr[i + 1];
-            const dPct = prev ? Math.round((h.pct - prev.pct) * 10) / 10 : 0;
-            const dAns = prev ? Math.max(0, h.answered - prev.answered) : 0;
-            return (
-              <div key={h.ts} className="flex items-center gap-3 text-xs bg-neutral-900/40 rounded-lg px-3 py-1.5">
-                <span className="text-neutral-500 w-32 shrink-0">{fmtThaiTime(h.ts)}</span>
-                <span className={`font-black ${accent} w-14`}>{h.pct}%</span>
-                {prev ? (
-                  <span className="text-sky-300">
-                    {dPct >= 0 ? "▲ +" : "▼ "}{dPct}% · ทำเพิ่ม {dAns} ข้อ
-                  </span>
-                ) : (
-                  <span className="text-neutral-600">—</span>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
+type Status = "passed" | "tried" | "none";
+const statusOf = (p?: LessonProgress): Status => (p?.passed ? "passed" : p ? "tried" : "none");
 
 export default function AdminDashboard() {
-  const [students, setStudents] = useState<StudentDoc[]>([]);
-  const [vocabMap, setVocabMap] = useState<Record<string, VocabMeaning>>({});
-  const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState<string | null>(null);
-  const [roomFilter, setRoomFilter] = useState<string>("ALL");
   const [authed, setAuthed] = useState(false);
   const [pw, setPw] = useState("");
   const [pwError, setPwError] = useState(false);
-  const [subject, setSubject] = useState<"vocab" | "reading" | "conversation">("vocab");
 
-  // ตรวจสิทธิ์จาก session (ผ่านรหัสแล้วไม่ต้องกรอกซ้ำในเบราว์เซอร์เดิม)
+  const [courseId, setCourseId] = useState(COURSE_REGISTRY[0]?.id ?? "decoder");
+  const [course, setCourse] = useState<Course | null>(null);
+  const [students, setStudents] = useState<StudentDoc[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loadedAt, setLoadedAt] = useState<number>(0);
+  const [error, setError] = useState("");
+
+  const [roomFilter, setRoomFilter] = useState<string>("ALL");
+  const [mode, setMode] = useState<"matrix" | "lesson">("matrix");
+  const [lessonId, setLessonId] = useState<string>("");
+  const [search, setSearch] = useState("");
+
   useEffect(() => {
-    if (typeof window !== "undefined" && sessionStorage.getItem("vocab_admin_ok") === "1") {
-      setAuthed(true);
+    try {
+      if (sessionStorage.getItem("vocab_admin_ok") === "1") setAuthed(true);
+    } catch {
+      /* ไม่เป็นไร */
     }
   }, []);
 
+  const loadAll = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const [c, snap] = await Promise.all([loadCourse(courseId), getDocs(collection(db, "students"))]);
+      setCourse(c);
+      const data: StudentDoc[] = [];
+      snap.forEach((d) => {
+        const v = d.data() as Record<string, unknown>;
+        data.push({
+          id: d.id,
+          name: v.name as string | undefined,
+          email: v.email as string | undefined,
+          courses: v.courses as Record<string, CourseProgress> | undefined,
+          courseActiveAt: v.courseActiveAt as number | undefined,
+        });
+      });
+      setStudents(data);
+      setLoadedAt(Date.now());
+      setLessonId((prev) => prev || c.lessons[0]?.id || "");
+    } catch (e) {
+      console.error(e);
+      setError("โหลดข้อมูลไม่สำเร็จ ลองกดรีเฟรชอีกครั้ง");
+    } finally {
+      setLoading(false);
+    }
+  }, [courseId]);
+
   useEffect(() => {
-    if (!authed) return; // ยังไม่ผ่านรหัสผ่าน → ไม่โหลด/ไม่อ่านข้อมูลนักเรียน
-    const load = async () => {
-      try {
-        // 1) แผนที่ความหมายคำศัพท์ (ไว้แสดงภาษาไทย)
-        try {
-          const res = await fetch("/api/vocab");
-          if (res.ok) {
-            const words = (await res.json()) as { word: string; thai_meaning: string; level: string }[];
-            const map: Record<string, VocabMeaning> = {};
-            for (const w of words) map[w.word] = { thai: w.thai_meaning, level: w.level };
-            setVocabMap(map);
-          }
-        } catch (e) {
-          console.error("load vocab error:", e);
-        }
+    if (authed) loadAll();
+  }, [authed, loadAll]);
 
-        // 2) ข้อมูลนักเรียนจาก Firestore
-        const snap = await getDocs(collection(db, "students"));
-        const data: StudentDoc[] = [];
-        snap.forEach((d) => data.push({ id: d.id, ...(d.data() as object) } as StudentDoc));
-        data.sort((a, b) => (b.percent ?? 0) - (a.percent ?? 0) || (b.mastered ?? 0) - (a.mastered ?? 0));
-        setStudents(data);
-      } catch (error) {
-        console.error("Error fetching students:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [authed]);
-
-  // คำที่ทั้งห้องพลาดบ่อย: รวมจำนวนคนที่ยังอ่อน + lapses รวม ของแต่ละคำ
-  const classHardWords = (() => {
-    const agg: Record<string, { strugglers: number; lapses: number }> = {};
+  // ── รวมข้อมูลเป็นแถวตามรายชื่อทางการ ──
+  const rows: Row[] = useMemo(() => {
+    const byRoster: Record<string, Row> = {};
+    for (const r of ROSTER) {
+      byRoster[rosterKey(r)] = {
+        key: rosterKey(r), room: r.room, no: r.no, name: r.name,
+        typedNames: [], emails: [], progress: {}, activeAt: 0, inRoster: true,
+      };
+    }
+    const extra: Row[] = [];
     for (const s of students) {
-      if (!s.srs) continue;
-      for (const [word, card] of Object.entries(s.srs)) {
-        if (!card) continue;
-        if (isWeak(card)) {
-          if (!agg[word]) agg[word] = { strugglers: 0, lapses: 0 };
-          agg[word].strugglers += 1;
-          agg[word].lapses += card.lapses || 0;
-        }
+      const prog = s.courses?.[courseId];
+      const hasProgress = !!prog && Object.keys(prog).length > 0;
+      const hit = matchRoster(s.name);
+      if (hit) {
+        const row = byRoster[rosterKey(hit)];
+        if (s.name && !row.typedNames.includes(s.name)) row.typedNames.push(s.name);
+        if (s.email) row.emails.push(s.email);
+        if (hasProgress) row.progress = mergeCourseProgress(row.progress, prog!);
+        row.activeAt = Math.max(row.activeAt, s.courseActiveAt ?? 0);
+      } else if (hasProgress) {
+        extra.push({
+          key: `x|${s.id}`, room: roomOf(s.name), no: extractNo(s.name), name: s.name || s.email || s.id,
+          typedNames: s.name ? [s.name] : [], emails: s.email ? [s.email] : [], progress: prog!,
+          activeAt: s.courseActiveAt ?? 0, inRoster: false,
+        });
       }
     }
-    return Object.entries(agg)
-      .map(([word, v]) => ({ word, ...v }))
-      .sort((a, b) => b.strugglers - a.strugglers || b.lapses - a.lapses)
-      .slice(0, 20);
-  })();
+    const rosterRows = Object.values(byRoster).sort((a, b) => (a.room! < b.room! ? -1 : a.room! > b.room! ? 1 : (a.no ?? 0) - (b.no ?? 0)));
+    return [...rosterRows, ...extra];
+  }, [students, courseId]);
 
-  // คำที่อ่อนของนักเรียนแต่ละคน (เรียงตามเคยลืมบ่อย → กล่องต่ำ)
-  const weakWordsOf = (s: StudentDoc) => {
-    if (!s.srs) return [];
-    return Object.entries(s.srs)
-      .filter(([, c]) => c && isWeak(c))
-      .sort((a, b) => (b[1].lapses || 0) - (a[1].lapses || 0) || a[1].box - b[1].box)
-      .slice(0, 15)
-      .map(([word, c]) => ({ word, box: c.box, lapses: c.lapses }));
-  };
+  const lessons = course?.lessons ?? [];
+  const inRoom = (r: Row) => roomFilter === "ALL" || r.room === roomFilter;
+  const q = search.trim().toLowerCase();
+  const matchSearch = (r: Row) =>
+    !q || r.name.toLowerCase().includes(q) || r.typedNames.some((t) => t.toLowerCase().includes(q)) || r.emails.some((e) => e.includes(q));
+  const rosterRows = rows.filter((r) => r.inRoster && inRoom(r) && matchSearch(r));
+  const extraRows = rows.filter((r) => !r.inRoster && inRoom(r) && matchSearch(r));
+  const passedCountOf = (r: Row) => lessons.filter((l) => r.progress[l.id]?.passed).length;
 
-  // นักเรียนที่ออกจากหน้าจอระหว่างทำ Reading (กันโกง) — โดนส่งอัตโนมัติขึ้นก่อน แล้วเรียงตามจำนวนครั้ง
-  const flaggedStudents = students
-    .map((s) => ({ s, leaves: s.reading?.totalLeaves ?? 0, autos: s.reading?.autoSubmits ?? 0 }))
-    .filter((x) => x.leaves > 0 || x.autos > 0)
-    .sort((a, b) => b.autos - a.autos || b.leaves - a.leaves);
+  // ── สรุปภาพรวมของห้องที่เลือก ──
+  const summary = useMemo(() => {
+    const list = rows.filter((r) => r.inRoster && inRoom(r));
+    const started = list.filter((r) => Object.keys(r.progress).length > 0).length;
+    const allDone = lessons.length ? list.filter((r) => lessons.every((l) => r.progress[l.id]?.passed)).length : 0;
+    const totalPassed = list.reduce((s, r) => s + lessons.filter((l) => r.progress[l.id]?.passed).length, 0);
+    return { n: list.length, started, allDone, avg: list.length ? totalPassed / list.length : 0 };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows, roomFilter, lessons]);
 
-  // ── แยกตามห้อง + กรอง ──
-  const roomCounts: Record<string, number> = { ALL: students.length, __none: 0 };
-  for (const r of ROOMS) roomCounts[r] = 0;
-  for (const s of students) {
-    const r = roomOf(s.name);
-    if (r) roomCounts[r] = (roomCounts[r] ?? 0) + 1;
-    else roomCounts.__none += 1;
-  }
-  const filteredStudents =
-    roomFilter === "ALL"
-      ? students
-      : roomFilter === "__none"
-      ? students.filter((s) => !roomOf(s.name))
-      : students.filter((s) => roomOf(s.name) === roomFilter);
-
-  // ── เทียบรายชื่อทางการ: ใครเข้าทำแล้ว/ยัง + ชื่อที่จับคู่ไม่ได้ ──
-  const rosterMatched = new Set<string>(); // key = "ห้อง|เลขที่" ที่มีนักเรียนเข้าทำแล้ว
-  const rosterUnmatched: StudentDoc[] = []; // นักเรียนที่พิมพ์ชื่อไม่ตรงรายชื่อใด ๆ เลย
-  const rosterByNumber: { s: StudentDoc; entry: RosterEntry }[] = []; // จับคู่ได้ด้วยห้อง+เลขที่ (ชื่อมักเป็นอังกฤษ) — ควรตรวจสอบ
-  for (const s of students) {
-    const m = matchRoster(s.name);
-    if (m) {
-      rosterMatched.add(`${m.entry.room}|${m.entry.no}`);
-      if (m.via === "roomNo") rosterByNumber.push({ s, entry: m.entry });
-    } else {
-      rosterUnmatched.push(s);
-    }
-  }
-  const shownUnmatched =
-    roomFilter === "ALL" || roomFilter === "__none"
-      ? rosterUnmatched
-      : rosterUnmatched.filter((s) => roomOf(s.name) === roomFilter);
-  const shownByNumber =
-    roomFilter === "ALL" || roomFilter === "__none"
-      ? rosterByNumber
-      : rosterByNumber.filter((x) => x.entry.room === roomFilter);
-  const panelRooms = roomFilter === "__none" ? [] : roomFilter === "ALL" ? ROOMS : [roomFilter];
-
-  // ── ดาวน์โหลดข้อมูลนักเรียนทั้งห้องเป็นไฟล์ CSV (เปิดใน Excel ได้) ──
-  const escapeCsv = (val: string | number) => {
-    const s = String(val ?? "");
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-
-  const downloadCsv = () => {
-    const headers = ["ชื่อ", "อีเมล", "ก้าวหน้า %", "ขยับล่าสุด %", "ทำเพิ่มล่าสุด (ข้อ)", "ตอบสะสม (ข้อ)", "เข้าทำล่าสุด", "จำได้", "กำลังเรียน", "เคยเจอ", "คะแนนสูงสุด", "วันติด(streak)", "Reading สำเร็จ", "Reading เป้าหมาย", "Conversation สำเร็จ", "Conversation เป้าหมาย", "ออกจากจอรวม", "ส่งอัตโนมัติ", "บทที่ออกจากจอ", "คำที่ยังอ่อน"];
-    const rows = students.map((s) => {
-      const weak = weakWordsOf(s)
-        .map((w) => (vocabMap[w.word] ? `${w.word}(${vocabMap[w.word].thai})` : w.word))
-        .join("; ");
-      const leaveDetail = Object.values(s.readingLeaves || {})
-        .sort((a, b) => b.leaves - a.leaves)
-        .map((lv) => `${lv.title || "(บท)"}(${lv.leaves}×${(lv.autoSubmits ?? 0) > 0 ? `, ส่งอัตโนมัติ ${lv.autoSubmits}` : ""})`)
-        .join("; ");
-      const target = topicTarget(roomOf(s.name));
-      return [
-        s.name || "",
-        s.email || s.id,
-        (s.percent ?? 0).toFixed(1),
-        (s.lastDeltaPercent ?? 0).toFixed(1),
-        s.lastDeltaAnswered ?? 0,
-        s.answered ?? 0,
-        fmtThaiTime(s.lastActiveAt),
-        s.mastered ?? 0,
-        s.learning ?? 0,
-        s.seen ?? 0,
-        s.bestScore ?? s.score ?? 0,
-        s.streak ?? 0,
-        (s.completedPassages ?? []).length,
-        target,
-        (s.completedConvos ?? []).length,
-        target,
-        s.reading?.totalLeaves ?? 0,
-        s.reading?.autoSubmits ?? 0,
-        leaveDetail,
-        weak,
-      ].map(escapeCsv).join(",");
+  const lessonStats = useMemo(() => {
+    const list = rows.filter((r) => r.inRoster && inRoom(r));
+    return lessons.map((l) => {
+      let passed = 0, tried = 0;
+      for (const r of list) {
+        const st = statusOf(r.progress[l.id]);
+        if (st === "passed") passed++;
+        else if (st === "tried") tried++;
+      }
+      return { id: l.id, passed, tried, none: list.length - passed - tried, n: list.length };
     });
-    // ใส่ BOM (\uFEFF) เพื่อให้ Excel อ่านภาษาไทยถูกต้อง
-    const csv = "\uFEFF" + [headers.join(","), ...rows].join("\r\n");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows, roomFilter, lessons]);
+
+  // ── CSV ──
+  const downloadCsv = () => {
+    const esc = (v: string | number) => {
+      const s = String(v ?? "");
+      return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const headers = ["ห้อง", "เลขที่", "ชื่อ-สกุล", "ชื่อที่พิมพ์ในแอป", "อีเมล", ...lessons.map((l) => `ชม.${l.hour}`), "ผ่าน (บท)", "ทำล่าสุด"];
+    const list = [...rosterRows, ...extraRows];
+    const lines = list.map((r) =>
+      [
+        r.room ?? "", r.no ?? "", r.name, r.typedNames.join(" / "), r.emails.join(" / "),
+        ...lessons.map((l) => {
+          const p = r.progress[l.id];
+          return p?.passed ? "ผ่าน" : p ? `${p.best}/${p.total}` : "";
+        }),
+        `${passedCountOf(r)}/${lessons.length}`,
+        r.activeAt ? new Date(r.activeAt).toLocaleString("th-TH") : "",
+      ].map(esc).join(",")
+    );
+    const csv = "﻿" + [headers.join(","), ...lines].join("\r\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    const date = new Date().toISOString().slice(0, 10);
     a.href = url;
-    a.download = `vocab-master-students-${date}.csv`;
+    a.download = `${courseId}-progress-${roomFilter === "ALL" ? "all" : roomFilter.replace("/", "-")}-${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -400,41 +265,39 @@ export default function AdminDashboard() {
     if (pw === ADMIN_PASSWORD) {
       setAuthed(true);
       setPwError(false);
-      try { sessionStorage.setItem("vocab_admin_ok", "1"); } catch {}
+      try { sessionStorage.setItem("vocab_admin_ok", "1"); } catch { /* ไม่เป็นไร */ }
     } else {
       setPwError(true);
     }
   };
 
+  // ───────────────── หน้าเข้าสู่ระบบ ─────────────────
   if (!authed) {
     return (
-      <div className="min-h-screen bg-neutral-950 flex items-center justify-center p-6">
-        <div className="w-full max-w-sm bg-neutral-900 border border-neutral-800 rounded-3xl p-8 shadow-2xl">
+      <div className="min-h-screen bg-[#f3f5fa] flex items-center justify-center p-6">
+        <div className="w-full max-w-sm bg-white border-t-8 border-[#003399] rounded-3xl p-8 shadow-xl">
           <div className="text-center mb-6">
             <div className="text-4xl mb-2">🔒</div>
-            <h1 className="text-xl font-black text-amber-200">หน้าผู้ดูแลระบบ</h1>
-            <p className="text-xs text-neutral-500 mt-1">สำหรับ {ADMIN_EMAIL} เท่านั้น</p>
+            <h1 className="text-xl font-black text-[#003399]">แดชบอร์ดครู</h1>
+            <p className="text-xs text-gray-500 mt-1">สำหรับ {ADMIN_EMAIL} เท่านั้น</p>
           </div>
-          <label className="block text-xs font-bold text-neutral-400 mb-1">รหัสผ่าน</label>
+          <label className="block text-xs font-bold text-gray-500 mb-1">รหัสผ่าน</label>
           <input
             type="password"
             value={pw}
             onChange={(e) => { setPw(e.target.value); setPwError(false); }}
             onKeyDown={(e) => { if (e.key === "Enter") submitPw(); }}
             autoFocus
-            className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-white outline-none focus:border-amber-400"
+            className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-[#003399]"
             placeholder="กรอกรหัสผ่าน"
           />
-          {pwError && <p className="text-rose-400 text-xs mt-2 font-bold">รหัสผ่านไม่ถูกต้อง</p>}
-          <button
-            onClick={submitPw}
-            className="w-full mt-4 bg-amber-300 hover:bg-amber-200 text-neutral-900 font-black rounded-xl py-3 transition-colors"
-          >
+          {pwError && <p className="text-rose-600 text-xs mt-2 font-bold">รหัสผ่านไม่ถูกต้อง</p>}
+          <button onClick={submitPw} className="w-full mt-4 bg-[#003399] hover:bg-[#002266] text-[#FFD700] font-black rounded-xl py-3">
             เข้าสู่ระบบ
           </button>
           {ADMIN_USING_DEFAULT_PW && (
-            <p className="text-amber-500/70 text-[10px] mt-4 leading-relaxed">
-              ⚠️ กำลังใช้รหัสผ่านเริ่มต้น — แนะนำให้ตั้งค่า <span className="font-mono">NEXT_PUBLIC_ADMIN_PASSWORD</span> ใน Vercel แล้ว redeploy เพื่อความปลอดภัย
+            <p className="text-amber-700 text-[10px] mt-4 leading-relaxed">
+              ⚠️ กำลังใช้รหัสผ่านเริ่มต้น — แนะนำให้ตั้ง <span className="font-mono">NEXT_PUBLIC_ADMIN_PASSWORD</span> ใน Vercel แล้ว Redeploy
             </p>
           )}
         </div>
@@ -442,454 +305,315 @@ export default function AdminDashboard() {
     );
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-neutral-950 flex items-center justify-center text-amber-400 font-bold text-xl animate-pulse">
-        กำลังโหลดข้อมูลนักเรียน...
-      </div>
-    );
-  }
-
-  const totalStudents = students.length;
-  const avgMastered = totalStudents
-    ? Math.round(students.reduce((sum, s) => sum + (s.mastered ?? 0), 0) / totalStudents)
-    : 0;
-
-  // มุมมองรายหมวดของนักเรียนหนึ่งคน (ใช้กับ Tab คำศัพท์/Reading/Conversation)
-  const subjectView = (s: StudentDoc) => {
-    if (subject === "vocab") {
-      return {
-        pct: s.percent ?? 0,
-        sub: `ทำได้ ${s.mastered ?? 0}/${s.total ?? 0} คำ`,
-        deltaPct: s.lastDeltaPercent ?? 0,
-        deltaAns: s.lastDeltaAnswered ?? 0,
-        lastActive: s.lastActiveAt,
-      };
-    }
-    const st = subject === "reading" ? s.reading : s.conversation;
-    const acc = (st?.totalAnswered ?? 0) > 0 ? Math.round(((st?.totalCorrect ?? 0) / (st?.totalAnswered ?? 1)) * 100) : 0;
-    const hist = st?.history ?? [];
-    const last = hist[hist.length - 1];
-    const prev = hist[hist.length - 2];
-    const completedIds = (subject === "reading" ? s.completedPassages : s.completedConvos) ?? [];
-    const target = topicTarget(roomOf(s.name));
-    return {
-      pct: acc,
-      sub: `สำเร็จ ${completedIds.length}/${target} หัวข้อ · ทำไป ${st?.attempts ?? 0} รอบ`,
-      deltaPct: last && prev ? Math.round((last.pct - prev.pct) * 10) / 10 : 0,
-      deltaAns: last && prev ? Math.max(0, last.answered - prev.answered) : 0,
-      lastActive: st?.lastActiveAt,
-      topicsDone: completedIds.length,
-      topicsTarget: target,
-    };
-  };
-  // เรียงตาม % ของหมวดที่เลือก (มากสุดก่อน)
-  // เรียงตาม "เลขที่" (1,2,3,...) ทุกแท็บ — ง่ายต่อการดูรายเลขที่ว่าทำได้กี่คำ/กี่% แล้ว
-  //   คนที่จับคู่รายชื่อทางการไม่ได้ (ไม่มีเลขที่) จะถูกจัดไว้ท้ายสุด เรียงตามชื่อ
-  const sortedStudents = [...filteredStudents].sort((a, b) => {
-    const noA = matchRoster(a.name)?.entry.no;
-    const noB = matchRoster(b.name)?.entry.no;
-    if (noA != null && noB != null) return noA - noB;
-    if (noA != null) return -1; // มีเลขที่มาก่อนคนที่ไม่มี
-    if (noB != null) return 1;
-    return (a.name || "").localeCompare(b.name || "", "th");
-  });
-
-  // ค่าการ์ดสรุป (เปลี่ยนตามหมวด)
-  const subjLabel = subject === "vocab" ? "คำศัพท์" : subject === "reading" ? "Reading" : "Conversation";
-  const subjAcct = students.filter((s) => (subject === "reading" ? s.reading : s.conversation)?.attempts);
-  const avgAcc = subjAcct.length
-    ? Math.round(
-        subjAcct.reduce((a, s) => {
-          const st = subject === "reading" ? s.reading : s.conversation;
-          return a + ((st?.totalAnswered ?? 0) > 0 ? ((st?.totalCorrect ?? 0) / (st?.totalAnswered ?? 1)) * 100 : 0);
-        }, 0) / subjAcct.length
-      )
-    : 0;
+  const lessonSel = lessons.find((l) => l.id === lessonId) ?? lessons[0];
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-200 p-6 md:p-10 font-sans">
+    <div className="min-h-screen bg-[#f3f5fa] text-gray-800 p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-start justify-between gap-4 mb-8 flex-wrap">
+        {/* ── หัวเรื่อง ── */}
+        <div className="flex flex-wrap items-end justify-between gap-3 mb-5">
           <div>
-            <h1 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-200 mb-1 tracking-tight">
-              📊 แดชบอร์ดครู — Vocab Master
-            </h1>
-            <p className="text-neutral-500 font-bold tracking-widest uppercase text-xs">
-              Student Progress · Live from Cloud
+            <p className="text-xs font-black text-[#003399] tracking-widest uppercase">Teacher Dashboard</p>
+            <h1 className="text-2xl md:text-3xl font-black text-gray-900">แดชบอร์ดครู · ติดตามบทเรียน</h1>
+            <p className="text-xs text-gray-500 mt-1">
+              ผ่าน = ตอบถูกครบทุกข้อในบท (20/20) · อัปเดตล่าสุด {loadedAt ? fmtThaiTime(loadedAt) : "–"}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={downloadCsv}
-            disabled={students.length === 0}
-            className="bg-amber-400 text-neutral-950 font-black px-5 py-3 rounded-2xl hover:bg-amber-300 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg"
-          >
-            📥 ดาวน์โหลด CSV
-          </button>
-        </div>
-
-        {/* สรุปภาพรวม */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5">
-            <div className="text-3xl font-black text-amber-400">{totalStudents}</div>
-            <div className="text-xs font-bold text-neutral-500 uppercase mt-1">นักเรียนที่มีข้อมูล</div>
-          </div>
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5">
-            <div className="text-3xl font-black text-green-400">{subject === "vocab" ? avgMastered : `${avgAcc}%`}</div>
-            <div className="text-xs font-bold text-neutral-500 uppercase mt-1">
-              {subject === "vocab" ? "เฉลี่ยคำที่จำได้/คน" : `เฉลี่ยความแม่น ${subjLabel}/คน`}
-            </div>
-          </div>
-          <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 col-span-2 md:col-span-1">
-            <div className="text-3xl font-black text-rose-400">{subject === "vocab" ? classHardWords.length : subjAcct.length}</div>
-            <div className="text-xs font-bold text-neutral-500 uppercase mt-1">
-              {subject === "vocab" ? "คำที่ห้องยังอ่อน" : `เข้าทำ ${subjLabel} แล้ว`}
-            </div>
+          <div className="flex gap-2">
+            <button onClick={loadAll} disabled={loading} className="px-4 py-2 bg-white border-2 border-[#003399]/20 text-[#003399] font-bold rounded-xl disabled:opacity-50">
+              {loading ? "⏳ กำลังโหลด..." : "🔄 รีเฟรช"}
+            </button>
+            <button onClick={downloadCsv} disabled={!course} className="px-4 py-2 bg-[#003399] text-[#FFD700] font-black rounded-xl disabled:opacity-50">
+              ⬇ CSV
+            </button>
           </div>
         </div>
 
-        {/* Tab สลับหมวดความก้าวหน้า */}
-        <div className="flex flex-wrap gap-2 mb-8">
-          {[
-            { key: "vocab", label: "📚 คำศัพท์" },
-            { key: "reading", label: "📖 Reading" },
-            { key: "conversation", label: "💬 Conversation" },
-          ].map((t) => (
+        {/* ── เลือกคอร์ส (รองรับหลายคอร์สในอนาคต) ── */}
+        <div className="flex flex-wrap gap-2 mb-3">
+          {COURSE_REGISTRY.map((c) => (
             <button
-              key={t.key}
-              onClick={() => setSubject(t.key as "vocab" | "reading" | "conversation")}
-              className={`px-5 py-2.5 rounded-2xl text-sm font-black transition-colors ${
-                subject === t.key
-                  ? "bg-amber-300 text-neutral-900 shadow-lg"
-                  : "bg-neutral-900 border border-neutral-800 text-neutral-400 hover:bg-neutral-800"
-              }`}
+              key={c.id}
+              onClick={() => { setCourseId(c.id); setLessonId(""); }}
+              className={`px-4 py-2 rounded-xl font-black text-sm ${courseId === c.id ? "bg-[#003399] text-[#FFD700]" : "bg-white text-gray-600 border border-gray-200"}`}
             >
-              {t.label}
+              {c.icon} {c.titleTh} <span className="font-bold opacity-70">({c.title})</span>
             </button>
           ))}
         </div>
 
-        {/* คำที่ทั้งห้องพลาดบ่อย (เฉพาะหมวดคำศัพท์) */}
-        {subject === "vocab" && (
-        <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 mb-8">
-          <h2 className="text-lg font-black text-rose-300 mb-1">🔥 คำที่ทั้งห้องยังอ่อน (ควรสอนซ้ำ)</h2>
-          <p className="text-xs text-neutral-500 mb-4">เรียงตามจำนวนนักเรียนที่ยังไม่แม่น</p>
-          {classHardWords.length === 0 ? (
-            <p className="text-neutral-600 text-sm">ยังไม่มีข้อมูล — เมื่อเด็กเล่นจบรอบ ข้อมูลจะขึ้นที่นี่</p>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {classHardWords.map((w) => (
-                <span key={w.word} className="bg-rose-500/10 border border-rose-500/30 rounded-xl px-3 py-2 text-sm">
-                  <span className="font-bold text-rose-200">{w.word}</span>
-                  {vocabMap[w.word] && <span className="text-neutral-400"> · {vocabMap[w.word].thai}</span>}
-                  <span className="text-neutral-500 text-xs"> ({w.strugglers} คน)</span>
-                </span>
-              ))}
-            </div>
-          )}
+        {/* ── ห้อง + โหมด + ค้นหา ── */}
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          {["ALL", ...ROOMS].map((r) => (
+            <button
+              key={r}
+              onClick={() => setRoomFilter(r)}
+              className={`px-3 py-1.5 rounded-full text-sm font-bold ${roomFilter === r ? "bg-[#FFD700] text-[#003399]" : "bg-white text-gray-600 border border-gray-200"}`}
+            >
+              {r === "ALL" ? "ทุกห้อง" : `ม.${r}`}
+            </button>
+          ))}
+          <span className="mx-1 text-gray-300">|</span>
+          <button onClick={() => setMode("matrix")} className={`px-3 py-1.5 rounded-full text-sm font-bold ${mode === "matrix" ? "bg-[#003399] text-white" : "bg-white text-gray-600 border border-gray-200"}`}>
+            ตารางรายคน
+          </button>
+          <button onClick={() => setMode("lesson")} className={`px-3 py-1.5 rounded-full text-sm font-bold ${mode === "lesson" ? "bg-[#003399] text-white" : "bg-white text-gray-600 border border-gray-200"}`}>
+            รายบท
+          </button>
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="ค้นหาชื่อ / อีเมล"
+            className="ml-auto w-full sm:w-56 border-2 border-gray-200 rounded-xl px-3 py-1.5 text-sm outline-none focus:border-[#003399]"
+          />
         </div>
-        )}
 
-        {/* 🚨 กันโกง: ออกจากหน้าจอระหว่างทำ Reading (เฉพาะหมวด Reading) */}
-        {subject === "reading" && (
-        <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-6 mb-8">
-          <h2 className="text-lg font-black text-rose-300 mb-1">🚨 ออกจากหน้าจอระหว่างทำ Reading (กันโกง)</h2>
-          <p className="text-xs text-neutral-500 mb-4">นับเฉพาะตอนทำข้อสอบจริง — สลับแอป/สลับแท็บ เช่น เปิดแอปแปลภาษาหรือค้นเน็ต · คลิกชื่อเพื่อดูรายบท</p>
-          {flaggedStudents.length === 0 ? (
-            <p className="text-neutral-600 text-sm">ยังไม่พบใครออกจากหน้าจอ 👍</p>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {flaggedStudents.map(({ s, leaves, autos }) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => setExpanded(s.id)}
-                  className={`rounded-xl px-3 py-2 text-sm transition-colors border ${autos > 0 ? "bg-red-500/15 border-red-500/50 hover:bg-red-500/25" : "bg-rose-500/10 border-rose-500/30 hover:bg-rose-500/20"}`}
-                >
-                  <span className={`font-bold ${autos > 0 ? "text-red-200" : "text-rose-200"}`}>{s.name || "(ไม่มีชื่อ)"}</span>
-                  <span className="text-neutral-400"> · ออกจากจอ {leaves} ครั้ง</span>
-                  {autos > 0 && <span className="ml-1 font-black text-red-300">· ⛔ ส่งอัตโนมัติ {autos}×</span>}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-        )}
+        {error && <p className="bg-rose-50 text-rose-700 font-bold rounded-xl p-3 mb-4">{error}</p>}
+        {!course && loading && <p className="text-center text-[#003399] font-bold animate-pulse py-10">กำลังโหลดข้อมูล...</p>}
 
-        {/* รายชื่อนักเรียน */}
-        <div className="bg-neutral-900 border border-neutral-800 rounded-3xl overflow-hidden">
-          <div className="p-6 border-b border-neutral-800">
-            <h2 className="text-lg font-black text-amber-200">นักเรียนรายคน — {subjLabel}</h2>
-            <p className="text-xs text-neutral-500">เรียงตามเลขที่ (1, 2, 3, ...) · คลิกที่แถวเพื่อดูประวัติทุกหมวด</p>
-            <div className="mt-3 flex flex-wrap gap-2">
+        {course && (
+          <>
+            {/* ── การ์ดสรุป ── */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
               {[
-                { key: "ALL", label: "ทั้งหมด" },
-                ...ROOMS.map((r) => ({ key: r, label: `ห้อง ${r}` })),
-                { key: "__none", label: "ไม่ระบุห้อง" },
-              ].map((t) => (
-                <button
-                  key={t.key}
-                  onClick={() => setRoomFilter(t.key)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
-                    roomFilter === t.key
-                      ? "bg-amber-300 text-neutral-900"
-                      : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
-                  }`}
-                >
-                  {t.label} ({roomCounts[t.key] ?? 0})
-                  {t.key !== "ALL" && t.key !== "__none" && (
-                    <span className="ml-1 opacity-70">· {roomTarget(t.key).toLocaleString()} คำ</span>
-                  )}
-                </button>
+                [summary.n, `นักเรียนในรายชื่อ${roomFilter === "ALL" ? "" : ` ม.${roomFilter}`}`],
+                [summary.started, "เริ่มทำแล้ว (อย่างน้อย 1 บท)"],
+                [summary.avg.toFixed(1), `ผ่านเฉลี่ย (บท/คน จาก ${lessons.length})`],
+                [summary.allDone, `ผ่านครบทั้ง ${lessons.length} บท`],
+              ].map(([v, label], i) => (
+                <div key={i} className="bg-white rounded-2xl p-4 border border-gray-100">
+                  <div className="text-3xl font-black text-[#003399] tabular-nums">{v}</div>
+                  <div className="text-xs text-gray-500 font-bold">{label}</div>
+                </div>
               ))}
             </div>
 
-            {/* สถานะการเข้าทำเทียบรายชื่อทางการ */}
-            {panelRooms.length > 0 && (
-              <div className="mt-4 bg-neutral-950/50 border border-neutral-800 rounded-2xl p-4">
-                <div className="text-xs font-bold text-amber-200 mb-2">📋 เทียบรายชื่อทางการ — ใครเข้าทำแล้ว/ยัง</div>
-                {panelRooms.map((r) => {
-                  const list = ROSTER.filter((x) => x.room === r);
-                  const notDone = list.filter((x) => !rosterMatched.has(`${r}|${x.no}`));
-                  const doneCount = list.length - notDone.length;
+            {/* ── แถบสถิติรายบท ── */}
+            <div className="bg-white rounded-2xl p-4 border border-gray-100 mb-5">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <h2 className="font-black text-gray-900">สัดส่วนผู้ผ่านรายบท</h2>
+                <div className="flex gap-3 text-[11px] font-bold text-gray-500">
+                  <span><span className="inline-block w-3 h-3 rounded bg-emerald-500 align-middle mr-1" />ผ่าน</span>
+                  <span><span className="inline-block w-3 h-3 rounded bg-amber-400 align-middle mr-1" />ทำแล้วยังไม่ผ่าน</span>
+                  <span><span className="inline-block w-3 h-3 rounded bg-gray-200 align-middle mr-1" />ยังไม่ทำ</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
+                {lessons.map((l, i) => {
+                  const st = lessonStats[i];
+                  const w = (x: number) => (st && st.n ? (x / st.n) * 100 : 0);
                   return (
-                    <div key={r} className="mb-3 last:mb-0">
-                      <div className="text-sm font-bold text-neutral-200">
-                        ห้อง {r}: เข้าทำแล้ว <span className="text-emerald-400">{doneCount}</span> / {list.length} คน
-                        {notDone.length > 0 && <span className="text-neutral-500 font-normal"> · ยังไม่เข้าทำ {notDone.length} คน</span>}
-                      </div>
-                      {notDone.length > 0 && (
-                        <div className="text-xs text-neutral-400 mt-1 leading-relaxed">
-                          <span className="text-rose-300 font-bold">ยังไม่เข้าทำ:</span>{" "}
-                          {notDone.map((x) => `${x.no}.${x.name.replace(/^(นางสาว|นาย|นาง)/, "")}`).join(" · ")}
-                        </div>
-                      )}
-                    </div>
+                    <button
+                      key={l.id}
+                      onClick={() => { setLessonId(l.id); setMode("lesson"); }}
+                      className="flex items-center gap-2 text-left hover:bg-gray-50 rounded-lg px-1"
+                      title={`${l.titleEn} — ${l.titleTh}`}
+                    >
+                      <span className="w-12 shrink-0 text-xs font-black text-[#003399]">ชม.{l.hour}</span>
+                      <span className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden flex">
+                        <span className="bg-emerald-500 h-full" style={{ width: `${w(st?.passed ?? 0)}%` }} />
+                        <span className="bg-amber-400 h-full" style={{ width: `${w(st?.tried ?? 0)}%` }} />
+                      </span>
+                      <span className="w-16 shrink-0 text-right text-xs font-bold tabular-nums text-gray-600">
+                        {st?.passed ?? 0}/{st?.n ?? 0}
+                      </span>
+                    </button>
                   );
                 })}
-                {shownUnmatched.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-neutral-800 text-xs">
-                    <span className="text-amber-300 font-bold">⚠️ พิมพ์ชื่อไม่ตรงรายชื่อ ({shownUnmatched.length} บัญชี):</span>{" "}
-                    <span className="text-neutral-300">{shownUnmatched.map((s) => s.name || "(ไม่มีชื่อ)").join(" · ")}</span>
-                    <div className="text-neutral-500 mt-1">→ อาจพิมพ์ผิด/ใช้ชื่ออังกฤษ หรือเป็นบัญชีทดสอบ (ระบบนับให้เฉพาะชื่อที่ตรงรายชื่อไทย)</div>
-                  </div>
-                )}
-                {shownByNumber.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-neutral-800 text-xs">
-                    <span className="text-sky-300 font-bold">🔢 จับคู่ด้วยห้อง+เลขที่ ({shownByNumber.length} บัญชี — ชื่อที่พิมพ์ไม่ใช่ภาษาไทย โปรดตรวจสอบว่าตรงคน):</span>
-                    <div className="mt-1 flex flex-col gap-1">
-                      {shownByNumber.map(({ s, entry }) => (
-                        <div key={s.id} className="text-neutral-300">
-                          พิมพ์ว่า <span className="text-neutral-100 font-bold">&quot;{s.name}&quot;</span> → จับคู่กับ{" "}
-                          <span className="text-emerald-300 font-bold">
-                            {entry.room} เลขที่ {entry.no} {entry.name}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+              </div>
+            </div>
+
+            {/* ── ตารางรายคน ── */}
+            {mode === "matrix" && (
+              <div className="bg-white rounded-2xl border border-gray-100 mb-5">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm border-collapse">
+                    <thead>
+                      <tr className="bg-[#003399] text-white">
+                        <th className="sticky left-0 z-10 bg-[#003399] text-left px-3 py-2 font-black min-w-[220px]">นักเรียน</th>
+                        {lessons.map((l) => (
+                          <th key={l.id} className="px-1 py-2 font-black text-[11px] min-w-[38px]" title={`${l.titleEn} — ${l.titleTh}`}>
+                            {l.hour}
+                          </th>
+                        ))}
+                        <th className="px-3 py-2 font-black text-[11px] whitespace-nowrap">ผ่าน</th>
+                        <th className="px-3 py-2 font-black text-[11px] whitespace-nowrap text-left">ทำล่าสุด</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...rosterRows, ...extraRows].map((r, i, arr) => {
+                        const showRoomHeader = roomFilter === "ALL" && r.inRoster && (i === 0 || arr[i - 1].room !== r.room);
+                        const firstExtra = !r.inRoster && (i === 0 || arr[i - 1].inRoster);
+                        const pc = passedCountOf(r);
+                        return (
+                          <React.Fragment key={r.key}>
+                            {showRoomHeader && (
+                              <tr><td colSpan={lessons.length + 3} className="bg-[#FFD700]/30 text-[#003399] font-black px-3 py-1.5 text-xs">ม.{r.room}</td></tr>
+                            )}
+                            {firstExtra && (
+                              <tr><td colSpan={lessons.length + 3} className="bg-rose-50 text-rose-700 font-black px-3 py-1.5 text-xs">บัญชีที่จับคู่รายชื่อไม่ได้ (พิมพ์ชื่อไม่ตรงรายชื่อทางการ) — ตรวจสอบชื่อที่พิมพ์</td></tr>
+                            )}
+                            <tr className="border-b border-gray-100 hover:bg-blue-50/40">
+                              <td className="sticky left-0 z-10 bg-white px-3 py-1.5">
+                                <div className="font-bold text-gray-900 truncate max-w-[260px]">
+                                  {r.no != null && <span className="text-gray-400 font-black mr-1 tabular-nums">{r.no}.</span>}
+                                  {r.name}
+                                </div>
+                                {r.typedNames.length > 0 && r.inRoster && (
+                                  <div className="text-[10px] text-gray-400 truncate max-w-[260px]">พิมพ์ว่า: {r.typedNames.join(" / ")}</div>
+                                )}
+                                {!r.inRoster && <div className="text-[10px] text-gray-400 truncate max-w-[260px]">{r.emails.join(" / ")}</div>}
+                              </td>
+                              {lessons.map((l) => {
+                                const p = r.progress[l.id];
+                                const st = statusOf(p);
+                                const tip = p
+                                  ? `ชม.${l.hour} ${l.titleEn}\nดีที่สุด ${p.best}/${p.total} · ล่าสุด ${p.last}/${p.total} · ทำ ${p.attempts} รอบ${p.passedAt ? `\nผ่านเมื่อ ${new Date(p.passedAt).toLocaleString("th-TH")}` : ""}`
+                                  : `ชม.${l.hour} ยังไม่ทำ`;
+                                return (
+                                  <td key={l.id} className="text-center px-0.5 py-1" title={tip}>
+                                    {st === "passed" ? (
+                                      <span className="inline-flex w-7 h-7 rounded-lg bg-emerald-500 text-white font-black items-center justify-center text-xs">✓</span>
+                                    ) : st === "tried" ? (
+                                      <span className="inline-flex w-7 h-7 rounded-lg bg-amber-100 text-amber-800 font-black items-center justify-center text-[11px] tabular-nums">{p!.best}</span>
+                                    ) : (
+                                      <span className="inline-flex w-7 h-7 rounded-lg bg-gray-50 text-gray-300 items-center justify-center text-xs">·</span>
+                                    )}
+                                  </td>
+                                );
+                              })}
+                              <td className="text-center px-3 py-1 font-black tabular-nums whitespace-nowrap">
+                                <span className={pc === lessons.length && lessons.length > 0 ? "text-emerald-600" : pc > 0 ? "text-[#003399]" : "text-gray-300"}>
+                                  {pc}/{lessons.length}
+                                </span>
+                              </td>
+                              <td className="px-3 py-1 text-xs text-gray-500 whitespace-nowrap">{r.activeAt ? fmtThaiTime(r.activeAt) : "–"}</td>
+                            </tr>
+                          </React.Fragment>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-[11px] text-gray-500 px-4 py-3">
+                  ✓ = ผ่าน (20/20) · ตัวเลข = คะแนนดีที่สุดที่ยังไม่ผ่าน · ชี้ที่ช่องเพื่อดูจำนวนรอบและวันที่ผ่าน · หัวคอลัมน์ = ชั่วโมงที่
+                </p>
               </div>
             )}
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-neutral-950/60 border-b border-neutral-800 text-xs uppercase text-neutral-500">
-                <tr>
-                  <th className="p-4">ชื่อ</th>
-                  <th className="p-4 hidden md:table-cell">อีเมล</th>
-                  <th className="p-4 text-center">ก้าวหน้า</th>
-                  <th className="p-4 text-center">ขยับล่าสุด</th>
-                  <th className="p-4 text-center hidden lg:table-cell">เข้าทำล่าสุด</th>
-                  <th className="p-4 text-center">จำได้</th>
-                  <th className="p-4 text-center hidden md:table-cell">กำลังเรียน</th>
-                  <th className="p-4 text-center hidden sm:table-cell">คะแนนสูงสุด</th>
-                  <th className="p-4 text-center hidden sm:table-cell">อ่าน %</th>
-                  <th className="p-4 text-center hidden sm:table-cell">สนทนา %</th>
-                  <th className="p-4 text-center">ออกจากจอ</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-800/50">
-                {sortedStudents.length === 0 && (
-                  <tr>
-                    <td colSpan={11} className="p-8 text-center text-neutral-500 text-sm">
-                      ยังไม่มีข้อมูลนักเรียนในห้องนี้ (นักเรียนต้องเข้าทำอย่างน้อย 1 รอบหลังอัปเดต)
-                    </td>
-                  </tr>
-                )}
-                {sortedStudents.map((s) => {
-                  const weak = weakWordsOf(s);
-                  const v = subjectView(s);
-                  const isOpen = expanded === s.id;
-                  return (
-                    <React.Fragment key={s.id}>
-                      <tr
-                        className="hover:bg-neutral-800/30 transition-colors cursor-pointer"
-                        onClick={() => setExpanded(isOpen ? null : s.id)}
-                      >
-                        <td className="p-4 font-bold text-white">
-                          {matchRoster(s.name) && (
-                            <span className="inline-block w-6 text-amber-300 font-black">{matchRoster(s.name)?.entry.no}.</span>
-                          )}
-                          {s.name || "(ไม่มีชื่อ)"}
-                        </td>
-                        <td className="p-4 text-neutral-500 text-sm font-mono hidden md:table-cell">{s.email}</td>
-                        <td className="p-4 text-center">
-                          <div className="font-black text-lg text-emerald-400">{v.pct.toFixed(1)}%</div>
-                          <div className="text-[10px] text-neutral-500">{v.sub}</div>
-                        </td>
-                        <td className="p-4 text-center">
-                          {(v.deltaPct ?? 0) > 0 || (v.deltaAns ?? 0) > 0 ? (
-                            <div>
-                              <div className="font-black text-sky-300">▲ +{(v.deltaPct ?? 0).toFixed(1)}%</div>
-                              <div className="text-[10px] text-neutral-500">ทำเพิ่ม {v.deltaAns ?? 0} ข้อ</div>
-                            </div>
-                          ) : (
-                            <span className="text-neutral-600">–</span>
-                          )}
-                        </td>
-                        <td className="p-4 text-center text-xs text-neutral-400 hidden lg:table-cell">{fmtThaiTime(v.lastActive)}</td>
-                        <td className="p-4 text-center font-black text-green-400">{s.mastered ?? 0}</td>
-                        <td className="p-4 text-center font-bold text-amber-400 hidden md:table-cell">{s.learning ?? 0}</td>
-                        <td className="p-4 text-center font-bold text-neutral-200 hidden sm:table-cell">{s.bestScore ?? s.score ?? 0}</td>
-                        <td className="p-4 text-center font-bold text-sky-400 hidden sm:table-cell">{s.reading?.bestPct != null ? `${s.reading.bestPct}%` : "–"}</td>
-                        <td className="p-4 text-center font-bold text-purple-400 hidden sm:table-cell">{s.conversation?.bestPct != null ? `${s.conversation.bestPct}%` : "–"}</td>
-                        <td className="p-4 text-center font-black">{(s.reading?.totalLeaves ?? 0) > 0 || (s.reading?.autoSubmits ?? 0) > 0 ? <span className="text-rose-400">{s.reading?.totalLeaves ?? 0}×{(s.reading?.autoSubmits ?? 0) > 0 ? <span className="text-red-300"> ⛔{s.reading?.autoSubmits}</span> : null}</span> : <span className="text-neutral-600">0</span>}</td>
-                      </tr>
-                      {isOpen && (
-                        <tr className="bg-neutral-950/40">
-                          <td colSpan={11} className="p-4">
-                            {s.history && s.history.length > 0 && (
-                              <div className="mb-4">
-                                <div className="text-xs font-bold text-emerald-300 mb-2">
-                                  📈 ประวัติความก้าวหน้า (ล่าสุด {Math.min(s.history.length, 8)} ครั้ง · เข้าทำล่าสุด {fmtThaiTime(s.lastActiveAt)})
-                                </div>
-                                <div className="flex flex-col gap-1">
-                                  {s.history.slice(-8).reverse().map((h, i, arr) => {
-                                    const prev = arr[i + 1];
-                                    const dPct = prev ? Math.round((h.percent - prev.percent) * 10) / 10 : 0;
-                                    const dAns = prev ? Math.max(0, h.answered - prev.answered) : 0;
-                                    return (
-                                      <div key={h.ts} className="flex items-center gap-3 text-xs bg-neutral-900/60 rounded-lg px-3 py-1.5">
-                                        <span className="text-neutral-500 w-32 shrink-0">{fmtThaiTime(h.ts)}</span>
-                                        <span className="font-black text-emerald-400 w-16">{h.percent.toFixed(1)}%</span>
-                                        {prev && (dPct > 0 || dAns > 0) ? (
-                                          <span className="text-sky-300">▲ +{dPct.toFixed(1)}% · ทำเพิ่ม {dAns} ข้อ</span>
-                                        ) : (
-                                          <span className="text-neutral-600">—</span>
-                                        )}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            )}
 
-                            <SubjectProgress
-                              title="ความก้าวหน้า Reading (การอ่าน)"
-                              icon="📖"
-                              accent="text-sky-300"
-                              stat={s.reading}
-                              topicsDone={(s.completedPassages ?? []).length}
-                              topicsTarget={topicTarget(roomOf(s.name))}
-                            />
-                            <SubjectProgress
-                              title="ความก้าวหน้า Conversation (บทสนทนา)"
-                              icon="💬"
-                              accent="text-purple-300"
-                              stat={s.conversation}
-                              topicsDone={(s.completedConvos ?? []).length}
-                              topicsTarget={topicTarget(roomOf(s.name))}
-                            />
+            {/* ── มุมมองรายบท ── */}
+            {mode === "lesson" && lessonSel && (
+              <LessonPanel
+                course={course}
+                lessonId={lessonSel.id}
+                setLessonId={setLessonId}
+                rows={[...rosterRows, ...extraRows]}
+                roomFilter={roomFilter}
+              />
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
 
-                            <div className="text-xs font-bold text-neutral-400 mb-2">คำที่ {s.name} ยังอ่อน:</div>                            {weak.length === 0 ? (
-                              <span className="text-neutral-600 text-sm">ยังไม่มีคำที่อ่อน หรือยังไม่มีข้อมูล</span>
-                            ) : (
-                              <div className="flex flex-wrap gap-2">
-                                {weak.map((w) => (
-                                  <span key={w.word} className="bg-neutral-800 rounded-lg px-2.5 py-1.5 text-xs">
-                                    <span className="font-bold text-neutral-100">{w.word}</span>
-                                    {vocabMap[w.word] && <span className="text-neutral-500"> · {vocabMap[w.word].thai}</span>}
-                                    {w.lapses > 0 && <span className="text-rose-400"> · ลืม {w.lapses}×</span>}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
+// ── รายละเอียดรายบท: ใครผ่าน / ยังไม่ผ่าน / ยังไม่ทำ + ข้อที่พลาดบ่อย ──
+function LessonPanel({
+  course,
+  lessonId,
+  setLessonId,
+  rows,
+  roomFilter,
+}: {
+  course: Course;
+  lessonId: string;
+  setLessonId: (id: string) => void;
+  rows: Row[];
+  roomFilter: string;
+}) {
+  const lesson = course.lessons.find((l) => l.id === lessonId)!;
+  const groups: Record<Status, Row[]> = { passed: [], tried: [], none: [] };
+  for (const r of rows) {
+    const st = statusOf(r.progress[lesson.id]);
+    if (!r.inRoster && st === "none") continue;
+    groups[st].push(r);
+  }
+  // ข้อที่พลาดบ่อย (รวมทุกคนในมุมมองนี้)
+  const missedAgg: Record<string, { times: number; people: number }> = {};
+  for (const r of rows) {
+    const m = r.progress[lesson.id]?.missed;
+    if (!m) continue;
+    for (const [qid, n] of Object.entries(m)) {
+      (missedAgg[qid] ||= { times: 0, people: 0 }).times += n;
+      missedAgg[qid].people += 1;
+    }
+  }
+  const qById = Object.fromEntries(lesson.questions.map((q) => [q.id, q]));
+  const topMissed = Object.entries(missedAgg)
+    .filter(([id]) => qById[id])
+    .sort((a, b) => b[1].people - a[1].people || b[1].times - a[1].times)
+    .slice(0, 8);
 
-                            {s.readingLeaves && Object.keys(s.readingLeaves).length > 0 && (
-                              <div className="mt-4 border-t border-neutral-800 pt-3">
-                                <div className="text-xs font-bold text-rose-300 mb-2">🚨 ออกจากหน้าจอราย​บท (กันโกง) — รวม {s.reading?.totalLeaves ?? 0} ครั้ง{(s.reading?.autoSubmits ?? 0) > 0 ? ` · ⛔ ส่งอัตโนมัติ ${s.reading?.autoSubmits} ครั้ง` : ""}</div>
-                                <div className="flex flex-wrap gap-2">
-                                  {Object.values(s.readingLeaves)
-                                    .sort((a, b) => b.leaves - a.leaves)
-                                    .map((lv, i) => (
-                                      <span key={i} className="bg-rose-500/10 border border-rose-500/30 rounded-lg px-2.5 py-1.5 text-xs">
-                                        <span className="font-bold text-rose-200">{lv.title || "(บท)"}</span>
-                                        {lv.examStyle && <span className="text-neutral-500"> · {lv.examStyle}</span>}
-                                        <span className="text-rose-300"> · ออก {lv.leaves}× ใน {lv.attempts} รอบ</span>
-                                        {(lv.autoSubmits ?? 0) > 0 && <span className="ml-1 font-black text-red-300">· ⛔ ส่งอัตโนมัติ {lv.autoSubmits}×</span>}
-                                      </span>
-                                    ))}
-                                </div>
-                              </div>
-                            )}
+  const label = (r: Row) => `${roomFilter === "ALL" && r.room ? `ม.${r.room} ` : ""}${r.no != null ? `${r.no}. ` : ""}${r.name}`;
+  const strip = (t: string) => t.replace(/\*\*/g, "");
 
-                            <div className="mt-4 grid sm:grid-cols-2 gap-3 border-t border-neutral-800 pt-3">
-                              <div>
-                                <div className="text-xs font-bold text-sky-300 mb-1">📖 การอ่าน (Reading)</div>
-                                {s.reading ? (
-                                  <div className="text-xs text-neutral-400 space-y-0.5">
-                                    <div>ทำไป {s.reading.attempts ?? 0} รอบ · ดีสุด {s.reading.bestPct ?? 0}% · สะสม {s.reading.totalCorrect ?? 0}/{s.reading.totalAnswered ?? 0}</div>
-                                    {s.reading.byType &&
-                                      Object.entries(s.reading.byType).map(([t, v]) => (
-                                        <div key={t} className="text-neutral-500">
-                                          • {(RQTYPE_LABELS as Record<string, string>)[t] ?? t}: {v.correct}/{v.answered}
-                                        </div>
-                                      ))}
-                                  </div>
-                                ) : (
-                                  <span className="text-neutral-600 text-xs">ยังไม่มีข้อมูล</span>
-                                )}
-                              </div>
-                              <div>
-                                <div className="text-xs font-bold text-purple-300 mb-1">💬 บทสนทนา (Conversation)</div>
-                                {s.conversation ? (
-                                  <div className="text-xs text-neutral-400 space-y-0.5">
-                                    <div>ทำไป {s.conversation.attempts ?? 0} รอบ · ดีสุด {s.conversation.bestPct ?? 0}% · สะสม {s.conversation.totalCorrect ?? 0}/{s.conversation.totalAnswered ?? 0}</div>
-                                    {s.conversation.byFormat &&
-                                      Object.entries(s.conversation.byFormat).map(([t, v]) => (
-                                        <div key={t} className="text-neutral-500">
-                                          • {(CONV_FORMAT_LABELS as Record<string, string>)[t] ?? t}: {v.correct}/{v.answered}
-                                        </div>
-                                      ))}
-                                  </div>
-                                ) : (
-                                  <span className="text-neutral-600 text-xs">ยังไม่มีข้อมูล</span>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-                {students.length === 0 && (
-                  <tr>
-                    <td colSpan={8} className="p-10 text-center text-neutral-600 font-bold">
-                      ยังไม่มีข้อมูลนักเรียน — เมื่อเด็กเล่นจบรอบและซิงก์ขึ้นคลาวด์ จะปรากฏที่นี่
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+  const Col = ({ title, list, cls, render }: { title: string; list: Row[]; cls: string; render: (r: Row) => React.ReactNode }) => (
+    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+      <div className={`px-4 py-2 font-black text-sm ${cls}`}>{title} · {list.length} คน</div>
+      <ul className="max-h-[420px] overflow-y-auto divide-y divide-gray-50">
+        {list.length === 0 && <li className="px-4 py-3 text-xs text-gray-400">—</li>}
+        {list.map((r) => (
+          <li key={r.key} className="px-4 py-1.5 text-sm flex justify-between gap-2">
+            <span className="truncate">{label(r)}</span>
+            <span className="shrink-0 text-xs text-gray-500 tabular-nums">{render(r)}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 
-        <p className="text-center text-neutral-700 text-xs mt-8">
-          ข้อมูลนี้เป็นความลับของนักเรียน — อย่าเปิดเผยลิงก์หน้านี้ให้คนนอก
-        </p>
+  return (
+    <div className="mb-5">
+      <div className="flex flex-wrap items-center gap-2 mb-3">
+        <select
+          value={lesson.id}
+          onChange={(e) => setLessonId(e.target.value)}
+          className="border-2 border-gray-200 rounded-xl px-3 py-2 font-bold text-sm bg-white outline-none focus:border-[#003399]"
+        >
+          {course.lessons.map((l) => (
+            <option key={l.id} value={l.id}>ชม.{l.hour} · {l.titleEn} — {l.titleTh}</option>
+          ))}
+        </select>
+        <span className="text-xs text-gray-500">{lesson.questions.length} ข้อ · ผ่านเมื่อถูกครบทุกข้อ</span>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+        <Col title="✓ ผ่านแล้ว" list={groups.passed} cls="bg-emerald-50 text-emerald-700" render={(r) => `${fmtDate(r.progress[lesson.id]?.passedAt)} · ${r.progress[lesson.id]?.attempts} รอบ`} />
+        <Col title="ทำแล้ว ยังไม่ผ่าน" list={groups.tried} cls="bg-amber-50 text-amber-800" render={(r) => `ดีสุด ${r.progress[lesson.id]?.best}/${r.progress[lesson.id]?.total} · ${r.progress[lesson.id]?.attempts} รอบ`} />
+        <Col title="ยังไม่ได้ทำ" list={groups.none} cls="bg-gray-100 text-gray-600" render={() => ""} />
+      </div>
+
+      <div className="bg-white rounded-2xl border border-gray-100 p-4">
+        <h3 className="font-black text-gray-900 mb-2">ข้อที่นักเรียนพลาดบ่อยในบทนี้</h3>
+        {topMissed.length === 0 ? (
+          <p className="text-xs text-gray-400">ยังไม่มีข้อมูล</p>
+        ) : (
+          <ol className="space-y-2">
+            {topMissed.map(([qid, v]) => {
+              const qq = qById[qid];
+              return (
+                <li key={qid} className="text-sm border-b border-gray-50 pb-2">
+                  <div className="flex justify-between gap-3">
+                    <span className="font-bold text-gray-900">{strip(qq.q)}</span>
+                    <span className="shrink-0 text-xs font-black text-rose-600">{v.people} คน · {v.times} ครั้ง</span>
+                  </div>
+                  <div className="text-xs text-emerald-700">เฉลย: {strip(qq.options[qq.answer])}</div>
+                </li>
+              );
+            })}
+          </ol>
+        )}
       </div>
     </div>
   );
