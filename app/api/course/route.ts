@@ -1,8 +1,8 @@
 // app/api/course/route.ts
 // ─────────────────────────────────────────────────────────────
 // ส่งเนื้อหาคอร์สบทเรียน (เช่น Root Words Decoder) ให้หน้านักเรียนและหน้าครู
-//   เรียกแบบ /api/course?id=decoder
-//   ใช้แพทเทิร์นเดียวกับ /api/vocab (กันการเรียกจากนอกเว็บแบบหลวม ๆ)
+//   เรียกแบบ /api/course?id=decoder หรือ /api/course?id=vocab300 (คำศัพท์แกน 300 คำ)
+//   ตรวจ referer เพื่อกันการเรียกจากนอกเว็บแบบหลวม ๆ
 // ─────────────────────────────────────────────────────────────
 import { NextRequest, NextResponse } from "next/server";
 import { readFileSync } from "fs";
@@ -14,6 +14,8 @@ function readCourseFile(id: string): string | null {
     switch (id) {
       case "decoder":
         return readFileSync(join(process.cwd(), "data", "decoder_lessons.json"), "utf-8");
+      case "vocab300":
+        return readFileSync(join(process.cwd(), "data", "vocab300.json"), "utf-8");
       default:
         return null;
     }

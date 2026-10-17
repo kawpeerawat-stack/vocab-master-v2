@@ -1,7 +1,9 @@
 "use client";
 // app/admin/page.tsx
 // ─────────────────────────────────────────────────────────────
-// แดชบอร์ดครู (สร้างใหม่ทั้งหมด) — ติดตามบทเรียนแบบแบ่งบท เช่น Root Words Decoder
+// แดชบอร์ดครู
+//   📚 คำศัพท์แกน 300 คำ (ค่าเริ่มต้น) — ดู app/admin/_vocab/VocabAdmin.tsx
+//   🧩 คอร์สบทเรียน เช่น Root Words Decoder:
 //   • ตารางรายคน: นักเรียนแต่ละคนผ่านบทไหนแล้ว (ผ่าน = ตอบถูกครบ 20/20)
 //   • มุมมองรายบท: ใครผ่าน / ทำแล้วยังไม่ผ่าน / ยังไม่ทำ + ข้อที่นักเรียนพลาดบ่อย
 //   • จับคู่ชื่อที่นักเรียนพิมพ์กับรายชื่อทางการ (data/roster.json) → เรียงตามห้องและเลขที่
@@ -12,7 +14,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { db } from "../lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
-import ROSTER_JSON from "../../data/roster.json";
 import {
   COURSE_REGISTRY,
   Course,
@@ -21,6 +22,9 @@ import {
   loadCourse,
   mergeCourseProgress,
 } from "../lib/courses";
+import { ROSTER, ROOMS, extractNo, fmtThaiTime, matchRoster, roomOf, rosterKey } from "../lib/roster";
+import { VCourse, VProgress, loadVocab300 } from "../lib/vocab300";
+import VocabAdmin from "./_vocab/VocabAdmin";
 
 // ── สิทธิ์เข้าหน้า /admin (เหมือนเดิม) ──
 const ADMIN_EMAIL = "kawpeerawat@gmail.com";
@@ -28,44 +32,8 @@ const ADMIN_EMAIL = "kawpeerawat@gmail.com";
 const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "anukoolnaree2025";
 const ADMIN_USING_DEFAULT_PW = !process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
 
-// ── รายชื่อทางการ + จับคู่ชื่อที่นักเรียนพิมพ์ ──
-type RosterEntry = { room: string; no: number; name: string };
-const ROSTER = ROSTER_JSON as RosterEntry[];
-const ROOMS = Array.from(new Set(ROSTER.map((r) => r.room))).sort();
-
-function roomOf(name?: string): string | null {
-  const m = (name || "").match(/6\s*[\/._-]\s*([1-9])/);
-  return m ? `6/${m[1]}` : null;
-}
-function normName(s?: string): string {
-  return (s || "")
-    .replace(/(นางสาว|เด็กชาย|เด็กหญิง|นาย|นาง|ด\.ช\.|ด\.ญ\.|น\.ส\.)/g, "")
-    .replace(/no\.?\s*\d+|เลขที่\s*\d+|m\.?\s*6\s*\/\s*[1-9]|ม\.?\s*6\s*\/\s*[1-9]|6\s*\/\s*[1-9]/gi, "")
-    .replace(/[^ก-๙a-zA-Z]/g, "")
-    .toLowerCase();
-}
-function extractNo(s?: string): number | null {
-  const m = (s || "").match(/no\.?\s*(\d{1,2})\b/i) || (s || "").match(/เลขที่\s*(\d{1,2})/) || (s || "").match(/#\s*(\d{1,2})/);
-  return m ? parseInt(m[1], 10) : null;
-}
-const rosterIndex: Record<string, RosterEntry[]> = {};
-for (const r of ROSTER) (rosterIndex[normName(r.name)] ||= []).push(r);
-function matchRoster(name?: string): RosterEntry | null {
-  const n = normName(name);
-  if (n && rosterIndex[n]) return rosterIndex[n][0]; // 1) ชื่อไทยตรง
-  const room = roomOf(name);
-  const no = extractNo(name);
-  if (room && no != null) {
-    const hit = ROSTER.find((r) => r.room === room && r.no === no); // 2) ห้อง + เลขที่
-    if (hit) return hit;
-  }
-  if (!n) return null;
-  const cand: RosterEntry[] = []; // 3) ชื่อบางส่วน (เฉพาะเมื่อไม่กำกวม)
-  for (const k in rosterIndex) if (k.startsWith(n) || n.startsWith(k)) cand.push(...rosterIndex[k]);
-  return cand.length === 1 ? cand[0] : null;
-}
-const rosterKey = (r: RosterEntry) => `${r.room}|${r.no}`;
-
+// ── รายชื่อทางการ + จับคู่ชื่อ (ใช้ร่วมกับหน้าคำศัพท์ 300) ──
+const ROSTER_ROOMS = ROOMS;
 // ── ข้อมูลนักเรียนจาก Firestore (อ่านเฉพาะฟิลด์ที่ใช้) ──
 type StudentDoc = {
   id: string;
@@ -73,6 +41,8 @@ type StudentDoc = {
   email?: string;
   courses?: Record<string, CourseProgress>;
   courseActiveAt?: number;
+  v300?: VProgress;
+  v300At?: number;
 };
 
 type Row = {
@@ -87,18 +57,6 @@ type Row = {
   inRoster: boolean;
 };
 
-function fmtThaiTime(ms?: number): string {
-  if (!ms) return "–";
-  const diff = Date.now() - ms;
-  const min = Math.floor(diff / 60000);
-  if (min < 1) return "เมื่อสักครู่";
-  if (min < 60) return `${min} นาทีที่แล้ว`;
-  const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr} ชม.ที่แล้ว`;
-  const d = new Date(ms);
-  const th = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
-  return `${d.getDate()} ${th[d.getMonth()]} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
-}
 function fmtDate(ms?: number): string {
   if (!ms) return "";
   const d = new Date(ms);
@@ -113,6 +71,8 @@ export default function AdminDashboard() {
   const [pw, setPw] = useState("");
   const [pwError, setPwError] = useState(false);
 
+  const [area, setArea] = useState<"vocab300" | "course">("vocab300");
+  const [v300, setV300] = useState<VCourse | null>(null);
   const [courseId, setCourseId] = useState(COURSE_REGISTRY[0]?.id ?? "decoder");
   const [course, setCourse] = useState<Course | null>(null);
   const [students, setStudents] = useState<StudentDoc[]>([]);
@@ -137,8 +97,9 @@ export default function AdminDashboard() {
     setLoading(true);
     setError("");
     try {
-      const [c, snap] = await Promise.all([loadCourse(courseId), getDocs(collection(db, "students"))]);
+      const [c, vc, snap] = await Promise.all([loadCourse(courseId), loadVocab300(), getDocs(collection(db, "students"))]);
       setCourse(c);
+      setV300(vc);
       const data: StudentDoc[] = [];
       snap.forEach((d) => {
         const v = d.data() as Record<string, unknown>;
@@ -148,6 +109,8 @@ export default function AdminDashboard() {
           email: v.email as string | undefined,
           courses: v.courses as Record<string, CourseProgress> | undefined,
           courseActiveAt: v.courseActiveAt as number | undefined,
+          v300: v.v300 as VProgress | undefined,
+          v300At: v.v300At as number | undefined,
         });
       });
       setStudents(data);
@@ -314,28 +277,38 @@ export default function AdminDashboard() {
         <div className="flex flex-wrap items-end justify-between gap-3 mb-5">
           <div>
             <p className="text-xs font-black text-[#003399] tracking-widest uppercase">Teacher Dashboard</p>
-            <h1 className="text-2xl md:text-3xl font-black text-gray-900">แดชบอร์ดครู · ติดตามบทเรียน</h1>
+            <h1 className="text-2xl md:text-3xl font-black text-gray-900">
+              แดชบอร์ดครู · {area === "vocab300" ? "คำศัพท์แกน 300 คำ" : "ติดตามบทเรียน"}
+            </h1>
             <p className="text-xs text-gray-500 mt-1">
-              ผ่าน = ตอบถูกครบทุกข้อในบท (20/20) · อัปเดตล่าสุด {loadedAt ? fmtThaiTime(loadedAt) : "–"}
+              {area === "vocab300" ? "รู้แล้ว = ตอบถูกในวันที่ต่างกันอย่างน้อย 2 วัน" : "ผ่าน = ตอบถูกครบทุกข้อในบท (20/20)"} · อัปเดตล่าสุด {loadedAt ? fmtThaiTime(loadedAt) : "–"}
             </p>
           </div>
           <div className="flex gap-2">
             <button onClick={loadAll} disabled={loading} className="px-4 py-2 bg-white border-2 border-[#003399]/20 text-[#003399] font-bold rounded-xl disabled:opacity-50">
               {loading ? "⏳ กำลังโหลด..." : "🔄 รีเฟรช"}
             </button>
-            <button onClick={downloadCsv} disabled={!course} className="px-4 py-2 bg-[#003399] text-[#FFD700] font-black rounded-xl disabled:opacity-50">
-              ⬇ CSV
-            </button>
+            {area === "course" && (
+              <button onClick={downloadCsv} disabled={!course} className="px-4 py-2 bg-[#003399] text-[#FFD700] font-black rounded-xl disabled:opacity-50">
+                ⬇ CSV
+              </button>
+            )}
           </div>
         </div>
 
         {/* ── เลือกคอร์ส (รองรับหลายคอร์สในอนาคต) ── */}
         <div className="flex flex-wrap gap-2 mb-3">
+          <button
+            onClick={() => setArea("vocab300")}
+            className={`px-4 py-2 rounded-xl font-black text-sm ${area === "vocab300" ? "bg-[#003399] text-[#FFD700]" : "bg-white text-gray-600 border border-gray-200"}`}
+          >
+            📚 คำศัพท์แกน 300 คำ <span className="font-bold opacity-70">(Core 300)</span>
+          </button>
           {COURSE_REGISTRY.map((c) => (
             <button
               key={c.id}
-              onClick={() => { setCourseId(c.id); setLessonId(""); }}
-              className={`px-4 py-2 rounded-xl font-black text-sm ${courseId === c.id ? "bg-[#003399] text-[#FFD700]" : "bg-white text-gray-600 border border-gray-200"}`}
+              onClick={() => { setArea("course"); setCourseId(c.id); setLessonId(""); }}
+              className={`px-4 py-2 rounded-xl font-black text-sm ${area === "course" && courseId === c.id ? "bg-[#003399] text-[#FFD700]" : "bg-white text-gray-600 border border-gray-200"}`}
             >
               {c.icon} {c.titleTh} <span className="font-bold opacity-70">({c.title})</span>
             </button>
@@ -344,7 +317,7 @@ export default function AdminDashboard() {
 
         {/* ── ห้อง + โหมด + ค้นหา ── */}
         <div className="flex flex-wrap items-center gap-2 mb-4">
-          {["ALL", ...ROOMS].map((r) => (
+          {["ALL", ...ROSTER_ROOMS].map((r) => (
             <button
               key={r}
               onClick={() => setRoomFilter(r)}
@@ -353,13 +326,13 @@ export default function AdminDashboard() {
               {r === "ALL" ? "ทุกห้อง" : `ม.${r}`}
             </button>
           ))}
-          <span className="mx-1 text-gray-300">|</span>
-          <button onClick={() => setMode("matrix")} className={`px-3 py-1.5 rounded-full text-sm font-bold ${mode === "matrix" ? "bg-[#003399] text-white" : "bg-white text-gray-600 border border-gray-200"}`}>
+          {area === "course" && <span className="mx-1 text-gray-300">|</span>}
+          {area === "course" && <button onClick={() => setMode("matrix")} className={`px-3 py-1.5 rounded-full text-sm font-bold ${mode === "matrix" ? "bg-[#003399] text-white" : "bg-white text-gray-600 border border-gray-200"}`}>
             ตารางรายคน
-          </button>
-          <button onClick={() => setMode("lesson")} className={`px-3 py-1.5 rounded-full text-sm font-bold ${mode === "lesson" ? "bg-[#003399] text-white" : "bg-white text-gray-600 border border-gray-200"}`}>
+          </button>}
+          {area === "course" && <button onClick={() => setMode("lesson")} className={`px-3 py-1.5 rounded-full text-sm font-bold ${mode === "lesson" ? "bg-[#003399] text-white" : "bg-white text-gray-600 border border-gray-200"}`}>
             รายบท
-          </button>
+          </button>}
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -369,9 +342,11 @@ export default function AdminDashboard() {
         </div>
 
         {error && <p className="bg-rose-50 text-rose-700 font-bold rounded-xl p-3 mb-4">{error}</p>}
-        {!course && loading && <p className="text-center text-[#003399] font-bold animate-pulse py-10">กำลังโหลดข้อมูล...</p>}
+        {(area === "vocab300" ? !v300 : !course) && loading && <p className="text-center text-[#003399] font-bold animate-pulse py-10">กำลังโหลดข้อมูล...</p>}
 
-        {course && (
+        {area === "vocab300" && v300 && <VocabAdmin course={v300} students={students} roomFilter={roomFilter} search={search} />}
+
+        {area === "course" && course && (
           <>
             {/* ── การ์ดสรุป ── */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
