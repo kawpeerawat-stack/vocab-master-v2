@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────
 // หน้าหลักของนักเรียน: เข้าสู่ระบบ (ชื่อ + อีเมล) → เลือกห้อง
 //   📚 คำศัพท์แกน 300 คำ (VocabRoom)  — เรียนแบบ 5 ขั้น + ทวนเว้นวัน
-//   🧩 ถอดรหัสคำศัพท์ (CourseRoom)     — บทเรียน Prefix • Root • Suffix
+//   🧩 ถอดรหัสคำศัพท์ (CourseRoom)     — 14 บท ตรงกับแบบเรียน Root Words Decoder (บทละ 20 ข้อ)
 // (ระบบคลังคำ 3,000+ คำแบบเดิมถูกนำออกแล้ว — ข้อมูลเก่าใน Firestore ยังเก็บไว้ ไม่ได้ลบ)
 // ─────────────────────────────────────────────────────────────
 
@@ -173,7 +173,7 @@ export default function Home() {
                 <span className="text-3xl">🧩</span>
                 <span className="flex-1">
                   <span className="block font-black text-lg text-[#003399]">ถอดรหัสคำศัพท์</span>
-                  <span className="block text-xs text-gray-500 font-bold">Root Words Decoder · Prefix • Root • Suffix · 18 บท</span>
+                  <span className="block text-xs text-gray-500 font-bold">Root Words Decoder · ปัจจัย • อุปสรรค • รากศัพท์ · 14 บท ตรงกับแบบเรียน</span>
                 </span>
                 <span className="text-[#003399] text-xl">→</span>
               </button>

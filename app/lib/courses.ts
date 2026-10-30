@@ -1,6 +1,6 @@
 // app/lib/courses.ts
 // ─────────────────────────────────────────────────────────────
-// "คอร์สบทเรียน" แบบแบ่งบท (เช่น Root Words Decoder 18 บท บทละ 20 ข้อ)
+// "คอร์สบทเรียน" แบบแบ่งบท (เช่น Root Words Decoder 14 บท บทละ 20 ข้อ — ตรงกับแบบเรียน)
 //   - เนื้อหาแต่ละคอร์สอยู่ใน data/<file>.json แล้วส่งผ่าน /api/course?id=<courseId>
 //   - ความก้าวหน้าเก็บใน Firestore: students/{email}.courses.{courseId}.{lessonId}
 //   - เพิ่มคอร์สใหม่ในอนาคต: วางไฟล์ JSON รูปแบบเดียวกันใน data/ แล้วเพิ่ม 1 แถวใน COURSE_REGISTRY
@@ -25,14 +25,17 @@ export interface CourseQuestion {
 }
 export interface RecapExample { word: string; th: string }
 export interface RecapPart { part: string; kind: string; meaning: string; examples: RecapExample[] }
+// คำศัพท์ประจำบท (ตรงกับตารางพับในแบบเรียน) — n = จำนวนฉบับข้อสอบที่พบคำนี้, core = อยู่ในคำแกน 300 คำ
+export interface LessonWord { w: string; pos: string; parts: string; th: string; n?: number; core?: boolean }
 export interface CourseLesson {
   id: string;
-  hour: number;
+  hour: number; // เลขบท (ตรงกับ "บทที่ / คาบที่" ในแบบเรียน)
   unit: number;
   titleEn: string;
   titleTh: string;
   goal: string;
   recap: { parts: RecapPart[]; tips: string[] };
+  words?: LessonWord[];
   questions: CourseQuestion[];
 }
 export interface Course {
@@ -42,7 +45,7 @@ export interface Course {
   titleTh: string;
   subtitle: string;
   passRule: "all";
-  units: { no: number; title: string }[];
+  units: { no: number; title: string; code?: string }[]; // code = ภาค A / B / C / D ในแบบเรียน
   lessons: CourseLesson[];
 }
 

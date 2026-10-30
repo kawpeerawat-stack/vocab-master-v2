@@ -199,7 +199,7 @@ export default function AdminDashboard() {
       const s = String(v ?? "");
       return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
     };
-    const headers = ["ห้อง", "เลขที่", "ชื่อ-สกุล", "ชื่อที่พิมพ์ในแอป", "อีเมล", ...lessons.map((l) => `ชม.${l.hour}`), "ผ่าน (บท)", "ทำล่าสุด"];
+    const headers = ["ห้อง", "เลขที่", "ชื่อ-สกุล", "ชื่อที่พิมพ์ในแอป", "อีเมล", ...lessons.map((l) => `บท${l.hour}`), "ผ่าน (บท)", "ทำล่าสุด"];
     const list = [...rosterRows, ...extraRows];
     const lines = list.map((r) =>
       [
@@ -384,7 +384,7 @@ export default function AdminDashboard() {
                       className="flex items-center gap-2 text-left hover:bg-gray-50 rounded-lg px-1"
                       title={`${l.titleEn} — ${l.titleTh}`}
                     >
-                      <span className="w-12 shrink-0 text-xs font-black text-[#003399]">ชม.{l.hour}</span>
+                      <span className="w-12 shrink-0 text-xs font-black text-[#003399]">บท {l.hour}</span>
                       <span className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden flex">
                         <span className="bg-emerald-500 h-full" style={{ width: `${w(st?.passed ?? 0)}%` }} />
                         <span className="bg-amber-400 h-full" style={{ width: `${w(st?.tried ?? 0)}%` }} />
@@ -443,8 +443,8 @@ export default function AdminDashboard() {
                                 const p = r.progress[l.id];
                                 const st = statusOf(p);
                                 const tip = p
-                                  ? `ชม.${l.hour} ${l.titleEn}\nดีที่สุด ${p.best}/${p.total} · ล่าสุด ${p.last}/${p.total} · ทำ ${p.attempts} รอบ${p.passedAt ? `\nผ่านเมื่อ ${new Date(p.passedAt).toLocaleString("th-TH")}` : ""}`
-                                  : `ชม.${l.hour} ยังไม่ทำ`;
+                                  ? `บท ${l.hour} ${l.titleEn}\nดีที่สุด ${p.best}/${p.total} · ล่าสุด ${p.last}/${p.total} · ทำ ${p.attempts} รอบ${p.passedAt ? `\nผ่านเมื่อ ${new Date(p.passedAt).toLocaleString("th-TH")}` : ""}`
+                                  : `บท ${l.hour} ยังไม่ทำ`;
                                 return (
                                   <td key={l.id} className="text-center px-0.5 py-1" title={tip}>
                                     {st === "passed" ? (
@@ -557,7 +557,7 @@ function LessonPanel({
           className="border-2 border-gray-200 rounded-xl px-3 py-2 font-bold text-sm bg-white outline-none focus:border-[#003399]"
         >
           {course.lessons.map((l) => (
-            <option key={l.id} value={l.id}>ชม.{l.hour} · {l.titleEn} — {l.titleTh}</option>
+            <option key={l.id} value={l.id}>บท {l.hour} · {l.titleEn} — {l.titleTh}</option>
           ))}
         </select>
         <span className="text-xs text-gray-500">{lesson.questions.length} ข้อ · ผ่านเมื่อถูกครบทุกข้อ</span>
