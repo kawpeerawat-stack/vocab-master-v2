@@ -1,7 +1,7 @@
 "use client";
 // app/_components/VocabRoom.tsx
 // ─────────────────────────────────────────────────────────────
-// ห้องคำศัพท์แกน 300 คำ — เรียนแบบ 5 ขั้น
+// ห้องคำศัพท์แกน 120 คำ — เรียนแบบ 5 ขั้น
 //   ① เดาก่อนรู้ (ผ่าคำ · ชนิดคำ · เดาความหมาย จากประโยคแบบข้อสอบ) — ไม่มีคะแนน
 //   ② เจอความหมายแบบเต็ม (เสียง ตระกูลคำ คู่คำ ประโยคที่ 2 กับดัก)
 //   ③ ทำให้คิด (ภารกิจสั้น 1 ข้อ ต้องตัดสินใจ)
@@ -12,7 +12,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   BATCH_SIZE,
-  NEW_PER_DAY,
   REVIEW_LIMIT,
   RankEntry,
   VCard,
@@ -26,17 +25,24 @@ import {
   dayDiff,
   emptyProgress,
   isDue,
+  isActiveCard,
   isKnown,
+  isReviewWeek,
   loadLocal,
   loadProgress,
   loadRanking,
   loadVocab300,
+  learnedCount,
   mergeProgress,
+  newCapToday,
+  plannedWeekNo,
+  plannedWords,
   saveProgress,
   shuffle,
   statusOf,
   todayStr,
 } from "../lib/vocab300";
+import { displayName, roomOf } from "../lib/names";
 
 // ───────── ตัวช่วยแสดงผล ─────────
 function Rich({ text, className = "" }: { text: string; className?: string }) {
@@ -63,13 +69,15 @@ function Blank({ text }: { text: string }) {
     </>
   );
 }
+// เวลาที่ส่งผลขึ้นระบบสำเร็จ (เรียกเฉพาะตอนบันทึก ไม่ได้เรียกระหว่างวาดหน้าจอ)
+const stampNow = () => Date.now();
 const TH_MONTH = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
 function dueLabel(due: string, today: string): string {
   const d = dayDiff(today, due);
   if (d <= 0) return "วันนี้";
-  if (d === 1) return "พรุ่งนี้";
+  if (d <= 7) return "คาบหน้า";
   const [, m, dd] = due.split("-").map(Number);
-  return `อีก ${d} วัน (${dd} ${TH_MONTH[m - 1]})`;
+  return `อีก ${Math.round(d / 7)} สัปดาห์ (${dd} ${TH_MONTH[m - 1]})`;
 }
 function speak(text: string) {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
@@ -187,7 +195,7 @@ function SessionBar({ label, learning, confirmExit, setConfirmExit, onExit }: { 
 function Steps({ active }: { active: number }) {
   return (
   <div className="grid grid-cols-5 gap-1 mb-3">
-    {["เดาก่อน", "เจอเต็ม", "ทำให้คิด", "ดึงความจำ", "ทวนเว้นวัน"].map((l, i) => (
+    {["เดาก่อน", "เจอเต็ม", "ทำให้คิด", "ดึงความจำ", "ทวนตามคาบ"].map((l, i) => (
       <div key={l} className={`text-[10px] font-bold text-center ${i + 1 === active ? "text-[#003399]" : i + 1 < active ? "text-emerald-600" : "text-gray-400"}`}>
         <div className={`h-1.5 rounded-full mb-1 ${i + 1 === active ? "bg-[#003399]" : i + 1 < active ? "bg-emerald-500" : "bg-gray-200"}`} />
         {l}
@@ -310,6 +318,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
   const [confirmExit, setConfirmExit] = useState(false);
   const [saving, setSaving] = useState(false);
   const [cloudState, setCloudState] = useState<"idle" | "ok" | "local">("idle");
+  const [savedAt, setSavedAt] = useState(0);
   const [showRank, setShowRank] = useState(false);
   const [rank, setRank] = useState<RankEntry[] | null>(null);
   const [showHow, setShowHow] = useState(false);
@@ -320,11 +329,25 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
     loadVocab300()
       .then((c) => alive && setCourse(c))
       .catch(() => alive && setLoadError(true));
-    loadProgress(email).then((p) => alive && setProg((prev) => mergeProgress(prev, p)));
+    loadProgress(email).then(({ p, needSync }) => {
+      if (!alive) return;
+      const merged = mergeProgress(progRef.current, p);
+      setProg(merged);
+      // คาบก่อนเน็ตหลุด → ส่งผลที่ค้างอยู่ในเครื่องขึ้นระบบให้ทันที
+      if (needSync) {
+        setSaving(true);
+        saveProgress(email, name, merged).then((ok) => {
+          if (!alive) return;
+          setCloudState(ok ? "ok" : "local");
+          if (ok) setSavedAt(Date.now());
+          setSaving(false);
+        });
+      }
+    });
     return () => {
       alive = false;
     };
-  }, [email]);
+  }, [email, name]);
 
   // วันเปลี่ยน (เปิดค้างข้ามเที่ยงคืน)
   useEffect(() => {
@@ -342,14 +365,24 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
         .sort((a, b) => (prog.cards[a.id].due < prog.cards[b.id].due ? -1 : prog.cards[a.id].due > prog.cards[b.id].due ? 1 : prog.cards[a.id].at - prog.cards[b.id].at)),
     [words, prog, today]
   );
-  const newLeftToday = Math.max(0, NEW_PER_DAY - stats.newToday);
+  const myRoom = roomOf(name);
+  const newCap = useMemo(() => newCapToday(course, prog, today, myRoom), [course, prog, today, myRoom]);
+  const newLeftToday = Math.max(0, newCap - stats.newToday);
+  const planNo = plannedWeekNo(course, today, myRoom);
+  const planTarget = plannedWords(course, today, myRoom);
+  const planWk = planNo ? course?.weeks[planNo - 1] : undefined;
+  // สัปดาห์ทวน = สัปดาห์ในแผนที่ไม่มีชุดใหม่ (สัปดาห์ที่ 6 และ 14 ของภาค) — ใช้ทวนคำค้างและตามคำที่ขาด
+  const reviewWeek = isReviewWeek(course, today, myRoom);
+  const behindBy = planTarget === null ? 0 : Math.max(0, planTarget - learnedCount(prog));
+  const activeDays = Object.values(prog.days).filter((d) => d.n + d.r > 0).length;
   const nextNew = useMemo(() => words.filter((w) => !prog.cards[w.id]), [words, prog]);
-  const currentWeek = nextNew[0]?.week ?? 10;
+  const currentWeek = nextNew[0]?.week ?? (course?.weeks.length || 12);
 
   const doSave = async (p: VProgress) => {
     setSaving(true);
     const ok = await saveProgress(email, name, p);
     setCloudState(ok ? "ok" : "local");
+    if (ok) setSavedAt(stampNow());
     setSaving(false);
     return ok;
   };
@@ -568,18 +601,46 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
               <div className="text-[10px] font-bold text-white/70">ถึงกำหนดทวน</div>
             </div>
             <div className="bg-white/10 rounded-xl py-2">
-              <div className="text-lg font-black">🔥 {stats.streak}</div>
-              <div className="text-[10px] font-bold text-white/70">วันติดต่อกัน</div>
+              <div className="text-lg font-black">📅 {activeDays}</div>
+              <div className="text-[10px] font-bold text-white/70">ครั้งที่เข้าเรียน</div>
             </div>
           </div>
           <p className="text-[11px] text-white/75 mt-3 leading-relaxed">
-            คำจะนับว่า “รู้แล้ว” เมื่อตอบถูกในวันที่ต่างกันอย่างน้อย 2 วัน · แถบสีขาวจาง = คำที่เรียนแล้ว แถบสีทอง = คำที่รู้แล้ว
+            คำจะนับว่า “รู้แล้ว” เมื่อตอบถูกในวันที่ต่างกันอย่างน้อย 2 วัน (คาบที่เรียน + คาบถัดไปที่ทวน) · แถบสีขาวจาง = คำที่เรียนแล้ว แถบสีทอง = คำที่รู้แล้ว
           </p>
         </div>
 
+        {/* สถานะส่งผลขึ้นระบบ — ครูตรวจก่อนหมดคาบ */}
+        {(saving || cloudState !== "idle") && (
+          <div
+            className={`rounded-2xl px-4 py-3 mb-4 text-sm font-bold flex items-center gap-2 ${
+              saving ? "bg-blue-50 text-[#003399]" : cloudState === "ok" ? "bg-emerald-50 text-emerald-800 border-2 border-emerald-200" : "bg-amber-50 text-amber-900 border-2 border-amber-300"
+            }`}
+          >
+            <span className="flex-1">
+              {saving
+                ? "⏳ กำลังส่งผลขึ้นระบบ..."
+                : cloudState === "ok"
+                ? `✓ ส่งผลขึ้นระบบแล้ว ${savedAt ? new Date(savedAt).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }) + " น." : ""} · ครูเห็นผลแล้ว`
+                : "⚠️ ผลยังอยู่ในเครื่อง ยังไม่ขึ้นระบบ — ต่อเน็ตแล้วกดส่งอีกครั้งก่อนหมดคาบ"}
+            </span>
+            {!saving && cloudState === "local" && (
+              <button onClick={() => doSave(prog)} className="shrink-0 px-3 py-1.5 bg-amber-500 text-white rounded-xl font-black text-xs">
+                ส่งอีกครั้ง
+              </button>
+            )}
+          </div>
+        )}
+
         {/* แผนวันนี้ */}
         <div className="border-2 border-[#003399]/15 rounded-2xl p-4 mb-4">
-          <p className="text-xs font-black text-gray-500 uppercase tracking-widest mb-3">วันนี้ทำอะไรดี</p>
+          <p className="text-xs font-black text-gray-500 uppercase tracking-widest mb-2">คาบนี้ทำอะไร</p>
+          {planNo !== null && planNo > 0 && (
+            <p className={`text-xs font-bold rounded-xl px-3 py-2 mb-3 ${behindBy > 0 ? "bg-amber-50 text-amber-800" : "bg-emerald-50 text-emerald-800"}`}>
+              {reviewWeek ? `ตามแผนของครู: สัปดาห์นี้เป็นสัปดาห์ทวน ไม่มีชุดใหม่ (เรียนถึงชุดที่ ${planNo}) · ` : `ตามแผนของครู: สัปดาห์นี้เรียนถึงชุดที่ ${planNo}${planWk?.label ? ` (${planWk.label})` : ""} · `}
+              {behindBy > 0 ? `ยังขาด ${behindBy} คำ — คาบนี้เรียนได้ถึง ${newCap} คำ` : "✓ ทันแผนแล้ว"}
+            </p>
+          )}
           {stats.due > 0 ? (
             <>
               <button onClick={startReview} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg hover:bg-[#002266] text-lg">
@@ -590,18 +651,20 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
               </p>
             </>
           ) : allLearned ? (
-            <p className="text-center font-black text-emerald-700 py-3">🎉 เรียนครบ {total} คำแล้ว — กลับมาทวนตามกำหนดจนรู้แล้วทุกคำ</p>
+            <p className="text-center font-black text-emerald-700 py-3">🎉 เรียนครบ {total} คำแล้ว — ทวนตามนัดในคาบถัดไปจนรู้แล้วทุกคำ</p>
           ) : newLeftToday > 0 ? (
             <>
               <button onClick={startLearn} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg hover:bg-[#002266] text-lg">
                 เรียนคำใหม่ {Math.min(BATCH_SIZE, newLeftToday, nextNew.length)} คำ →
               </button>
               <p className="text-xs text-gray-500 mt-2 text-center">
-                วันนี้เรียนคำใหม่แล้ว {stats.newToday}/{NEW_PER_DAY} คำ · ต่อไปคือสัปดาห์ที่ {currentWeek}
+                คาบนี้เรียนคำใหม่แล้ว {stats.newToday}/{newCap} คำ · ต่อไปคือชุดที่ {currentWeek}
               </p>
             </>
           ) : (
-            <p className="text-center font-black text-emerald-700 py-3">✓ วันนี้เรียนคำใหม่ครบ {NEW_PER_DAY} คำแล้ว กลับมาพรุ่งนี้นะ</p>
+            <p className="text-center font-black text-emerald-700 py-3">
+              {reviewWeek && newCap === 0 ? "✓ สัปดาห์ทวน ไม่มีคำใหม่ · ใช้ “ฝึกเพิ่ม” ทบทวนคำที่เรียนแล้ว" : `✓ คาบนี้เรียนคำใหม่ครบ ${newCap} คำแล้ว · ฝึกเพิ่มได้ หรือรอคาบหน้า`}
+            </p>
           )}
           {learned.length >= 4 && (
             <button onClick={startPractice} className="w-full mt-3 py-2.5 bg-white border-2 border-[#003399]/15 text-[#003399] font-bold rounded-xl text-sm">
@@ -620,12 +683,12 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
             <li><b>เจอความหมายแบบเต็ม</b> — ฟังเสียง ดูตระกูลคำ คู่คำ ตัวอย่างที่ 2 และกับดัก</li>
             <li><b>ทำให้คิด</b> — ตอบภารกิจสั้น 1 ข้อที่ต้องตัดสินใจ</li>
             <li><b>ดึงจากความจำ</b> — หลังเรียนครบชุด ตอบโดยไม่มีบัตรคำ ข้อที่ผิดจะวนกลับมา</li>
-            <li><b>ทวนเว้นวัน</b> — ระบบนัดทวนวันที่ 3, 7, 14 … ทวนให้ครบก่อนเรียนคำใหม่</li>
+            <li><b>ทวนตามคาบ</b> — ระบบนัดทวนคาบหน้า → อีก 2 สัปดาห์ → 4 สัปดาห์ … ทวนให้ครบก่อนเรียนคำใหม่ (ทุกอย่างทำจบในคาบ)</li>
           </ol>
         )}
 
         {/* รายสัปดาห์ */}
-        <h2 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-2 mt-2">คำศัพท์ 10 สัปดาห์ (สัปดาห์ละ 30 คำ)</h2>
+        <h2 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-2 mt-2">คำศัพท์ {course.weeks.length} ชุด (ชุดละ {course.weeks[0]?.count ?? 10} คำ · เรียนในคาบตามวันที่ของครู)</h2>
         <div className="space-y-2 mb-5">
           {course.weeks.map((wk) => {
             const ws = words.filter((w) => w.week === wk.no);
@@ -642,11 +705,12 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
                 }`}
               >
                 <span className={`shrink-0 w-11 h-11 rounded-xl flex flex-col items-center justify-center font-black leading-none ${k === ws.length ? "bg-emerald-500 text-white" : "bg-[#003399] text-[#FFD700]"}`}>
-                  <span className="text-[9px] font-bold opacity-80">สัปดาห์</span>
+                  <span className="text-[9px] font-bold opacity-80">ชุด</span>
                   <span className="text-base">{wk.no}</span>
                 </span>
                 <span className="flex-1 min-w-0">
                   <span className="block text-sm font-black text-gray-900 truncate">{wk.title}</span>
+                  {wk.label && <span className="block text-[11px] font-bold text-gray-500">แผนเรียน: {wk.label}</span>}
                   <span className="flex items-center gap-2 mt-1">
                     <span className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden relative">
                       <span className="absolute inset-y-0 left-0 bg-[#003399]/25 rounded-full" style={{ width: `${(s / ws.length) * 100}%` }} />
@@ -655,7 +719,11 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
                     <span className="text-[11px] font-bold text-gray-500 tabular-nums">รู้แล้ว {k}/{ws.length}</span>
                   </span>
                 </span>
-                {isCur && <span className="shrink-0 text-[10px] font-black bg-[#FFD700] text-[#003399] px-2 py-1 rounded-full">กำลังเรียน</span>}
+                {isCur ? (
+                  <span className="shrink-0 text-[10px] font-black bg-[#FFD700] text-[#003399] px-2 py-1 rounded-full">กำลังเรียน</span>
+                ) : wk.no === planNo && !reviewWeek && k < ws.length ? (
+                  <span className="shrink-0 text-[10px] font-black bg-[#003399]/10 text-[#003399] px-2 py-1 rounded-full">ชุดสัปดาห์นี้</span>
+                ) : null}
               </button>
             );
           })}
@@ -677,7 +745,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
                   {rank.slice(0, 10).map((r, i) => (
                     <li key={r.email} className={`flex items-center gap-2 text-sm rounded-lg px-2 py-1 ${r.email === email.trim().toLowerCase() ? "bg-[#FFD700]/30 font-black" : ""}`}>
                       <span className="w-6 text-center font-black text-[#003399]">{i < 3 ? ["🥇", "🥈", "🥉"][i] : i + 1}</span>
-                      <span className="flex-1 truncate">{r.name}</span>
+                      <span className="flex-1 truncate">{displayName(r.name)}</span>
                       <span className="font-black tabular-nums">{r.known}</span>
                     </li>
                   ))}
@@ -690,9 +758,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
             )}
           </div>
         )}
-        <p className="text-center text-[10px] text-gray-400 mt-3">
-          {saving ? "กำลังบันทึก..." : cloudState === "local" ? "⚠️ บันทึกในเครื่องแล้ว จะซิงก์ขึ้นระบบเมื่อเน็ตกลับมา" : cloudState === "ok" ? "✓ บันทึกขึ้นระบบแล้ว" : ""}
-        </p>
+
       </div>
     );
   }
@@ -705,7 +771,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
     return (
       <div className="animate-fadeIn mt-2">
         <button type="button" onClick={() => { if (open) setOpenWord(null); else setMode("HOME"); scrollTop(); }} className="mb-4 text-sm font-bold text-[#003399] hover:underline">
-          ← {open ? `สัปดาห์ที่ ${weekNo}` : "หน้าหลักคำศัพท์"}
+          ← {open ? `ชุดที่ ${weekNo}` : "หน้าหลักคำศัพท์"}
         </button>
         {open ? (
           <div className="border-2 border-gray-100 rounded-2xl p-4">
@@ -719,7 +785,8 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
         ) : (
           <>
             <div className="mb-4">
-              <span className="text-[11px] font-black bg-[#FFD700] text-[#003399] px-2 py-1 rounded-full">สัปดาห์ที่ {wk.no}</span>
+              <span className="text-[11px] font-black bg-[#FFD700] text-[#003399] px-2 py-1 rounded-full">ชุดที่ {wk.no}</span>
+              {wk.label && <span className="ml-2 text-[11px] font-bold text-gray-500">แผนเรียน: {wk.label}</span>}
               <h1 className="text-xl font-black text-gray-900 mt-2">{wk.title}</h1>
               <p className="text-xs text-gray-500 mt-1">คำที่ยังไม่เรียนจะซ่อนไว้ก่อน เพื่อให้ได้ “เดาก่อนรู้” ตอนเรียนจริง</p>
             </div>
@@ -794,7 +861,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
         )}
         {summary.kind === "learn" && (
           <p className="text-xs text-gray-600 bg-gray-50 rounded-xl p-3 mb-4 leading-relaxed">
-            คำที่ตอบถูกตั้งแต่ครั้งแรกจะนัดทวนในอีก 2 วัน ส่วนคำที่พลาดจะนัดทวนพรุ่งนี้ · ทุกคำยังเป็น “กำลังเรียน” จนกว่าจะตอบถูกอีกครั้งในวันอื่น
+            คำที่ตอบถูกตั้งแต่ครั้งแรกจะนัดทวนคาบหน้า ส่วนคำที่พลาดจะขึ้นให้ทวนตั้งแต่ครั้งถัดไปที่เปิดแอป · ทุกคำยังเป็น “กำลังเรียน” จนกว่าจะตอบถูกอีกครั้งในคาบถัดไป
           </p>
         )}
         {summary.cloudOk === false && <p className="text-xs font-bold text-amber-700 bg-amber-50 rounded-xl p-3 mb-3">⚠️ บันทึกในเครื่องแล้ว แต่ยังขึ้นระบบไม่สำเร็จ (จะซิงก์ให้อีกครั้งเมื่อบันทึกครั้งถัดไป)</p>}
@@ -824,7 +891,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
     if (!it) return null;
     const w = byId[it.wid];
     const ok = picked === it.ans;
-    const label = mode === "LEARN" ? "ขั้นที่ 4 · ดึงจากความจำ" : mode === "REVIEW" ? "ขั้นที่ 5 · ทวนแบบเว้นวัน" : "ฝึกเพิ่ม (ไม่นับคะแนน)";
+    const label = mode === "LEARN" ? "ขั้นที่ 4 · ดึงจากความจำ" : mode === "REVIEW" ? "ขั้นที่ 5 · ทวนตามคาบ" : "ฝึกเพิ่ม (ไม่นับคะแนน)";
     return (
       <div className="animate-fadeIn mt-2">
         <SessionBar label={label} learning={false} confirmExit={confirmExit} setConfirmExit={setConfirmExit} onExit={exitSession} />
@@ -907,7 +974,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
     const r = runs.current[w.id];
     const header = (
       <>
-        <SessionBar label={`คำที่ ${bi + 1}/${batch.length} · สัปดาห์ที่ ${w.week}`} learning confirmExit={confirmExit} setConfirmExit={setConfirmExit} onExit={exitSession} />
+        <SessionBar label={`คำที่ ${bi + 1}/${batch.length} · ชุดที่ ${w.week}`} learning confirmExit={confirmExit} setConfirmExit={setConfirmExit} onExit={exitSession} />
         <Steps active={phase === "predict" ? 1 : phase === "meet" ? 2 : 3} />
       </>
     );
@@ -1058,5 +1125,5 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
 export function dueCountLocal(email: string): number {
   const p = loadLocal(email);
   const t = todayStr();
-  return Object.values(p.cards).filter((c: VCard) => c.due <= t).length;
+  return Object.entries(p.cards).filter(([id, c]: [string, VCard]) => isActiveCard(id) && c.due <= t).length;
 }

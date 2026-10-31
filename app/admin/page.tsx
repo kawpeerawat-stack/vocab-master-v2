@@ -2,9 +2,9 @@
 // app/admin/page.tsx
 // ─────────────────────────────────────────────────────────────
 // แดชบอร์ดครู
-//   📚 คำศัพท์แกน 300 คำ (ค่าเริ่มต้น) — ดู app/admin/_vocab/VocabAdmin.tsx
+//   📚 คำศัพท์แกน 120 คำ (ค่าเริ่มต้น) — ดู app/admin/_vocab/VocabAdmin.tsx
 //   🧩 คอร์สบทเรียน เช่น Root Words Decoder:
-//   • ตารางรายคน: นักเรียนแต่ละคนผ่านบทไหนแล้ว (ผ่าน = ตอบถูกครบ 20/20)
+//   • ตารางรายคน: นักเรียนแต่ละคนผ่านบทไหนแล้ว (ม.6 ผ่าน = ถูกครบ 15/15 · ม.4 ผ่าน = ถูก 8/10 ขึ้นไป)
 //   • มุมมองรายบท: ใครผ่าน / ทำแล้วยังไม่ผ่าน / ยังไม่ทำ + ข้อที่นักเรียนพลาดบ่อย
 //   • จับคู่ชื่อที่นักเรียนพิมพ์กับรายชื่อทางการ (data/roster.json) → เรียงตามห้องและเลขที่
 //   • ส่งออก CSV
@@ -16,14 +16,15 @@ import { db } from "../lib/firebase";
 import { collection, getDocs } from "firebase/firestore";
 import {
   COURSE_REGISTRY,
+  courseMeta,
   Course,
   CourseProgress,
   LessonProgress,
   loadCourse,
   mergeCourseProgress,
 } from "../lib/courses";
-import { ROSTER, ROOMS, extractNo, fmtThaiTime, matchRoster, roomOf, rosterKey } from "../lib/roster";
-import { VCourse, VProgress, loadVocab300 } from "../lib/vocab300";
+import { GRADES, ROSTER, extractNo, fmtThaiTime, gradeOf, matchRoster, roomOf, rosterKey, typedMismatch } from "../lib/roster";
+import { CORE_NAME, CORE_PLAN, VCourse, VProgress, loadVocab300 } from "../lib/vocab300";
 import VocabAdmin from "./_vocab/VocabAdmin";
 
 // ── สิทธิ์เข้าหน้า /admin (เหมือนเดิม) ──
@@ -32,8 +33,8 @@ const ADMIN_EMAIL = "kawpeerawat@gmail.com";
 const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "anukoolnaree2025";
 const ADMIN_USING_DEFAULT_PW = !process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
 
-// ── รายชื่อทางการ + จับคู่ชื่อ (ใช้ร่วมกับหน้าคำศัพท์ 300) ──
-const ROSTER_ROOMS = ROOMS;
+// ── ระดับชั้น: ม.6 และ ม.4 แยกกันคนละมุมมอง ไม่ปนกัน (ห้องที่อ่านไม่ออกนับอยู่ใน ม.6 ตามเดิม) ──
+const inGrade = (room: string | null, grade: string) => (room ? gradeOf(room) === grade : grade === "6");
 // ── ข้อมูลนักเรียนจาก Firestore (อ่านเฉพาะฟิลด์ที่ใช้) ──
 type StudentDoc = {
   id: string;
@@ -80,6 +81,7 @@ export default function AdminDashboard() {
   const [loadedAt, setLoadedAt] = useState<number>(0);
   const [error, setError] = useState("");
 
+  const [grade, setGrade] = useState<string>("6");
   const [roomFilter, setRoomFilter] = useState<string>("ALL");
   const [mode, setMode] = useState<"matrix" | "lesson">("matrix");
   const [lessonId, setLessonId] = useState<string>("");
@@ -160,8 +162,13 @@ export default function AdminDashboard() {
     return [...rosterRows, ...extra];
   }, [students, courseId]);
 
+  const gradeInfo = GRADES.find((g) => g.grade === grade) ?? GRADES[0];
+  const scopeLabel = roomFilter === "ALL" ? `${gradeInfo.label} ทุกห้อง` : `ม.${roomFilter}`;
   const lessons = course?.lessons ?? [];
-  const inRoom = (r: Row) => roomFilter === "ALL" || r.room === roomFilter;
+  const L = course?.lessonWord ?? "บท"; // ฉบับ ม.4 เรียกว่า "คาบ"
+  const qn = lessons[0]?.questions.length ?? 0;
+  const passText = course?.passMin && course.passMin < qn ? `ถูก ${course.passMin}/${qn} ข้อขึ้นไป` : `ตอบถูกครบทุกข้อ (${qn}/${qn})`;
+  const inRoom = (r: Row) => (roomFilter === "ALL" ? inGrade(r.room, grade) : r.room === roomFilter);
   const q = search.trim().toLowerCase();
   const matchSearch = (r: Row) =>
     !q || r.name.toLowerCase().includes(q) || r.typedNames.some((t) => t.toLowerCase().includes(q)) || r.emails.some((e) => e.includes(q));
@@ -177,7 +184,7 @@ export default function AdminDashboard() {
     const totalPassed = list.reduce((s, r) => s + lessons.filter((l) => r.progress[l.id]?.passed).length, 0);
     return { n: list.length, started, allDone, avg: list.length ? totalPassed / list.length : 0 };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows, roomFilter, lessons]);
+  }, [rows, roomFilter, grade, lessons]);
 
   const lessonStats = useMemo(() => {
     const list = rows.filter((r) => r.inRoster && inRoom(r));
@@ -191,7 +198,7 @@ export default function AdminDashboard() {
       return { id: l.id, passed, tried, none: list.length - passed - tried, n: list.length };
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rows, roomFilter, lessons]);
+  }, [rows, roomFilter, grade, lessons]);
 
   // ── CSV ──
   const downloadCsv = () => {
@@ -217,7 +224,7 @@ export default function AdminDashboard() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${courseId}-progress-${roomFilter === "ALL" ? "all" : roomFilter.replace("/", "-")}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `${courseId}-progress-${roomFilter === "ALL" ? `m${grade}-all` : roomFilter.replace("/", "-")}-${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -278,10 +285,10 @@ export default function AdminDashboard() {
           <div>
             <p className="text-xs font-black text-[#003399] tracking-widest uppercase">Teacher Dashboard</p>
             <h1 className="text-2xl md:text-3xl font-black text-gray-900">
-              แดชบอร์ดครู · {area === "vocab300" ? "คำศัพท์แกน 300 คำ" : "ติดตามบทเรียน"}
+              แดชบอร์ดครู · {area === "vocab300" ? CORE_NAME : "ติดตามบทเรียน"}
             </h1>
             <p className="text-xs text-gray-500 mt-1">
-              {area === "vocab300" ? "รู้แล้ว = ตอบถูกในวันที่ต่างกันอย่างน้อย 2 วัน" : "ผ่าน = ตอบถูกครบทุกข้อในบท (20/20)"} · อัปเดตล่าสุด {loadedAt ? fmtThaiTime(loadedAt) : "–"}
+              {area === "vocab300" ? "รู้แล้ว = ตอบถูกในวันที่ต่างกันอย่างน้อย 2 วัน" : `ผ่าน = ${passText}`} · อัปเดตล่าสุด {loadedAt ? fmtThaiTime(loadedAt) : "–"}
             </p>
           </div>
           <div className="flex gap-2">
@@ -298,13 +305,15 @@ export default function AdminDashboard() {
 
         {/* ── เลือกคอร์ส (รองรับหลายคอร์สในอนาคต) ── */}
         <div className="flex flex-wrap gap-2 mb-3">
+          {grade === "6" && (
           <button
             onClick={() => setArea("vocab300")}
             className={`px-4 py-2 rounded-xl font-black text-sm ${area === "vocab300" ? "bg-[#003399] text-[#FFD700]" : "bg-white text-gray-600 border border-gray-200"}`}
           >
-            📚 คำศัพท์แกน 300 คำ <span className="font-bold opacity-70">(Core 300)</span>
+            📚 {CORE_NAME} <span className="font-bold opacity-70">({CORE_PLAN})</span>
           </button>
-          {COURSE_REGISTRY.map((c) => (
+          )}
+          {COURSE_REGISTRY.filter((c) => c.grade === grade).map((c) => (
             <button
               key={c.id}
               onClick={() => { setArea("course"); setCourseId(c.id); setLessonId(""); }}
@@ -317,13 +326,30 @@ export default function AdminDashboard() {
 
         {/* ── ห้อง + โหมด + ค้นหา ── */}
         <div className="flex flex-wrap items-center gap-2 mb-4">
-          {["ALL", ...ROSTER_ROOMS].map((r) => (
+          {GRADES.map((g) => (
+            <button
+              key={g.grade}
+              onClick={() => {
+                setGrade(g.grade);
+                setRoomFilter("ALL");
+                // แต่ละระดับชั้นใช้คอร์สของตัวเอง: ม.6 = ถอดรหัสคำศัพท์ (decoder) · ม.4 = ถอดรหัสคำศัพท์ ม.4 (decoder4)
+                const first = COURSE_REGISTRY.find((c) => c.grade === g.grade);
+                if (first && courseMeta(courseId)?.grade !== g.grade) { setCourseId(first.id); setLessonId(""); }
+                if (g.grade === "4") setArea("course"); // ม.4 ไม่มีห้องคำศัพท์แกน 120 คำ
+              }}
+              className={`px-4 py-1.5 rounded-xl text-sm font-black ${grade === g.grade ? "bg-[#003399] text-white" : "bg-white text-gray-600 border border-gray-200"}`}
+            >
+              {g.label}
+            </button>
+          ))}
+          <span className="mx-1 text-gray-300">|</span>
+          {["ALL", ...gradeInfo.rooms].map((r) => (
             <button
               key={r}
               onClick={() => setRoomFilter(r)}
               className={`px-3 py-1.5 rounded-full text-sm font-bold ${roomFilter === r ? "bg-[#FFD700] text-[#003399]" : "bg-white text-gray-600 border border-gray-200"}`}
             >
-              {r === "ALL" ? "ทุกห้อง" : `ม.${r}`}
+              {r === "ALL" ? `${gradeInfo.label} ทุกห้อง` : `ม.${r}`}
             </button>
           ))}
           {area === "course" && <span className="mx-1 text-gray-300">|</span>}
@@ -344,17 +370,17 @@ export default function AdminDashboard() {
         {error && <p className="bg-rose-50 text-rose-700 font-bold rounded-xl p-3 mb-4">{error}</p>}
         {(area === "vocab300" ? !v300 : !course) && loading && <p className="text-center text-[#003399] font-bold animate-pulse py-10">กำลังโหลดข้อมูล...</p>}
 
-        {area === "vocab300" && v300 && <VocabAdmin course={v300} students={students} roomFilter={roomFilter} search={search} />}
+        {area === "vocab300" && v300 && <VocabAdmin course={v300} students={students} roomFilter={roomFilter} grade={grade} search={search} />}
 
         {area === "course" && course && (
           <>
             {/* ── การ์ดสรุป ── */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
               {[
-                [summary.n, `นักเรียนในรายชื่อ${roomFilter === "ALL" ? "" : ` ม.${roomFilter}`}`],
+                [summary.n, `นักเรียนในรายชื่อ ${scopeLabel}`],
                 [summary.started, "เริ่มทำแล้ว (อย่างน้อย 1 บท)"],
                 [summary.avg.toFixed(1), `ผ่านเฉลี่ย (บท/คน จาก ${lessons.length})`],
-                [summary.allDone, `ผ่านครบทั้ง ${lessons.length} บท`],
+                [summary.allDone, `ผ่านครบทั้ง ${lessons.length} ${L}`],
               ].map(([v, label], i) => (
                 <div key={i} className="bg-white rounded-2xl p-4 border border-gray-100">
                   <div className="text-3xl font-black text-[#003399] tabular-nums">{v}</div>
@@ -384,7 +410,7 @@ export default function AdminDashboard() {
                       className="flex items-center gap-2 text-left hover:bg-gray-50 rounded-lg px-1"
                       title={`${l.titleEn} — ${l.titleTh}`}
                     >
-                      <span className="w-12 shrink-0 text-xs font-black text-[#003399]">บท {l.hour}</span>
+                      <span className="w-12 shrink-0 text-xs font-black text-[#003399]">{L} {l.hour}</span>
                       <span className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden flex">
                         <span className="bg-emerald-500 h-full" style={{ width: `${w(st?.passed ?? 0)}%` }} />
                         <span className="bg-amber-400 h-full" style={{ width: `${w(st?.tried ?? 0)}%` }} />
@@ -437,14 +463,19 @@ export default function AdminDashboard() {
                                 {r.typedNames.length > 0 && r.inRoster && (
                                   <div className="text-[10px] text-gray-400 truncate max-w-[260px]">พิมพ์ว่า: {r.typedNames.join(" / ")}</div>
                                 )}
+                                {r.inRoster && typedMismatch(r.name, r.typedNames).length > 0 && (
+                                  <div className="text-[10px] font-bold text-amber-700 truncate max-w-[260px]" title="ชื่อที่นักเรียนกรอกในแอปไม่ตรงกับรายชื่อ — ตรวจว่ากรอกเลขที่/ห้องถูกไหม">
+                                    ⚠️ กรอกว่า: {typedMismatch(r.name, r.typedNames).join(" / ")}
+                                  </div>
+                                )}
                                 {!r.inRoster && <div className="text-[10px] text-gray-400 truncate max-w-[260px]">{r.emails.join(" / ")}</div>}
                               </td>
                               {lessons.map((l) => {
                                 const p = r.progress[l.id];
                                 const st = statusOf(p);
                                 const tip = p
-                                  ? `บท ${l.hour} ${l.titleEn}\nดีที่สุด ${p.best}/${p.total} · ล่าสุด ${p.last}/${p.total} · ทำ ${p.attempts} รอบ${p.passedAt ? `\nผ่านเมื่อ ${new Date(p.passedAt).toLocaleString("th-TH")}` : ""}`
-                                  : `บท ${l.hour} ยังไม่ทำ`;
+                                  ? `${L} ${l.hour} ${l.titleEn}\nดีที่สุด ${p.best}/${p.total} · ล่าสุด ${p.last}/${p.total} · ทำ ${p.attempts} รอบ${p.passedAt ? `\nผ่านเมื่อ ${new Date(p.passedAt).toLocaleString("th-TH")}` : ""}`
+                                  : `${L} ${l.hour} ยังไม่ทำ`;
                                 return (
                                   <td key={l.id} className="text-center px-0.5 py-1" title={tip}>
                                     {st === "passed" ? (
@@ -471,7 +502,7 @@ export default function AdminDashboard() {
                   </table>
                 </div>
                 <p className="text-[11px] text-gray-500 px-4 py-3">
-                  ✓ = ผ่าน (20/20) · ตัวเลข = คะแนนดีที่สุดที่ยังไม่ผ่าน · ชี้ที่ช่องเพื่อดูจำนวนรอบและวันที่ผ่าน · หัวคอลัมน์ = ชั่วโมงที่
+                  ✓ = ผ่าน ({passText}) · ตัวเลข = คะแนนดีที่สุดที่ยังไม่ผ่าน · ชี้ที่ช่องเพื่อดูจำนวนรอบและวันที่ผ่าน · หัวคอลัมน์ = {L}ที่
                 </p>
               </div>
             )}
@@ -557,7 +588,7 @@ function LessonPanel({
           className="border-2 border-gray-200 rounded-xl px-3 py-2 font-bold text-sm bg-white outline-none focus:border-[#003399]"
         >
           {course.lessons.map((l) => (
-            <option key={l.id} value={l.id}>บท {l.hour} · {l.titleEn} — {l.titleTh}</option>
+            <option key={l.id} value={l.id}>{course.lessonWord ?? "บท"} {l.hour} · {l.titleEn} — {l.titleTh}</option>
           ))}
         </select>
         <span className="text-xs text-gray-500">{lesson.questions.length} ข้อ · ผ่านเมื่อถูกครบทุกข้อ</span>

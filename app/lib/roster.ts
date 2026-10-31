@@ -4,25 +4,19 @@
 //   ใช้ร่วมกันในหน้าครู (/admin) ทุกมุมมอง
 // ─────────────────────────────────────────────────────────────
 import ROSTER_JSON from "../../data/roster.json";
+import { roomOf, extractNo, displayName, gradeOf, GRADES } from "./names";
+export { roomOf, extractNo, displayName, gradeOf, GRADES };
 
 export type RosterEntry = { room: string; no: number; name: string };
 export const ROSTER = ROSTER_JSON as RosterEntry[];
 export const ROOMS = Array.from(new Set(ROSTER.map((r) => r.room))).sort();
 
-export function roomOf(name?: string): string | null {
-  const m = (name || "").match(/6\s*[\/._-]\s*([1-9])/);
-  return m ? `6/${m[1]}` : null;
-}
 export function normName(s?: string): string {
   return (s || "")
     .replace(/(นางสาว|เด็กชาย|เด็กหญิง|นาย|นาง|ด\.ช\.|ด\.ญ\.|น\.ส\.)/g, "")
-    .replace(/no\.?\s*\d+|เลขที่\s*\d+|m\.?\s*6\s*\/\s*[1-9]|ม\.?\s*6\s*\/\s*[1-9]|6\s*\/\s*[1-9]/gi, "")
+    .replace(/no\.?\s*\d+|เลขที่\s*\d+|m\.?\s*[46]\s*\/\s*[1-9]|ม\.?\s*[46]\s*\/\s*[1-9]|[46]\s*\/\s*[1-9]/gi, "")
     .replace(/[^ก-๙a-zA-Z]/g, "")
     .toLowerCase();
-}
-export function extractNo(s?: string): number | null {
-  const m = (s || "").match(/no\.?\s*(\d{1,2})\b/i) || (s || "").match(/เลขที่\s*(\d{1,2})/) || (s || "").match(/#\s*(\d{1,2})/);
-  return m ? parseInt(m[1], 10) : null;
 }
 const rosterIndex: Record<string, RosterEntry[]> = {};
 for (const r of ROSTER) (rosterIndex[normName(r.name)] ||= []).push(r);
@@ -42,6 +36,11 @@ export function matchRoster(name?: string): RosterEntry | null {
   return cand.length === 1 ? cand[0] : null;
 }
 export const rosterKey = (r: RosterEntry) => `${r.room}|${r.no}`;
+// ชื่อที่นักเรียนพิมพ์ซึ่งไม่ตรงกับชื่อในรายชื่อ (เช่น กรอกเลขที่ผิด) — ใช้เตือนครูในหน้าครู
+export function typedMismatch(rosterName: string, typed: string[]): string[] {
+  const n = normName(rosterName);
+  return typed.filter((t) => normName(t) && normName(t) !== n).map(displayName);
+}
 
 export function fmtThaiTime(ms?: number): string {
   if (!ms) return "–";

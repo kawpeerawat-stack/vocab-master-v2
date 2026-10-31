@@ -3,10 +3,11 @@
 // ─────────────────────────────────────────────────────────────
 // ห้องเรียนแบบ "บทเรียน" (ใช้กับ Root Words Decoder และคอร์สอื่นในอนาคต)
 //   LIST   → รายการบท แยกตามหน่วย พร้อมสถานะ ผ่าน / ทำแล้ว / ยังไม่ทำ
-//   LESSON → ทบทวนเนื้อหาก่อนทำ (ชิ้นส่วนคำ + ตัวอย่าง + เคล็ดลับ + คำศัพท์ประจำบท 12 คำ แบบกดดูความหมาย)
+//   LESSON → ทบทวนเนื้อหาก่อนทำ (ชิ้นส่วนคำ + ตัวอย่าง + เคล็ดลับ + คำศัพท์ประจำบท 8 คำ แบบกดดูความหมาย)
+//   แต่ละบทแสดงสัปดาห์/วันที่ตามแผนการสอน — ทำแบบฝึกหัดในคาบ (10 นาทีแรกของคาบถัดไป) ไม่มีการบ้าน
 //   เลขบทและเนื้อหาตรงกับแบบเรียน Root Words Decoder (14 บท)
-//   QUIZ   → แบบฝึกหัด 20 ข้อ 5 ตัวเลือก (สุ่มลำดับข้อ + สลับตัวเลือกทุกรอบ)
-//   RESULT → สรุปคะแนน — ต้องถูกครบทุกข้อจึงจะ "ผ่าน"
+//   QUIZ   → แบบฝึกหัด 5 ตัวเลือก (ฉบับ ม.6 บทละ 15 ข้อ · ฉบับ ม.4 คาบละ 10 ข้อ) สุ่มลำดับข้อ + สลับตัวเลือกทุกรอบ
+//   RESULT → สรุปคะแนน — ฉบับ ม.6 ต้องถูกครบทุกข้อ · ฉบับ ม.4 ถูก 8/10 ขึ้นไป (course.passMin) จึงจะ "ผ่าน"
 // ─────────────────────────────────────────────────────────────
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -105,6 +106,9 @@ export default function CourseRoom({
   }, [courseId, email]);
 
   const lessons = course?.lessons ?? [];
+  const L = course?.lessonWord ?? "บท"; // ฉบับ ม.4 เรียกว่า "คาบ"
+  const needOf = (total: number) => Math.min(total, course?.passMin ?? total); // ถูกกี่ข้อจึงผ่าน
+  const qn = lessons[0]?.questions.length ?? 0;
   const passedCount = lessons.filter((l) => progress[l.id]?.passed).length;
   const pct = lessons.length ? Math.round((passedCount / lessons.length) * 100) : 0;
 
@@ -161,6 +165,7 @@ export default function CourseRoom({
       score,
       total: lesson.questions.length,
       wrongIds: all.filter((a) => !a.correct).map((a) => a.qid),
+      passMin: course?.passMin,
     });
     // รวมแบบไม่ถอยหลัง (กันผลรอบก่อนที่บันทึกช้ามาทับผลรอบใหม่)
     setProgress((prev) => ({ ...prev, [lesson.id]: mergeLesson(prev[lesson.id], lp) ?? lp }));
@@ -218,15 +223,16 @@ export default function CourseRoom({
 
         <div className="bg-[#003399] rounded-2xl p-4 mb-5 text-white">
           <div className="flex items-baseline justify-between mb-2">
-            <span className="font-black text-[#FFD700]">ผ่านแล้ว {passedCount}/{lessons.length} บท</span>
+            <span className="font-black text-[#FFD700]">ผ่านแล้ว {passedCount}/{lessons.length} {L}</span>
             <span className="text-sm font-bold">{pct}%</span>
           </div>
           <div className="h-3 bg-white/20 rounded-full overflow-hidden">
             <div className="h-full bg-[#FFD700] rounded-full transition-all" style={{ width: `${pct}%` }} />
           </div>
           <p className="text-[11px] text-white/80 mt-2">
-            แต่ละบทมีแบบฝึกหัด 20 ข้อ (5 ตัวเลือก) ต้องตอบถูกครบ 20 ข้อจึงจะผ่าน · ทำใหม่ได้ไม่จำกัด ข้อและตัวเลือกจะสลับทุกรอบ
+            {`แต่ละ${L}มีแบบฝึกหัด ${qn} ข้อ (5 ตัวเลือก) ${needOf(qn) < qn ? `ถูก ${needOf(qn)} ข้อขึ้นไปจึงจะผ่าน` : "ต้องตอบถูกครบทุกข้อจึงจะผ่าน"} · ทำใหม่ได้ไม่จำกัด ข้อและตัวเลือกจะสลับทุกรอบ`}
           </p>
+          {course.classNote && <p className="text-[11px] font-bold text-[#FFD700] mt-1.5">🕙 {course.classNote}</p>}
         </div>
 
         <div className="space-y-5">
@@ -254,12 +260,13 @@ export default function CourseRoom({
                           p?.passed ? "bg-emerald-500 text-white" : "bg-[#003399] text-[#FFD700]"
                         }`}
                       >
-                        <span className="text-[9px] font-bold opacity-80">บท</span>
+                        <span className="text-[9px] font-bold opacity-80">{L}</span>
                         <span className="text-base">{l.hour}</span>
                       </span>
                       <span className="flex-1 min-w-0">
                         <span className="block font-black text-gray-900 truncate">{l.titleTh}</span>
                         <span className="block text-xs text-gray-500 truncate">{l.titleEn}</span>
+                        {l.week && <span className="block text-[11px] font-bold text-[#003399]/70">สัปดาห์ที่ {l.week}{l.dateLabel ? ` · ${l.dateLabel}` : ""}</span>}
                       </span>
                       <span className="shrink-0 text-right">
                         {p?.passed ? (
@@ -295,10 +302,11 @@ export default function CourseRoom({
           onClick={() => { setView("LIST"); scrollTop(); }}
           className="mb-4 text-sm font-bold text-[#003399] hover:underline"
         >
-          ← รายการบท
+          ← รายการ{L}
         </button>
         <div className="mb-4">
-          <span className="text-[11px] font-black bg-[#FFD700] text-[#003399] px-2 py-1 rounded-full">บทที่ {lesson.hour} · ตรงกับแบบเรียน</span>
+          <span className="text-[11px] font-black bg-[#FFD700] text-[#003399] px-2 py-1 rounded-full">{L}ที่ {lesson.hour} · ตรงกับแบบเรียน</span>
+          {lesson.week && <span className="ml-2 text-[11px] font-bold text-gray-500">แผนเรียน: สัปดาห์ที่ {lesson.week}{lesson.dateLabel ? ` · ${lesson.dateLabel}` : ""}</span>}
           <h1 className="text-2xl font-black text-gray-900 mt-2">{lesson.titleTh}</h1>
           <p className="text-[#003399] font-bold">{lesson.titleEn}</p>
           <p className="text-sm text-gray-600 mt-2"><span className="font-bold">เป้าหมาย:</span> {lesson.goal}</p>
@@ -307,8 +315,8 @@ export default function CourseRoom({
         {lp && (
           <div className={`rounded-xl p-3 mb-4 text-sm font-bold ${lp.passed ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800"}`}>
             {lp.passed
-              ? `✓ ผ่านบทนี้แล้ว (${fmtDate(lp.passedAt)}) · ทำไปแล้ว ${lp.attempts} รอบ — ทำซ้ำเพื่อทบทวนได้`
-              : `ทำไปแล้ว ${lp.attempts} รอบ · คะแนนดีที่สุด ${lp.best}/${lp.total} — ต้องได้ ${lp.total}/${lp.total} จึงจะผ่าน`}
+              ? `✓ ผ่าน${L}นี้แล้ว (${fmtDate(lp.passedAt)}) · ทำไปแล้ว ${lp.attempts} รอบ — ทำซ้ำเพื่อทบทวนได้`
+              : `ทำไปแล้ว ${lp.attempts} รอบ · คะแนนดีที่สุด ${lp.best}/${lp.total} — ต้องได้ ${needOf(lp.total)}/${lp.total} ขึ้นไปจึงจะผ่าน`}
           </div>
         )}
 
@@ -354,7 +362,7 @@ export default function CourseRoom({
         {lesson.words && lesson.words.length > 0 && (
           <div className="mb-5">
             <div className="flex items-baseline justify-between gap-2 mb-2">
-              <h2 className="text-xs font-black text-gray-500 uppercase tracking-widest">คำศัพท์ประจำบท ({lesson.words.length} คำ)</h2>
+              <h2 className="text-xs font-black text-gray-500 uppercase tracking-widest">คำศัพท์ประจำ{L} ({lesson.words.length} คำ)</h2>
               <button
                 type="button"
                 onClick={() => {
@@ -366,7 +374,7 @@ export default function CourseRoom({
                 {lesson.words.every((w) => revealed[w.w]) ? "ซ่อนความหมาย" : "ดูความหมายทั้งหมด"}
               </button>
             </div>
-            <p className="text-[11px] text-gray-500 mb-2">ทดสอบตัวเองก่อน: นึกความหมายในใจ แล้วแตะคำเพื่อดูเฉลย · ★ = อยู่ในคำแกน 300 คำ · ตัวเลข = ออกสอบกี่ฉบับ (จาก 18)</p>
+            <p className="text-[11px] text-gray-500 mb-2">ทดสอบตัวเองก่อน: นึกความหมายในใจ แล้วแตะคำเพื่อดูเฉลย{lesson.words.some((w) => w.core || w.n) ? " · ★ = อยู่ในคำแกน 120 คำ · ตัวเลข = ออกสอบกี่ฉบับ (จาก 18)" : ""}</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
               {lesson.words.map((w) => {
                 const open = !!revealed[w.w];
@@ -379,7 +387,7 @@ export default function CourseRoom({
                   >
                     <span className="flex items-baseline gap-1.5 flex-wrap">
                       <span className="font-black text-gray-900">{w.w}</span>
-                      {w.core && <span className="text-amber-500 text-xs" title="อยู่ในคำแกน 300 คำ">★</span>}
+                      {w.core && <span className="text-amber-500 text-xs" title="อยู่ในคำแกน 120 คำ">★</span>}
                       <span className="text-[11px] italic text-gray-400">{w.pos}</span>
                       {typeof w.n === "number" && w.n > 0 && (
                         <span className="ml-auto text-[10px] font-black text-[#003399] bg-[#003399]/5 rounded-full px-1.5">{w.n} ฉบับ</span>
@@ -401,7 +409,7 @@ export default function CourseRoom({
         >
           เริ่มทำแบบฝึกหัด {lesson.questions.length} ข้อ →
         </button>
-        <p className="text-center text-xs text-gray-500 mt-2">ต้องตอบถูกครบ {lesson.questions.length} ข้อจึงจะผ่านบทนี้</p>
+        <p className="text-center text-xs text-gray-500 mt-2">{needOf(lesson.questions.length) < lesson.questions.length ? `ถูก ${needOf(lesson.questions.length)} ข้อขึ้นไปจึงจะผ่าน${L}นี้` : `ต้องตอบถูกครบ ${lesson.questions.length} ข้อจึงจะผ่าน${L}นี้`}</p>
       </div>
     );
   }
@@ -425,7 +433,7 @@ export default function CourseRoom({
               ← ออก
             </button>
           )}
-          <span className="text-xs font-black text-gray-500">บท {lesson.hour} · {lesson.titleEn}</span>
+          <span className="text-xs font-black text-gray-500">{L} {lesson.hour} · {lesson.titleEn}</span>
         </div>
 
         <div className="flex items-center gap-3 mb-1">
@@ -514,19 +522,20 @@ export default function CourseRoom({
   if (view === "RESULT") {
     const total = items.length;
     const score = answers.filter((a) => a.correct).length;
-    const passed = score >= total && total > 0;
+    const need = needOf(total);
+    const passed = score >= need && total > 0;
     const wrong = answers.filter((a) => !a.correct);
     const qById = Object.fromEntries(lesson.questions.map((q) => [q.id, q]));
     return (
       <div className="animate-fadeIn mt-2">
         <div className={`rounded-3xl p-6 text-center mb-5 ${passed ? "bg-emerald-50" : "bg-amber-50"}`}>
           <div className="text-5xl mb-2">{passed ? "🎉" : "💪"}</div>
-          <p className="text-sm font-bold text-gray-500">บท {lesson.hour} · {lesson.titleEn}</p>
+          <p className="text-sm font-bold text-gray-500">{L} {lesson.hour} · {lesson.titleEn}</p>
           <p className={`text-5xl font-black my-2 tabular-nums ${passed ? "text-emerald-600" : "text-amber-600"}`}>
             {score}/{total}
           </p>
           <p className={`font-black text-lg ${passed ? "text-emerald-700" : "text-amber-800"}`}>
-            {passed ? "ผ่านบทนี้แล้ว!" : `อีก ${total - score} ข้อจะผ่าน — ลองใหม่อีกครั้ง`}
+            {passed ? `ผ่าน${L}นี้แล้ว!` : `อีก ${need - score} ข้อจะผ่าน — ลองใหม่อีกครั้ง`}
           </p>
           <p className="text-xs text-gray-500 mt-2">
             {saving
@@ -566,7 +575,7 @@ export default function CourseRoom({
               onClick={() => openLesson(nextLesson)}
               className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-xl hover:bg-[#002266] transition-all"
             >
-              ไปบทถัดไป: บท {nextLesson.hour} {nextLesson.titleEn} →
+              ไป{L}ถัดไป: {L} {nextLesson.hour} {nextLesson.titleEn} →
             </button>
           ) : null}
           {!passed && (
@@ -583,14 +592,14 @@ export default function CourseRoom({
             onClick={() => { setView("LESSON"); scrollTop(); }}
             className="w-full py-3 bg-white border-2 border-[#003399]/20 text-[#003399] font-bold rounded-2xl"
           >
-            ทบทวนเนื้อหาบทนี้
+            ทบทวนเนื้อหา{L}นี้
           </button>
           <button
             type="button"
             onClick={() => { setView("LIST"); scrollTop(); }}
             className="w-full py-3 text-gray-500 font-bold rounded-2xl hover:text-[#003399]"
           >
-            กลับไปรายการบท
+            กลับไปรายการ{L}
           </button>
         </div>
       </div>

@@ -1,45 +1,92 @@
 "use client";
 // app/page.tsx
 // ─────────────────────────────────────────────────────────────
-// หน้าหลักของนักเรียน: เข้าสู่ระบบ (ชื่อ + อีเมล) → เลือกห้อง
-//   📚 คำศัพท์แกน 300 คำ (VocabRoom)  — เรียนแบบ 5 ขั้น + ทวนเว้นวัน
-//   🧩 ถอดรหัสคำศัพท์ (CourseRoom)     — 14 บท ตรงกับแบบเรียน Root Words Decoder (บทละ 20 ข้อ)
+// หน้าหลักของนักเรียน: เข้าสู่ระบบ (ชื่อ · นามสกุล · เลขที่ · ชั้นเรียน · อีเมล — กรอกครบทุกช่องจึงเข้าได้) → เลือกห้อง
+//   ตรวจกับรายชื่อของครูที่เซิร์ฟเวอร์ (/api/roster) ถ้าไม่ตรงจะให้ตรวจอีกครั้งก่อนยืนยัน
+//   📚 คำศัพท์แกน 120 คำ (VocabRoom)  — เรียนแบบ 5 ขั้น + ทวนตามคาบ
+//   🧩 ถอดรหัสคำศัพท์ (CourseRoom)     — ม.6: 14 บท บทละ 15 ข้อ (decoder) · ม.4: 14 คาบ คาบละ 10 ข้อ ผ่าน 8 (decoder4)
 // (ระบบคลังคำ 3,000+ คำแบบเดิมถูกนำออกแล้ว — ข้อมูลเก่าใน Firestore ยังเก็บไว้ ไม่ได้ลบ)
 // ─────────────────────────────────────────────────────────────
 
 import React, { useEffect, useState } from "react";
 import CourseRoom from "./_components/CourseRoom";
 import VocabRoom, { dueCountLocal } from "./_components/VocabRoom";
+import { CORE_NAME, CORE_PLAN } from "./lib/vocab300";
+import {
+  GRADES,
+  MAX_NO,
+  gradeOf,
+  RosterCheck,
+  StudentProfile,
+  checkRoster,
+  cleanNamePart,
+  composeName,
+  profileFromLegacyName,
+  saveProfile,
+  validateProfile,
+  type ProfileField,
+} from "./lib/student";
 
 const SCHOOL_LOGO_URL = "/logo.png";
 const SESSION_KEY = "vm_student"; // จำการเข้าสู่ระบบไว้ในแท็บนี้ (กันกดรีเฟรชแล้วต้องกรอกใหม่)
+const LAST_KEY = "vm_last_profile"; // เติมช่องให้ครั้งหน้าบนเครื่องเดิม (ไม่เข้าระบบให้อัตโนมัติ)
+
+type Form = { first: string; last: string; no: string; room: string; email: string };
+const EMPTY_FORM: Form = { first: "", last: "", no: "", room: "", email: "" };
+const FIELD_ORDER: ProfileField[] = ["first", "last", "room", "no", "email"];
+const CHECK_MSG: Record<Exclude<RosterCheck, "ok" | "unknown">, (f: Form) => string> = {
+  partial: (f) => `ชื่อหรือนามสกุลสะกดไม่ตรงกับรายชื่อของครู (ม.${f.room} เลขที่ ${f.no}) — ตรวจการสะกดอีกครั้ง`,
+  elsewhere: () => "ชื่อ-นามสกุลนี้อยู่ในรายชื่อของครู แต่ชั้นเรียนหรือเลขที่ไม่ตรง — ตรวจชั้นเรียนและเลขที่อีกครั้ง",
+  mismatch: (f) => `ม.${f.room} เลขที่ ${f.no} ในรายชื่อของครูเป็นคนละชื่อกัน — ตรวจเลขที่และชั้นเรียนอีกครั้ง`,
+  notfound: (f) => `ไม่พบเลขที่ ${f.no} ในรายชื่อ ม.${f.room} — ตรวจเลขที่อีกครั้ง`,
+};
 
 type Section = "HUB" | "VOCAB" | "DECODER";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [section, setSection] = useState<Section>("HUB");
-  const [studentName, setStudentName] = useState("");
+  const [studentName, setStudentName] = useState(""); // ชื่อรวมที่บันทึกขึ้นระบบ: "ชื่อ นามสกุล No.5 M.6/1"
   const [email, setEmail] = useState("");
+  const [profile, setProfile] = useState<StudentProfile | null>(null);
+  const [form, setForm] = useState<Form>(EMPTY_FORM);
+  const [errors, setErrors] = useState<Partial<Record<ProfileField, string>>>({});
+  const [check, setCheck] = useState<{ result: RosterCheck; key: string } | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [notice, setNotice] = useState("");
 
   // กู้การเข้าสู่ระบบเดิมในแท็บนี้ (ทำหลังโหลดหน้า เพื่อให้หน้าแรกตรงกับที่เซิร์ฟเวอร์สร้างไว้)
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem(SESSION_KEY);
-      if (raw) {
-        const s = JSON.parse(raw) as { name: string; email: string };
-        if (s.name && s.email) {
-          setStudentName(s.name);
-          setEmail(s.email);
-          setIsLoggedIn(true);
-        }
+      const s = raw ? (JSON.parse(raw) as { name?: string; email?: string; profile?: StudentProfile }) : null;
+      if (s?.profile && s.email && s.name) {
+        setStudentName(s.name);
+        setEmail(s.email);
+        setProfile(s.profile);
+        setIsLoggedIn(true);
+        return;
+      }
+      if (s?.name && s.email) {
+        // เข้าระบบแบบเดิม (พิมพ์ชื่อช่องเดียว) → เติมช่องให้ แล้วให้ตรวจและกดเข้าใหม่
+        const p = profileFromLegacyName(s.name);
+        setForm({ first: p.first || "", last: p.last || "", no: p.no ? String(p.no) : "", room: p.room || "", email: s.email });
+        setNotice("ระบบเปลี่ยนเป็นกรอกข้อมูลแยกช่อง — ตรวจชื่อ นามสกุล ชั้นเรียน และเลขที่ แล้วกดเข้าสู่ระบบอีกครั้ง");
+        return;
+      }
+      const last = localStorage.getItem(LAST_KEY);
+      if (last) {
+        const p = JSON.parse(last) as StudentProfile;
+        setForm({ first: p.first || "", last: p.last || "", no: p.no ? String(p.no) : "", room: p.room || "", email: p.email || "" });
       }
     } catch {
       /* ไม่เป็นไร */
     }
   }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
+
+  const isM4 = gradeOf(profile?.room) === "4";
 
   // ป้าย “ถึงกำหนดทวน” บนปุ่มคำศัพท์ (อ่านจากข้อมูลในเครื่องทุกครั้งที่กลับมาหน้าเมนู)
   const dueCount = isLoggedIn && section === "HUB" && email && typeof window !== "undefined" ? dueCountLocal(email) : 0;
@@ -56,21 +103,57 @@ export default function Home() {
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    unlockSpeech();
-    const n = studentName.trim();
-    const m = email.trim().toLowerCase();
-    if (!n || !m || !m.includes("@")) return;
+  const setField = (k: ProfileField, v: string) => {
+    setForm((f) => ({ ...f, [k]: v }));
+    if (errors[k]) setErrors((e) => ({ ...e, [k]: undefined }));
+  };
+  const formKey = (f: Form) => [cleanNamePart(f.first), cleanNamePart(f.last), f.room, String(Number(f.no))].join("|");
+  const focusField = (k: ProfileField) => {
+    if (typeof document !== "undefined") document.getElementById(`f-${k}`)?.focus();
+  };
+
+  const enter = (p: StudentProfile) => {
+    const n = composeName(p);
+    setProfile(p);
     setStudentName(n);
-    setEmail(m);
+    setEmail(p.email);
     setIsLoggedIn(true);
     setSection("HUB");
+    setCheck(null);
+    setNotice("");
     try {
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify({ name: n, email: m }));
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify({ name: n, email: p.email, profile: p }));
+      localStorage.setItem(LAST_KEY, JSON.stringify(p));
     } catch {
       /* ไม่เป็นไร */
     }
+    saveProfile(p); // ส่งข้อมูลแยกช่องขึ้นระบบ (ไม่ต้องรอ)
+  };
+
+  const handleLogin = async (e: React.FormEvent, confirmed = false) => {
+    e.preventDefault();
+    unlockSpeech();
+    const errs = validateProfile(form);
+    setErrors(errs);
+    const firstBad = FIELD_ORDER.find((k) => errs[k]);
+    if (firstBad) {
+      focusField(firstBad);
+      return;
+    }
+    const p: StudentProfile = {
+      first: cleanNamePart(form.first),
+      last: cleanNamePart(form.last),
+      no: Number(form.no),
+      room: form.room,
+      email: form.email.trim().toLowerCase(),
+    };
+    const key = formKey(form);
+    if (confirmed && check?.key === key) return enter(p);
+    setChecking(true);
+    const result = await checkRoster(p);
+    setChecking(false);
+    if (result === "ok" || result === "unknown") return enter(p);
+    setCheck({ result, key });
   };
 
   const handleLogout = () => {
@@ -78,6 +161,9 @@ export default function Home() {
     setSection("HUB");
     setStudentName("");
     setEmail("");
+    setProfile(null);
+    setErrors({});
+    setCheck(null);
     try {
       sessionStorage.removeItem(SESSION_KEY);
     } catch {
@@ -92,7 +178,7 @@ export default function Home() {
 
         {/* ── เข้าสู่ระบบ ── */}
         {!isLoggedIn && (
-          <form onSubmit={handleLogin} className="text-center animate-fadeIn mt-2">
+          <form onSubmit={(e) => handleLogin(e)} noValidate className="text-center animate-fadeIn mt-2">
             <div className="flex flex-col items-center justify-center mb-8">
               <img src={SCHOOL_LOGO_URL} alt="Anukoolnaree Logo" className="w-32 h-32 mb-4 object-contain" />
               <h2 className="text-sm md:text-base font-bold text-[#003399] uppercase tracking-widest mb-1">Anukoolnaree School</h2>
@@ -100,39 +186,74 @@ export default function Home() {
               <div className="h-1 w-20 bg-[#FFD700] mt-2 rounded-full"></div>
             </div>
 
-            <p className="text-gray-500 mb-8 text-sm md:text-base italic">&quot;Anukoolnaree students, let&apos;s master English for your future.&quot;</p>
+            <p className="text-gray-500 mb-6 text-sm md:text-base italic">&quot;Anukoolnaree students, let&apos;s master English for your future.&quot;</p>
 
-            <div className="text-left space-y-5 mb-8">
-              <div>
-                <label className="block text-sm font-bold text-[#003399] mb-2 uppercase tracking-wide">Full Name & Student ID</label>
-                <input
-                  type="text"
-                  placeholder="Example: Somchai Rakdee No.1 M.6/1"
-                  value={studentName}
-                  onChange={(e) => setStudentName(e.target.value)}
-                  className="w-full p-4 border-2 border-gray-100 rounded-2xl focus:outline-none focus:border-[#FFD700] focus:ring-2 focus:ring-[#FFD700]/20 bg-gray-50/50 transition-all font-medium"
-                  required
-                />
+            {notice && <p className="text-left text-sm font-bold bg-amber-50 text-amber-900 border-2 border-amber-200 rounded-2xl px-4 py-3 mb-5">{notice}</p>}
+
+            <div className="text-left space-y-4 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Field id="first" label="ชื่อ" en="First name" error={errors.first}>
+                  <input id="f-first" type="text" autoComplete="given-name" placeholder="เช่น สมชาย" value={form.first}
+                    onChange={(e) => setField("first", e.target.value)} className={inputCls(!!errors.first)} />
+                </Field>
+                <Field id="last" label="นามสกุล" en="Last name" error={errors.last}>
+                  <input id="f-last" type="text" autoComplete="family-name" placeholder="เช่น รักดี" value={form.last}
+                    onChange={(e) => setField("last", e.target.value)} className={inputCls(!!errors.last)} />
+                </Field>
               </div>
-              <div>
-                <label className="block text-sm font-bold text-[#003399] mb-2 uppercase tracking-wide">Email (Gmail Only)</label>
-                <input
-                  type="email"
-                  placeholder="Example: anukoolnaree.student@gmail.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full p-4 border-2 border-gray-100 rounded-2xl focus:outline-none focus:border-[#FFD700] focus:ring-2 focus:ring-[#FFD700]/20 bg-gray-50/50 transition-all font-medium"
-                  required
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <Field id="room" label="ชั้นเรียน" en="Class" error={errors.room}>
+                  <div className="relative">
+                    <select id="f-room" value={form.room} onChange={(e) => setField("room", e.target.value)} className={inputCls(!!errors.room) + " appearance-none pr-10"}>
+                      <option value="">เลือกห้อง</option>
+                      {GRADES.map((g) => (
+                        <optgroup key={g.grade} label={g.label}>
+                          {g.rooms.map((r) => (
+                            <option key={r} value={r}>ม.{r}</option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
+                    <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#003399] text-sm">▼</span>
+                  </div>
+                </Field>
+                <Field id="no" label="เลขที่" en="No." error={errors.no}>
+                  <input id="f-no" type="text" inputMode="numeric" pattern="[0-9]*" placeholder={`1–${MAX_NO}`} value={form.no}
+                    onChange={(e) => setField("no", e.target.value.replace(/\D/g, "").slice(0, 2))} className={inputCls(!!errors.no) + " tabular-nums"} />
+                </Field>
               </div>
+              <Field id="email" label="อีเมล" en="Gmail" error={errors.email}>
+                <input id="f-email" type="email" autoComplete="email" placeholder="เช่น somchai.r@gmail.com" value={form.email}
+                  onChange={(e) => setField("email", e.target.value)} className={inputCls(!!errors.email)} />
+              </Field>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                พิมพ์ชื่อ-นามสกุล<b>ภาษาไทยตามทะเบียนนักเรียน</b> ไม่ต้องใส่ นาย/นางสาว · ใช้อีเมลเดิมทุกครั้ง ผลการเรียนจะผูกกับอีเมลนี้
+              </p>
             </div>
+
+            {check && check.key === formKey(form) && check.result !== "ok" && check.result !== "unknown" && (
+              <div className="text-left bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 mb-5">
+                <p className="text-sm font-bold text-amber-900">⚠️ {CHECK_MSG[check.result](form)}</p>
+                <p className="text-xs text-amber-800 mt-1">ถ้าไม่แน่ใจเลขที่ ให้ถามครูก่อน เพื่อให้ครูเห็นคะแนนของคุณในรายชื่อที่ถูกต้อง</p>
+                <div className="flex flex-wrap gap-2 mt-3">
+                  <button type="button" onClick={() => { setCheck(null); focusField(check.result === "notfound" || check.result === "mismatch" ? "no" : "first"); }}
+                    className="px-4 py-2 rounded-xl bg-white border-2 border-amber-300 text-amber-900 font-bold text-sm">
+                    แก้ไขข้อมูล
+                  </button>
+                  <button type="button" onClick={(e) => handleLogin(e, true)}
+                    className="px-4 py-2 rounded-xl bg-amber-500 text-white font-bold text-sm">
+                    ข้อมูลถูกต้อง เข้าสู่ระบบ
+                  </button>
+                </div>
+              </div>
+            )}
 
             <button
               type="submit"
-              disabled={!studentName.trim() || !email.trim() || !email.includes("@")}
+              disabled={checking}
               className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-xl hover:bg-[#002266] disabled:bg-gray-300 disabled:text-gray-500 transition-all duration-300 text-xl uppercase tracking-widest"
             >
-              Enter Dashboard
+              {checking ? "กำลังตรวจรายชื่อ..." : "Enter Dashboard"}
             </button>
           </form>
         )}
@@ -142,12 +263,19 @@ export default function Home() {
           <div className="text-center animate-fadeIn mt-2">
             <div className="flex flex-col items-center justify-center mb-6">
               <img src={SCHOOL_LOGO_URL} alt="Anukoolnaree Logo" className="w-20 h-20 mb-3 object-contain" />
-              <h1 className="text-2xl font-black text-gray-900 mb-1">Grade 12 Mastery Hub</h1>
+              <h1 className="text-2xl font-black text-gray-900 mb-1">{(GRADES.find((g) => g.grade === gradeOf(profile?.room)) ?? GRADES[0]).hub}</h1>
               <p className="text-[#003399] font-bold text-sm tracking-widest uppercase">Choose your practice room</p>
-              <p className="text-gray-500 text-xs mt-1">เลือกห้องที่อยากฝึกวันนี้ · สวัสดี {studentName.split(" ")[0]}</p>
+              <p className="text-gray-500 text-xs mt-1">เลือกห้องที่อยากฝึกวันนี้ · สวัสดี {profile?.first ?? studentName.split(" ")[0]}</p>
+              {profile && (
+                <p className="mt-2 text-xs font-bold text-[#003399] bg-[#003399]/5 rounded-full px-3 py-1">
+                  {profile.first} {profile.last} · ม.{profile.room} เลขที่ {profile.no}
+                </p>
+              )}
             </div>
 
             <div className="space-y-3 text-left mb-6">
+              {/* ม.4 (อ31206) เรียนเฉพาะห้องถอดรหัสคำศัพท์ · ห้องคำศัพท์แกน 120 คำเป็นของ ม.6 (อ33102) */}
+              {!isM4 && (
               <button
                 type="button"
                 onClick={() => setSection("VOCAB")}
@@ -155,8 +283,8 @@ export default function Home() {
               >
                 <span className="text-3xl">📚</span>
                 <span className="flex-1">
-                  <span className="block font-black text-lg text-[#FFD700]">คำศัพท์แกน 300 คำ</span>
-                  <span className="block text-xs text-white/80 font-bold">TGAT · A-Level · เรียนแบบ 5 ขั้น · 10 สัปดาห์</span>
+                  <span className="block font-black text-lg text-[#FFD700]">{CORE_NAME}</span>
+                  <span className="block text-xs text-white/80 font-bold">TGAT · A-Level · เรียนแบบ 5 ขั้น · {CORE_PLAN}</span>
                 </span>
                 {dueCount > 0 ? (
                   <span className="text-[10px] font-black bg-[#FFD700] text-[#003399] px-2 py-1 rounded-full whitespace-nowrap">ทวน {dueCount} คำ</span>
@@ -164,6 +292,7 @@ export default function Home() {
                   <span className="text-[#FFD700] text-xl">→</span>
                 )}
               </button>
+              )}
 
               <button
                 type="button"
@@ -172,8 +301,12 @@ export default function Home() {
               >
                 <span className="text-3xl">🧩</span>
                 <span className="flex-1">
-                  <span className="block font-black text-lg text-[#003399]">ถอดรหัสคำศัพท์</span>
-                  <span className="block text-xs text-gray-500 font-bold">Root Words Decoder · ปัจจัย • อุปสรรค • รากศัพท์ · 14 บท ตรงกับแบบเรียน</span>
+                  <span className="block font-black text-lg text-[#003399]">{isM4 ? "ถอดรหัสคำศัพท์ ม.4" : "ถอดรหัสคำศัพท์"}</span>
+                  <span className="block text-xs text-gray-500 font-bold">
+                    {isM4
+                      ? "Root Words Decoder · ปูพื้นฐาน · 14 คาบ ตรงกับแบบเรียน ม.4 · ตั๋วออกคาบละ 10 ข้อ"
+                      : "Root Words Decoder · ปัจจัย • อุปสรรค • รากศัพท์ · 14 บท ตรงกับแบบเรียน"}
+                  </span>
                 </span>
                 <span className="text-[#003399] text-xl">→</span>
               </button>
@@ -191,10 +324,28 @@ export default function Home() {
         {isLoggedIn && section === "VOCAB" && <VocabRoom email={email} name={studentName} onExit={() => setSection("HUB")} />}
 
         {isLoggedIn && section === "DECODER" && (
-          <CourseRoom courseId="decoder" email={email} name={studentName} onExit={() => setSection("HUB")} />
+          <CourseRoom key={isM4 ? "decoder4" : "decoder"} courseId={isM4 ? "decoder4" : "decoder"} email={email} name={studentName} onExit={() => setSection("HUB")} />
         )}
       </div>
       <p className="mt-8 text-[10px] text-gray-400 font-bold tracking-[0.3em] uppercase">© Anukoolnaree School | Vocabulary Essential M.6</p>
+    </div>
+  );
+}
+
+// ── ช่องกรอกข้อมูล ──
+function inputCls(bad: boolean): string {
+  return `w-full p-4 border-2 rounded-2xl focus:outline-none focus:ring-2 bg-gray-50/50 transition-all font-medium ${
+    bad ? "border-rose-300 focus:border-rose-400 focus:ring-rose-100" : "border-gray-100 focus:border-[#FFD700] focus:ring-[#FFD700]/20"
+  }`;
+}
+function Field({ id, label, en, error, children }: { id: string; label: string; en: string; error?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label htmlFor={`f-${id}`} className="block text-sm font-bold text-[#003399] mb-1.5">
+        {label} <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">{en}</span> <span className="text-rose-500">*</span>
+      </label>
+      {children}
+      {error && <p className="text-xs font-bold text-rose-600 mt-1">{error}</p>}
     </div>
   );
 }

@@ -1,0 +1,3923 @@
+{
+ "id": "decoder4",
+ "version": 1,
+ "title": "Root Words Decoder · Foundation",
+ "titleTh": "ถอดรหัสคำศัพท์ ม.4",
+ "subtitle": "ปูพื้นฐาน ปัจจัย • อุปสรรค • รากศัพท์ — 14 คาบ คาบละ 45 นาที ตรงกับแบบเรียน ม.4 · คาบละ 6 คำ",
+ "classNote": "เรียนคาบละ 45 นาทีตามแบบเรียน แล้วทำตั๋วออก 10 ข้อในแอปก่อนหมดคาบ · ถูก 8 ข้อขึ้นไป = ผ่าน · ไม่มีการบ้าน",
+ "passRule": "all",
+ "passMin": 8,
+ "lessonWord": "คาบ",
+ "units": [
+  {
+   "no": 1,
+   "code": "A",
+   "title": "ปัจจัย (Suffix)"
+  },
+  {
+   "no": 2,
+   "code": "B",
+   "title": "อุปสรรค (Prefix)"
+  },
+  {
+   "no": 3,
+   "code": "C",
+   "title": "รากศัพท์ (Root)"
+  },
+  {
+   "no": 4,
+   "code": "D",
+   "title": "คาบปิด"
+  }
+ ],
+ "lessons": [
+  {
+   "id": "m01",
+   "hour": 1,
+   "unit": 1,
+   "titleEn": "Noun suffixes",
+   "titleTh": "รหัสคำนาม: -tion · -ment · -ness · -ity",
+   "goal": "บอกได้ว่าคำที่ลงท้ายด้วย -tion/-sion, -ment, -ness, -ity เป็น คำนาม · หาตำแหน่งคำนามในประโยค แล้วเลือกรูปคำที่ถูก",
+   "recap": {
+    "parts": [
+     {
+      "part": "-tion / -sion",
+      "kind": "suffix",
+      "meaning": "การ…",
+      "examples": [
+       {
+        "word": "information",
+        "th": "ข้อมูล"
+       },
+       {
+        "word": "decision",
+        "th": "การตัดสินใจ"
+       }
+      ]
+     },
+     {
+      "part": "-ment",
+      "kind": "suffix",
+      "meaning": "การ… / สิ่งที่…",
+      "examples": [
+       {
+        "word": "development",
+        "th": "การพัฒนา"
+       },
+       {
+        "word": "government",
+        "th": "รัฐบาล"
+       }
+      ]
+     },
+     {
+      "part": "-ness",
+      "kind": "suffix",
+      "meaning": "ความ…",
+      "examples": [
+       {
+        "word": "happiness",
+        "th": "ความสุข"
+       },
+       {
+        "word": "illness",
+        "th": "ความเจ็บป่วย"
+       }
+      ]
+     },
+     {
+      "part": "-ity",
+      "kind": "suffix",
+      "meaning": "ความ…",
+      "examples": [
+       {
+        "word": "ability",
+        "th": "ความสามารถ"
+       },
+       {
+        "word": "activity",
+        "th": "กิจกรรม"
+       }
+      ]
+     },
+     {
+      "part": "หลัง a / an / the",
+      "kind": "concept",
+      "meaning": "ช่องว่างตามหลังคำนำหน้านาม (the ___ of)",
+      "examples": []
+     },
+     {
+      "part": "หลัง my / his / her / our",
+      "kind": "concept",
+      "meaning": "คำแสดงความเป็นเจ้าของ (her ___)",
+      "examples": []
+     },
+     {
+      "part": "หลังคุณศัพท์",
+      "kind": "concept",
+      "meaning": "คุณศัพท์ขยายคำนาม (a good ___)",
+      "examples": []
+     }
+    ],
+    "tips": [
+     "**3 ถาม** ทุกข้อ: ① ช่องว่างติดกับอะไร ② ตำแหน่งนี้ต้องการชนิดคำอะไร ③ ตัวเลือกไหนมีรหัสท้ายตรง",
+     "**สะกดเปลี่ยน:** decide → decision · happy → happiness (y เปลี่ยนเป็น i) · able → ability"
+    ]
+   },
+   "words": [
+    {
+     "w": "information",
+     "pos": "n.",
+     "parts": "inform + -ation",
+     "th": "ข้อมูล"
+    },
+    {
+     "w": "decision",
+     "pos": "n.",
+     "parts": "decide + -sion",
+     "th": "การตัดสินใจ"
+    },
+    {
+     "w": "development",
+     "pos": "n.",
+     "parts": "develop + -ment",
+     "th": "การพัฒนา"
+    },
+    {
+     "w": "happiness",
+     "pos": "n.",
+     "parts": "happy + -ness",
+     "th": "ความสุข"
+    },
+    {
+     "w": "illness",
+     "pos": "n.",
+     "parts": "ill + -ness",
+     "th": "ความเจ็บป่วย"
+    },
+    {
+     "w": "ability",
+     "pos": "n.",
+     "parts": "able + -ity",
+     "th": "ความสามารถ"
+    }
+   ],
+   "week": 1,
+   "start": "2026-11-02",
+   "dateLabel": "2–6 พ.ย. 69",
+   "questions": [
+    {
+     "id": "m01-01",
+     "type": "part",
+     "q": "รหัสท้ายคำชุดใดทำให้คำเป็น **คำนาม** ทุกตัว",
+     "options": [
+      "-ize, -en, -ify, -ly",
+      "-able, -tion, -ful, -ly",
+      "-ly, -ful, -ness, -al",
+      "-tion, -ment, -ness, -ity",
+      "-ful, -ive, -able, -al"
+     ],
+     "answer": 3,
+     "hint": "นึกถึง information, development, happiness, ability",
+     "explain": "-tion/-sion, -ment, -ness, -ity = รหัสคำนาม แปลว่า \"การ… / ความ…\""
+    },
+    {
+     "id": "m01-02",
+     "type": "form",
+     "q": "The ______ of the new hospital took three years.",
+     "options": [
+      "development",
+      "developed",
+      "develop",
+      "develops",
+      "developing"
+     ],
+     "answer": 0,
+     "hint": "ช่องว่างอยู่หลัง The และหน้า of",
+     "explain": "หลัง The … of ต้องเป็นคำนาม → develop + -ment = **development** (การพัฒนา / การก่อสร้าง)"
+    },
+    {
+     "id": "m01-03",
+     "type": "form",
+     "q": "Her ______ to speak three languages helped her get the job.",
+     "options": [
+      "ability",
+      "ably",
+      "unable",
+      "able",
+      "enable"
+     ],
+     "answer": 0,
+     "hint": "หลัง Her (คำแสดงความเป็นเจ้าของ) ต้องเป็นคำชนิดใด",
+     "explain": "หลัง Her ต้องเป็นคำนาม → able + -ity = **ability** (ความสามารถ)"
+    },
+    {
+     "id": "m01-04",
+     "type": "form",
+     "q": "Students need more ______ about the new exam dates.",
+     "options": [
+      "informed",
+      "inform",
+      "informing",
+      "informs",
+      "information"
+     ],
+     "answer": 4,
+     "hint": "need more + ? → ต้องการคำชนิดใด",
+     "explain": "หลัง need more ต้องเป็นคำนาม → inform + -ation = **information** (ข้อมูล)"
+    },
+    {
+     "id": "m01-05",
+     "type": "form",
+     "q": "Making a quick ______ is not always a good idea.",
+     "options": [
+      "deciding",
+      "decision",
+      "decided",
+      "decides",
+      "decide"
+     ],
+     "answer": 1,
+     "hint": "ช่องว่างอยู่หลัง a quick (คุณศัพท์)",
+     "explain": "หลัง a + คุณศัพท์ ต้องเป็นคำนาม → decide + -sion = **decision** (การตัดสินใจ)"
+    },
+    {
+     "id": "m01-06",
+     "type": "form",
+     "q": "Money cannot buy ______.",
+     "options": [
+      "happier",
+      "happy",
+      "happiness",
+      "happily",
+      "unhappy"
+     ],
+     "answer": 2,
+     "hint": "ช่องว่างเป็นกรรมของกริยา buy",
+     "explain": "กรรมของกริยาต้องเป็นคำนาม → happy + -ness = **happiness** (y เปลี่ยนเป็น i)"
+    },
+    {
+     "id": "m01-07",
+     "type": "form",
+     "q": "He missed school for a week because of his ______.",
+     "options": [
+      "sick",
+      "illness",
+      "healthy",
+      "ill",
+      "sickly"
+     ],
+     "answer": 1,
+     "hint": "หลัง his ต้องเป็นคำชนิดใด",
+     "explain": "หลัง his ต้องเป็นคำนาม → ill + -ness = **illness** (ความเจ็บป่วย)"
+    },
+    {
+     "id": "m01-08",
+     "type": "decode",
+     "q": "คำว่า **kindness** (kind + -ness) แปลว่าอะไร",
+     "options": [
+      "คนใจดี",
+      "ใจดี",
+      "ทำให้ใจดี",
+      "ความใจดี",
+      "อย่างใจดี"
+     ],
+     "answer": 3,
+     "hint": "-ness = ความ…",
+     "explain": "kind (ใจดี) + -ness (ความ…) = **ความใจดี** เป็นคำนาม"
+    },
+    {
+     "id": "m01-09",
+     "type": "context",
+     "q": "ช่องว่างในประโยค \"Thank you for your ______.\" ต้องการคำชนิดใด",
+     "options": [
+      "กริยาวิเศษณ์ (adv.)",
+      "กริยา (v.)",
+      "คำบุพบท",
+      "คุณศัพท์ (adj.)",
+      "คำนาม (n.)"
+     ],
+     "answer": 4,
+     "hint": "หลัง your …",
+     "explain": "หลังคำแสดงความเป็นเจ้าของ your ต้องเป็น**คำนาม** เช่น Thank you for your help / kindness"
+    },
+    {
+     "id": "m01-10",
+     "type": "part",
+     "q": "ข้อใดเป็น**คำนาม**ทุกคำ",
+     "options": [
+      "act, governor, payable",
+      "actively, governed, paid",
+      "activity, government, payment",
+      "active, govern, pay",
+      "active, government, pay"
+     ],
+     "answer": 2,
+     "hint": "หาคำที่ลงท้ายด้วย -ity, -ment",
+     "explain": "activity (-ity), government (-ment), payment (-ment) เป็น**คำนาม**ทั้งหมด"
+    }
+   ]
+  },
+  {
+   "id": "m02",
+   "hour": 2,
+   "unit": 1,
+   "titleEn": "Adjective & adverb suffixes",
+   "titleTh": "รหัสคุณศัพท์และกริยาวิเศษณ์: -ful · -ive · -able · -al · -ly",
+   "goal": "บอกได้ว่า -ful, -ive, -able, -al ทำให้เป็น คุณศัพท์ และ -ly ทำให้เป็น กริยาวิเศษณ์ · เลือกรูปคำให้ตรงตำแหน่ง",
+   "recap": {
+    "parts": [
+     {
+      "part": "-ful",
+      "kind": "suffix",
+      "meaning": "เต็มไปด้วย… / มี…",
+      "examples": [
+       {
+        "word": "useful",
+        "th": "มีประโยชน์"
+       },
+       {
+        "word": "helpful",
+        "th": "ช่วยเหลือ, มีประโยชน์"
+       }
+      ]
+     },
+     {
+      "part": "-ive",
+      "kind": "suffix",
+      "meaning": "มีลักษณะ…",
+      "examples": [
+       {
+        "word": "creative",
+        "th": "สร้างสรรค์"
+       },
+       {
+        "word": "active",
+        "th": "กระตือรือร้น, คล่องแคล่ว"
+       }
+      ]
+     },
+     {
+      "part": "-able / -ible",
+      "kind": "suffix",
+      "meaning": "…ได้",
+      "examples": [
+       {
+        "word": "comfortable",
+        "th": "สบาย"
+       },
+       {
+        "word": "possible",
+        "th": "เป็นไปได้"
+       }
+      ]
+     },
+     {
+      "part": "-al",
+      "kind": "suffix",
+      "meaning": "เกี่ยวกับ…",
+      "examples": [
+       {
+        "word": "national",
+        "th": "ระดับชาติ, แห่งชาติ"
+       },
+       {
+        "word": "natural",
+        "th": "ตามธรรมชาติ"
+       }
+      ]
+     },
+     {
+      "part": "-ly",
+      "kind": "suffix",
+      "meaning": "อย่าง…",
+      "examples": [
+       {
+        "word": "carefully",
+        "th": "อย่างระมัดระวัง"
+       },
+       {
+        "word": "quickly",
+        "th": "อย่างรวดเร็ว"
+       }
+      ]
+     },
+     {
+      "part": "คุณศัพท์",
+      "kind": "concept",
+      "meaning": "หน้าคำนาม · หลัง be / very (a useful book · is very useful)",
+      "examples": []
+     },
+     {
+      "part": "กริยาวิเศษณ์",
+      "kind": "concept",
+      "meaning": "ขยายกริยา บอกว่า \"ทำอย่างไร\" (drive carefully)",
+      "examples": []
+     }
+    ],
+    "tips": [
+     "**กับดัก:** -ly บางคำเป็นคุณศัพท์ เช่น friendly (เป็นมิตร), lovely (น่ารัก) → ดูตำแหน่งยืนยัน",
+     "**สะกดเปลี่ยน:** happy → happily · comfort → comfortable · nature → natural"
+    ]
+   },
+   "words": [
+    {
+     "w": "useful",
+     "pos": "adj.",
+     "parts": "use + -ful",
+     "th": "มีประโยชน์"
+    },
+    {
+     "w": "helpful",
+     "pos": "adj.",
+     "parts": "help + -ful",
+     "th": "ช่วยเหลือ, มีประโยชน์"
+    },
+    {
+     "w": "creative",
+     "pos": "adj.",
+     "parts": "create + -ive",
+     "th": "สร้างสรรค์"
+    },
+    {
+     "w": "comfortable",
+     "pos": "adj.",
+     "parts": "comfort + -able",
+     "th": "สบาย"
+    },
+    {
+     "w": "natural",
+     "pos": "adj.",
+     "parts": "nature + -al",
+     "th": "ตามธรรมชาติ"
+    },
+    {
+     "w": "carefully",
+     "pos": "adv.",
+     "parts": "careful + -ly",
+     "th": "อย่างระมัดระวัง"
+    }
+   ],
+   "week": 2,
+   "start": "2026-11-09",
+   "dateLabel": "9–13 พ.ย. 69",
+   "questions": [
+    {
+     "id": "m02-01",
+     "type": "part",
+     "q": "รหัสชุดใดทำให้คำเป็น **คุณศัพท์** ทุกตัว",
+     "options": [
+      "-tion, -ment, -ness, -ity",
+      "-ize, -en, -ify, en-",
+      "-ly, -ness, -ize, -en",
+      "-ful, -ive, -able, -al",
+      "-ist, -ian, -er, -or"
+     ],
+     "answer": 3,
+     "hint": "นึกถึง useful, creative, comfortable, natural",
+     "explain": "-ful, -ive, -able/-ible, -al = รหัส**คุณศัพท์**"
+    },
+    {
+     "id": "m02-02",
+     "type": "part",
+     "q": "รหัส **-able / -ible** ในคำว่า comfortable และ possible ทำให้คำมีความหมายแบบใด",
+     "options": [
+      "…ได้ (คุณศัพท์)",
+      "อย่าง… (กริยาวิเศษณ์)",
+      "ความ… (คำนาม)",
+      "ทำให้… (กริยา)",
+      "คนที่… (คำนาม)"
+     ],
+     "answer": 0,
+     "hint": "possible = เป็นไปได้",
+     "explain": "-able / -ible = **…ได้** ทำให้เป็นคุณศัพท์"
+    },
+    {
+     "id": "m02-03",
+     "type": "form",
+     "q": "This medicine is very ______ against headaches.",
+     "options": [
+      "effects",
+      "effect",
+      "effective",
+      "effecting",
+      "effectively"
+     ],
+     "answer": 2,
+     "hint": "หลัง is very ต้องการคำชนิดใด",
+     "explain": "หลัง be + very ต้องเป็นคุณศัพท์ → effect + -ive = **effective** (ได้ผล)"
+    },
+    {
+     "id": "m02-04",
+     "type": "form",
+     "q": "Please read the instructions ______ before you start.",
+     "options": [
+      "care",
+      "careful",
+      "carefully",
+      "careless",
+      "cares"
+     ],
+     "answer": 2,
+     "hint": "ช่องว่างบอกว่า \"อ่านอย่างไร\"",
+     "explain": "ขยายกริยา read → กริยาวิเศษณ์ careful + -ly = **carefully**"
+    },
+    {
+     "id": "m02-05",
+     "type": "form",
+     "q": "This app is very ______ for learning new words.",
+     "options": [
+      "use",
+      "user",
+      "uses",
+      "usefully",
+      "useful"
+     ],
+     "answer": 4,
+     "hint": "หลัง is very",
+     "explain": "หลัง very ต้องเป็นคุณศัพท์ → use + -ful = **useful** (มีประโยชน์)"
+    },
+    {
+     "id": "m02-06",
+     "type": "form",
+     "q": "She is a very ______ student. She always has new ideas.",
+     "options": [
+      "create",
+      "creative",
+      "creatively",
+      "creates",
+      "creation"
+     ],
+     "answer": 1,
+     "hint": "ช่องว่างอยู่หน้าคำนาม student",
+     "explain": "หน้าคำนามต้องเป็นคุณศัพท์ → create + -ive = **creative** (สร้างสรรค์)"
+    },
+    {
+     "id": "m02-07",
+     "type": "form",
+     "q": "Thailand is famous for its ______ beauty.",
+     "options": [
+      "natural",
+      "natures",
+      "naturally",
+      "nature",
+      "naturalist"
+     ],
+     "answer": 0,
+     "hint": "ช่องว่างอยู่หน้าคำนาม beauty",
+     "explain": "หน้าคำนามต้องเป็นคุณศัพท์ → nature + -al = **natural** (ตามธรรมชาติ)"
+    },
+    {
+     "id": "m02-08",
+     "type": "form",
+     "q": "The bus driver drives very ______.",
+     "options": [
+      "care",
+      "carefulness",
+      "careful",
+      "carefully",
+      "careless"
+     ],
+     "answer": 3,
+     "hint": "ขยายกริยา drives",
+     "explain": "บอกว่าขับ \"อย่างไร\" → กริยาวิเศษณ์ **carefully**"
+    },
+    {
+     "id": "m02-09",
+     "type": "trap",
+     "q": "คำใดลงท้ายด้วย -ly แต่เป็น **คุณศัพท์** ไม่ใช่กริยาวิเศษณ์",
+     "options": [
+      "carefully",
+      "friendly",
+      "happily",
+      "quickly",
+      "slowly"
+     ],
+     "answer": 1,
+     "hint": "คำไหนใช้ขยายคำนามได้ เช่น a ___ dog",
+     "explain": "**friendly** (เป็นมิตร) เป็นคุณศัพท์ เช่น a friendly dog ส่วนคำอื่นเป็นกริยาวิเศษณ์"
+    },
+    {
+     "id": "m02-10",
+     "type": "decode",
+     "q": "คำว่า **helpful** (help + -ful) แปลว่าอะไร",
+     "options": [
+      "การช่วยเหลือ",
+      "ผู้ช่วย",
+      "อย่างช่วยเหลือ",
+      "ไม่ช่วยอะไรเลย",
+      "ช่วยเหลือได้มาก มีประโยชน์"
+     ],
+     "answer": 4,
+     "hint": "-ful = เต็มไปด้วย…",
+     "explain": "help + -ful = เต็มไปด้วยความช่วยเหลือ → **ช่วยเหลือได้มาก มีประโยชน์**"
+    }
+   ]
+  },
+  {
+   "id": "m03",
+   "hour": 3,
+   "unit": 1,
+   "titleEn": "Verb-making affixes",
+   "titleTh": "รหัสสร้างกริยา: -ize · -en · -ify · en-",
+   "goal": "บอกรหัส 4 ตัวที่เปลี่ยนคำให้เป็น กริยา · หาตำแหน่งกริยาในประโยค แล้วเลือกรูปกริยาที่ถูก",
+   "recap": {
+    "parts": [
+     {
+      "part": "-ize / -ise",
+      "kind": "suffix",
+      "meaning": "ทำให้เป็น…",
+      "examples": [
+       {
+        "word": "realize",
+        "th": "ตระหนัก, รู้ตัว"
+       },
+       {
+        "word": "organize",
+        "th": "จัด, จัดระเบียบ"
+       },
+       {
+        "word": "modernize",
+        "th": "ทำให้ทันสมัย"
+       }
+      ]
+     },
+     {
+      "part": "-en (ท้ายคำ)",
+      "kind": "suffix",
+      "meaning": "ทำให้…ขึ้น",
+      "examples": [
+       {
+        "word": "shorten",
+        "th": "ทำให้สั้นลง"
+       },
+       {
+        "word": "widen",
+        "th": "ทำให้กว้างขึ้น, ขยาย"
+       }
+      ]
+     },
+     {
+      "part": "-ify",
+      "kind": "suffix",
+      "meaning": "ทำให้…",
+      "examples": [
+       {
+        "word": "simplify",
+        "th": "ทำให้ง่ายขึ้น"
+       },
+       {
+        "word": "identify",
+        "th": "ระบุ, ชี้ตัว"
+       }
+      ]
+     },
+     {
+      "part": "en- (หน้าคำ)",
+      "kind": "prefix",
+      "meaning": "ทำให้…",
+      "examples": [
+       {
+        "word": "encourage",
+        "th": "ให้กำลังใจ, สนับสนุน"
+       },
+       {
+        "word": "enable",
+        "th": "ทำให้สามารถ"
+       }
+      ]
+     },
+     {
+      "part": "หลังประธาน",
+      "kind": "concept",
+      "meaning": "ประธาน + กริยา (They organize a party.)",
+      "examples": []
+     },
+     {
+      "part": "หลัง to",
+      "kind": "concept",
+      "meaning": "want / need / plan to + กริยา (need to shorten)",
+      "examples": []
+     },
+     {
+      "part": "หลังกริยาช่วย",
+      "kind": "concept",
+      "meaning": "can / will / should + กริยา (can simplify)",
+      "examples": []
+     }
+    ],
+    "tips": [
+     "**กับดัก:** -en บางคำเป็นคุณศัพท์ ไม่ใช่กริยา: golden (สีทอง), wooden (ทำจากไม้) → ดูตำแหน่งยืนยัน",
+     "**สะกดเปลี่ยน:** simple → simplify · short → shorten · wide → widen"
+    ]
+   },
+   "words": [
+    {
+     "w": "organize",
+     "pos": "v.",
+     "parts": "organ + -ize",
+     "th": "จัด, จัดระเบียบ"
+    },
+    {
+     "w": "realize",
+     "pos": "v.",
+     "parts": "real + -ize",
+     "th": "ตระหนัก, รู้ตัว"
+    },
+    {
+     "w": "identify",
+     "pos": "v.",
+     "parts": "ident(ity) + -ify",
+     "th": "ระบุ, ชี้ตัว"
+    },
+    {
+     "w": "simplify",
+     "pos": "v.",
+     "parts": "simple + -ify",
+     "th": "ทำให้ง่ายขึ้น"
+    },
+    {
+     "w": "shorten",
+     "pos": "v.",
+     "parts": "short + -en",
+     "th": "ทำให้สั้นลง"
+    },
+    {
+     "w": "encourage",
+     "pos": "v.",
+     "parts": "en- + courage",
+     "th": "ให้กำลังใจ, สนับสนุน"
+    }
+   ],
+   "week": 3,
+   "start": "2026-11-16",
+   "dateLabel": "16–20 พ.ย. 69",
+   "questions": [
+    {
+     "id": "m03-01",
+     "type": "part",
+     "q": "รหัสชุดใดใช้สร้าง **กริยา** ได้ทุกตัว",
+     "options": [
+      "-ize, -en, -ify, en-",
+      "-ful, -ive, -able, -al",
+      "-ment, -ness, -ity, -tion",
+      "-er, -ist, -ian, -or",
+      "-ous, -less, -ic, -ly"
+     ],
+     "answer": 0,
+     "hint": "นึกถึง realize, shorten, simplify, encourage",
+     "explain": "-ize, -en, -ify และ en- (หน้าคำ) = รหัสสร้าง**กริยา** แปลว่า \"ทำให้…\""
+    },
+    {
+     "id": "m03-02",
+     "type": "form",
+     "q": "Teachers should ______ students to ask questions in class.",
+     "options": [
+      "courageous",
+      "encouragement",
+      "courage",
+      "encourage",
+      "courageously"
+     ],
+     "answer": 3,
+     "hint": "หลัง should ต้องเป็นคำชนิดใด",
+     "explain": "หลังกริยาช่วย should ต้องเป็นกริยา → en- + courage = **encourage** (ให้กำลังใจ, สนับสนุน)"
+    },
+    {
+     "id": "m03-03",
+     "type": "form",
+     "q": "We need to ______ the class party carefully.",
+     "options": [
+      "organized",
+      "organization",
+      "organizer",
+      "organizing",
+      "organize"
+     ],
+     "answer": 4,
+     "hint": "หลัง need to",
+     "explain": "หลัง to ต้องเป็นกริยารูปเดิม → **organize** (จัด)"
+    },
+    {
+     "id": "m03-04",
+     "type": "form",
+     "q": "The police could not ______ the man in the photo.",
+     "options": [
+      "identity",
+      "identification",
+      "identify",
+      "identities",
+      "identical"
+     ],
+     "answer": 2,
+     "hint": "หลัง could not",
+     "explain": "หลังกริยาช่วย could ต้องเป็นกริยา → **identify** (ระบุตัว)"
+    },
+    {
+     "id": "m03-05",
+     "type": "form",
+     "q": "I didn't ______ how late it was.",
+     "options": [
+      "really",
+      "reality",
+      "realize",
+      "realistic",
+      "real"
+     ],
+     "answer": 2,
+     "hint": "หลัง didn't",
+     "explain": "หลัง didn't ต้องเป็นกริยา → real + -ize = **realize** (รู้ตัว)"
+    },
+    {
+     "id": "m03-06",
+     "type": "form",
+     "q": "Can you ______ the question? It is too difficult.",
+     "options": [
+      "simply",
+      "simplify",
+      "simplicity",
+      "simple",
+      "simpler"
+     ],
+     "answer": 1,
+     "hint": "หลัง Can you",
+     "explain": "หลัง can ต้องเป็นกริยา → simple + -ify = **simplify** (ทำให้ง่ายขึ้น)"
+    },
+    {
+     "id": "m03-07",
+     "type": "form",
+     "q": "Please ______ your story. It is too long.",
+     "options": [
+      "shortness",
+      "shorten",
+      "short",
+      "shorter",
+      "shortly"
+     ],
+     "answer": 1,
+     "hint": "Please + ? (ประโยคคำสั่ง)",
+     "explain": "ประโยคคำสั่งขึ้นต้นด้วยกริยา → short + -en = **shorten** (ทำให้สั้นลง)"
+    },
+    {
+     "id": "m03-08",
+     "type": "decode",
+     "q": "คำว่า **modernize** (modern + -ize) แปลว่าอะไร",
+     "options": [
+      "ทำให้ทันสมัย",
+      "ความทันสมัย",
+      "อย่างทันสมัย",
+      "ที่ทันสมัย",
+      "คนทันสมัย"
+     ],
+     "answer": 0,
+     "hint": "-ize = ทำให้เป็น…",
+     "explain": "modern (ทันสมัย) + -ize (ทำให้เป็น) = **ทำให้ทันสมัย** เป็นกริยา"
+    },
+    {
+     "id": "m03-09",
+     "type": "trap",
+     "q": "คำใดลงท้ายด้วย -en แต่เป็น **คุณศัพท์** ไม่ใช่กริยา",
+     "options": [
+      "shorten",
+      "widen",
+      "brighten",
+      "strengthen",
+      "wooden"
+     ],
+     "answer": 4,
+     "hint": "คำไหนใช้หน้าคำนามได้ เช่น a ___ table",
+     "explain": "**wooden** = ทำจากไม้ (a wooden table) เป็นคุณศัพท์ ส่วนคำอื่นเป็นกริยา \"ทำให้…ขึ้น\""
+    },
+    {
+     "id": "m03-10",
+     "type": "context",
+     "q": "ช่องว่างในประโยค \"The city plans to ______ the old road.\" ต้องการคำชนิดใด",
+     "options": [
+      "คุณศัพท์ (adj.)",
+      "กริยาวิเศษณ์ (adv.)",
+      "คำบุพบท",
+      "กริยา (v.)",
+      "คำนาม (n.)"
+     ],
+     "answer": 3,
+     "hint": "plans to + ?",
+     "explain": "หลัง to ต้องเป็น**กริยา** เช่น plans to widen the old road"
+    }
+   ]
+  },
+  {
+   "id": "m04",
+   "hour": 4,
+   "unit": 1,
+   "titleEn": "People & state nouns",
+   "titleTh": "รหัสบอกคนและภาวะ: -er/-or · -ist · -ian · -ance · -ship",
+   "goal": "แยกได้ว่าคำนามหมายถึง \"คน\" หรือ \"ภาวะ / การกระทำ\" จากรหัสท้ายคำ",
+   "recap": {
+    "parts": [
+     {
+      "part": "-er / -or",
+      "kind": "suffix",
+      "meaning": "ผู้ทำ",
+      "examples": [
+       {
+        "word": "teacher",
+        "th": "ครู"
+       },
+       {
+        "word": "visitor",
+        "th": "ผู้มาเยือน"
+       },
+       {
+        "word": "actor",
+        "th": "นักแสดง"
+       }
+      ]
+     },
+     {
+      "part": "-ist",
+      "kind": "suffix",
+      "meaning": "ผู้ทำ / ผู้เชี่ยวชาญ",
+      "examples": [
+       {
+        "word": "scientist",
+        "th": "นักวิทยาศาสตร์"
+       },
+       {
+        "word": "artist",
+        "th": "ศิลปิน"
+       },
+       {
+        "word": "tourist",
+        "th": "นักท่องเที่ยว"
+       }
+      ]
+     },
+     {
+      "part": "-ian",
+      "kind": "suffix",
+      "meaning": "ผู้เกี่ยวกับ…",
+      "examples": [
+       {
+        "word": "musician",
+        "th": "นักดนตรี"
+       },
+       {
+        "word": "librarian",
+        "th": "บรรณารักษ์"
+       }
+      ]
+     },
+     {
+      "part": "-ance / -ence",
+      "kind": "suffix",
+      "meaning": "การ… / ความ…",
+      "examples": [
+       {
+        "word": "performance",
+        "th": "การแสดง, ผลงาน"
+       },
+       {
+        "word": "difference",
+        "th": "ความแตกต่าง"
+       }
+      ]
+     },
+     {
+      "part": "-ship",
+      "kind": "suffix",
+      "meaning": "ภาวะ / ความสัมพันธ์",
+      "examples": [
+       {
+        "word": "friendship",
+        "th": "มิตรภาพ"
+       },
+       {
+        "word": "leadership",
+        "th": "ภาวะผู้นำ"
+       }
+      ]
+     }
+    ],
+    "tips": [
+     "**กับดัก:** -er บางคำไม่ใช่คน แต่เป็นเครื่องมือ: computer, printer (เครื่องที่ทำ…) → ดูความหมายในประโยค",
+     "**จับคู่จำ:** different (adj.) → difference (n.) · important (adj.) → importance (n.)"
+    ]
+   },
+   "words": [
+    {
+     "w": "scientist",
+     "pos": "n.",
+     "parts": "science + -ist",
+     "th": "นักวิทยาศาสตร์"
+    },
+    {
+     "w": "musician",
+     "pos": "n.",
+     "parts": "music + -ian",
+     "th": "นักดนตรี"
+    },
+    {
+     "w": "visitor",
+     "pos": "n.",
+     "parts": "visit + -or",
+     "th": "ผู้มาเยือน"
+    },
+    {
+     "w": "performance",
+     "pos": "n.",
+     "parts": "perform + -ance",
+     "th": "การแสดง, ผลงาน"
+    },
+    {
+     "w": "difference",
+     "pos": "n.",
+     "parts": "differ(ent) + -ence",
+     "th": "ความแตกต่าง"
+    },
+    {
+     "w": "friendship",
+     "pos": "n.",
+     "parts": "friend + -ship",
+     "th": "มิตรภาพ"
+    }
+   ],
+   "week": 4,
+   "start": "2026-11-23",
+   "dateLabel": "23–27 พ.ย. 69",
+   "questions": [
+    {
+     "id": "m04-01",
+     "type": "part",
+     "q": "รหัสชุดใดบอกว่าเป็น **\"คน\"** ทุกตัว",
+     "options": [
+      "-ful, -ive, -al",
+      "-ance, -ence, -ship",
+      "-ness, -ity, -ment",
+      "-er, -ist, -ian",
+      "-ize, -en, -ify"
+     ],
+     "answer": 3,
+     "hint": "นึกถึง teacher, scientist, musician",
+     "explain": "-er/-or, -ist, -ian = **คน (ผู้…)** ส่วน -ance/-ence, -ship = ภาวะ"
+    },
+    {
+     "id": "m04-02",
+     "type": "part",
+     "q": "รหัสใด **ไม่ได้** บอกว่าเป็น \"คน\"",
+     "options": [
+      "-ian",
+      "-or",
+      "-er",
+      "-ist",
+      "-ship"
+     ],
+     "answer": 4,
+     "hint": "friendship เป็นคนหรือไม่",
+     "explain": "**-ship** บอกภาวะ / ความสัมพันธ์ เช่น friendship (มิตรภาพ) ไม่ใช่คน"
+    },
+    {
+     "id": "m04-03",
+     "type": "form",
+     "q": "She wants to be a ______ and work in a science lab.",
+     "options": [
+      "scientific",
+      "science",
+      "scientifically",
+      "scientist",
+      "sciences"
+     ],
+     "answer": 3,
+     "hint": "be a + ? → ต้องเป็นคน",
+     "explain": "be a + คน → science + -ist = **scientist** (นักวิทยาศาสตร์)"
+    },
+    {
+     "id": "m04-04",
+     "type": "form",
+     "q": "The ______ played the piano beautifully.",
+     "options": [
+      "musically",
+      "musical",
+      "musician",
+      "musics",
+      "music"
+     ],
+     "answer": 2,
+     "hint": "ใครเล่นเปียโน",
+     "explain": "ผู้เล่นดนตรี = music + -ian = **musician** (นักดนตรี)"
+    },
+    {
+     "id": "m04-05",
+     "type": "form",
+     "q": "Every ______ to the zoo must buy a ticket.",
+     "options": [
+      "visit",
+      "visitor",
+      "visited",
+      "visits",
+      "visiting"
+     ],
+     "answer": 1,
+     "hint": "Every + คำนามเอกพจน์ที่เป็นคน",
+     "explain": "คนที่มาเที่ยว = visit + -or = **visitor** (ผู้มาเยือน)"
+    },
+    {
+     "id": "m04-06",
+     "type": "form",
+     "q": "Her ______ in the school play was excellent.",
+     "options": [
+      "performance",
+      "perform",
+      "performed",
+      "performing",
+      "performer"
+     ],
+     "answer": 0,
+     "hint": "สิ่งที่ \"ยอดเยี่ยม\" คือผลงาน ไม่ใช่คน",
+     "explain": "หลัง Her ต้องเป็นคำนาม และหมายถึงผลงาน → perform + -ance = **performance** (การแสดง)"
+    },
+    {
+     "id": "m04-07",
+     "type": "form",
+     "q": "There is a big ______ between the two pictures.",
+     "options": [
+      "difference",
+      "differently",
+      "differs",
+      "differ",
+      "different"
+     ],
+     "answer": 0,
+     "hint": "a big + ?",
+     "explain": "หลัง a big ต้องเป็นคำนาม → **difference** (ความแตกต่าง)"
+    },
+    {
+     "id": "m04-08",
+     "type": "form",
+     "q": "Good ______ is important for a team captain.",
+     "options": [
+      "leading",
+      "leadership",
+      "leader",
+      "leaders",
+      "lead"
+     ],
+     "answer": 1,
+     "hint": "สิ่งที่สำคัญสำหรับกัปตันทีมคือคนหรือภาวะ",
+     "explain": "หมายถึงภาวะ / ความสามารถในการนำ → leader + -ship = **leadership** (ภาวะผู้นำ)"
+    },
+    {
+     "id": "m04-09",
+     "type": "decode",
+     "q": "คำว่า **friendship** (friend + -ship) แปลว่าอะไร",
+     "options": [
+      "อย่างเป็นมิตร",
+      "เพื่อนสนิท",
+      "มิตรภาพ",
+      "เรือของเพื่อน",
+      "ที่เป็นมิตร"
+     ],
+     "answer": 2,
+     "hint": "-ship = ภาวะ / ความสัมพันธ์",
+     "explain": "friend + -ship (ภาวะ / ความสัมพันธ์) = **มิตรภาพ**"
+    },
+    {
+     "id": "m04-10",
+     "type": "trap",
+     "q": "คำใดลงท้ายด้วย -er แต่หมายถึง **เครื่องมือ** ไม่ใช่คน",
+     "options": [
+      "driver",
+      "farmer",
+      "teacher",
+      "singer",
+      "printer"
+     ],
+     "answer": 4,
+     "hint": "คำไหนเป็นสิ่งของ",
+     "explain": "**printer** = เครื่องพิมพ์ เป็นสิ่งของ ส่วนคำอื่นเป็นคน"
+    }
+   ]
+  },
+  {
+   "id": "m05",
+   "hour": 5,
+   "unit": 1,
+   "titleEn": "Meaningful adjective suffixes",
+   "titleTh": "คุณศัพท์บอกความหมาย: -ous · -less · -ic · -ed/-ing",
+   "goal": "บอกความหมายที่ -ous, -less, -ic เพิ่มเข้าไปในคำ · เลือก -ed หรือ -ing ได้ถูกตามบริบท",
+   "recap": {
+    "parts": [
+     {
+      "part": "-ous",
+      "kind": "suffix",
+      "meaning": "มี / เต็มไปด้วย…",
+      "examples": [
+       {
+        "word": "dangerous",
+        "th": "อันตราย"
+       },
+       {
+        "word": "famous",
+        "th": "มีชื่อเสียง"
+       }
+      ]
+     },
+     {
+      "part": "-less",
+      "kind": "suffix",
+      "meaning": "ไม่มี / ปราศจาก…",
+      "examples": [
+       {
+        "word": "careless",
+        "th": "สะเพร่า, ไม่ระวัง"
+       },
+       {
+        "word": "homeless",
+        "th": "ไร้บ้าน, ไม่มีที่อยู่"
+       }
+      ]
+     },
+     {
+      "part": "-ic / -ical",
+      "kind": "suffix",
+      "meaning": "เกี่ยวกับ… / ทาง…",
+      "examples": [
+       {
+        "word": "scientific",
+        "th": "ทางวิทยาศาสตร์"
+       },
+       {
+        "word": "economic",
+        "th": "เกี่ยวกับเศรษฐกิจ"
+       }
+      ]
+     },
+     {
+      "part": "-ed",
+      "kind": "suffix",
+      "meaning": "คนที่รู้สึก",
+      "examples": [
+       {
+        "word": "bored",
+        "th": "รู้สึกเบื่อ"
+       },
+       {
+        "word": "excited",
+        "th": "รู้สึกตื่นเต้น"
+       }
+      ]
+     },
+     {
+      "part": "-ing",
+      "kind": "suffix",
+      "meaning": "สิ่งที่ทำให้รู้สึก",
+      "examples": [
+       {
+        "word": "boring",
+        "th": "น่าเบื่อ"
+       },
+       {
+        "word": "exciting",
+        "th": "น่าตื่นเต้น"
+       }
+      ]
+     }
+    ],
+    "tips": [
+     "**-ed / -ing:** I am bored. (ฉันรู้สึกเบื่อ) · The class is boring. (ชั้นเรียนทำให้เบื่อ)",
+     "**กับดัก:** priceless ไม่ได้แปลว่า \"ไม่มีราคา\" แต่แปลว่า \"ล้ำค่ามาก\" → ตรวจบริบทเสมอ"
+    ]
+   },
+   "words": [
+    {
+     "w": "dangerous",
+     "pos": "adj.",
+     "parts": "danger + -ous",
+     "th": "อันตราย"
+    },
+    {
+     "w": "famous",
+     "pos": "adj.",
+     "parts": "fame + -ous",
+     "th": "มีชื่อเสียง"
+    },
+    {
+     "w": "careless",
+     "pos": "adj.",
+     "parts": "care + -less",
+     "th": "สะเพร่า, ไม่ระวัง"
+    },
+    {
+     "w": "scientific",
+     "pos": "adj.",
+     "parts": "science + -ific",
+     "th": "ทางวิทยาศาสตร์"
+    },
+    {
+     "w": "bored",
+     "pos": "adj.",
+     "parts": "bore + -ed",
+     "th": "รู้สึกเบื่อ"
+    },
+    {
+     "w": "exciting",
+     "pos": "adj.",
+     "parts": "excite + -ing",
+     "th": "น่าตื่นเต้น"
+    }
+   ],
+   "week": 5,
+   "start": "2026-11-30",
+   "dateLabel": "30 พ.ย.–4 ธ.ค. 69",
+   "questions": [
+    {
+     "id": "m05-01",
+     "type": "part",
+     "q": "รหัส **-less** ใน careless และ homeless แปลว่าอะไร",
+     "options": [
+      "เกี่ยวกับ…",
+      "ไม่มี / ปราศจาก…",
+      "เต็มไปด้วย…",
+      "ทำให้…",
+      "น้อยกว่า…"
+     ],
+     "answer": 1,
+     "hint": "homeless = คนที่… บ้าน",
+     "explain": "-less = **ไม่มี** เช่น homeless = ไม่มีบ้าน"
+    },
+    {
+     "id": "m05-02",
+     "type": "part",
+     "q": "รหัส **-ous** ใน dangerous และ famous แปลว่าอะไร",
+     "options": [
+      "ทำให้…",
+      "เกี่ยวกับ…",
+      "ไม่มี…",
+      "มี / เต็มไปด้วย…",
+      "คนที่…"
+     ],
+     "answer": 3,
+     "hint": "dangerous = … อันตราย",
+     "explain": "-ous = **มี / เต็มไปด้วย** เช่น dangerous = มีอันตราย"
+    },
+    {
+     "id": "m05-03",
+     "type": "part",
+     "q": "คุณศัพท์ -ed กับ -ing ต่างกันอย่างไร",
+     "options": [
+      "-ed เป็นคำนาม · -ing เป็นกริยา",
+      "ใช้แทนกันได้ทุกกรณี",
+      "-ed = สิ่งที่ทำให้รู้สึก · -ing = คนที่รู้สึก",
+      "-ed ใช้กับอดีต · -ing ใช้กับปัจจุบัน",
+      "-ed = คนที่รู้สึก · -ing = สิ่งที่ทำให้รู้สึก"
+     ],
+     "answer": 4,
+     "hint": "I am bored. · The class is boring.",
+     "explain": "**-ed = คนที่รู้สึก** (I am bored) · **-ing = สิ่งที่ทำให้รู้สึก** (The class is boring)"
+    },
+    {
+     "id": "m05-04",
+     "type": "form",
+     "q": "The movie was so ______ that I fell asleep.",
+     "options": [
+      "boring",
+      "boredom",
+      "bore",
+      "bores",
+      "bored"
+     ],
+     "answer": 0,
+     "hint": "หนังเป็นสิ่งที่ทำให้รู้สึก",
+     "explain": "หนังทำให้เบื่อ → **boring** (-ing = สิ่งที่ทำให้รู้สึก)"
+    },
+    {
+     "id": "m05-05",
+     "type": "form",
+     "q": "I am very ______ about the school trip tomorrow!",
+     "options": [
+      "excited",
+      "exciting",
+      "excite",
+      "excitement",
+      "excitedly"
+     ],
+     "answer": 0,
+     "hint": "ประธาน I เป็นคนที่รู้สึก",
+     "explain": "คนรู้สึกตื่นเต้น → **excited** (-ed = คนที่รู้สึก)"
+    },
+    {
+     "id": "m05-06",
+     "type": "form",
+     "q": "Don't swim here. The river is ______.",
+     "options": [
+      "danger",
+      "dangerously",
+      "dangerous",
+      "endanger",
+      "dangers"
+     ],
+     "answer": 2,
+     "hint": "หลัง is",
+     "explain": "หลัง be ต้องเป็นคุณศัพท์ → danger + -ous = **dangerous**"
+    },
+    {
+     "id": "m05-07",
+     "type": "form",
+     "q": "Bangkok is ______ for its street food.",
+     "options": [
+      "fames",
+      "famousness",
+      "famously",
+      "fame",
+      "famous"
+     ],
+     "answer": 4,
+     "hint": "be ___ for = มีชื่อเสียงเรื่อง…",
+     "explain": "be **famous** for = มีชื่อเสียงเรื่อง… (fame + -ous)"
+    },
+    {
+     "id": "m05-08",
+     "type": "form",
+     "q": "He made a ______ mistake and lost the game.",
+     "options": [
+      "carelessly",
+      "careless",
+      "care",
+      "carelessness",
+      "careful"
+     ],
+     "answer": 1,
+     "hint": "ความผิดพลาดที่เกิดจาก \"ไม่ระวัง\"",
+     "explain": "หน้าคำนาม mistake ต้องเป็นคุณศัพท์ และความหมาย \"ไม่ระวัง\" → **careless**"
+    },
+    {
+     "id": "m05-09",
+     "type": "form",
+     "q": "Water boils at 100°C. This is a ______ fact.",
+     "options": [
+      "scientist",
+      "sciences",
+      "scientific",
+      "scientifically",
+      "science"
+     ],
+     "answer": 2,
+     "hint": "หน้าคำนาม fact",
+     "explain": "หน้าคำนามต้องเป็นคุณศัพท์ → **scientific** (ทางวิทยาศาสตร์)"
+    },
+    {
+     "id": "m05-10",
+     "type": "trap",
+     "q": "\"This old painting is **priceless**.\" คำที่เน้นแปลว่าอะไร",
+     "options": [
+      "ราคาถูกมาก",
+      "ไม่มีราคา ได้มาฟรี",
+      "ไม่มีใครอยากซื้อ",
+      "ล้ำค่ามาก ประเมินราคาไม่ได้",
+      "ราคาแพงเกินไป"
+     ],
+     "answer": 3,
+     "hint": "ภาพเก่าที่มีค่ามาก",
+     "explain": "priceless เป็นกับดัก แปลว่า **ล้ำค่ามากจนประเมินราคาไม่ได้** ไม่ใช่ \"ไม่มีราคา\""
+    }
+   ]
+  },
+  {
+   "id": "m06",
+   "hour": 6,
+   "unit": 1,
+   "titleEn": "Suffix review & quiz",
+   "titleTh": "ทบทวนภาค A: เกมต่อคำ + ทดสอบย่อย",
+   "goal": "ใช้รหัสท้ายคำทั้ง 5 คาบสร้างคำและบอกชนิดคำได้ · แก้รูปคำผิดในประโยค · ทดสอบย่อยภาค A ในแอป",
+   "recap": {
+    "parts": [
+     {
+      "part": "-tion / -sion",
+      "kind": "suffix",
+      "meaning": "คำนาม · การ…",
+      "examples": []
+     },
+     {
+      "part": "-ness",
+      "kind": "suffix",
+      "meaning": "คำนาม · ความ…",
+      "examples": []
+     },
+     {
+      "part": "-ful",
+      "kind": "suffix",
+      "meaning": "คุณศัพท์ · เต็มไปด้วย…",
+      "examples": []
+     },
+     {
+      "part": "-able / -ible",
+      "kind": "suffix",
+      "meaning": "คุณศัพท์ · …ได้",
+      "examples": []
+     },
+     {
+      "part": "-ly",
+      "kind": "suffix",
+      "meaning": "กริยาวิเศษณ์ · อย่าง…",
+      "examples": []
+     },
+     {
+      "part": "-ify",
+      "kind": "suffix",
+      "meaning": "กริยา · ทำให้…",
+      "examples": []
+     },
+     {
+      "part": "-ist",
+      "kind": "suffix",
+      "meaning": "คำนาม (คน) · ผู้ทำ",
+      "examples": []
+     },
+     {
+      "part": "-ship",
+      "kind": "suffix",
+      "meaning": "คำนาม (ภาวะ) · ความสัมพันธ์",
+      "examples": []
+     },
+     {
+      "part": "-less",
+      "kind": "suffix",
+      "meaning": "คุณศัพท์ · ไม่มี…",
+      "examples": []
+     },
+     {
+      "part": "-ed / -ing",
+      "kind": "suffix",
+      "meaning": "คุณศัพท์ · รู้สึก / ทำให้รู้สึก",
+      "examples": []
+     }
+    ],
+    "tips": [
+     "**3 ถาม:** ① ช่องว่างติดกับอะไร ② ตำแหน่งนี้ต้องการชนิดคำอะไร ③ ตัวเลือกไหนมีรหัสท้ายตรง"
+    ]
+   },
+   "words": [],
+   "week": 6,
+   "start": "2026-12-07",
+   "dateLabel": "7–11 ธ.ค. 69",
+   "questions": [
+    {
+     "id": "m06-01",
+     "type": "part",
+     "q": "คำว่า **happiness** เป็นคำชนิดใด",
+     "options": [
+      "คำบุพบท",
+      "กริยา (v.)",
+      "คุณศัพท์ (adj.)",
+      "กริยาวิเศษณ์ (adv.)",
+      "คำนาม (n.)"
+     ],
+     "answer": 4,
+     "hint": "-ness = ความ…",
+     "explain": "happy + -ness = **คำนาม** (ความสุข)"
+    },
+    {
+     "id": "m06-02",
+     "type": "part",
+     "q": "คำว่า **quickly** เป็นคำชนิดใด",
+     "options": [
+      "คำสันธาน",
+      "คำนาม (n.)",
+      "คุณศัพท์ (adj.)",
+      "กริยาวิเศษณ์ (adv.)",
+      "กริยา (v.)"
+     ],
+     "answer": 3,
+     "hint": "-ly = อย่าง…",
+     "explain": "quick + -ly = **กริยาวิเศษณ์** (อย่างรวดเร็ว)"
+    },
+    {
+     "id": "m06-03",
+     "type": "form",
+     "q": "Thank you for the ______ about the trip.",
+     "options": [
+      "inform",
+      "informs",
+      "information",
+      "informing",
+      "informed"
+     ],
+     "answer": 2,
+     "hint": "the + ? + about",
+     "explain": "หลัง the ต้องเป็นคำนาม → **information**"
+    },
+    {
+     "id": "m06-04",
+     "type": "form",
+     "q": "My little brother is very ______. He draws every day.",
+     "options": [
+      "create",
+      "creative",
+      "creatively",
+      "creates",
+      "creation"
+     ],
+     "answer": 1,
+     "hint": "หลัง is very",
+     "explain": "หลัง very ต้องเป็นคุณศัพท์ → **creative**"
+    },
+    {
+     "id": "m06-05",
+     "type": "form",
+     "q": "Can you ______ the man who took your bag?",
+     "options": [
+      "identification",
+      "identities",
+      "identical",
+      "identity",
+      "identify"
+     ],
+     "answer": 4,
+     "hint": "หลัง Can you",
+     "explain": "หลัง can ต้องเป็นกริยา → **identify** (ระบุตัว)"
+    },
+    {
+     "id": "m06-06",
+     "type": "form",
+     "q": "My uncle is a famous ______. He plays the guitar.",
+     "options": [
+      "musician",
+      "music",
+      "musical",
+      "musics",
+      "musically"
+     ],
+     "answer": 0,
+     "hint": "a famous + คน",
+     "explain": "คนเล่นดนตรี → music + -ian = **musician**"
+    },
+    {
+     "id": "m06-07",
+     "type": "form",
+     "q": "The football match was very ______. Everyone shouted!",
+     "options": [
+      "excitedly",
+      "excite",
+      "exciting",
+      "excitement",
+      "excited"
+     ],
+     "answer": 2,
+     "hint": "การแข่งขันเป็นสิ่งที่ทำให้รู้สึก",
+     "explain": "สิ่งที่ทำให้ตื่นเต้น → **exciting**"
+    },
+    {
+     "id": "m06-08",
+     "type": "form",
+     "q": "Please write your answers ______.",
+     "options": [
+      "carefully",
+      "careless",
+      "care",
+      "carefulness",
+      "careful"
+     ],
+     "answer": 0,
+     "hint": "เขียน \"อย่างไร\"",
+     "explain": "ขยายกริยา write → **carefully**"
+    },
+    {
+     "id": "m06-09",
+     "type": "decode",
+     "q": "คำว่า **homeless** แปลว่าอะไร",
+     "options": [
+      "มีบ้านหลายหลัง",
+      "ไม่มีบ้าน ไร้ที่อยู่",
+      "คิดถึงบ้าน",
+      "อยู่บ้านคนเดียว",
+      "ทำงานที่บ้าน"
+     ],
+     "answer": 1,
+     "hint": "-less = ไม่มี",
+     "explain": "home + -less = **ไม่มีบ้าน**"
+    },
+    {
+     "id": "m06-10",
+     "type": "trap",
+     "q": "ข้อใดเป็น**กริยา**ทุกคำ",
+     "options": [
+      "reality, short, simple",
+      "realization, shortness, simple",
+      "realistic, shorter, simplicity",
+      "realize, shorten, simplify",
+      "real, shortly, simply"
+     ],
+     "answer": 3,
+     "hint": "หารหัส -ize, -en, -ify",
+     "explain": "realize (-ize), shorten (-en), simplify (-ify) เป็น**กริยา**ทั้งหมด"
+    }
+   ]
+  },
+  {
+   "id": "m07",
+   "hour": 7,
+   "unit": 2,
+   "titleEn": "Negative prefixes",
+   "titleTh": "อุปสรรคปฏิเสธ: un- · in- · im- · il- · ir- · dis-",
+   "goal": "เติมอุปสรรคปฏิเสธได้ถูกตัว (รวมกฎ im- / il- / ir-) · อธิบายได้ว่าอุปสรรค เปลี่ยนความหมาย แต่ไม่เปลี่ยนชนิดคำ",
+   "recap": {
+    "parts": [
+     {
+      "part": "un-",
+      "kind": "prefix",
+      "meaning": "ไม่",
+      "examples": [
+       {
+        "word": "unusual",
+        "th": "ผิดปกติ, ไม่ธรรมดา"
+       },
+       {
+        "word": "unfair",
+        "th": "ไม่ยุติธรรม"
+       },
+       {
+        "word": "unhappy",
+        "th": "ไม่มีความสุข"
+       }
+      ]
+     },
+     {
+      "part": "in-",
+      "kind": "prefix",
+      "meaning": "ไม่",
+      "examples": [
+       {
+        "word": "incorrect",
+        "th": "ไม่ถูกต้อง"
+       },
+       {
+        "word": "independent",
+        "th": "อิสระ, พึ่งตนเอง"
+       }
+      ]
+     },
+     {
+      "part": "im- (ก่อน b m p)",
+      "kind": "prefix",
+      "meaning": "ไม่",
+      "examples": [
+       {
+        "word": "impossible",
+        "th": "เป็นไปไม่ได้"
+       },
+       {
+        "word": "impolite",
+        "th": "ไม่สุภาพ"
+       }
+      ]
+     },
+     {
+      "part": "il- (ก่อน l)",
+      "kind": "prefix",
+      "meaning": "ไม่",
+      "examples": [
+       {
+        "word": "illegal",
+        "th": "ผิดกฎหมาย"
+       }
+      ]
+     },
+     {
+      "part": "ir- (ก่อน r)",
+      "kind": "prefix",
+      "meaning": "ไม่",
+      "examples": [
+       {
+        "word": "irregular",
+        "th": "ไม่สม่ำเสมอ, ผิดปกติ"
+       }
+      ]
+     },
+     {
+      "part": "dis-",
+      "kind": "prefix",
+      "meaning": "ไม่ / ตรงข้าม",
+      "examples": [
+       {
+        "word": "disagree",
+        "th": "ไม่เห็นด้วย"
+       },
+       {
+        "word": "disappear",
+        "th": "หายไป"
+       },
+       {
+        "word": "dislike",
+        "th": "ไม่ชอบ"
+       }
+      ]
+     }
+    ],
+    "tips": [
+     "**กฎสำคัญ:** อุปสรรคเปลี่ยน**ความหมาย** แต่**ไม่เปลี่ยนชนิดคำ**: fair (adj.) → unfair (adj.) · agree (v.) → disagree (v.)",
+     "**กับดัก:** in- บางคำแปลว่า \"เข้า / ใน\" ไม่ใช่ \"ไม่\": include, income (จะเรียนในคาบที่ 10)"
+    ]
+   },
+   "words": [
+    {
+     "w": "unusual",
+     "pos": "adj.",
+     "parts": "un- + usual",
+     "th": "ผิดปกติ, ไม่ธรรมดา"
+    },
+    {
+     "w": "unfair",
+     "pos": "adj.",
+     "parts": "un- + fair",
+     "th": "ไม่ยุติธรรม"
+    },
+    {
+     "w": "impossible",
+     "pos": "adj.",
+     "parts": "im- + possible",
+     "th": "เป็นไปไม่ได้"
+    },
+    {
+     "w": "illegal",
+     "pos": "adj.",
+     "parts": "il- + legal",
+     "th": "ผิดกฎหมาย"
+    },
+    {
+     "w": "disagree",
+     "pos": "v.",
+     "parts": "dis- + agree",
+     "th": "ไม่เห็นด้วย"
+    },
+    {
+     "w": "disappear",
+     "pos": "v.",
+     "parts": "dis- + appear",
+     "th": "หายไป"
+    }
+   ],
+   "week": 7,
+   "start": "2026-12-14",
+   "dateLabel": "14–18 ธ.ค. 69",
+   "questions": [
+    {
+     "id": "m07-01",
+     "type": "part",
+     "q": "อุปสรรค **im-** ใช้กับคำที่ขึ้นต้นด้วยตัวอักษรใด",
+     "options": [
+      "ใช้ได้กับทุกตัวอักษร",
+      "b, m, p",
+      "สระ a e i o u",
+      "r",
+      "l"
+     ],
+     "answer": 1,
+     "hint": "impossible, impolite",
+     "explain": "im- ใช้หน้าคำที่ขึ้นต้นด้วย **b, m, p** เช่น impossible, impolite"
+    },
+    {
+     "id": "m07-02",
+     "type": "part",
+     "q": "คำตรงข้ามของ **legal** สะกดอย่างไร",
+     "options": [
+      "illegal",
+      "unlegal",
+      "imlegal",
+      "inlegal",
+      "dislegal"
+     ],
+     "answer": 0,
+     "hint": "legal ขึ้นต้นด้วย l",
+     "explain": "คำที่ขึ้นต้นด้วย l ใช้ il- → **illegal** (ผิดกฎหมาย)"
+    },
+    {
+     "id": "m07-03",
+     "type": "part",
+     "q": "ข้อใดคือกฎสำคัญของอุปสรรค (prefix) ส่วนใหญ่",
+     "options": [
+      "ทำให้คำเป็นคำนามเสมอ",
+      "บอกเวลาของประโยค",
+      "เปลี่ยนชนิดคำทุกครั้ง",
+      "ใช้ได้กับกริยาเท่านั้น",
+      "เปลี่ยนความหมาย แต่ไม่เปลี่ยนชนิดคำ"
+     ],
+     "answer": 4,
+     "hint": "fair (adj.) → unfair (?)",
+     "explain": "อุปสรรค**เปลี่ยนความหมาย แต่ไม่เปลี่ยนชนิดคำ** เช่น fair (adj.) → unfair (adj.)"
+    },
+    {
+     "id": "m07-04",
+     "type": "choose",
+     "q": "It is ______ that only rich students can join the trip.",
+     "options": [
+      "fairness",
+      "fairly",
+      "unfair",
+      "unfairly",
+      "fair"
+     ],
+     "answer": 2,
+     "hint": "คนจนไปไม่ได้ เป็นเรื่องที่…",
+     "explain": "มีแต่คนรวยไปได้ → **unfair** (ไม่ยุติธรรม)"
+    },
+    {
+     "id": "m07-05",
+     "type": "choose",
+     "q": "I ______ with you. I think the trip is too expensive.",
+     "options": [
+      "agreeable",
+      "agree",
+      "agreement",
+      "disagreement",
+      "disagree"
+     ],
+     "answer": 4,
+     "hint": "เหตุผลที่ตามมาเป็นการค้าน",
+     "explain": "คิดว่าแพงเกินไป = **disagree** (ไม่เห็นด้วย)"
+    },
+    {
+     "id": "m07-06",
+     "type": "choose",
+     "q": "The magician made the coin ______.",
+     "options": [
+      "disappear",
+      "disappearance",
+      "appeared",
+      "appearance",
+      "appear"
+     ],
+     "answer": 0,
+     "hint": "make + สิ่งของ + กริยารูปเดิม",
+     "explain": "นักมายากลทำให้เหรียญ**หายไป** → **disappear**"
+    },
+    {
+     "id": "m07-07",
+     "type": "choose",
+     "q": "Two of your answers are ______. Please check them again.",
+     "options": [
+      "correctly",
+      "incorrect",
+      "correct",
+      "correction",
+      "incorrectly"
+     ],
+     "answer": 1,
+     "hint": "ต้องตรวจใหม่เพราะคำตอบ…",
+     "explain": "ต้องตรวจใหม่ → คำตอบ**ไม่ถูกต้อง** = **incorrect**"
+    },
+    {
+     "id": "m07-08",
+     "type": "choose",
+     "q": "Don't be ______. Your turn will come soon.",
+     "options": [
+      "patience",
+      "patiently",
+      "impatience",
+      "impatient",
+      "patient"
+     ],
+     "answer": 3,
+     "hint": "patient ขึ้นต้นด้วย p",
+     "explain": "p ใช้ im- → **impatient** (ใจร้อน, ไม่อดทน) · หลัง be ต้องเป็นคุณศัพท์"
+    },
+    {
+     "id": "m07-09",
+     "type": "decode",
+     "q": "\"It is **unusual** for him to be late.\" คำที่เน้นแปลว่าอะไร",
+     "options": [
+      "เป็นเรื่องปกติ",
+      "เป็นประจำ",
+      "ผิดปกติ ไม่ธรรมดา",
+      "ไม่เคยใช้",
+      "เคยใช้แล้ว"
+     ],
+     "answer": 2,
+     "hint": "un- = ไม่ · usual = ปกติ",
+     "explain": "un- + usual = **ไม่ปกติ ผิดปกติ**"
+    },
+    {
+     "id": "m07-10",
+     "type": "trap",
+     "q": "คำใดที่ in- **ไม่ได้** แปลว่า \"ไม่\"",
+     "options": [
+      "incomplete",
+      "informal",
+      "independent",
+      "include",
+      "incorrect"
+     ],
+     "answer": 3,
+     "hint": "ตัด in- ออกแล้วได้คำตรงข้ามหรือไม่",
+     "explain": "**include** = รวมอยู่ด้วย (in- = เข้า, ใน) ตัด in- แล้วไม่ได้คำตรงข้าม"
+    }
+   ]
+  },
+  {
+   "id": "m08",
+   "hour": 8,
+   "unit": 2,
+   "titleEn": "Degree & time prefixes",
+   "titleTh": "อุปสรรคบอกระดับและเวลา: mis- · over- · under- · re- · pre-",
+   "goal": "บอกความหมายของอุปสรรค 5 ตัวจากตัวอย่างคำ · ใช้อุปสรรคเดาความหมายคำในประโยค",
+   "recap": {
+    "parts": [
+     {
+      "part": "mis-",
+      "kind": "prefix",
+      "meaning": "ผิด / พลาด",
+      "examples": [
+       {
+        "word": "misunderstand",
+        "th": "เข้าใจผิด"
+       },
+       {
+        "word": "misspell",
+        "th": "สะกดผิด"
+       }
+      ]
+     },
+     {
+      "part": "over-",
+      "kind": "prefix",
+      "meaning": "มากเกินไป / เหนือ",
+      "examples": [
+       {
+        "word": "overweight",
+        "th": "น้ำหนักเกิน"
+       },
+       {
+        "word": "oversleep",
+        "th": "นอนเกินเวลา"
+       },
+       {
+        "word": "overseas",
+        "th": "ต่างประเทศ, โพ้นทะเล"
+       }
+      ]
+     },
+     {
+      "part": "under-",
+      "kind": "prefix",
+      "meaning": "ใต้ / น้อยเกินไป",
+      "examples": [
+       {
+        "word": "underline",
+        "th": "ขีดเส้นใต้"
+       },
+       {
+        "word": "underwater",
+        "th": "ใต้น้ำ"
+       }
+      ]
+     },
+     {
+      "part": "re-",
+      "kind": "prefix",
+      "meaning": "อีกครั้ง",
+      "examples": [
+       {
+        "word": "review",
+        "th": "ทบทวน"
+       },
+       {
+        "word": "replay",
+        "th": "เล่นอีกครั้ง, ฉายซ้ำ"
+       },
+       {
+        "word": "recycle",
+        "th": "นำกลับมาใช้ใหม่"
+       }
+      ]
+     },
+     {
+      "part": "pre-",
+      "kind": "prefix",
+      "meaning": "ก่อน",
+      "examples": [
+       {
+        "word": "prepare",
+        "th": "เตรียม (ไว้ก่อน)"
+       },
+       {
+        "word": "preview",
+        "th": "ดูตัวอย่าง (ก่อน)"
+       }
+      ]
+     }
+    ],
+    "tips": [
+     "**กับดัก re-:** นับเป็น \"อีกครั้ง\" เมื่อส่วนที่เหลือเป็นคำ: re + view = review ✓ · reduce ไม่ใช่ re + คำ",
+     "**ในข้อสอบ:** \"The underlined word …\" = คำที่ขีดเส้นใต้ เป็นคำสั่งที่เจอบ่อย"
+    ]
+   },
+   "words": [
+    {
+     "w": "misunderstand",
+     "pos": "v.",
+     "parts": "mis- + understand",
+     "th": "เข้าใจผิด"
+    },
+    {
+     "w": "overweight",
+     "pos": "adj.",
+     "parts": "over- + weight",
+     "th": "น้ำหนักเกิน"
+    },
+    {
+     "w": "underline",
+     "pos": "v.",
+     "parts": "under- + line",
+     "th": "ขีดเส้นใต้"
+    },
+    {
+     "w": "review",
+     "pos": "v.",
+     "parts": "re- + view",
+     "th": "ทบทวน"
+    },
+    {
+     "w": "recycle",
+     "pos": "v.",
+     "parts": "re- + cycle",
+     "th": "นำกลับมาใช้ใหม่"
+    },
+    {
+     "w": "prepare",
+     "pos": "v.",
+     "parts": "pre- + pare (เตรียม)",
+     "th": "เตรียม (ไว้ก่อน)"
+    }
+   ],
+   "week": 8,
+   "start": "2026-12-21",
+   "dateLabel": "21–25 ธ.ค. 69",
+   "questions": [
+    {
+     "id": "m08-01",
+     "type": "part",
+     "q": "อุปสรรค **mis-** ใน misunderstand และ misspell แปลว่าอะไร",
+     "options": [
+      "ผิด / พลาด",
+      "อีกครั้ง",
+      "ใต้",
+      "มากเกินไป",
+      "ก่อน"
+     ],
+     "answer": 0,
+     "hint": "misspell = สะกด…",
+     "explain": "mis- = **ผิด / พลาด** เช่น misspell = สะกดผิด"
+    },
+    {
+     "id": "m08-02",
+     "type": "part",
+     "q": "อุปสรรค **over-** ใน overweight และ oversleep แปลว่าอะไร",
+     "options": [
+      "น้อยเกินไป",
+      "ใต้",
+      "อีกครั้ง",
+      "มากเกินไป",
+      "ผิด"
+     ],
+     "answer": 3,
+     "hint": "overweight = น้ำหนัก…",
+     "explain": "over- = **มากเกินไป** เช่น overweight = น้ำหนักเกิน"
+    },
+    {
+     "id": "m08-03",
+     "type": "part",
+     "q": "อุปสรรค **re-** ใน review และ replay แปลว่าอะไร",
+     "options": [
+      "ใต้",
+      "ผิด",
+      "ก่อน",
+      "เกินไป",
+      "อีกครั้ง"
+     ],
+     "answer": 4,
+     "hint": "replay = เล่น…",
+     "explain": "re- = **อีกครั้ง** เช่น replay = เล่นอีกครั้ง"
+    },
+    {
+     "id": "m08-04",
+     "type": "part",
+     "q": "อุปสรรค **pre-** ใน prepare และ preview แปลว่าอะไร",
+     "options": [
+      "อีกครั้ง",
+      "หลัง",
+      "ก่อน",
+      "ผิด",
+      "มากเกินไป"
+     ],
+     "answer": 2,
+     "hint": "preview = ดู… (ตัวอย่าง)",
+     "explain": "pre- = **ก่อน** เช่น preview = ดูก่อน (ตัวอย่าง)"
+    },
+    {
+     "id": "m08-05",
+     "type": "choose",
+     "q": "I ______ and missed the school bus this morning.",
+     "options": [
+      "recycled",
+      "misspelled",
+      "prepared",
+      "underlined",
+      "overslept"
+     ],
+     "answer": 4,
+     "hint": "สาเหตุที่ตกรถ",
+     "explain": "นอนเกินเวลาจึงตกรถ → **overslept**"
+    },
+    {
+     "id": "m08-06",
+     "type": "choose",
+     "q": "Please ______ your notes before the test.",
+     "options": [
+      "oversleep",
+      "review",
+      "recycle",
+      "misunderstand",
+      "underline"
+     ],
+     "answer": 1,
+     "hint": "ทำอะไรกับโน้ตก่อนสอบ",
+     "explain": "ทบทวนโน้ตก่อนสอบ → **review** (re- + view = ดูอีกครั้ง)"
+    },
+    {
+     "id": "m08-07",
+     "type": "choose",
+     "q": "Plastic bottles can be ______ into new products.",
+     "options": [
+      "prepared",
+      "underlined",
+      "misunderstood",
+      "recycled",
+      "reviewed"
+     ],
+     "answer": 3,
+     "hint": "ขวดพลาสติกกลายเป็นของใหม่",
+     "explain": "นำกลับมาใช้ใหม่ → **recycled**"
+    },
+    {
+     "id": "m08-08",
+     "type": "choose",
+     "q": "I think you ______ me. I said Tuesday, not Thursday.",
+     "options": [
+      "prepared",
+      "reviewed",
+      "misunderstood",
+      "understood",
+      "overslept"
+     ],
+     "answer": 2,
+     "hint": "ฟังวันผิด",
+     "explain": "เข้าใจผิด → **misunderstood** (mis- = ผิด)"
+    },
+    {
+     "id": "m08-09",
+     "type": "decode",
+     "q": "\"Divers can see beautiful fish **underwater**.\" คำที่เน้นแปลว่าอะไร",
+     "options": [
+      "ใต้น้ำ",
+      "ริมน้ำ",
+      "เหนือน้ำ",
+      "น้ำผิดสี",
+      "น้ำมากเกินไป"
+     ],
+     "answer": 0,
+     "hint": "under- = ใต้",
+     "explain": "under- + water = **ใต้น้ำ**"
+    },
+    {
+     "id": "m08-10",
+     "type": "trap",
+     "q": "คำใดที่ re- **ไม่ได้** แปลว่า \"อีกครั้ง\" (ส่วนที่เหลือไม่ใช่คำ)",
+     "options": [
+      "rewrite",
+      "reduce",
+      "replay",
+      "review",
+      "rebuild"
+     ],
+     "answer": 1,
+     "hint": "ตัด re- ออกแล้วเหลือเป็นคำหรือไม่",
+     "explain": "**reduce** ตัด re- แล้วเหลือ duce ซึ่งไม่ใช่คำ จึงไม่ได้แปลว่า \"อีกครั้ง\""
+    }
+   ]
+  },
+  {
+   "id": "m09",
+   "hour": 9,
+   "unit": 2,
+   "titleEn": "Flexible period · prefix practice",
+   "titleTh": "คาบยืดหยุ่น: ฝึกรวมอุปสรรคคาบ 7–8",
+   "goal": "ทวนอุปสรรค 10 ตัวจากคาบ 7–8 · ตามงานและตั๋วออกที่ยังไม่ผ่าน (ม.4/1 หยุดวันขึ้นปีใหม่ ศ. 1 ม.ค. 70 · ข้ามหน้านี้ได้)",
+   "recap": {
+    "parts": [
+     {
+      "part": "un-",
+      "kind": "prefix",
+      "meaning": "ไม่",
+      "examples": []
+     },
+     {
+      "part": "dis-",
+      "kind": "prefix",
+      "meaning": "ไม่ / ตรงข้าม",
+      "examples": []
+     },
+     {
+      "part": "im-",
+      "kind": "prefix",
+      "meaning": "ไม่ (ก่อน b m p)",
+      "examples": []
+     },
+     {
+      "part": "mis-",
+      "kind": "prefix",
+      "meaning": "ผิด / พลาด",
+      "examples": []
+     },
+     {
+      "part": "over-",
+      "kind": "prefix",
+      "meaning": "มากเกินไป",
+      "examples": []
+     },
+     {
+      "part": "under-",
+      "kind": "prefix",
+      "meaning": "ใต้ / น้อยไป",
+      "examples": []
+     },
+     {
+      "part": "re-",
+      "kind": "prefix",
+      "meaning": "อีกครั้ง",
+      "examples": []
+     },
+     {
+      "part": "pre-",
+      "kind": "prefix",
+      "meaning": "ก่อน",
+      "examples": []
+     }
+    ],
+    "tips": [
+     "อุปสรรคเปลี่ยน**ความหมาย** แต่**ไม่เปลี่ยนชนิดคำ**",
+     "im- ก่อน b m p · il- ก่อน l · ir- ก่อน r"
+    ]
+   },
+   "words": [],
+   "week": 9,
+   "start": "2026-12-28",
+   "dateLabel": "28 ธ.ค. 69–1 ม.ค. 70",
+   "questions": [
+    {
+     "id": "m09-01",
+     "type": "part",
+     "q": "คำตรงข้ามของ **possible** สะกดอย่างไร",
+     "options": [
+      "inpossible",
+      "impossible",
+      "dispossible",
+      "irpossible",
+      "unpossible"
+     ],
+     "answer": 1,
+     "hint": "possible ขึ้นต้นด้วย p",
+     "explain": "p ใช้ im- → **impossible**"
+    },
+    {
+     "id": "m09-02",
+     "type": "part",
+     "q": "คำตรงข้ามของ **regular** สะกดอย่างไร",
+     "options": [
+      "disregular",
+      "inregular",
+      "irregular",
+      "unregular",
+      "imregular"
+     ],
+     "answer": 2,
+     "hint": "regular ขึ้นต้นด้วย r",
+     "explain": "r ใช้ ir- → **irregular**"
+    },
+    {
+     "id": "m09-03",
+     "type": "part",
+     "q": "คำตรงข้ามของ **like** (ชอบ) คือข้อใด",
+     "options": [
+      "overlike",
+      "unlike",
+      "inlike",
+      "dislike",
+      "mislike"
+     ],
+     "answer": 3,
+     "hint": "กริยามักใช้ dis-",
+     "explain": "**dislike** = ไม่ชอบ"
+    },
+    {
+     "id": "m09-04",
+     "type": "decode",
+     "q": "คำว่า **misspell** แปลว่าอะไร",
+     "options": [
+      "ไม่สะกด",
+      "สะกดก่อน",
+      "สะกดมากเกินไป",
+      "สะกดอีกครั้ง",
+      "สะกดผิด"
+     ],
+     "answer": 4,
+     "hint": "mis- = ผิด",
+     "explain": "mis- + spell = **สะกดผิด**"
+    },
+    {
+     "id": "m09-05",
+     "type": "decode",
+     "q": "คำว่า **overeat** แปลว่าอะไร",
+     "options": [
+      "กินมากเกินไป",
+      "กินน้อยเกินไป",
+      "กินผิดเวลา",
+      "กินอีกครั้ง",
+      "กินก่อน"
+     ],
+     "answer": 0,
+     "hint": "over- = มากเกินไป",
+     "explain": "over- + eat = **กินมากเกินไป**"
+    },
+    {
+     "id": "m09-06",
+     "type": "decode",
+     "q": "คำว่า **rewrite** แปลว่าอะไร",
+     "options": [
+      "เขียนใหม่",
+      "เขียนก่อน",
+      "เขียนมากเกินไป",
+      "เขียนผิด",
+      "ไม่เขียน"
+     ],
+     "answer": 0,
+     "hint": "re- = อีกครั้ง",
+     "explain": "re- + write = **เขียนใหม่ (อีกครั้ง)**"
+    },
+    {
+     "id": "m09-07",
+     "type": "choose",
+     "q": "It is ______ to talk loudly in the library.",
+     "options": [
+      "polite",
+      "politely",
+      "impolitely",
+      "politeness",
+      "impolite"
+     ],
+     "answer": 4,
+     "hint": "หลัง It is ต้องเป็นคุณศัพท์",
+     "explain": "พูดเสียงดังในห้องสมุด = **impolite** (ไม่สุภาพ)"
+    },
+    {
+     "id": "m09-08",
+     "type": "choose",
+     "q": "Please ______ the key words in red.",
+     "options": [
+      "prepare",
+      "underline",
+      "misunderstand",
+      "overweight",
+      "disagree"
+     ],
+     "answer": 1,
+     "hint": "ทำอะไรกับคำสำคัญด้วยปากกาสีแดง",
+     "explain": "**underline** = ขีดเส้นใต้"
+    },
+    {
+     "id": "m09-09",
+     "type": "choose",
+     "q": "We should ______ for the exam early.",
+     "options": [
+      "overeat",
+      "dislike",
+      "disappear",
+      "prepare",
+      "misspell"
+     ],
+     "answer": 3,
+     "hint": "ทำอะไรก่อนสอบ",
+     "explain": "**prepare** = เตรียม (pre- = ก่อน)"
+    },
+    {
+     "id": "m09-10",
+     "type": "trap",
+     "q": "คำใดแปลว่า \"ไม่มีความสุข\"",
+     "options": [
+      "inhappy",
+      "mishappy",
+      "unhappy",
+      "overhappy",
+      "dishappy"
+     ],
+     "answer": 2,
+     "hint": "คุณศัพท์ส่วนใหญ่ใช้ un-",
+     "explain": "**unhappy** = ไม่มีความสุข"
+    }
+   ]
+  },
+  {
+   "id": "m10",
+   "hour": 10,
+   "unit": 2,
+   "titleEn": "Direction & number prefixes",
+   "titleTh": "อุปสรรคบอกทิศทางและจำนวน: ex- · in- · pro- · re- · uni-/bi-/multi-",
+   "goal": "บอกทิศทางที่อุปสรรคบอก (ออก · เข้า · ไปข้างหน้า · กลับ) และอุปสรรคบอกจำนวน · ใช้อุปสรรคเดาความหมายคำในประโยค",
+   "recap": {
+    "parts": [
+     {
+      "part": "ex-",
+      "kind": "prefix",
+      "meaning": "ออก",
+      "examples": [
+       {
+        "word": "export",
+        "th": "ส่งออก"
+       },
+       {
+        "word": "exit",
+        "th": "ทางออก, ออกไป"
+       }
+      ]
+     },
+     {
+      "part": "in- / im-",
+      "kind": "prefix",
+      "meaning": "เข้า, ใน",
+      "examples": [
+       {
+        "word": "include",
+        "th": "รวมอยู่ด้วย"
+       },
+       {
+        "word": "import",
+        "th": "นำเข้า"
+       },
+       {
+        "word": "income",
+        "th": "รายได้ (เงินที่เข้ามา)"
+       }
+      ]
+     },
+     {
+      "part": "pro-",
+      "kind": "prefix",
+      "meaning": "ไปข้างหน้า",
+      "examples": [
+       {
+        "word": "progress",
+        "th": "ความก้าวหน้า"
+       },
+       {
+        "word": "promote",
+        "th": "ส่งเสริม, เลื่อนตำแหน่ง"
+       }
+      ]
+     },
+     {
+      "part": "re-",
+      "kind": "prefix",
+      "meaning": "กลับ",
+      "examples": [
+       {
+        "word": "return",
+        "th": "กลับ, คืน"
+       },
+       {
+        "word": "repay",
+        "th": "จ่ายคืน"
+       }
+      ]
+     },
+     {
+      "part": "uni- · bi- · tri-",
+      "kind": "prefix",
+      "meaning": "หนึ่ง · สอง · สาม",
+      "examples": [
+       {
+        "word": "uniform",
+        "th": "เครื่องแบบ"
+       },
+       {
+        "word": "bicycle",
+        "th": "จักรยาน (สองล้อ)"
+       },
+       {
+        "word": "triangle",
+        "th": "สามเหลี่ยม"
+       }
+      ]
+     },
+     {
+      "part": "multi-",
+      "kind": "prefix",
+      "meaning": "หลาย",
+      "examples": [
+       {
+        "word": "multicolor",
+        "th": "หลายสี"
+       },
+       {
+        "word": "multimedia",
+        "th": "สื่อผสม (หลายสื่อ)"
+       }
+      ]
+     }
+    ],
+    "tips": [
+     "**in- มี 2 ความหมาย:** \"ไม่\" (incorrect · คาบ 7) กับ \"เข้า / ใน\" (include, import) → ถ้าตัด in- ออกแล้วไม่ได้คำตรงข้าม แปลว่า \"เข้า\"",
+     "**คู่ตรงข้ามที่ควรจำ:** export ↔ import · include ↔ exclude · income (เงินเข้า)"
+    ]
+   },
+   "words": [
+    {
+     "w": "export",
+     "pos": "v.",
+     "parts": "ex- + port",
+     "th": "ส่งออก"
+    },
+    {
+     "w": "import",
+     "pos": "v.",
+     "parts": "im- + port",
+     "th": "นำเข้า"
+    },
+    {
+     "w": "include",
+     "pos": "v.",
+     "parts": "in- + clude",
+     "th": "รวมอยู่ด้วย"
+    },
+    {
+     "w": "progress",
+     "pos": "n.",
+     "parts": "pro- + gress",
+     "th": "ความก้าวหน้า"
+    },
+    {
+     "w": "return",
+     "pos": "v.",
+     "parts": "re- + turn",
+     "th": "กลับ, คืน"
+    },
+    {
+     "w": "uniform",
+     "pos": "n.",
+     "parts": "uni- + form",
+     "th": "เครื่องแบบ"
+    }
+   ],
+   "week": 10,
+   "start": "2027-01-04",
+   "dateLabel": "4–8 ม.ค. 70",
+   "questions": [
+    {
+     "id": "m10-01",
+     "type": "part",
+     "q": "อุปสรรค **ex-** ใน export และ exit บอกทิศทางใด",
+     "options": [
+      "เข้า",
+      "ออก",
+      "ลง",
+      "กลับ",
+      "ไปข้างหน้า"
+     ],
+     "answer": 1,
+     "hint": "exit = ทาง…",
+     "explain": "ex- = **ออก** เช่น exit = ทางออก, export = ส่งออก"
+    },
+    {
+     "id": "m10-02",
+     "type": "part",
+     "q": "อุปสรรค **pro-** ใน progress และ promote บอกทิศทางใด",
+     "options": [
+      "ไม่",
+      "ใต้",
+      "ลง",
+      "ไปข้างหน้า",
+      "ถอยหลัง"
+     ],
+     "answer": 3,
+     "hint": "progress = ความ…หน้า",
+     "explain": "pro- = **ไปข้างหน้า** เช่น progress = ความก้าวหน้า"
+    },
+    {
+     "id": "m10-03",
+     "type": "part",
+     "q": "อุปสรรค **bi-** ใน bicycle แปลว่าอะไร",
+     "options": [
+      "สอง",
+      "สาม",
+      "หลาย",
+      "หนึ่ง",
+      "ครึ่ง"
+     ],
+     "answer": 0,
+     "hint": "จักรยานมีกี่ล้อ",
+     "explain": "bi- = **สอง** (bicycle = รถสองล้อ)"
+    },
+    {
+     "id": "m10-04",
+     "type": "trap",
+     "q": "อุปสรรค **in-** ใน include และ import แปลว่าอะไร",
+     "options": [
+      "ก่อน",
+      "ไม่",
+      "กลับ",
+      "ออก",
+      "เข้า, ใน"
+     ],
+     "answer": 4,
+     "hint": "ตัด in- ออกแล้วได้คำตรงข้ามหรือไม่",
+     "explain": "in- ในคำนี้แปลว่า **เข้า, ใน** ไม่ใช่ \"ไม่\""
+    },
+    {
+     "id": "m10-05",
+     "type": "choose",
+     "q": "Thailand ______ rice to many countries in Asia and Africa.",
+     "options": [
+      "progresses",
+      "returns",
+      "includes",
+      "imports",
+      "exports"
+     ],
+     "answer": 4,
+     "hint": "ข้าวไทยไปต่างประเทศ",
+     "explain": "ขายออกไปต่างประเทศ → **exports** (ส่งออก)"
+    },
+    {
+     "id": "m10-06",
+     "type": "choose",
+     "q": "Thailand ______ many fruits from China every year.",
+     "options": [
+      "returns",
+      "exports",
+      "imports",
+      "includes",
+      "promotes"
+     ],
+     "answer": 2,
+     "hint": "ผลไม้จากจีนเข้ามาไทย",
+     "explain": "นำเข้ามา → **imports** (im- = เข้า)"
+    },
+    {
+     "id": "m10-07",
+     "type": "choose",
+     "q": "The hotel price ______ breakfast, so you don't have to pay extra.",
+     "options": [
+      "includes",
+      "returns",
+      "exports",
+      "progresses",
+      "imports"
+     ],
+     "answer": 0,
+     "hint": "ไม่ต้องจ่ายเพิ่ม เพราะ…",
+     "explain": "อาหารเช้า**รวมอยู่ด้วย** → **includes**"
+    },
+    {
+     "id": "m10-08",
+     "type": "choose",
+     "q": "Please ______ the book to the library by Friday.",
+     "options": [
+      "progress",
+      "import",
+      "return",
+      "include",
+      "export"
+     ],
+     "answer": 2,
+     "hint": "เอาหนังสือ…ห้องสมุด",
+     "explain": "**return** = คืน, ส่งกลับ (re- = กลับ)"
+    },
+    {
+     "id": "m10-09",
+     "type": "decode",
+     "q": "คำว่า **uniform** (uni + form) แปลว่าอะไร",
+     "options": [
+      "มหาวิทยาลัย",
+      "สองรูปแบบ",
+      "แบบฟอร์มหลายแผ่น",
+      "เครื่องแบบ (รูปแบบเดียวกัน)",
+      "รูปร่างแปลก"
+     ],
+     "answer": 3,
+     "hint": "uni = หนึ่ง · form = รูป",
+     "explain": "uni (หนึ่ง) + form (รูป) = รูปแบบเดียวกัน → **เครื่องแบบ**"
+    },
+    {
+     "id": "m10-10",
+     "type": "decode",
+     "q": "คำว่า **multicolor** แปลว่าอะไร",
+     "options": [
+      "สองสี",
+      "หลายสี",
+      "สีเดียว",
+      "สีเข้ม",
+      "ไม่มีสี"
+     ],
+     "answer": 1,
+     "hint": "multi- = หลาย",
+     "explain": "multi- + color = **หลายสี**"
+    }
+   ]
+  },
+  {
+   "id": "m11",
+   "hour": 11,
+   "unit": 2,
+   "titleEn": "Relation prefixes",
+   "titleTh": "อุปสรรคบอกความสัมพันธ์: inter- · trans- · sub- · super- · anti- · co-",
+   "goal": "บอกความหมายของอุปสรรค 6 ตัว (ระหว่าง · ข้าม · ใต้ · เหนือ · ต้าน · ร่วม) · แยกคำเป็นอุปสรรค + คำเดิม แล้วเดาความหมาย",
+   "recap": {
+    "parts": [
+     {
+      "part": "inter-",
+      "kind": "prefix",
+      "meaning": "ระหว่าง",
+      "examples": [
+       {
+        "word": "international",
+        "th": "ระหว่างประเทศ, นานาชาติ"
+       },
+       {
+        "word": "interview",
+        "th": "การสัมภาษณ์"
+       },
+       {
+        "word": "internet",
+        "th": "อินเทอร์เน็ต (เครือข่ายระหว่างกัน)"
+       }
+      ]
+     },
+     {
+      "part": "trans-",
+      "kind": "prefix",
+      "meaning": "ข้าม / เปลี่ยน",
+      "examples": [
+       {
+        "word": "transport",
+        "th": "การขนส่ง"
+       },
+       {
+        "word": "translate",
+        "th": "แปล"
+       }
+      ]
+     },
+     {
+      "part": "sub-",
+      "kind": "prefix",
+      "meaning": "ใต้, รอง",
+      "examples": [
+       {
+        "word": "subway",
+        "th": "รถไฟใต้ดิน"
+       },
+       {
+        "word": "submarine",
+        "th": "เรือดำน้ำ"
+       }
+      ]
+     },
+     {
+      "part": "super-",
+      "kind": "prefix",
+      "meaning": "เหนือ, เกิน",
+      "examples": [
+       {
+        "word": "supermarket",
+        "th": "ซูเปอร์มาร์เก็ต"
+       },
+       {
+        "word": "superhero",
+        "th": "ซูเปอร์ฮีโร่"
+       }
+      ]
+     },
+     {
+      "part": "anti-",
+      "kind": "prefix",
+      "meaning": "ต่อต้าน / ป้องกัน",
+      "examples": [
+       {
+        "word": "antivirus",
+        "th": "โปรแกรมป้องกันไวรัส"
+       },
+       {
+        "word": "antibiotic",
+        "th": "ยาปฏิชีวนะ (ยาฆ่าเชื้อ)"
+       }
+      ]
+     },
+     {
+      "part": "co- / com- / con-",
+      "kind": "prefix",
+      "meaning": "ร่วมกัน",
+      "examples": [
+       {
+        "word": "coworker",
+        "th": "เพื่อนร่วมงาน"
+       },
+       {
+        "word": "cooperate",
+        "th": "ร่วมมือ"
+       },
+       {
+        "word": "connect",
+        "th": "เชื่อมต่อ"
+       }
+      ]
+     }
+    ],
+    "tips": [
+     "**super- ↔ sub-:** คู่ตรงข้าม (เหนือ ↔ ใต้) · superhero = ฮีโร่ที่เหนือคนทั่วไป · submarine = เรือใต้น้ำ",
+     "**con- แปลงร่าง:** co·operate, com·bine, con·nect = ตัวเดียวกัน แปลว่า \"ร่วมกัน\""
+    ]
+   },
+   "words": [
+    {
+     "w": "international",
+     "pos": "adj.",
+     "parts": "inter- + national",
+     "th": "ระหว่างประเทศ, นานาชาติ"
+    },
+    {
+     "w": "interview",
+     "pos": "n.",
+     "parts": "inter- + view",
+     "th": "การสัมภาษณ์"
+    },
+    {
+     "w": "transport",
+     "pos": "n.",
+     "parts": "trans- + port",
+     "th": "การขนส่ง"
+    },
+    {
+     "w": "translate",
+     "pos": "v.",
+     "parts": "trans- + late",
+     "th": "แปล"
+    },
+    {
+     "w": "supermarket",
+     "pos": "n.",
+     "parts": "super- + market",
+     "th": "ซูเปอร์มาร์เก็ต"
+    },
+    {
+     "w": "connect",
+     "pos": "v.",
+     "parts": "con- + nect (ผูก)",
+     "th": "เชื่อมต่อ"
+    }
+   ],
+   "week": 11,
+   "start": "2027-01-11",
+   "dateLabel": "11–15 ม.ค. 70",
+   "questions": [
+    {
+     "id": "m11-01",
+     "type": "part",
+     "q": "อุปสรรค **inter-** ใน international และ internet แปลว่าอะไร",
+     "options": [
+      "ร่วม",
+      "เหนือ",
+      "ต้าน",
+      "ระหว่าง",
+      "ข้าม"
+     ],
+     "answer": 3,
+     "hint": "international = … ประเทศ",
+     "explain": "inter- = **ระหว่าง** เช่น international = ระหว่างประเทศ"
+    },
+    {
+     "id": "m11-02",
+     "type": "part",
+     "q": "อุปสรรค **trans-** ใน transport และ translate แปลว่าอะไร",
+     "options": [
+      "ก่อน",
+      "ใต้",
+      "ร่วม",
+      "ข้าม / เปลี่ยน",
+      "ระหว่าง"
+     ],
+     "answer": 3,
+     "hint": "transport = ขน…",
+     "explain": "trans- = **ข้าม / เปลี่ยน** เช่น transport = ขนข้าม → ขนส่ง"
+    },
+    {
+     "id": "m11-03",
+     "type": "part",
+     "q": "ข้อใดบอกความหมายของ sub- และ super- ได้ถูกต้อง",
+     "options": [
+      "sub- = ใต้ · super- = เหนือ",
+      "sub- = ร่วม · super- = ข้าม",
+      "ทั้งคู่แปลว่า \"ใหญ่มาก\"",
+      "sub- = ต้าน · super- = ระหว่าง",
+      "sub- = เหนือ · super- = ใต้"
+     ],
+     "answer": 0,
+     "hint": "subway · superhero",
+     "explain": "**sub- = ใต้** (subway) · **super- = เหนือ** (superhero)"
+    },
+    {
+     "id": "m11-04",
+     "type": "part",
+     "q": "อุปสรรค **anti-** ใน antivirus แปลว่าอะไร",
+     "options": [
+      "ร่วมกัน",
+      "หลัง",
+      "เหนือ",
+      "ระหว่าง",
+      "ต่อต้าน / ป้องกัน"
+     ],
+     "answer": 4,
+     "hint": "โปรแกรมนี้ทำอะไรกับไวรัส",
+     "explain": "anti- = **ต่อต้าน / ป้องกัน** → antivirus = ป้องกันไวรัส"
+    },
+    {
+     "id": "m11-05",
+     "type": "choose",
+     "q": "Students from 30 countries joined the ______ camp.",
+     "options": [
+      "impossible",
+      "underwater",
+      "overweight",
+      "careless",
+      "international"
+     ],
+     "answer": 4,
+     "hint": "นักเรียนจาก 30 ประเทศ",
+     "explain": "มาจากหลายประเทศ → **international** (ระหว่างประเทศ, นานาชาติ)"
+    },
+    {
+     "id": "m11-06",
+     "type": "choose",
+     "q": "Can you ______ this sentence into Thai?",
+     "options": [
+      "translate",
+      "interview",
+      "transport",
+      "review",
+      "connect"
+     ],
+     "answer": 0,
+     "hint": "… into Thai",
+     "explain": "เปลี่ยนเป็นภาษาไทย → **translate** (แปล)"
+    },
+    {
+     "id": "m11-07",
+     "type": "choose",
+     "q": "I have a job ______ tomorrow, so I am a little nervous.",
+     "options": [
+      "supermarket",
+      "interview",
+      "uniform",
+      "transport",
+      "subway"
+     ],
+     "answer": 1,
+     "hint": "สิ่งที่ทำก่อนได้งาน",
+     "explain": "การ**สัมภาษณ์**งาน → **interview**"
+    },
+    {
+     "id": "m11-08",
+     "type": "choose",
+     "q": "Please ______ your phone to the Wi-Fi.",
+     "options": [
+      "interview",
+      "transport",
+      "connect",
+      "export",
+      "translate"
+     ],
+     "answer": 2,
+     "hint": "ทำอะไรกับ Wi-Fi",
+     "explain": "**connect** = เชื่อมต่อ (con- = ร่วมกัน)"
+    },
+    {
+     "id": "m11-09",
+     "type": "decode",
+     "q": "คำว่า **subway** แปลว่าอะไร",
+     "options": [
+      "สะพานข้ามแม่น้ำ",
+      "ทางลัด",
+      "รถไฟใต้ดิน / ทางใต้ดิน",
+      "ทางเท้า",
+      "ทางด่วนลอยฟ้า"
+     ],
+     "answer": 2,
+     "hint": "sub- = ใต้",
+     "explain": "sub (ใต้) + way (ทาง) = **ทางใต้ดิน → รถไฟใต้ดิน**"
+    },
+    {
+     "id": "m11-10",
+     "type": "decode",
+     "q": "คำว่า **coworker** แปลว่าอะไร",
+     "options": [
+      "คนทำงานคนเดียว",
+      "เพื่อนร่วมงาน",
+      "คนตกงาน",
+      "หัวหน้างาน",
+      "ลูกค้า"
+     ],
+     "answer": 1,
+     "hint": "co- = ร่วมกัน",
+     "explain": "co (ร่วม) + worker (คนทำงาน) = **เพื่อนร่วมงาน**"
+    }
+   ]
+  },
+  {
+   "id": "m12",
+   "hour": 12,
+   "unit": 3,
+   "titleEn": "Roots of seeing, hearing, saying & writing",
+   "titleTh": "รากศัพท์การรับรู้: spect · vis · aud · dict · scrib",
+   "goal": "บอกความหมายของรากศัพท์ 5 ตัวเกี่ยวกับการมอง ฟัง พูด เขียน · ใช้ \"ถอด 4 ขั้น\" เดาความหมายคำที่ไม่รู้",
+   "recap": {
+    "parts": [
+     {
+      "part": "spect",
+      "kind": "root",
+      "meaning": "มอง",
+      "examples": [
+       {
+        "word": "respect",
+        "th": "เคารพ"
+       },
+       {
+        "word": "expect",
+        "th": "คาดหวัง, คาดว่า"
+       },
+       {
+        "word": "spectator",
+        "th": "ผู้ชม (การแข่งขัน)"
+       }
+      ]
+     },
+     {
+      "part": "vis / vid",
+      "kind": "root",
+      "meaning": "เห็น",
+      "examples": [
+       {
+        "word": "visit",
+        "th": "เยี่ยม, ไปเที่ยว"
+       },
+       {
+        "word": "video",
+        "th": "วิดีโอ"
+       },
+       {
+        "word": "television",
+        "th": "โทรทัศน์ (เห็นจากที่ไกล)"
+       }
+      ]
+     },
+     {
+      "part": "aud",
+      "kind": "root",
+      "meaning": "ฟัง / ได้ยิน",
+      "examples": [
+       {
+        "word": "audio",
+        "th": "เสียง"
+       },
+       {
+        "word": "audience",
+        "th": "ผู้ชม, ผู้ฟัง"
+       }
+      ]
+     },
+     {
+      "part": "dict",
+      "kind": "root",
+      "meaning": "พูด",
+      "examples": [
+       {
+        "word": "dictionary",
+        "th": "พจนานุกรม"
+       },
+       {
+        "word": "predict",
+        "th": "ทำนาย"
+       }
+      ]
+     },
+     {
+      "part": "scrib / script",
+      "kind": "root",
+      "meaning": "เขียน",
+      "examples": [
+       {
+        "word": "describe",
+        "th": "บรรยาย"
+       },
+       {
+        "word": "script",
+        "th": "บท (ที่เขียนไว้)"
+       }
+      ]
+     }
+    ],
+    "tips": [
+     "**รากศัพท์คือ \"เบาะแส\" ไม่ใช่คำแปล:** ex (ออก) + spect (มอง) = มองออกไปข้างหน้า → คาดหวัง, คาดว่า",
+     "**ขั้นที่ ④ ห้ามข้าม:** ถ้าความหมายที่ได้ใส่ในประโยคแล้วไม่เข้ากัน ให้ใช้บริบทเป็นหลัก"
+    ]
+   },
+   "words": [
+    {
+     "w": "respect",
+     "pos": "v.",
+     "parts": "re- + spect",
+     "th": "เคารพ"
+    },
+    {
+     "w": "expect",
+     "pos": "v.",
+     "parts": "ex- + spect",
+     "th": "คาดหวัง, คาดว่า"
+    },
+    {
+     "w": "audience",
+     "pos": "n.",
+     "parts": "aud + -ience",
+     "th": "ผู้ชม, ผู้ฟัง"
+    },
+    {
+     "w": "predict",
+     "pos": "v.",
+     "parts": "pre- + dict",
+     "th": "ทำนาย"
+    },
+    {
+     "w": "dictionary",
+     "pos": "n.",
+     "parts": "dict + -ionary",
+     "th": "พจนานุกรม"
+    },
+    {
+     "w": "describe",
+     "pos": "v.",
+     "parts": "de- + scribe",
+     "th": "บรรยาย"
+    }
+   ],
+   "week": 12,
+   "start": "2027-01-18",
+   "dateLabel": "18–22 ม.ค. 70",
+   "questions": [
+    {
+     "id": "m12-01",
+     "type": "part",
+     "q": "ราก **spect** ใน respect และ expect แปลว่าอะไร",
+     "options": [
+      "เขียน",
+      "มอง",
+      "ดึง",
+      "ฟัง",
+      "พูด"
+     ],
+     "answer": 1,
+     "hint": "spectator = ผู้…การแข่งขัน",
+     "explain": "spect = **มอง** เช่น spectator = ผู้ชม"
+    },
+    {
+     "id": "m12-02",
+     "type": "part",
+     "q": "ราก **aud** ใน audio และ audience แปลว่าอะไร",
+     "options": [
+      "มอง",
+      "เขียน",
+      "พูด",
+      "ฟัง / ได้ยิน",
+      "ส่ง"
+     ],
+     "answer": 3,
+     "hint": "audio = เสียง",
+     "explain": "aud = **ฟัง / ได้ยิน**"
+    },
+    {
+     "id": "m12-03",
+     "type": "part",
+     "q": "ราก **dict** ใน dictionary และ predict แปลว่าอะไร",
+     "options": [
+      "ดึง",
+      "ฟัง",
+      "เขียน",
+      "เห็น",
+      "พูด"
+     ],
+     "answer": 4,
+     "hint": "predict = … ไว้ก่อน",
+     "explain": "dict = **พูด** → predict = พูดไว้ก่อน → ทำนาย"
+    },
+    {
+     "id": "m12-04",
+     "type": "part",
+     "q": "ราก **scrib / script** ใน describe แปลว่าอะไร",
+     "options": [
+      "พูด",
+      "มอง",
+      "เขียน",
+      "โยน",
+      "ฟัง"
+     ],
+     "answer": 2,
+     "hint": "script = บท…",
+     "explain": "scrib / script = **เขียน**"
+    },
+    {
+     "id": "m12-05",
+     "type": "decode",
+     "q": "คำว่า **predict** (pre + dict) แปลว่าอะไร",
+     "options": [
+      "สนับสนุน",
+      "ตรวจสอบ",
+      "ปฏิเสธ",
+      "บรรยาย",
+      "ทำนาย"
+     ],
+     "answer": 4,
+     "hint": "pre = ก่อน · dict = พูด",
+     "explain": "พูดไว้ก่อน → **ทำนาย**"
+    },
+    {
+     "id": "m12-06",
+     "type": "decode",
+     "q": "คำว่า **describe** แปลว่าอะไร",
+     "options": [
+      "บรรยาย",
+      "ลบออก",
+      "ทำลาย",
+      "สมัคร",
+      "ทำนาย"
+     ],
+     "answer": 0,
+     "hint": "scrib = เขียน",
+     "explain": "de (ลง) + scrib (เขียน) = เขียนลงมาให้เห็นภาพ → **บรรยาย**"
+    },
+    {
+     "id": "m12-07",
+     "type": "choose",
+     "q": "The ______ clapped loudly at the end of the concert.",
+     "options": [
+      "video",
+      "respect",
+      "audience",
+      "script",
+      "dictionary"
+     ],
+     "answer": 2,
+     "hint": "ใครปรบมือในคอนเสิร์ต",
+     "explain": "ผู้ฟัง / ผู้ชม = **audience** (aud = ฟัง)"
+    },
+    {
+     "id": "m12-08",
+     "type": "choose",
+     "q": "Students should ______ their teachers and classmates.",
+     "options": [
+      "predict",
+      "respect",
+      "inspect",
+      "describe",
+      "expect"
+     ],
+     "answer": 1,
+     "hint": "ควร…ครูและเพื่อน",
+     "explain": "**respect** = เคารพ"
+    },
+    {
+     "id": "m12-09",
+     "type": "context",
+     "q": "\"I **expect** to get my test results next week.\" คำที่เน้นแปลว่าอะไร",
+     "options": [
+      "เขียน",
+      "ส่งออก",
+      "ลืม",
+      "คาดว่า",
+      "ปฏิเสธ"
+     ],
+     "answer": 3,
+     "hint": "ex = ออก · spect = มอง",
+     "explain": "มองออกไปข้างหน้า → **คาดว่า, คาดหวัง**"
+    },
+    {
+     "id": "m12-10",
+     "type": "context",
+     "q": "\"Look up new words in a **dictionary**.\" คำที่เน้นแปลว่าอะไร",
+     "options": [
+      "พจนานุกรม",
+      "แผนที่",
+      "นิตยสาร",
+      "สมุดจดงาน",
+      "ปฏิทิน"
+     ],
+     "answer": 0,
+     "hint": "dict = พูด (คำ)",
+     "explain": "หนังสือรวมคำ → **พจนานุกรม**"
+    }
+   ]
+  },
+  {
+   "id": "m13",
+   "hour": 13,
+   "unit": 3,
+   "titleEn": "Roots of movement",
+   "titleTh": "รากศัพท์การเคลื่อนที่: port · tract · ject · mot/mov",
+   "goal": "บอกความหมายของรากศัพท์ 4 ตัวเกี่ยวกับการเคลื่อนที่ · อธิบายได้ว่าอุปสรรคต่างกันทำให้คำที่มีรากเดียวกันมีความหมายต่างกัน",
+   "recap": {
+    "parts": [
+     {
+      "part": "port",
+      "kind": "root",
+      "meaning": "ขน / แบก",
+      "examples": [
+       {
+        "word": "transport",
+        "th": "การขนส่ง"
+       },
+       {
+        "word": "support",
+        "th": "สนับสนุน"
+       },
+       {
+        "word": "portable",
+        "th": "พกพาได้"
+       }
+      ]
+     },
+     {
+      "part": "tract",
+      "kind": "root",
+      "meaning": "ดึง",
+      "examples": [
+       {
+        "word": "attract",
+        "th": "ดึงดูด"
+       },
+       {
+        "word": "tractor",
+        "th": "รถแทรกเตอร์ (รถลาก)"
+       }
+      ]
+     },
+     {
+      "part": "ject",
+      "kind": "root",
+      "meaning": "โยน",
+      "examples": [
+       {
+        "word": "project",
+        "th": "โครงการ, โครงงาน"
+       },
+       {
+        "word": "reject",
+        "th": "ปฏิเสธ"
+       }
+      ]
+     },
+     {
+      "part": "mot / mov",
+      "kind": "root",
+      "meaning": "เคลื่อน",
+      "examples": [
+       {
+        "word": "motor",
+        "th": "มอเตอร์ (เครื่องที่ทำให้เคลื่อนที่)"
+       },
+       {
+        "word": "remove",
+        "th": "เอาออก, ถอดออก"
+       },
+       {
+        "word": "movement",
+        "th": "การเคลื่อนไหว"
+       }
+      ]
+     }
+    ],
+    "tips": [
+     "**รากเดียว อุปสรรคต่าง = ความหมายต่าง:** ex·port (ขนออก) ↔ im·port (ขนเข้า) · re·ject (โยนกลับ → ปฏิเสธ)",
+     "**ใช้ภาค A ช่วย:** port + -able = ขนได้ → portable (พกพาได้) · move + -ment = การเคลื่อนไหว"
+    ]
+   },
+   "words": [
+    {
+     "w": "support",
+     "pos": "v.",
+     "parts": "sup- + port",
+     "th": "สนับสนุน"
+    },
+    {
+     "w": "attract",
+     "pos": "v.",
+     "parts": "at- + tract",
+     "th": "ดึงดูด"
+    },
+    {
+     "w": "project",
+     "pos": "n.",
+     "parts": "pro- + ject",
+     "th": "โครงการ, โครงงาน"
+    },
+    {
+     "w": "reject",
+     "pos": "v.",
+     "parts": "re- + ject",
+     "th": "ปฏิเสธ"
+    },
+    {
+     "w": "remove",
+     "pos": "v.",
+     "parts": "re- + move",
+     "th": "เอาออก, ถอดออก"
+    },
+    {
+     "w": "movement",
+     "pos": "n.",
+     "parts": "move + -ment",
+     "th": "การเคลื่อนไหว"
+    }
+   ],
+   "week": 13,
+   "start": "2027-01-25",
+   "dateLabel": "25–29 ม.ค. 70",
+   "questions": [
+    {
+     "id": "m13-01",
+     "type": "part",
+     "q": "ราก **port** ใน transport และ support แปลว่าอะไร",
+     "options": [
+      "มอง",
+      "ดึง",
+      "โยน",
+      "ขน / แบก",
+      "ส่ง"
+     ],
+     "answer": 3,
+     "hint": "airport = ท่าอากาศยาน (ที่ขนคนขึ้นลง)",
+     "explain": "port = **ขน / แบก**"
+    },
+    {
+     "id": "m13-02",
+     "type": "part",
+     "q": "ราก **tract** ใน attract และ tractor แปลว่าอะไร",
+     "options": [
+      "ดึง",
+      "ขน",
+      "เคลื่อน",
+      "เขียน",
+      "โยน"
+     ],
+     "answer": 0,
+     "hint": "tractor = รถที่ใช้…ของหนัก",
+     "explain": "tract = **ดึง**"
+    },
+    {
+     "id": "m13-03",
+     "type": "part",
+     "q": "ราก **ject** ใน project และ reject แปลว่าอะไร",
+     "options": [
+      "ขน",
+      "โยน",
+      "ฟัง",
+      "พูด",
+      "ดึง"
+     ],
+     "answer": 1,
+     "hint": "reject = … กลับ → ปฏิเสธ",
+     "explain": "ject = **โยน** → reject = โยนกลับ → ปฏิเสธ"
+    },
+    {
+     "id": "m13-04",
+     "type": "part",
+     "q": "ราก **mot / mov** ใน motor และ remove แปลว่าอะไร",
+     "options": [
+      "เคลื่อน",
+      "ขน",
+      "หยุด",
+      "เขียน",
+      "มอง"
+     ],
+     "answer": 0,
+     "hint": "motor = เครื่องที่ทำให้…",
+     "explain": "mot / mov = **เคลื่อน**"
+    },
+    {
+     "id": "m13-05",
+     "type": "choose",
+     "q": "The beautiful beaches ______ many tourists every year.",
+     "options": [
+      "transport",
+      "remove",
+      "attract",
+      "reject",
+      "project"
+     ],
+     "answer": 2,
+     "hint": "ชายหาดสวยทำให้นักท่องเที่ยว…",
+     "explain": "ดึงเข้าหา → **attract** (ดึงดูด)"
+    },
+    {
+     "id": "m13-06",
+     "type": "choose",
+     "q": "My parents ______ my dream of becoming a nurse.",
+     "options": [
+      "attract",
+      "remove",
+      "reject",
+      "transport",
+      "support"
+     ],
+     "answer": 4,
+     "hint": "พ่อแม่ช่วยให้ความฝันเป็นจริง",
+     "explain": "**support** = สนับสนุน (sup = ใต้ + port = แบก → แบกไว้ข้างใต้)"
+    },
+    {
+     "id": "m13-07",
+     "type": "choose",
+     "q": "Please ______ your shoes before you enter the room.",
+     "options": [
+      "attract",
+      "remove",
+      "support",
+      "reject",
+      "project"
+     ],
+     "answer": 1,
+     "hint": "ทำอะไรกับรองเท้าก่อนเข้าห้อง",
+     "explain": "**remove** = ถอดออก, เอาออก"
+    },
+    {
+     "id": "m13-08",
+     "type": "choose",
+     "q": "The school ______ his application because it was late.",
+     "options": [
+      "projected",
+      "supported",
+      "rejected",
+      "attracted",
+      "removed"
+     ],
+     "answer": 2,
+     "hint": "ส่งใบสมัครช้า",
+     "explain": "ส่งช้าจึงถูก**ปฏิเสธ** → **rejected**"
+    },
+    {
+     "id": "m13-09",
+     "type": "decode",
+     "q": "คำว่า **portable** (port + -able) แปลว่าอะไร",
+     "options": [
+      "ราคาถูก",
+      "ขนส่งสินค้า",
+      "ท่าเรือ",
+      "พกพาได้",
+      "ใช้ไฟฟ้า"
+     ],
+     "answer": 3,
+     "hint": "port = ขน · -able = …ได้",
+     "explain": "ขนไปได้ → **พกพาได้**"
+    },
+    {
+     "id": "m13-10",
+     "type": "decode",
+     "q": "คำว่า **movement** (move + -ment) แปลว่าอะไร",
+     "options": [
+      "ผู้เคลื่อนไหว",
+      "ภาพยนตร์",
+      "ช่วงเวลา",
+      "การหยุดนิ่ง",
+      "การเคลื่อนไหว"
+     ],
+     "answer": 4,
+     "hint": "-ment = การ…",
+     "explain": "move + -ment = **การเคลื่อนไหว**"
+    }
+   ]
+  },
+  {
+   "id": "m14",
+   "hour": 14,
+   "unit": 4,
+   "titleEn": "Long words, science roots & final quiz",
+   "titleTh": "คาบปิด: ถอดคำยาว + รากวิทยาศาสตร์ + ทดสอบรวม",
+   "goal": "แยกคำยาว 2–3 ชั้น (อุปสรรค + คำ/ราก + ปัจจัย) แล้วบอกความหมาย · เดาคำที่มีรากวิทยาศาสตร์ · ทดสอบรวมทั้งเล่มในแอป",
+   "recap": {
+    "parts": [
+     {
+      "part": "คำยาว 3 ชั้น",
+      "kind": "concept",
+      "meaning": "อุปสรรค (หน้า) + คำเดิม/ราก (กลาง) + ปัจจัย (ท้าย) → ปัจจัยบอกชนิดคำ",
+      "examples": []
+     },
+     {
+      "part": "bio",
+      "kind": "root",
+      "meaning": "ชีวิต",
+      "examples": []
+     },
+     {
+      "part": "geo",
+      "kind": "root",
+      "meaning": "โลก",
+      "examples": []
+     },
+     {
+      "part": "tele",
+      "kind": "root",
+      "meaning": "ไกล",
+      "examples": []
+     },
+     {
+      "part": "auto",
+      "kind": "root",
+      "meaning": "ตัวเอง",
+      "examples": []
+     },
+     {
+      "part": "graph",
+      "kind": "root",
+      "meaning": "เขียน / ภาพ",
+      "examples": []
+     },
+     {
+      "part": "logy",
+      "kind": "root",
+      "meaning": "วิชา",
+      "examples": []
+     }
+    ],
+    "tips": [
+     "ถอดจาก **นอกเข้าใน**: un | help | ful = ไม่ + ช่วย + เต็มไปด้วย → ไม่ช่วยอะไร (adj.)"
+    ]
+   },
+   "words": [],
+   "week": 14,
+   "start": "2027-02-01",
+   "dateLabel": "1–5 ก.พ. 70",
+   "questions": [
+    {
+     "id": "m14-01",
+     "type": "part",
+     "q": "คำว่า **unhelpful** แยกเป็นชิ้นส่วนได้อย่างไร",
+     "options": [
+      "u + nhelp + ful",
+      "un + helpf + ul",
+      "unhelp + ful",
+      "un + help + ful",
+      "unh + elp + ful"
+     ],
+     "answer": 3,
+     "hint": "อุปสรรค + คำเดิม + ปัจจัย",
+     "explain": "**un** (ไม่) + **help** (ช่วย) + **ful** (เต็มไปด้วย) = ไม่ช่วยอะไร"
+    },
+    {
+     "id": "m14-02",
+     "type": "decode",
+     "q": "คำว่า **carelessly** แปลว่าอะไร",
+     "options": [
+      "ไม่ระวัง (คุณศัพท์)",
+      "อย่างระมัดระวัง",
+      "ความไม่ระวัง",
+      "ผู้ที่ไม่ระวัง",
+      "อย่างไม่ระมัดระวัง"
+     ],
+     "answer": 4,
+     "hint": "care + less + ly",
+     "explain": "care (ใส่ใจ) + less (ไม่มี) + ly (อย่าง…) = **อย่างไม่ระมัดระวัง**"
+    },
+    {
+     "id": "m14-03",
+     "type": "decode",
+     "q": "คำว่า **disagreement** เป็นคำชนิดใดและแปลว่าอะไร",
+     "options": [
+      "คุณศัพท์ · ที่ไม่เห็นด้วย",
+      "คำนาม · คนที่ไม่เห็นด้วย",
+      "กริยาวิเศษณ์ · อย่างไม่เห็นด้วย",
+      "กริยา · ไม่เห็นด้วย",
+      "คำนาม · ความไม่เห็นด้วย"
+     ],
+     "answer": 4,
+     "hint": "ดูรหัสท้ายคำ -ment",
+     "explain": "dis (ไม่) + agree (เห็นด้วย) + ment (การ… → คำนาม) = **ความไม่เห็นด้วย**"
+    },
+    {
+     "id": "m14-04",
+     "type": "decode",
+     "q": "คำว่า **biology** (bio + logy) แปลว่าอะไร",
+     "options": [
+      "ชีววิทยา (วิชาที่ศึกษาชีวิต)",
+      "ภูมิศาสตร์",
+      "การถ่ายภาพ",
+      "ประวัติชีวิต",
+      "เทคโนโลยี"
+     ],
+     "answer": 0,
+     "hint": "bio = ชีวิต · logy = วิชา",
+     "explain": "วิชาที่ศึกษาชีวิต → **ชีววิทยา**"
+    },
+    {
+     "id": "m14-05",
+     "type": "decode",
+     "q": "คำว่า **autograph** (auto + graph) แปลว่าอะไร",
+     "options": [
+      "ภาพถ่าย",
+      "รถยนต์",
+      "ลายเซ็น (เขียนด้วยตัวเอง)",
+      "โทรศัพท์",
+      "กราฟอัตโนมัติ"
+     ],
+     "answer": 2,
+     "hint": "auto = ตัวเอง · graph = เขียน",
+     "explain": "เขียนด้วยตัวเอง → **ลายเซ็น** (เช่น ลายเซ็นดารา)"
+    },
+    {
+     "id": "m14-06",
+     "type": "form",
+     "q": "The test was very ______. Many students could not finish it.",
+     "options": [
+      "difficult",
+      "difficultly",
+      "difficulties",
+      "difficultness",
+      "difficulty"
+     ],
+     "answer": 0,
+     "hint": "หลัง was very",
+     "explain": "หลัง very ต้องเป็นคุณศัพท์ → **difficult**"
+    },
+    {
+     "id": "m14-07",
+     "type": "form",
+     "q": "Good ______ helps you remember new words.",
+     "options": [
+      "prepared",
+      "preparation",
+      "preparing",
+      "prepare",
+      "prepares"
+     ],
+     "answer": 1,
+     "hint": "Good + ? + helps (ประธานของประโยค)",
+     "explain": "หลังคุณศัพท์ Good และเป็นประธาน ต้องเป็นคำนาม → prepare + -ation = **preparation** (การเตรียมตัว)"
+    },
+    {
+     "id": "m14-08",
+     "type": "choose",
+     "q": "It is ______ to finish this book in one hour. It has 500 pages!",
+     "options": [
+      "unusual",
+      "unfair",
+      "illegal",
+      "impossible",
+      "possible"
+     ],
+     "answer": 3,
+     "hint": "หนังสือ 500 หน้า อ่านจบใน 1 ชั่วโมง",
+     "explain": "อ่านไม่ทันแน่นอน → **impossible** (เป็นไปไม่ได้)"
+    },
+    {
+     "id": "m14-09",
+     "type": "choose",
+     "q": "Our school ______ students to read by giving prizes.",
+     "options": [
+      "misunderstands",
+      "encourages",
+      "rejects",
+      "disagrees",
+      "removes"
+     ],
+     "answer": 1,
+     "hint": "โรงเรียนให้รางวัลเพื่อให้นักเรียนอ่าน",
+     "explain": "ให้กำลังใจ / สนับสนุน → **encourages**"
+    },
+    {
+     "id": "m14-10",
+     "type": "decode",
+     "q": "\"The <u>international</u> food festival had dishes from 20 countries.\" คำที่ขีดเส้นใต้แปลว่าอะไร",
+     "options": [
+      "ขนาดใหญ่",
+      "อาหารต่างด้าว",
+      "นานาชาติ ระหว่างประเทศ",
+      "ในประเทศ",
+      "ท้องถิ่น"
+     ],
+     "answer": 2,
+     "hint": "inter = ระหว่าง · nation = ชาติ · al = เกี่ยวกับ",
+     "explain": "inter + nation + al = เกี่ยวกับระหว่างชาติ → **นานาชาติ**"
+    }
+   ]
+  }
+ ]
+}

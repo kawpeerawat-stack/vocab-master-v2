@@ -1,6 +1,6 @@
 // app/lib/courses.ts
 // ─────────────────────────────────────────────────────────────
-// "คอร์สบทเรียน" แบบแบ่งบท (เช่น Root Words Decoder 14 บท บทละ 20 ข้อ — ตรงกับแบบเรียน)
+// "คอร์สบทเรียน" แบบแบ่งบท (เช่น Root Words Decoder 14 บท บทละ 15 ข้อ — ตรงกับแบบเรียน)
 //   - เนื้อหาแต่ละคอร์สอยู่ใน data/<file>.json แล้วส่งผ่าน /api/course?id=<courseId>
 //   - ความก้าวหน้าเก็บใน Firestore: students/{email}.courses.{courseId}.{lessonId}
 //   - เพิ่มคอร์สใหม่ในอนาคต: วางไฟล์ JSON รูปแบบเดียวกันใน data/ แล้วเพิ่ม 1 แถวใน COURSE_REGISTRY
@@ -25,7 +25,7 @@ export interface CourseQuestion {
 }
 export interface RecapExample { word: string; th: string }
 export interface RecapPart { part: string; kind: string; meaning: string; examples: RecapExample[] }
-// คำศัพท์ประจำบท (ตรงกับตารางพับในแบบเรียน) — n = จำนวนฉบับข้อสอบที่พบคำนี้, core = อยู่ในคำแกน 300 คำ
+// คำศัพท์ประจำบท (ตรงกับตารางพับในแบบเรียน) — n = จำนวนฉบับข้อสอบที่พบคำนี้, core = อยู่ในคำแกน 120 คำ
 export interface LessonWord { w: string; pos: string; parts: string; th: string; n?: number; core?: boolean }
 export interface CourseLesson {
   id: string;
@@ -36,6 +36,10 @@ export interface CourseLesson {
   goal: string;
   recap: { parts: RecapPart[]; tips: string[] };
   words?: LessonWord[];
+  // แผนการสอน: สัปดาห์ที่ของภาคเรียน · วันจันทร์ของสัปดาห์ (YYYY-MM-DD) · ข้อความวันที่ เช่น "2–6 พ.ย. 69"
+  week?: number;
+  start?: string;
+  dateLabel?: string;
   questions: CourseQuestion[];
 }
 export interface Course {
@@ -45,6 +49,9 @@ export interface Course {
   titleTh: string;
   subtitle: string;
   passRule: "all";
+  passMin?: number;    // ถูกกี่ข้อขึ้นไปจึงผ่าน (ไม่ระบุ = ต้องถูกครบทุกข้อ) เช่น ฉบับ ม.4 = 8 จาก 10
+  lessonWord?: string; // คำเรียกหน่วยบทเรียน (ค่าเริ่มต้น "บท" · ฉบับ ม.4 = "คาบ")
+  classNote?: string; // วิธีใช้ในคาบ (แสดงบนการ์ดความก้าวหน้า)
   units: { no: number; title: string; code?: string }[]; // code = ภาค A / B / C / D ในแบบเรียน
   lessons: CourseLesson[];
 }
@@ -62,7 +69,7 @@ export async function loadCourse(courseId: string): Promise<Course> {
 
 // ── ความก้าวหน้ารายบท ──
 export interface LessonProgress {
-  passed: boolean;      // เคยได้ครบทุกข้อ (เช่น 20/20) อย่างน้อย 1 ครั้ง
+  passed: boolean;      // เคยผ่านเกณฑ์อย่างน้อย 1 ครั้ง (ฉบับ ม.6 = ถูกครบทุกข้อ · ฉบับ ม.4 = ถูก 8/10 ขึ้นไป)
   passedAt?: number;    // เวลา (ms) ที่ผ่านครั้งแรก
   best: number;         // คะแนนดีที่สุด
   last: number;         // คะแนนรอบล่าสุด
@@ -179,8 +186,9 @@ export async function saveLessonAttempt(params: {
   score: number;
   total: number;
   wrongIds: string[];
+  passMin?: number; // ถูกกี่ข้อขึ้นไปจึงผ่าน (ไม่ระบุ = ครบทุกข้อ)
 }): Promise<{ lesson: LessonProgress; cloudOk: boolean }> {
-  const { courseId, lessonId, email, name, score, total, wrongIds } = params;
+  const { courseId, lessonId, email, name, score, total, wrongIds, passMin } = params;
   const now = Date.now();
   const allLocal = loadLocalCourseProgress(courseId, email);
   let base: LessonProgress | undefined = allLocal[lessonId];
@@ -199,7 +207,7 @@ export async function saveLessonAttempt(params: {
     }
   }
 
-  const passedNow = score >= total && total > 0;
+  const passedNow = total > 0 && score >= Math.min(total, passMin ?? total);
   const missed: Record<string, number> = { ...(base?.missed || {}) };
   for (const id of wrongIds) missed[id] = (missed[id] ?? 0) + 1;
   const lesson: LessonProgress = {

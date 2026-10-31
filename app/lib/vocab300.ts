@@ -1,6 +1,6 @@
 // app/lib/vocab300.ts
 // ─────────────────────────────────────────────────────────────
-// คำศัพท์แกน 300 คำ (TGAT / A-Level) — เรียนแบบ 5 ขั้น + ทวนแบบเว้นวัน
+// คำศัพท์แกน 120 คำ (TGAT / A-Level · ลดจาก 300 คำ ให้พอดีรายวิชา 2 ชม./สัปดาห์ · 12 สัปดาห์ สัปดาห์ละ 10 คำ) — เรียนแบบ 5 ขั้น + ทวนแบบเว้นวัน
 //   เนื้อหา: data/vocab300.json → /api/course?id=vocab300
 //   ความก้าวหน้า: students/{email}.v300 = { cards, days }
 //     + ฟิลด์สรุป v300Known / v300Seen / v300At (ไว้ให้หน้าครูและอันดับอ่านเร็ว)
@@ -43,7 +43,8 @@ export interface VWord {
   cx: string[];            // ตัวลวงของข้อบริบท (คำในชุด)
   form: VForm | null;      // ข้อรูปคำ (ตระกูลคำ)
 }
-export interface VWeek { no: number; title: string; count: number }
+// start / end = วันจันทร์–ศุกร์ของสัปดาห์ในภาคเรียนที่แผนการสอนกำหนดให้เรียนชุดนี้ (YYYY-MM-DD) · label = ข้อความวันที่ · sem = สัปดาห์ที่ของภาคเรียน
+export interface VWeek { no: number; title: string; count: number; start?: string; end?: string; label?: string; sem?: number }
 export interface VCourse {
   id: string;
   version: number;
@@ -53,6 +54,8 @@ export interface VCourse {
   papers: number;
   weeks: VWeek[];
   words: VWord[];
+  /** วันที่เรียนของแต่ละห้องนับจากวันจันทร์ของสัปดาห์ (0 = จ. … 4 = ศ.) — ใช้คิดแผน “ถึงคาบของห้องนี้หรือยัง” */
+  classDays?: Record<string, number>;
 }
 
 let courseCache: VCourse | null = null;
@@ -82,12 +85,76 @@ export interface VCard {
 export interface VDay { n: number; r: number; c: number; x: number } // คำใหม่ / ข้อทวน / ถูก / ผิด
 export interface VProgress { cards: Record<string, VCard>; days: Record<string, VDay> }
 
-export const NEW_PER_DAY = 10;   // คำใหม่สูงสุดต่อวัน
+export const NEW_PER_DAY = 10;   // คำใหม่ต่อคาบ (1 ชุดสัปดาห์ = 10 คำ = 2 ชุดเรียน)
+export const CATCHUP_PER_DAY = 20; // คนที่ช้ากว่าแผน (เช่น ขาดเรียน) เรียนได้ถึง 20 คำในคาบเดียว เพื่อตามให้ทัน
 export const BATCH_SIZE = 5;     // คำต่อชุดเรียน
 export const REVIEW_LIMIT = 20;  // คำทวนสูงสุดต่อรอบ
-const GAP = [1, 2, 4, 7, 14, 30];
+// ระยะนัดทวน (วัน) — ออกแบบให้ทุกกิจกรรมจบในคาบ (เรียนในห้อง สัปดาห์ละครั้ง ไม่มีการบ้าน)
+//   ผิด → ขึ้นให้ทวนตั้งแต่ครั้งถัดไปที่เปิดแอป · ถูกครั้งแรก → คาบหน้า · จากนั้น 2 → 4 → 8 → 12 สัปดาห์
+const GAP = [1, 7, 14, 28, 56, 84];
 
 export const emptyProgress = (): VProgress => ({ cards: {}, days: {} });
+
+// ชื่อห้องและแผนการเรียน (ใช้ร่วมกันในเมนูหลักและหน้าครู — แก้ที่นี่ที่เดียว)
+export const CORE_NAME = "คำศัพท์แกน 120 คำ";
+export const CORE_PLAN = "12 ชุด ชุดละ 10 คำ · เรียนในคาบ";
+export const BEHIND_DUE = 10; // ค้างทวนตั้งแต่กี่คำ ถือว่าตามไม่ทัน (หน้าครู)
+
+// คำ 180 คำที่ตัดออกเมื่อลดจาก 300 เหลือ 120 คำ (ต.ค. 2569) — ความก้าวหน้าเดิมของคำเหล่านี้ยังเก็บไว้ แต่ไม่นับในสถิติและไม่ถูกเรียกมาทวน
+export const RETIRED_IDS = new Set<string>([
+  "w091", "w116", "w117", "w118", "w119", "w124", "w125", "w126", "w127", "w128", "w129", "w130",
+  "w133", "w134", "w135", "w136", "w137", "w138", "w139", "w140", "w141", "w142", "w143", "w144",
+  "w145", "w146", "w147", "w148", "w149", "w150", "w151", "w152", "w153", "w154", "w155", "w156",
+  "w157", "w158", "w159", "w160", "w161", "w162", "w163", "w164", "w165", "w166", "w167", "w168",
+  "w169", "w170", "w171", "w172", "w173", "w174", "w175", "w176", "w177", "w178", "w179", "w180",
+  "w181", "w182", "w183", "w184", "w185", "w186", "w187", "w188", "w189", "w190", "w191", "w192",
+  "w193", "w194", "w195", "w196", "w197", "w198", "w199", "w200", "w201", "w202", "w203", "w204",
+  "w205", "w206", "w207", "w208", "w209", "w210", "w211", "w212", "w213", "w214", "w215", "w216",
+  "w217", "w218", "w219", "w220", "w221", "w222", "w223", "w224", "w225", "w226", "w227", "w228",
+  "w229", "w230", "w231", "w232", "w233", "w234", "w235", "w236", "w237", "w238", "w239", "w240",
+  "w241", "w242", "w243", "w244", "w245", "w246", "w247", "w248", "w249", "w250", "w251", "w252",
+  "w253", "w254", "w255", "w256", "w257", "w258", "w259", "w260", "w261", "w262", "w263", "w264",
+  "w265", "w266", "w267", "w268", "w269", "w270", "w271", "w272", "w273", "w274", "w275", "w276",
+  "w277", "w278", "w279", "w280", "w281", "w282", "w283", "w284", "w285", "w286", "w287", "w288",
+  "w289", "w290", "w291", "w292", "w293", "w294", "w295", "w296", "w297", "w298", "w299", "w300",
+]);
+export const isActiveCard = (id: string) => !RETIRED_IDS.has(id);
+
+// ── แผนการสอนตามปฏิทิน (จาก weeks[].start) ──
+// สัปดาห์ของแอปที่แผนกำหนดให้เรียนถึงแล้ว ณ วันนี้ (0 = ยังไม่เริ่ม · null = ไม่มีแผนวันที่)
+// room = ห้องของนักเรียน (เช่น "6/2") — ถ้ารู้ห้อง จะนับสัปดาห์นั้นก็ต่อเมื่อถึงวันเรียนของห้องแล้ว
+export function plannedWeekNo(course: VCourse | null, today: string, room?: string | null): number | null {
+  if (!course || !course.weeks.some((w) => w.start)) return null;
+  const off = (room && course.classDays?.[room]) || 0;
+  return course.weeks.filter((w) => w.start && addDays(w.start, off) <= today).reduce((m, w) => Math.max(m, w.no), 0);
+}
+// จำนวนคำที่ควรเรียนแล้วตามแผน ณ วันนี้
+export function plannedWords(course: VCourse | null, today: string, room?: string | null): number | null {
+  const k = plannedWeekNo(course, today, room);
+  if (k === null || !course) return null;
+  return course.weeks.filter((w) => w.no <= k).reduce((s, w) => s + w.count, 0);
+}
+// จำนวนคำที่เรียนแล้ว (ไม่นับคำที่ตัดออก) — before = นับเฉพาะคำที่เริ่มเรียนก่อนวันนี้
+export function learnedCount(p: VProgress, before?: string): number {
+  return Object.entries(p.cards).filter(([id, c]) => isActiveCard(id) && (!before || (c.first || "") < before)).length;
+}
+// สัปดาห์ทวน = เลยสัปดาห์ของชุดล่าสุดในแผนไปแล้ว แต่ยังไม่ถึงชุดถัดไป (เช่น สัปดาห์ที่ 6 และ 14 ของภาค)
+export function isReviewWeek(course: VCourse | null, today: string, room?: string | null): boolean {
+  const k = plannedWeekNo(course, today, room);
+  if (!course || !k) return false;
+  const wk = course.weeks[k - 1];
+  const off = (room && course.classDays?.[room]) || 0;
+  return !!wk?.start && addDays(wk.start, 7 + off) <= today;
+}
+// คำใหม่ที่เรียนได้ในวันนี้: ปกติ 10 คำ · ถ้าช้ากว่าแผนเกิน 10 คำ เปิดให้ถึง 20 คำ
+// สัปดาห์ทวน: ไม่มีชุดใหม่ — เปิดคำใหม่เฉพาะคนที่ยังขาดตามแผน (ไม่เกิน 20 คำ)
+export function newCapToday(course: VCourse | null, p: VProgress, today: string, room?: string | null): number {
+  const target = plannedWords(course, today, room);
+  if (target === null) return NEW_PER_DAY;
+  const need = target - learnedCount(p, today);
+  if (isReviewWeek(course, today, room)) return Math.min(CATCHUP_PER_DAY, Math.max(0, need));
+  return Math.min(CATCHUP_PER_DAY, Math.max(NEW_PER_DAY, need));
+}
 
 // วันที่ตามเครื่อง (ประเทศไทย) แบบ YYYY-MM-DD
 export function todayStr(d: Date = new Date()): string {
@@ -161,7 +228,8 @@ export interface VStats {
 }
 export function computeStats(p: VProgress, today: string = todayStr()): VStats {
   let known = 0, learning = 0, due = 0;
-  for (const c of Object.values(p.cards)) {
+  for (const [id, c] of Object.entries(p.cards)) {
+    if (!isActiveCard(id)) continue;
     if (isKnown(c)) known++;
     else learning++;
     if (c.due <= today) due++;
@@ -240,18 +308,22 @@ function trimDays(p: VProgress): VProgress {
   return { ...p, days };
 }
 
-export async function loadProgress(email: string): Promise<VProgress> {
+// คืนค่า needSync = true ถ้าในเครื่องมีผลที่ยังไม่ขึ้นคลาวด์ (เช่น คาบก่อนเน็ตหลุด) → ห้องคำศัพท์จะส่งขึ้นให้ทันที
+export async function loadProgress(email: string): Promise<{ p: VProgress; needSync: boolean }> {
   const local = loadLocal(email);
-  if (!email || !db) return local;
+  if (!email || !db) return { p: local, needSync: false };
   try {
     const snap = await withTimeout(getDoc(doc(db, "students", emailToId(email))), 8000);
     const cloud = (snap.exists() ? (snap.data()?.v300 as VProgress | undefined) : undefined) ?? emptyProgress();
-    const merged = mergeProgress(local, { cards: cloud.cards || {}, days: cloud.days || {} });
+    const cc = cloud.cards || {};
+    const needSync = Object.entries(local.cards).some(([id, c]) => !cc[id] || (cc[id].at ?? 0) < (c.at ?? 0));
+    const merged = mergeProgress(local, { cards: cc, days: cloud.days || {} });
     saveLocal(email, merged);
-    return merged;
+    return { p: merged, needSync };
   } catch (e) {
     console.error("loadProgress v300 error:", e);
-    return local;
+    // เชื่อมระบบไม่ได้ (เน็ตหลุด) → ถือว่าผลในเครื่องยังไม่ขึ้นระบบ เพื่อให้หน้าแอปขึ้นแถบ ⚠️ พร้อมปุ่ม “ส่งอีกครั้ง”
+    return { p: local, needSync: Object.keys(local.cards).length > 0 };
   }
 }
 

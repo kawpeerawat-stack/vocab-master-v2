@@ -7,9 +7,11 @@ export interface CourseMeta {
   title: string;
   titleTh: string;
   icon: string;
+  grade: "6" | "4"; // ระดับชั้นที่ใช้คอร์สนี้ (หน้าครูแสดงตามระดับชั้นที่เลือก)
 }
 export const COURSE_REGISTRY: CourseMeta[] = [
-  { id: "decoder", title: "Root Words Decoder", titleTh: "ถอดรหัสคำศัพท์", icon: "🧩" },
+  { id: "decoder", title: "Root Words Decoder", titleTh: "ถอดรหัสคำศัพท์", icon: "🧩", grade: "6" },
+  { id: "decoder4", title: "Root Words Decoder · Foundation", titleTh: "ถอดรหัสคำศัพท์ ม.4", icon: "🧩", grade: "4" },
 ];
 export function courseMeta(id: string): CourseMeta | undefined {
   return COURSE_REGISTRY.find((c) => c.id === id);
