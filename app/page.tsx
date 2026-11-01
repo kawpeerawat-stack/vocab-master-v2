@@ -3,15 +3,16 @@
 // ─────────────────────────────────────────────────────────────
 // หน้าหลักของนักเรียน: เข้าสู่ระบบ (ชื่อ · นามสกุล · เลขที่ · ชั้นเรียน · อีเมล — กรอกครบทุกช่องจึงเข้าได้) → เลือกห้อง
 //   ตรวจกับรายชื่อของครูที่เซิร์ฟเวอร์ (/api/roster) ถ้าไม่ตรงจะให้ตรวจอีกครั้งก่อนยืนยัน
-//   📚 คำศัพท์แกน 120 คำ (VocabRoom)  — เรียนแบบ 5 ขั้น + ทวนตามคาบ
+//   เมนู ม.6 เรียงตามคาบคู่ 90 นาที (อ33102): ① 🧩 → พัก 5 นาที → ② 📚 · เมนู ม.4 มีแถบ 🧩 แถบเดียว
 //   🧩 ถอดรหัสคำศัพท์ (CourseRoom)     — ม.6: 14 บท บทละ 15 ข้อ (decoder) · ม.4: 14 คาบ คาบละ 10 ข้อ ผ่าน 8 (decoder4)
+//   📚 คำศัพท์แกน 120 คำ (VocabRoom)  — เรียนแบบ 5 ขั้น + ทวนตามคาบ
 // (ระบบคลังคำ 3,000+ คำแบบเดิมถูกนำออกแล้ว — ข้อมูลเก่าใน Firestore ยังเก็บไว้ ไม่ได้ลบ)
 // ─────────────────────────────────────────────────────────────
 
 import React, { useEffect, useState } from "react";
 import CourseRoom from "./_components/CourseRoom";
 import VocabRoom, { dueCountLocal } from "./_components/VocabRoom";
-import { CORE_NAME, CORE_PLAN } from "./lib/vocab300";
+import { CORE_NAME } from "./lib/vocab300";
 import {
   GRADES,
   MAX_NO,
@@ -273,44 +274,54 @@ export default function Home() {
               )}
             </div>
 
-            <div className="space-y-3 text-left mb-6">
-              {/* ม.4 (อ31206) เรียนเฉพาะห้องถอดรหัสคำศัพท์ · ห้องคำศัพท์แกน 120 คำเป็นของ ม.6 (อ33102) */}
-              {!isM4 && (
-              <button
-                type="button"
-                onClick={() => setSection("VOCAB")}
-                className="w-full p-5 bg-[#003399] text-white rounded-2xl shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-4 text-left"
-              >
-                <span className="text-3xl">📚</span>
-                <span className="flex-1">
-                  <span className="block font-black text-lg text-[#FFD700]">{CORE_NAME}</span>
-                  <span className="block text-xs text-white/80 font-bold">TGAT · A-Level · เรียนแบบ 5 ขั้น · {CORE_PLAN}</span>
-                </span>
-                {dueCount > 0 ? (
-                  <span className="text-[10px] font-black bg-[#FFD700] text-[#003399] px-2 py-1 rounded-full whitespace-nowrap">ทวน {dueCount} คำ</span>
-                ) : (
-                  <span className="text-[#FFD700] text-xl">→</span>
-                )}
-              </button>
-              )}
-
-              <button
-                type="button"
-                onClick={() => setSection("DECODER")}
-                className="w-full p-5 bg-white border-2 border-[#003399]/15 rounded-2xl shadow-sm hover:border-[#003399]/40 active:scale-[0.98] transition-all flex items-center gap-4 text-left"
-              >
-                <span className="text-3xl">🧩</span>
-                <span className="flex-1">
-                  <span className="block font-black text-lg text-[#003399]">{isM4 ? "ถอดรหัสคำศัพท์ ม.4" : "ถอดรหัสคำศัพท์"}</span>
-                  <span className="block text-xs text-gray-500 font-bold">
-                    {isM4
-                      ? "Root Words Decoder · ปูพื้นฐาน · 14 คาบ ตรงกับแบบเรียน ม.4 · ตั๋วออกคาบละ 10 ข้อ"
-                      : "Root Words Decoder · ปัจจัย • อุปสรรค • รากศัพท์ · 14 บท · คาบที่ 1 ของคาบคู่"}
-                  </span>
-                </span>
-                <span className="text-[#003399] text-xl">→</span>
-              </button>
-            </div>
+            {isM4 ? (
+              /* ม.4 (อ31206) คาบเดี่ยว 45 นาที เรียนเฉพาะห้องถอดรหัสคำศัพท์ · ห้องคำศัพท์แกน 120 คำเป็นของ ม.6 (อ33102) */
+              <div className="text-left mb-6">
+                <RoomCard
+                  top="คาบละ"
+                  big="45"
+                  bottom="นาที"
+                  icon="🧩"
+                  title="ถอดรหัสคำศัพท์ ม.4"
+                  sub="Root Words Decoder · ปูพื้นฐาน · 14 คาบ ตรงกับแบบเรียน ม.4"
+                  hint="เรียนตามแบบเรียน → ตั๋วออกคาบละ 10 ข้อ ถูก 8 ข้อขึ้นไปผ่าน"
+                  onClick={() => setSection("DECODER")}
+                />
+              </div>
+            ) : (
+              /* ม.6 คาบคู่ อ33102: เรียงตามลำดับที่เรียนจริง → คาบที่ 1 🧩 · พัก 5 นาที · คาบที่ 2 📚 */
+              <div className="text-left mb-6">
+                <p className="text-center text-[11px] font-black text-[#003399]/60 tracking-wide mb-2">
+                  เรียงตามลำดับในคาบคู่ 90 นาที · เริ่มจากคาบที่ 1
+                </p>
+                <RoomCard
+                  top="คาบที่"
+                  big="1"
+                  bottom="45 นาที"
+                  icon="🧩"
+                  title="ถอดรหัสคำศัพท์"
+                  sub="Root Words Decoder · ปัจจัย • อุปสรรค • รากศัพท์ · 14 บท"
+                  hint="เรียนบทในแบบเรียน → แบบฝึกหัด 15 ข้อ ต้องถูกครบ"
+                  onClick={() => setSection("DECODER")}
+                />
+                <div className="flex items-center gap-3 py-2.5" aria-hidden="true">
+                  <span className="flex-1 border-t-2 border-dashed border-[#003399]/15" />
+                  <span className="text-[11px] font-bold text-gray-400 whitespace-nowrap">☕ พัก 5 นาที แล้วต่อคาบที่ 2</span>
+                  <span className="flex-1 border-t-2 border-dashed border-[#003399]/15" />
+                </div>
+                <RoomCard
+                  top="คาบที่"
+                  big="2"
+                  bottom="45 นาที"
+                  icon="📚"
+                  title={CORE_NAME}
+                  sub="TGAT · A-Level · 12 ชุด ชุดละ 10 คำ · เรียนแบบ 5 ขั้น"
+                  hint="ทวนคำที่ถึงกำหนดก่อน → เรียนชุดของสัปดาห์นี้ 10 คำ"
+                  badge={dueCount > 0 ? `ทวน ${dueCount} คำ` : undefined}
+                  onClick={() => setSection("VOCAB")}
+                />
+              </div>
+            )}
 
             <button
               onClick={handleLogout}
@@ -347,5 +358,40 @@ function Field({ id, label, en, error, children }: { id: string; label: string; 
       {children}
       {error && <p className="text-xs font-bold text-rose-600 mt-1">{error}</p>}
     </div>
+  );
+}
+
+// ── แถบห้องในเมนูหลัก: ช่องซ้ายบอกลำดับคาบ (สีกรม-ทองของโรงเรียน) · ทุกแถบหน้าตาเดียวกัน ──
+function RoomCard({ top, big, bottom, icon, title, sub, hint, badge, onClick }: {
+  top: string; big: string; bottom: string; icon: string; title: string; sub: string; hint: string; badge?: string; onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group w-full flex items-stretch bg-white border-2 border-[#003399]/15 rounded-2xl overflow-hidden shadow-sm hover:border-[#003399]/50 hover:shadow-md active:scale-[0.99] transition-all text-left"
+    >
+      <span className="w-16 sm:w-[4.5rem] shrink-0 flex flex-col items-center justify-center gap-1 bg-[#003399] py-4 border-r-4 border-[#FFD700]">
+        <span className="text-[10px] font-bold text-white/75 leading-none">{top}</span>
+        <span className="text-3xl font-black text-[#FFD700] leading-none">{big}</span>
+        <span className="text-[10px] font-bold text-white/75 leading-none whitespace-nowrap">{bottom}</span>
+      </span>
+      <span className="flex-1 min-w-0 flex items-center gap-3 px-3 sm:px-4 py-4">
+        <span className="hidden sm:block text-3xl shrink-0" aria-hidden="true">{icon}</span>
+        <span className="flex-1 min-w-0">
+          <span className="block font-black text-lg text-[#003399] leading-tight">
+            <span className="sm:hidden" aria-hidden="true">{icon} </span>
+            {title}
+          </span>
+          <span className="block text-xs text-gray-500 font-bold mt-1">{sub}</span>
+          <span className="block text-[11px] text-[#003399]/70 font-bold mt-1">{hint}</span>
+        </span>
+        {badge ? (
+          <span className="shrink-0 text-[10px] font-black bg-[#FFD700] text-[#003399] px-2 py-1 rounded-full whitespace-nowrap">{badge}</span>
+        ) : (
+          <span className="shrink-0 text-[#003399] text-xl transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+        )}
+      </span>
+    </button>
   );
 }
