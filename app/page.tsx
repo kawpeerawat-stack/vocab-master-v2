@@ -305,7 +305,7 @@ export default function Home() {
                   <span className="block text-xs text-gray-500 font-bold">
                     {isM4
                       ? "Root Words Decoder · ปูพื้นฐาน · 14 คาบ ตรงกับแบบเรียน ม.4 · ตั๋วออกคาบละ 10 ข้อ"
-                      : "Root Words Decoder · ปัจจัย • อุปสรรค • รากศัพท์ · 14 บท ตรงกับแบบเรียน"}
+                      : "Root Words Decoder · ปัจจัย • อุปสรรค • รากศัพท์ · 14 บท · คาบที่ 1 ของคาบคู่"}
                   </span>
                 </span>
                 <span className="text-[#003399] text-xl">→</span>

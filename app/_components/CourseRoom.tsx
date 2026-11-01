@@ -266,7 +266,7 @@ export default function CourseRoom({
                       <span className="flex-1 min-w-0">
                         <span className="block font-black text-gray-900 truncate">{l.titleTh}</span>
                         <span className="block text-xs text-gray-500 truncate">{l.titleEn}</span>
-                        {l.week && <span className="block text-[11px] font-bold text-[#003399]/70">สัปดาห์ที่ {l.week}{l.dateLabel ? ` · ${l.dateLabel}` : ""}</span>}
+                        {l.week && <span className="block text-[11px] font-bold text-[#003399]/70">สัปดาห์ที่ {l.week}{l.dateLabel ? ` · ${l.dateLabel}` : ""}{l.pairNote ? ` · ${l.pairNote}` : ""}</span>}
                       </span>
                       <span className="shrink-0 text-right">
                         {p?.passed ? (
@@ -306,7 +306,7 @@ export default function CourseRoom({
         </button>
         <div className="mb-4">
           <span className="text-[11px] font-black bg-[#FFD700] text-[#003399] px-2 py-1 rounded-full">{L}ที่ {lesson.hour} · ตรงกับแบบเรียน</span>
-          {lesson.week && <span className="ml-2 text-[11px] font-bold text-gray-500">แผนเรียน: สัปดาห์ที่ {lesson.week}{lesson.dateLabel ? ` · ${lesson.dateLabel}` : ""}</span>}
+          {lesson.week && <span className="ml-2 text-[11px] font-bold text-gray-500">แผนเรียน: สัปดาห์ที่ {lesson.week}{lesson.dateLabel ? ` · ${lesson.dateLabel}` : ""}{lesson.pairNote ? ` · ${lesson.pairNote}` : ""}</span>}
           <h1 className="text-2xl font-black text-gray-900 mt-2">{lesson.titleTh}</h1>
           <p className="text-[#003399] font-bold">{lesson.titleEn}</p>
           <p className="text-sm text-gray-600 mt-2"><span className="font-bold">เป้าหมาย:</span> {lesson.goal}</p>

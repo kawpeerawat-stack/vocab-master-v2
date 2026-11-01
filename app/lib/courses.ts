@@ -40,6 +40,7 @@ export interface CourseLesson {
   week?: number;
   start?: string;
   dateLabel?: string;
+  pairNote?: string; // ฉบับคาบคู่ ม.6: คาบที่ 2 ของสัปดาห์นี้เรียนอะไรในห้อง 📚 เช่น "คาบที่ 2 → 📚 ชุดที่ 1"
   questions: CourseQuestion[];
 }
 export interface Course {
