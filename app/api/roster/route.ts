@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "missing fields" }, { status: 400 });
   }
 
-  // ห้องที่ยังไม่มีรายชื่อในระบบ (เช่น ม.4/2) → ไม่ตรวจ ให้เข้าได้ตามปกติ
+  // ห้องที่ยังไม่มีรายชื่อในระบบ → ไม่ตรวจ ให้เข้าได้ตามปกติ (ตอนนี้มีรายชื่อครบทุกห้องแล้ว: ม.6/1–6/5 · ม.4/1–4/3)
   if (!ROSTER.some((r) => r.room === room)) {
     return NextResponse.json({ result: "unknown" }, { headers: { "Cache-Control": "no-store" } });
   }

@@ -2,15 +2,16 @@
 // app/admin/_vocab/VocabAdmin.tsx
 // ─────────────────────────────────────────────────────────────
 // หน้าครู · คำศัพท์แกน 120 คำ (12 ชุด ชุดละ 10 คำ · เรียนตามแผน 14 สัปดาห์ ภาคเรียนที่ 2/2569)
-//   • ตารางรายคน: รู้แล้ว / กำลังเรียน / ค้างทวน / วันที่เข้าเรียนใน 7 วัน / ทักษะเดาก่อน + รายสัปดาห์
-//   • รายสัปดาห์: ภาพรวมทั้งห้อง + คำที่นักเรียนพลาดบ่อยในสัปดาห์นั้น
+//   • ตารางรายคน: ผ่านชุดไหนแล้ว (✓ เขียว) / ตามแผน / วันนี้ / ทักษะเดาก่อน — อัปเดตสดตามที่นักเรียนส่งผล
+//   • รายชุด: ภาพรวมทั้งห้อง + คำที่นักเรียนพลาดบ่อยในชุดนั้น
 //   • คำที่ควรสอนซ่อม: จัดอันดับคำยากจากข้อมูลจริงทุกคน
-//   • ส่งออก CSV
-// “รู้แล้ว” = ตอบถูกตั้งแต่ครั้งแรกในวันที่ต่างกันอย่างน้อย 2 วัน (ลืมแล้วนับใหม่)
+//   • สมุดคะแนน: คะแนนชุดละ 10 (รอบทบทวน ถูกตั้งแต่ครั้งแรก) รวมเต็ม 120 → ส่งออก CSV
+// “ผ่านชุด” = เรียนครบ 10 คำ + รอบทบทวนถูกครบ · “รู้แล้ว” = คำในชุดที่ผ่านแล้ว
+// ชุดที่เรียนครบ 10 คำด้วยแอปแบบเดิม (ก่อน 4 พ.ย. 2569) นับว่าผ่าน — คะแนนคิดจากขั้นที่ 4 (มี * ในสมุดคะแนน)
 // ─────────────────────────────────────────────────────────────
 
 import React, { useMemo, useState } from "react";
-import { BEHIND_DUE, VCourse, VProgress, VWord, computeStats, emptyProgress, isKnown, mergeProgress, plannedWeekNo, plannedWords, todayStr } from "../../lib/vocab300";
+import { VCourse, VProgress, VSetPass, VWord, computeStats, emptyProgress, isKnown, mergeProgress, normalizeProgress, plannedWeekNo, setPassOf, setState, todayStr } from "../../lib/vocab300";
 import { ROOMS, ROSTER, extractNo, fmtThaiTime, gradeOf, matchRoster, roomOf, rosterKey, downloadCsv, typedMismatch } from "../../lib/roster";
 
 export type V300Doc = { id: string; name?: string; email?: string; v300?: VProgress; v300At?: number };
@@ -45,7 +46,7 @@ export default function VocabAdmin({
   search: string;
 }) {
   const today = todayStr();
-  const [mode, setMode] = useState<"people" | "weeks" | "hard">("people");
+  const [mode, setMode] = useState<"people" | "grades" | "weeks" | "hard">("people");
   const [weekNo, setWeekNo] = useState(1);
   const [sortBy, setSortBy] = useState<"roster" | "known" | "inactive" | "behind">("roster");
   const words = course.words;
@@ -66,19 +67,20 @@ export default function VocabAdmin({
         const row = byRoster[rosterKey(hit)];
         if (s.name && !row.typedNames.includes(s.name)) row.typedNames.push(s.name);
         if (s.email) row.emails.push(s.email);
-        if (has) row.prog = mergeProgress(row.prog, { cards: p!.cards || {}, days: p!.days || {} });
+        if (has) row.prog = mergeProgress(row.prog, { cards: p!.cards || {}, days: p!.days || {}, sets: p!.sets || {} });
         row.at = Math.max(row.at, s.v300At ?? 0);
       } else if (has) {
         extra.push({
           key: `x|${s.id}`, room: roomOf(s.name), no: extractNo(s.name), name: s.name || s.email || s.id,
-          typedNames: s.name ? [s.name] : [], emails: s.email ? [s.email] : [], prog: { cards: p!.cards || {}, days: p!.days || {} },
+          typedNames: s.name ? [s.name] : [], emails: s.email ? [s.email] : [], prog: { cards: p!.cards || {}, days: p!.days || {}, sets: p!.sets || {} },
           at: s.v300At ?? 0, inRoster: false,
         });
       }
     }
     const rr = Object.values(byRoster).sort((a, b) => (a.room! < b.room! ? -1 : a.room! > b.room! ? 1 : (a.no ?? 0) - (b.no ?? 0)));
-    return [...rr, ...extra];
-  }, [students]);
+    // ชุดที่เรียนครบด้วยแอปแบบเดิม → นับผ่าน (ให้ตรงกับหน้านักเรียน แม้นักเรียนยังไม่เปิดแอปอีก)
+    return [...rr, ...extra].map((r) => ({ ...r, prog: normalizeProgress(r.prog, course.words) }));
+  }, [students, course]);
 
   const q = search.trim().toLowerCase();
   const visible = rows.filter(
@@ -96,30 +98,35 @@ export default function VocabAdmin({
 
   const sorted = useMemo(() => {
     const list = [...visible];
-    if (sortBy === "known") list.sort((a, b) => metrics[b.key].known - metrics[a.key].known || metrics[b.key].seen - metrics[a.key].seen);
-    if (sortBy === "inactive") list.sort((a, b) => metrics[a.key].todayN + metrics[a.key].todayR - (metrics[b.key].todayN + metrics[b.key].todayR) || metrics[b.key].due - metrics[a.key].due);
-    if (sortBy === "behind") list.sort((a, b) => metrics[a.key].seen - metrics[b.key].seen || metrics[b.key].due - metrics[a.key].due);
+    if (sortBy === "known") list.sort((a, b) => metrics[b.key].passed - metrics[a.key].passed || metrics[b.key].seen - metrics[a.key].seen);
+    if (sortBy === "inactive") list.sort((a, b) => metrics[a.key].todayN + metrics[a.key].todayR + metrics[a.key].passedToday - (metrics[b.key].todayN + metrics[b.key].todayR + metrics[b.key].passedToday));
+    if (sortBy === "behind") list.sort((a, b) => metrics[a.key].passed - metrics[b.key].passed || metrics[a.key].seen - metrics[b.key].seen);
     return list;
   }, [visible, sortBy, metrics]);
 
-  // คำที่ควรเรียนแล้วตามแผน ณ วันนี้ — คิดตามวันเรียนของแต่ละห้อง (ห้องที่ยังไม่ถึงคาบในสัปดาห์นี้ จะยังไม่นับชุดใหม่)
+  // ชุดที่ควรผ่านแล้วตามแผน ณ วันนี้ — คิดตามวันเรียนของแต่ละห้อง (ห้องที่ยังไม่ถึงคาบในสัปดาห์นี้ จะยังไม่นับชุดใหม่)
   const planRoom = roomFilter === "ALL" ? null : roomFilter;
-  const planTarget = plannedWords(course, today, planRoom);
   const planNo = plannedWeekNo(course, today, planRoom);
-  const roomTargets: Record<string, number | null> = Object.fromEntries(ROOMS.map((rm) => [rm, plannedWords(course, today, rm)]));
-  const targetOf = (room: string | null) => (room && room in roomTargets ? roomTargets[room] : planTarget);
+  const roomPlans: Record<string, number | null> = Object.fromEntries(ROOMS.map((rm) => [rm, plannedWeekNo(course, today, rm)]));
+  const planOf = (room: string | null) => (room && room in roomPlans ? roomPlans[room] : planNo);
+  // ผ่านครบทุกชุดถึงชุดตามแผนของห้องแล้วหรือยัง
+  const behindOf = (r: VRow) => {
+    const k = planOf(r.room);
+    if (!k) return 0;
+    let n = 0;
+    for (let i = 1; i <= k; i++) if (!setPassOf(r.prog, i)) n++;
+    return n;
+  };
 
   const inRosterVisible = visible.filter((r) => r.inRoster);
   const summary = (() => {
     const list = inRosterVisible;
-    const started = list.filter((r) => metrics[r.key].seen > 0);
-    const sumKnown = list.reduce((s, r) => s + metrics[r.key].known, 0);
-    const sumSeen = list.reduce((s, r) => s + metrics[r.key].seen, 0);
-    const active7 = list.filter((r) => metrics[r.key].active7 > 0).length;
-    const behind = started.filter((r) => metrics[r.key].due >= BEHIND_DUE).length;
-    const doneToday = list.filter((r) => metrics[r.key].todayN + metrics[r.key].todayR > 0).length;
-    const onPlan = planTarget === null ? null : list.filter((r) => metrics[r.key].seen >= (targetOf(r.room) ?? 0)).length;
-    return { n: list.length, started: started.length, avgKnown: list.length ? sumKnown / list.length : 0, avgSeen: list.length ? sumSeen / list.length : 0, active7, behind, doneToday, onPlan };
+    const sumPassed = list.reduce((s, r) => s + metrics[r.key].passed, 0);
+    const doneToday = list.filter((r) => metrics[r.key].todayN + metrics[r.key].todayR + metrics[r.key].passedToday > 0).length;
+    const passedNow = list.filter((r) => { const k = planOf(r.room); return !!k && !!setPassOf(r.prog, k); }).length;
+    const ready = list.filter((r) => metrics[r.key].ready > 0).length;
+    const onPlan = planNo === null ? null : list.filter((r) => behindOf(r) === 0).length;
+    return { n: list.length, avgPassed: list.length ? sumPassed / list.length : 0, doneToday, passedNow, ready, onPlan };
   })();
 
   // ── สถิติรายคำ (ในกลุ่มที่เลือก) ──
@@ -148,13 +155,30 @@ export default function VocabAdmin({
   };
   const hardWords = words.filter((w) => wordStats[w.id].learners >= 3).sort((a, b) => difficulty(b.id) - difficulty(a.id)).slice(0, 20);
 
+  const fileScope = roomFilter === "ALL" ? `m${grade}-all` : roomFilter.replace("/", "-");
   const exportCsv = () => {
-    const headers = ["ห้อง", "เลขที่", "ชื่อ-สกุล", "ชื่อที่พิมพ์ในแอป", "อีเมล", "รู้แล้ว", "กำลังเรียน", "เรียนแล้ว", "ค้างทวน", "วันที่เข้าเรียน (7 วัน)", "วันติดต่อกัน", "เดาความหมายถูก %", "ผ่าคำถูก %", ...course.weeks.map((w) => `ชุด ${w.no} รู้แล้ว`), `ตามแผน${planRoom ? ` (ควรเรียนแล้ว ${planTarget ?? "-"} คำ)` : " (คิดตามวันเรียนของแต่ละห้อง)"}`, "วันนี้ คำใหม่", "วันนี้ ทวน", "ทำล่าสุด"];
+    const headers = ["ห้อง", "เลขที่", "ชื่อ-สกุล", "ชื่อที่พิมพ์ในแอป", "อีเมล", "ผ่าน (ชุด)", "รู้แล้ว (คำ)", "กำลังเรียน", "เรียนแล้ว", "ทวนได้ (ไม่บังคับ)", "วันที่เข้าเรียน (7 วัน)", "เดาความหมายถูก %", "ผ่าคำถูก %", ...course.weeks.map((w) => `ชุด ${w.no}`), `ตามแผน${planRoom ? ` (ควรผ่านถึงชุดที่ ${planNo ?? "-"})` : " (คิดตามวันเรียนของแต่ละห้อง)"}`, "วันนี้ คำใหม่", "วันนี้ ทวน", "ทำล่าสุด"];
     const data = sorted.map((r) => {
       const m = metrics[r.key];
-      return [r.room ?? "", r.no ?? "", r.name, r.typedNames.join(" / "), r.emails.join(" / "), m.known, m.learning, m.seen, m.due, m.active7, m.streak, m.seen ? m.guessPct : "", m.partN ? m.partPct : "", ...m.weekKnown, planText(targetOf(r.room), m.seen), m.todayN, m.todayR, m.lastAt ? new Date(m.lastAt).toLocaleString("th-TH") : ""];
+      return [r.room ?? "", r.no ?? "", r.name, r.typedNames.join(" / "), r.emails.join(" / "), m.passed, m.known, m.learning, m.seen, m.due, m.active7, m.seen ? m.guessPct : "", m.partN ? m.partPct : "", ...m.sets.map((x) => (x.rec ? "ผ่าน" : x.seen ? `เรียน ${x.seen}/${x.n}` : "")), planText(planOf(r.room), behindOf(r)), m.todayN, m.todayR, m.lastAt ? new Date(m.lastAt).toLocaleString("th-TH") : ""];
     });
-    downloadCsv(`vocab300-${roomFilter === "ALL" ? `m${grade}-all` : roomFilter.replace("/", "-")}-${today}.csv`, headers, data);
+    downloadCsv(`vocab300-${fileScope}-${today}.csv`, headers, data);
+  };
+  // สมุดคะแนน: ชุดละ 10 คะแนน (รอบทบทวน ตอบถูกตั้งแต่ครั้งแรก) · * = ผ่านจากแอปแบบเดิม (คิดจากขั้นที่ 4)
+  const exportGrades = () => {
+    const headers = ["ห้อง", "เลขที่", "ชื่อ-สกุล", ...course.weeks.map((w) => `ชุด ${w.no} (10)`), "ผ่าน (ชุด)", `คะแนนรวม (เต็ม ${course.weeks.length * 10})`, "หมายเหตุ", "อีเมล"];
+    const data = sorted.map((r) => {
+      const m = metrics[r.key];
+      const legacy = m.sets.filter((x) => x.rec?.legacy).map((x) => x.no);
+      return [
+        r.room ?? "", r.no ?? "", r.name,
+        ...m.sets.map((x) => (x.rec ? x.rec.score : "")),
+        m.passed, m.score,
+        legacy.length ? `ชุด ${legacy.join(", ")} ผ่านจากแอปแบบเดิม (คะแนนคิดจากขั้นที่ 4)` : "",
+        r.emails.join(" / "),
+      ];
+    });
+    downloadCsv(`vocab300-grades-${fileScope}-${today}.csv`, headers, data);
   };
 
   return (
@@ -162,14 +186,14 @@ export default function VocabAdmin({
       {/* ── การ์ดสรุป ── */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-5">
         {[
-          [summary.n, `นักเรียนในรายชื่อ ${roomFilter === "ALL" ? `ม.${grade} ทุกห้อง` : `ม.${roomFilter}`}`],
-          [summary.doneToday, "ทำในแอปวันนี้แล้ว"],
-          [summary.onPlan === null ? summary.started : summary.onPlan, summary.onPlan === null ? "เริ่มเรียนแล้ว" : planRoom ? `ทันแผน (เรียนถึงชุดที่ ${planNo})` : "ทันแผน (ตามคาบของแต่ละห้อง)"],
-          [summary.avgKnown.toFixed(1), `รู้แล้วเฉลี่ย (คำ/คน จาก ${total})`],
-          [summary.behind, `ค้างทวน ≥ ${BEHIND_DUE} คำ`],
-        ].map(([v, l], i) => (
+          [summary.n, `นักเรียนในรายชื่อ ${roomFilter === "ALL" ? `ม.${grade} ทุกห้อง` : `ม.${roomFilter}`}`, "text-[#003399]"],
+          [summary.doneToday, "ทำในแอปวันนี้แล้ว", "text-[#003399]"],
+          [summary.passedNow, planRoom && planNo ? `ผ่านชุดที่ ${planNo} แล้ว (ชุดของสัปดาห์นี้)` : "ผ่านชุดของสัปดาห์นี้แล้ว (ตามคาบของแต่ละห้อง)", "text-emerald-600"],
+          [summary.ready, "เรียนครบ 10 คำ รอทำรอบทบทวน", summary.ready > 0 ? "text-amber-600" : "text-gray-300"],
+          [summary.avgPassed.toFixed(1), `ผ่านเฉลี่ย (ชุด/คน จาก ${course.weeks.length})`, "text-[#003399]"],
+        ].map(([v, l, cls], i) => (
           <div key={i} className="bg-white rounded-2xl p-4 border border-gray-100">
-            <div className={`text-3xl font-black tabular-nums ${i === 4 && Number(v) > 0 ? "text-rose-600" : "text-[#003399]"}`}>{v}</div>
+            <div className={`text-3xl font-black tabular-nums ${cls}`}>{v}</div>
             <div className="text-xs text-gray-500 font-bold">{l}</div>
           </div>
         ))}
@@ -179,6 +203,7 @@ export default function VocabAdmin({
       <div className="flex flex-wrap items-center gap-2 mb-4">
         {([
           ["people", "ตารางรายคน"],
+          ["grades", "📒 สมุดคะแนน"],
           ["weeks", "รายชุด"],
           ["hard", "คำที่ควรสอนซ่อม"],
         ] as const).map(([k, l]) => (
@@ -189,12 +214,16 @@ export default function VocabAdmin({
         {mode === "people" && (
           <select value={sortBy} onChange={(e) => setSortBy(e.target.value as typeof sortBy)} className="border-2 border-gray-200 rounded-xl px-3 py-1.5 text-sm font-bold bg-white">
             <option value="roster">เรียงตามเลขที่</option>
-            <option value="known">เรียงตามคำที่รู้แล้ว (มาก → น้อย)</option>
+            <option value="known">เรียงตามชุดที่ผ่าน (มาก → น้อย)</option>
             <option value="inactive">คนที่ยังไม่ได้ทำวันนี้ขึ้นก่อน</option>
             <option value="behind">คนที่ช้ากว่าแผนขึ้นก่อน</option>
           </select>
         )}
-        <button onClick={exportCsv} className="ml-auto px-4 py-2 bg-[#003399] text-[#FFD700] font-black rounded-xl text-sm">⬇ CSV คำศัพท์แกน</button>
+        {mode === "grades" ? (
+          <button onClick={exportGrades} className="ml-auto px-4 py-2 bg-[#003399] text-[#FFD700] font-black rounded-xl text-sm">⬇ สมุดคะแนน CSV</button>
+        ) : (
+          <button onClick={exportCsv} className="ml-auto px-4 py-2 bg-[#003399] text-[#FFD700] font-black rounded-xl text-sm">⬇ CSV คำศัพท์แกน</button>
+        )}
       </div>
 
       {/* ── ตารางรายคน ── */}
@@ -207,12 +236,12 @@ export default function VocabAdmin({
                   <th className="sticky left-0 z-10 bg-[#003399] text-left px-3 py-2 font-black min-w-[210px]">นักเรียน</th>
                   <th className="px-2 py-2 font-black min-w-[120px]">รู้แล้ว / {total}</th>
                   <th className="px-2 py-2 font-black">กำลังเรียน</th>
-                  <th className="px-2 py-2 font-black">ค้างทวน</th>
+                  <th className="px-2 py-2 font-black whitespace-nowrap">ทวนได้</th>
                   <th className="px-2 py-2 font-black whitespace-nowrap">ตามแผน</th>
                   <th className="px-2 py-2 font-black whitespace-nowrap">วันนี้ (ใหม่ · ทวน)</th>
                   <th className="px-2 py-2 font-black whitespace-nowrap">เดาถูก</th>
                   {course.weeks.map((w) => (
-                    <th key={w.no} className="px-0.5 py-2 font-black min-w-[30px]" title={`${w.title}${w.label ? ` · ${w.label}` : ""}`}>ช.{w.no}</th>
+                    <th key={w.no} className="px-0.5 py-2 font-black min-w-[30px]" title={`ชุดที่ ${w.no} · ${w.title}${w.label ? ` · ${w.label}` : ""}`}>ชุด{w.no}</th>
                   ))}
                   <th className="px-3 py-2 font-black text-left whitespace-nowrap">ทำล่าสุด</th>
                 </tr>
@@ -250,36 +279,26 @@ export default function VocabAdmin({
                           </div>
                         </td>
                         <td className="text-center text-xs font-bold tabular-nums">{m.learning || <span className="text-gray-300">0</span>}</td>
-                        <td className={`text-center text-xs font-black tabular-nums ${m.due >= BEHIND_DUE ? "text-rose-600" : m.due > 0 ? "text-amber-700" : "text-gray-300"}`}>{m.due}</td>
+                        <td className={`text-center text-xs font-bold tabular-nums ${m.due > 0 ? "text-gray-600" : "text-gray-300"}`}>{m.due}</td>
                         <td className="text-center text-xs font-black tabular-nums whitespace-nowrap">
-                          <PlanCell target={targetOf(r.room)} seen={m.seen} />
+                          <PlanCell plan={planOf(r.room)} behind={behindOf(r)} />
                         </td>
                         <td className="text-center text-xs font-bold tabular-nums whitespace-nowrap">
-                          {m.todayN + m.todayR === 0 ? (
+                          {m.todayN + m.todayR + m.passedToday === 0 ? (
                             <span className="text-gray-300">ยังไม่ทำ</span>
                           ) : (
-                            <span className={m.todayN >= 10 && m.due === 0 ? "text-emerald-600" : "text-[#003399]"}>
+                            <span className={m.passedToday > 0 ? "text-emerald-600" : "text-[#003399]"}>
                               {m.todayN} · {m.todayR}
-                              {m.due === 0 ? " ✓" : ""}
+                              {m.passedToday > 0 ? " ✓ ผ่าน" : ""}
                             </span>
                           )}
                         </td>
                         <td className="text-center text-xs tabular-nums text-gray-600">{m.seen ? `${m.guessPct}%` : "–"}</td>
-                        {m.weekKnown.map((k, wi) => {
-                          const s = m.weekSeen[wi];
-                          const n = course.weeks[wi].count;
-                          return (
-                            <td key={wi} className="text-center px-0.5 py-1" title={`ชุด ${wi + 1}: รู้แล้ว ${k} · เรียนแล้ว ${s} / ${n}`}>
-                              {s === 0 ? (
-                                <span className="inline-flex w-7 h-6 rounded-md bg-gray-50 text-gray-300 items-center justify-center text-xs">·</span>
-                              ) : k === n ? (
-                                <span className="inline-flex w-7 h-6 rounded-md bg-emerald-500 text-white font-black items-center justify-center text-[11px]">✓</span>
-                              ) : (
-                                <span className={`inline-flex w-7 h-6 rounded-md font-black items-center justify-center text-[11px] tabular-nums ${k > 0 ? "bg-emerald-100 text-emerald-800" : "bg-amber-50 text-amber-700"}`}>{k}</span>
-                              )}
-                            </td>
-                          );
-                        })}
+                        {m.sets.map((x) => (
+                          <td key={x.no} className="text-center px-0.5 py-1" title={setTip(x)}>
+                            <SetCell x={x} />
+                          </td>
+                        ))}
                         <td className="px-3 py-1 text-xs text-gray-500 whitespace-nowrap">{m.lastAt ? fmtThaiTime(m.lastAt) : "–"}</td>
                       </tr>
                     </React.Fragment>
@@ -289,9 +308,67 @@ export default function VocabAdmin({
             </table>
           </div>
           <p className="text-[11px] text-gray-500 px-4 py-3 leading-relaxed">
-            แถบเขียว = รู้แล้ว (ถูกต่างวัน 2 วัน) · แถบฟ้าจาง = เรียนแล้ว · ค้างทวน = คำที่ถึงกำหนดแต่ยังไม่ทวน (แดงเมื่อ ≥ {BEHIND_DUE}) ·
-            ตามแผน = เทียบคำที่เรียนแล้วกับแผนรายสัปดาห์ นับถึงคาบล่าสุดของห้องนั้น{planRoom && planTarget !== null ? ` (ม.${planRoom} วันนี้ควรเรียนแล้ว ${planTarget} คำ)` : ""} · วันนี้ = คำใหม่ · ข้อทวน ที่ทำวันนี้ (✓ = ไม่มีค้างทวน — ใช้เช็กก่อนหมดคาบ) ·
-            เดาถูก = สัดส่วนที่ขั้น “เดาก่อนรู้” เดาความหมายถูก (บอกทักษะถอดรหัสคำ) · ช.1–ช.{course.weeks.length} = จำนวนคำที่รู้แล้วในแต่ละชุด (✓ = ครบ {course.weeks[0]?.count ?? 10})
+            <b>ชุด1–ชุด{course.weeks.length}</b>: <span className="text-emerald-700 font-black">✓ เขียว = ผ่านชุดแล้ว</span> (เรียนครบ 10 คำ + รอบทบทวนถูกครบ) ·
+            <span className="text-amber-700 font-black"> R = เรียนครบ 10 คำแล้ว รอทำรอบทบทวน</span> · ตัวเลข = เรียนแล้วกี่คำในชุดนั้น · ชี้ที่ช่องเพื่อดูเวลาที่ผ่านและคะแนน ·
+            รู้แล้ว = คำในชุดที่ผ่านแล้ว · ทวนได้ = คำของชุดก่อน ๆ ที่ถึงนัดทวน (ไม่บังคับ ไม่มีผลกับการผ่าน) ·
+            ตามแผน = ผ่านครบถึงชุดของสัปดาห์นี้ของห้องนั้นหรือยัง{planRoom && planNo ? ` (ม.${planRoom} วันนี้ควรผ่านถึงชุดที่ ${planNo})` : ""} · วันนี้ = คำใหม่ · ข้อทวน ที่ทำวันนี้ (✓ ผ่าน = ผ่านชุดในวันนี้) ·
+            เดาถูก = สัดส่วนที่ขั้น “เดาก่อนรู้” เดาความหมายถูก · หน้านี้อัปเดตเองทันทีที่นักเรียนส่งผล
+          </p>
+        </div>
+      )}
+
+      {/* ── สมุดคะแนน ── */}
+      {mode === "grades" && (
+        <div className="bg-white rounded-2xl border border-gray-100 mb-5">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="bg-[#003399] text-white text-[11px]">
+                  <th className="sticky left-0 z-10 bg-[#003399] text-left px-3 py-2 font-black min-w-[210px]">นักเรียน</th>
+                  {course.weeks.map((w) => (
+                    <th key={w.no} className="px-0.5 py-2 font-black min-w-[34px]" title={`ชุดที่ ${w.no}${w.label ? ` · ${w.label}` : ""} (เต็ม 10)`}>ชุด{w.no}</th>
+                  ))}
+                  <th className="px-2 py-2 font-black whitespace-nowrap">ผ่าน</th>
+                  <th className="px-3 py-2 font-black whitespace-nowrap">รวม / {course.weeks.length * 10}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sorted.map((r, i, arr) => {
+                  const m = metrics[r.key];
+                  const showRoom = sortBy === "roster" && roomFilter === "ALL" && r.inRoster && (i === 0 || arr[i - 1].room !== r.room);
+                  return (
+                    <React.Fragment key={r.key}>
+                      {showRoom && <tr><td colSpan={course.weeks.length + 3} className="bg-[#FFD700]/30 text-[#003399] font-black px-3 py-1.5 text-xs">ม.{r.room}</td></tr>}
+                      <tr className="border-b border-gray-100 hover:bg-blue-50/40">
+                        <td className="sticky left-0 z-10 bg-white px-3 py-1.5">
+                          <div className="font-bold text-gray-900 truncate max-w-[250px]">
+                            {r.no != null && <span className="text-gray-400 font-black mr-1 tabular-nums">{r.no}.</span>}
+                            {r.name}
+                          </div>
+                        </td>
+                        {m.sets.map((x) => (
+                          <td key={x.no} className="text-center px-0.5 py-1" title={setTip(x)}>
+                            {x.rec ? (
+                              <span className="inline-flex w-8 h-6 rounded-md bg-emerald-500 text-white font-black items-center justify-center text-[11px] tabular-nums">
+                                {x.rec.score}{x.rec.legacy ? "*" : ""}
+                              </span>
+                            ) : (
+                              <span className="inline-flex w-8 h-6 rounded-md bg-gray-50 text-gray-300 items-center justify-center text-xs">·</span>
+                            )}
+                          </td>
+                        ))}
+                        <td className="text-center px-2 py-1 font-black tabular-nums text-[#003399]">{m.passed}</td>
+                        <td className="text-center px-3 py-1 font-black tabular-nums">{m.score}</td>
+                      </tr>
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-[11px] text-gray-500 px-4 py-3 leading-relaxed">
+            คะแนนชุด (เต็ม 10) = จำนวนคำที่ตอบถูกตั้งแต่ครั้งแรกในรอบทบทวน · ช่องเขียว = ผ่านชุดแล้ว · <b>*</b> = ผ่านจากแอปแบบเดิมก่อนมีรอบทบทวน (คะแนนคิดจากสัดส่วนที่ตอบถูกตั้งแต่ครั้งแรกในขั้นที่ 4) ·
+            รวม = ผลรวมคะแนนทุกชุด (เต็ม {course.weeks.length * 10}) · กด “⬇ สมุดคะแนน CSV” เพื่อนำไปลงคะแนน
           </p>
         </div>
       )}
@@ -307,6 +384,7 @@ export default function VocabAdmin({
                 const n = inRosterVisible.length * ws.length || 1;
                 let seen = 0, known = 0;
                 for (const r of inRosterVisible) for (const w of ws) { const c = r.prog.cards[w.id]; if (c) { seen++; if (isKnown(c)) known++; } }
+                const passedPeople = inRosterVisible.filter((r) => setPassOf(r.prog, wk.no)).length;
                 return (
                   <button key={wk.no} onClick={() => setWeekNo(wk.no)} className={`w-full flex items-center gap-2 text-left rounded-lg px-1 ${weekNo === wk.no ? "bg-[#FFD700]/20" : "hover:bg-gray-50"}`}>
                     <span className="w-20 shrink-0 text-xs font-black text-[#003399]" title={wk.label}>ชุด {wk.no}</span>
@@ -314,7 +392,7 @@ export default function VocabAdmin({
                       <span className="absolute inset-y-0 left-0 bg-[#003399]/30" style={{ width: `${(seen / n) * 100}%` }} />
                       <span className="absolute inset-y-0 left-0 bg-emerald-500" style={{ width: `${(known / n) * 100}%` }} />
                     </span>
-                    <span className="w-40 shrink-0 text-right text-[11px] font-bold tabular-nums text-gray-600">เรียน {pct(seen, n)}% · รู้แล้ว {pct(known, n)}%</span>
+                    <span className="w-48 shrink-0 text-right text-[11px] font-bold tabular-nums text-gray-600">เรียน {pct(seen, n)}% · ผ่าน {passedPeople}/{inRosterVisible.length} คน</span>
                   </button>
                 );
               })}
@@ -336,6 +414,7 @@ export default function VocabAdmin({
   );
 }
 
+type SetInfo = { no: number; n: number; seen: number; state: ReturnType<typeof setState>; rec?: VSetPass };
 function rowMetrics(p: VProgress, words: VWord[], today: string) {
   const st = computeStats(p, today);
   const nWeeks = words.reduce((m, w) => Math.max(m, w.week), 0);
@@ -354,7 +433,21 @@ function rowMetrics(p: VProgress, words: VWord[], today: string) {
     lastAt = Math.max(lastAt, c.at || 0);
   }
   const td = p.days?.[today];
+  const sets: SetInfo[] = Array.from({ length: nWeeks }, (_, i) => ({
+    no: i + 1,
+    n: words.filter((w) => w.week === i + 1).length,
+    seen: weekSeen[i],
+    state: setState(p, words, i + 1),
+    rec: setPassOf(p, i + 1),
+  }));
+  const done = sets.filter((x) => x.rec);
+  for (const x of done) lastAt = Math.max(lastAt, x.rec!.at || 0);
   return {
+    sets,
+    passed: done.length,
+    passedToday: done.filter((x) => x.rec!.day === today).length,
+    ready: sets.filter((x) => x.state === "ready").length,
+    score: done.reduce((s, x) => s + x.rec!.score, 0),
     todayN: td?.n ?? 0,
     todayR: td?.r ?? 0,
     known: st.known,
@@ -429,12 +522,27 @@ function WordTable({
   );
 }
 
-// ── ช่อง “ตามแผน” ──
-function planText(target: number | null, seen: number): string {
-  return target === null ? "" : seen >= target ? "ทัน" : `ขาด ${target - seen}`;
+// ── ช่อง “ตามแผน” (นับเป็นชุด) ──
+function planText(plan: number | null, behind: number): string {
+  return !plan ? "" : behind === 0 ? "ทัน" : `ขาด ${behind} ชุด`;
 }
-function PlanCell({ target, seen }: { target: number | null; seen: number }) {
-  if (target === null) return <span className="text-gray-300">–</span>;
-  if (seen >= target) return <span className="text-emerald-600">✓ ทัน</span>;
-  return <span className={target - seen > 10 ? "text-rose-600" : "text-amber-700"}>ขาด {target - seen}</span>;
+function PlanCell({ plan, behind }: { plan: number | null; behind: number }) {
+  if (!plan) return <span className="text-gray-300">–</span>;
+  if (behind === 0) return <span className="text-emerald-600">✓ ทัน</span>;
+  return <span className={behind > 1 ? "text-rose-600" : "text-amber-700"}>ขาด {behind} ชุด</span>;
+}
+// ── ช่องรายชุด ──
+function setTip(x: SetInfo): string {
+  if (x.rec) {
+    const when = new Date(x.rec.at).toLocaleString("th-TH", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    return `ชุด ${x.no}: ✓ ผ่านเมื่อ ${when} · คะแนน ${x.rec.score}/10${x.rec.legacy ? " (แอปแบบเดิม คิดจากขั้นที่ 4)" : " (รอบทบทวน ถูกตั้งแต่ครั้งแรก)"}`;
+  }
+  if (x.state === "ready") return `ชุด ${x.no}: เรียนครบ ${x.n} คำแล้ว — ยังไม่ได้ทำรอบทบทวน`;
+  return x.seen ? `ชุด ${x.no}: เรียนแล้ว ${x.seen}/${x.n} คำ` : `ชุด ${x.no}: ยังไม่เรียน`;
+}
+function SetCell({ x }: { x: SetInfo }) {
+  if (x.rec) return <span className="inline-flex w-7 h-6 rounded-md bg-emerald-500 text-white font-black items-center justify-center text-[11px]">✓</span>;
+  if (x.state === "ready") return <span className="inline-flex w-7 h-6 rounded-md bg-[#FFD700] text-[#003399] font-black items-center justify-center text-[11px] ring-2 ring-amber-400">R</span>;
+  if (x.seen) return <span className="inline-flex w-7 h-6 rounded-md bg-amber-50 text-amber-700 font-black items-center justify-center text-[11px] tabular-nums">{x.seen}</span>;
+  return <span className="inline-flex w-7 h-6 rounded-md bg-gray-50 text-gray-300 items-center justify-center text-xs">·</span>;
 }

@@ -1,14 +1,17 @@
 // app/lib/vocab300.ts
 // ─────────────────────────────────────────────────────────────
-// คำศัพท์แกน 120 คำ (TGAT / A-Level · ลดจาก 300 คำ ให้พอดีรายวิชา 2 ชม./สัปดาห์ · 12 สัปดาห์ สัปดาห์ละ 10 คำ) — เรียนแบบ 5 ขั้น + ทวนแบบเว้นวัน
+// คำศัพท์แกน 120 คำ (TGAT / A-Level · ลดจาก 300 คำ ให้พอดีรายวิชา 2 ชม./สัปดาห์ · 12 ชุด ชุดละ 10 คำ) — เรียนแบบ 5 ขั้น จบในคาบ
 //   เนื้อหา: data/vocab300.json → /api/course?id=vocab300
-//   ความก้าวหน้า: students/{email}.v300 = { cards, days }
-//     + ฟิลด์สรุป v300Known / v300Seen / v300At (ไว้ให้หน้าครูและอันดับอ่านเร็ว)
+//   ความก้าวหน้า: students/{email}.v300 = { cards, days, sets }
+//     + ฟิลด์สรุป v300Known / v300Seen / v300Sets / v300At (ไว้ให้หน้าครูและอันดับอ่านเร็ว)
 //
-// กติกา "รู้แล้ว" (กันการจำแบบชั่วคราว):
-//   คำหนึ่งจะนับว่า "รู้แล้ว" เมื่อตอบถูกตั้งแต่ครั้งแรกใน "วันที่ต่างกัน" อย่างน้อย 2 วัน
-//   ถ้าตอบผิดตอนทวน → กลับไปเป็น "กำลังเรียน" และนับวันใหม่ทั้งหมด
-// ระยะทวน (วัน) ตามขั้น: ขั้น 0 → พรุ่งนี้, 1 → +2, 2 → +4, 3 → +7, 4 → +14, 5 → +30
+// กติกา "ผ่านชุด" (ปรับ 2 พ.ย. 2569 ตามที่ครูขอ — จบในคาบเดียว ไม่ต้องรอวันอื่นมาทวน):
+//   ① เรียนคำใหม่ของชุด 10 คำ (5 คำ × 2 รอบ) · ขั้นที่ 4 ข้อที่ผิดวนกลับมาจนถูกครบ
+//   ② รอบทบทวนทั้ง 10 คำอีก 1 รอบ · ข้อที่ผิดวนเฉพาะข้อนั้นจนถูกครบ
+//   ③ ครบแล้ว = ผ่านชุด (sets[k]) → หน้าครูขึ้น ✓ สีเขียวทันที · คำทั้ง 10 คำนับว่า "รู้แล้ว"
+//   ชุดที่เรียนครบ 10 คำด้วยแอปแบบเดิม (ก่อนมีรอบทบทวน) นับว่าผ่าน (legacy) — ตามที่ครูให้ลงผ่านคาบ ม.6/5 วันที่ 2 พ.ย.
+//   คะแนนชุด (เต็ม 10) = จำนวนคำที่ตอบถูกตั้งแต่ครั้งแรกในรอบทบทวน (ชุดแบบเดิมคิดจากขั้นที่ 4)
+// การทวนคำของชุดก่อน ๆ ตามนัด (คาบหน้า → 2 → 4 → 8 → 12 สัปดาห์) ยังมีให้ทำ แต่ไม่บังคับและไม่มีผลต่อการผ่านชุด
 // ─────────────────────────────────────────────────────────────
 
 import { db } from "./firebase";
@@ -81,9 +84,19 @@ export interface VCard {
   g: number;      // ขั้นที่ 1 เดาความหมายถูก: 1 / 0
   p: number;      // ขั้นที่ 1 ผ่าคำถูก: 1 / 0 / -1 (ไม่มีข้อผ่าคำ)
   pc: number;     // ขั้นที่ 3 ทำให้คิด ตอบถูก: 1 / 0
+  v?: number;     // 2 = เรียนด้วยแอปแบบใหม่ (มีรอบทบทวนชุด) · ไม่มี = แบบเดิม
+  k?: number;     // เวลา (ms) ที่ชุดของคำนี้ผ่าน → "รู้แล้ว"
 }
 export interface VDay { n: number; r: number; c: number; x: number } // คำใหม่ / ข้อทวน / ถูก / ผิด
-export interface VProgress { cards: Record<string, VCard>; days: Record<string, VDay> }
+// ผลการผ่านชุด (key = เลขชุด "1"–"12")
+export interface VSetPass {
+  at: number;               // เวลาที่ผ่าน (ms)
+  day: string;              // วันที่ผ่าน (YYYY-MM-DD)
+  score: number;            // คะแนนชุด เต็ม 10
+  learn?: [number, number]; // ขั้นที่ 4 ตอบถูกตั้งแต่ครั้งแรก / จำนวนข้อ (ทั้งชุด)
+  legacy?: 1;               // ผ่านจากการเรียนครบ 10 คำด้วยแอปแบบเดิม
+}
+export interface VProgress { cards: Record<string, VCard>; days: Record<string, VDay>; sets?: Record<string, VSetPass> }
 
 export const NEW_PER_DAY = 10;   // คำใหม่ต่อคาบ (1 ชุดสัปดาห์ = 10 คำ = 2 ชุดเรียน)
 export const CATCHUP_PER_DAY = 20; // คนที่ช้ากว่าแผน (เช่น ขาดเรียน) เรียนได้ถึง 20 คำในคาบเดียว เพื่อตามให้ทัน
@@ -93,7 +106,7 @@ export const REVIEW_LIMIT = 20;  // คำทวนสูงสุดต่อ�
 //   ผิด → ขึ้นให้ทวนตั้งแต่ครั้งถัดไปที่เปิดแอป · ถูกครั้งแรก → คาบหน้า · จากนั้น 2 → 4 → 8 → 12 สัปดาห์
 const GAP = [1, 7, 14, 28, 56, 84];
 
-export const emptyProgress = (): VProgress => ({ cards: {}, days: {} });
+export const emptyProgress = (): VProgress => ({ cards: {}, days: {}, sets: {} });
 
 // ชื่อห้องและแผนการเรียน (ใช้ร่วมกันในเมนูหลักและหน้าครู — แก้ที่นี่ที่เดียว)
 export const CORE_NAME = "คำศัพท์แกน 120 คำ";
@@ -171,7 +184,8 @@ export function dayDiff(a: string, b: string): number {
 }
 
 export type WordStatus = "new" | "learning" | "known";
-export const isKnown = (c?: VCard) => !!c && c.cd.length >= 2;
+// "รู้แล้ว" = ชุดของคำนี้ผ่านแล้ว (ดู normalizeProgress / passSet)
+export const isKnown = (c?: VCard) => !!c && !!c.k;
 export const statusOf = (c?: VCard): WordStatus => (!c ? "new" : isKnown(c) ? "known" : "learning");
 export const isDue = (c: VCard | undefined, today: string) => !!c && c.due <= today;
 
@@ -195,6 +209,7 @@ export function cardAfterLearning(
     g: r.g,
     p: r.p,
     pc: r.pc,
+    v: 2,
   };
 }
 
@@ -214,6 +229,73 @@ export function addDay(p: VProgress, today: string, d: Partial<VDay>): VProgress
     ...p,
     days: { ...p.days, [today]: { n: cur.n + (d.n ?? 0), r: cur.r + (d.r ?? 0), c: cur.c + (d.c ?? 0), x: cur.x + (d.x ?? 0) } },
   };
+}
+
+// ── ผ่านชุด ──
+export const setWords = (words: VWord[], k: number) => words.filter((w) => w.week === k);
+export const setPassOf = (p: VProgress, k: number): VSetPass | undefined => p.sets?.[String(k)];
+export const passedCount = (p: VProgress) => Object.keys(p.sets || {}).length;
+// สถานะชุด: none = ยังไม่เรียน · part = เรียนบางคำ · ready = เรียนครบ รอรอบทบทวน · passed = ผ่านแล้ว
+export type SetState = "none" | "part" | "ready" | "passed";
+export function setState(p: VProgress, words: VWord[], k: number): SetState {
+  if (setPassOf(p, k)) return "passed";
+  const ws = setWords(words, k);
+  const n = ws.filter((w) => p.cards[w.id]).length;
+  return n === 0 ? "none" : n < ws.length ? "part" : "ready";
+}
+// คะแนนจากขั้นที่ 4 (ถูกตั้งแต่ครั้งแรก / จำนวนข้อ) ของคำในชุด — ใช้กับชุดแบบเดิม และเก็บไว้ดูประกอบ
+function learnFirstTry(p: VProgress, ws: VWord[]): [number, number] {
+  let n = 0, w = 0;
+  for (const x of ws) {
+    const c = p.cards[x.id];
+    if (!c) continue;
+    n += c.n || 0;
+    w += c.w || 0;
+  }
+  return [Math.max(0, n - w), n];
+}
+// บันทึกผ่านชุด k: ทุกคำในชุด "รู้แล้ว" · นัดทวนคาบหน้า (ไม่บังคับ)
+export function passSet(p: VProgress, words: VWord[], k: number, today: string, info: { score: number; legacy?: boolean; at?: number }): VProgress {
+  const ws = setWords(words, k);
+  const at = info.at ?? Date.now();
+  const cards = { ...p.cards };
+  for (const w of ws) {
+    const c = cards[w.id];
+    if (!c) continue;
+    cards[w.id] = info.legacy
+      ? { ...c, k: c.k || at }
+      : { ...c, k: c.k || at, s: Math.max(1, c.s), due: addDays(today, GAP[1]), cd: c.cd.includes(today) ? c.cd : [...c.cd, today].slice(-5), at: Math.max(c.at || 0, at) };
+  }
+  const rec: VSetPass = { at, day: today, score: Math.max(0, Math.min(10, Math.round(info.score))), learn: learnFirstTry(p, ws) };
+  if (info.legacy) rec.legacy = 1;
+  return { ...p, cards, sets: { ...(p.sets || {}), [String(k)]: rec } };
+}
+// ชุดที่เรียนครบ 10 คำด้วยแอปแบบเดิม (ไม่มีคำไหนเรียนแบบใหม่) → นับว่าผ่าน · และทำให้คำในชุดที่ผ่านแล้วเป็น "รู้แล้ว" ครบ
+// คืนค่าเดิม (อ้างอิงเดิม) ถ้าไม่มีอะไรเปลี่ยน
+export function normalizeProgress(p: VProgress, words: VWord[]): VProgress {
+  if (!words.length) return p;
+  const nSets = words.reduce((m, w) => Math.max(m, w.week), 0);
+  let out = p;
+  for (let k = 1; k <= nSets; k++) {
+    const ws = setWords(words, k);
+    const rec = setPassOf(out, k);
+    if (rec) {
+      if (ws.some((w) => out.cards[w.id] && !out.cards[w.id].k)) {
+        const cards = { ...out.cards };
+        for (const w of ws) if (cards[w.id] && !cards[w.id].k) cards[w.id] = { ...cards[w.id], k: rec.at };
+        out = { ...out, cards };
+      }
+      continue;
+    }
+    const cs = ws.map((w) => out.cards[w.id]);
+    if (ws.length && cs.every((c) => c && c.v !== 2)) {
+      const [c1, n1] = learnFirstTry(out, ws);
+      const at = Math.max(...cs.map((c) => c!.at || 0));
+      const day = cs.map((c) => c!.last || c!.first || "").sort().pop() || todayStr(new Date(at || Date.now()));
+      out = passSet(out, words, k, day, { score: n1 ? (10 * c1) / n1 : 10, legacy: true, at });
+    }
+  }
+  return out;
 }
 
 // ── สถิติ ──
@@ -255,7 +337,11 @@ export function mergeCard(a?: VCard, b?: VCard): VCard | undefined {
   if (!a) return b;
   if (!b) return a;
   const newer = (b.at ?? 0) >= (a.at ?? 0) ? b : a;
-  return { ...newer, n: Math.max(a.n ?? 0, b.n ?? 0), w: Math.max(a.w ?? 0, b.w ?? 0), lap: Math.max(a.lap ?? 0, b.lap ?? 0), first: [a.first, b.first].filter(Boolean).sort()[0] ?? newer.first };
+  const k = a.k && b.k ? Math.min(a.k, b.k) : a.k || b.k;
+  const out: VCard = { ...newer, n: Math.max(a.n ?? 0, b.n ?? 0), w: Math.max(a.w ?? 0, b.w ?? 0), lap: Math.max(a.lap ?? 0, b.lap ?? 0), first: [a.first, b.first].filter(Boolean).sort()[0] ?? newer.first };
+  if (k) out.k = k;
+  if (a.v === 2 || b.v === 2) out.v = 2;
+  return out;
 }
 export function mergeProgress(a: VProgress, b: VProgress): VProgress {
   const cards: Record<string, VCard> = { ...(a.cards || {}) };
@@ -265,7 +351,12 @@ export function mergeProgress(a: VProgress, b: VProgress): VProgress {
     const x = days[k];
     days[k] = x ? { n: Math.max(x.n, v.n), r: Math.max(x.r, v.r), c: Math.max(x.c, v.c), x: Math.max(x.x, v.x) } : v;
   }
-  return { cards, days };
+  const sets: Record<string, VSetPass> = { ...(a.sets || {}) };
+  for (const [k, v] of Object.entries(b.sets || {})) {
+    const x = sets[k];
+    sets[k] = !x ? v : x.legacy && !v.legacy ? v : !x.legacy && v.legacy ? x : x.at <= v.at ? x : v;
+  }
+  return { cards, days, sets };
 }
 
 // ── บันทึก / โหลด ──
@@ -286,7 +377,7 @@ export function loadLocal(email: string): VProgress {
     const raw = localStorage.getItem(localKey(email));
     if (!raw) return emptyProgress();
     const p = JSON.parse(raw) as VProgress;
-    return { cards: p.cards || {}, days: p.days || {} };
+    return { cards: p.cards || {}, days: p.days || {}, sets: p.sets || {} };
   } catch {
     return emptyProgress();
   }
@@ -309,21 +400,24 @@ function trimDays(p: VProgress): VProgress {
 }
 
 // คืนค่า needSync = true ถ้าในเครื่องมีผลที่ยังไม่ขึ้นคลาวด์ (เช่น คาบก่อนเน็ตหลุด) → ห้องคำศัพท์จะส่งขึ้นให้ทันที
-export async function loadProgress(email: string): Promise<{ p: VProgress; needSync: boolean }> {
+// cloudSets = ชุดที่ผ่านแล้วซึ่งอยู่บนระบบแล้ว (ใช้ตัดสินว่าต้องส่งผลขึ้นใหม่ไหม) · null = เชื่อมระบบไม่ได้
+export async function loadProgress(email: string): Promise<{ p: VProgress; needSync: boolean; cloudSets: string[] | null }> {
   const local = loadLocal(email);
-  if (!email || !db) return { p: local, needSync: false };
+  if (!email || !db) return { p: local, needSync: false, cloudSets: null };
   try {
     const snap = await withTimeout(getDoc(doc(db, "students", emailToId(email))), 8000);
     const cloud = (snap.exists() ? (snap.data()?.v300 as VProgress | undefined) : undefined) ?? emptyProgress();
     const cc = cloud.cards || {};
-    const needSync = Object.entries(local.cards).some(([id, c]) => !cc[id] || (cc[id].at ?? 0) < (c.at ?? 0));
-    const merged = mergeProgress(local, { cards: cc, days: cloud.days || {} });
+    const cs = cloud.sets || {};
+    const needSync =
+      Object.entries(local.cards).some(([id, c]) => !cc[id] || (cc[id].at ?? 0) < (c.at ?? 0)) || Object.keys(local.sets || {}).some((k) => !cs[k]);
+    const merged = mergeProgress(local, { cards: cc, days: cloud.days || {}, sets: cs });
     saveLocal(email, merged);
-    return { p: merged, needSync };
+    return { p: merged, needSync, cloudSets: Object.keys(cs) };
   } catch (e) {
     console.error("loadProgress v300 error:", e);
     // เชื่อมระบบไม่ได้ (เน็ตหลุด) → ถือว่าผลในเครื่องยังไม่ขึ้นระบบ เพื่อให้หน้าแอปขึ้นแถบ ⚠️ พร้อมปุ่ม “ส่งอีกครั้ง”
-    return { p: local, needSync: Object.keys(local.cards).length > 0 };
+    return { p: local, needSync: Object.keys(local.cards).length > 0, cloudSets: null };
   }
 }
 
@@ -343,6 +437,7 @@ export async function saveProgress(email: string, name: string, p: VProgress): P
           v300: data,
           v300Known: st.known,
           v300Seen: st.seen,
+          v300Sets: passedCount(data),
           v300At: Date.now(),
           updatedAt: serverTimestamp(),
         },

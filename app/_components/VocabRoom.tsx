@@ -1,12 +1,13 @@
 "use client";
 // app/_components/VocabRoom.tsx
 // ─────────────────────────────────────────────────────────────
-// ห้องคำศัพท์แกน 120 คำ — เรียนแบบ 5 ขั้น
+// ห้องคำศัพท์แกน 120 คำ — เรียนแบบ 5 ขั้น จบในคาบ (ชุดละ 10 คำ = 5 คำ × 2 รอบ)
 //   ① เดาก่อนรู้ (ผ่าคำ · ชนิดคำ · เดาความหมาย จากประโยคแบบข้อสอบ) — ไม่มีคะแนน
 //   ② เจอความหมายแบบเต็ม (เสียง ตระกูลคำ คู่คำ ประโยคที่ 2 กับดัก)
 //   ③ ทำให้คิด (ภารกิจสั้น 1 ข้อ ต้องตัดสินใจ)
-//   ④ ดึงจากความจำ (หลังเรียนครบชุด · สลับทิศ · บริบทใหม่ · ผิดแล้ววนกลับ)
-//   ⑤ ทวนแบบเว้นวัน (ถึงกำหนดต้องทวนก่อนเรียนคำใหม่ · “รู้แล้ว” เมื่อถูกต่างวัน 2 วัน)
+//   ④ ดึงจากความจำ (หลังเรียนครบ 5 คำ · สลับทิศ · บริบทใหม่ · ผิดแล้ววนกลับจนถูกครบ)
+//   ⑤ รอบทบทวนชุด (ครบ 10 คำแล้วทำอีก 1 รอบ · ผิดข้อไหนวนเฉพาะข้อนั้นจนถูกครบ) → ผ่านชุด ✓ ส่งขึ้นระบบทันที
+//   ทวนคำของชุดก่อน ๆ ตามนัด = ไม่บังคับ (ไม่มีผลกับการผ่านชุด)
 // ─────────────────────────────────────────────────────────────
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -14,7 +15,6 @@ import {
   BATCH_SIZE,
   REVIEW_LIMIT,
   RankEntry,
-  VCard,
   VCourse,
   VProgress,
   VWord,
@@ -25,19 +25,21 @@ import {
   dayDiff,
   emptyProgress,
   isDue,
-  isActiveCard,
-  isKnown,
   isReviewWeek,
   loadLocal,
   loadProgress,
   loadRanking,
   loadVocab300,
-  learnedCount,
   mergeProgress,
   newCapToday,
+  normalizeProgress,
+  passSet,
+  passedCount,
   plannedWeekNo,
-  plannedWords,
   saveProgress,
+  setPassOf,
+  setState,
+  setWords,
   shuffle,
   statusOf,
   todayStr,
@@ -175,12 +177,12 @@ function WordCard({ w, guessed }: { w: VWord; guessed?: { text: string; ok: bool
 }
 
 // ── แถบหัวระหว่างเรียน ──
-function SessionBar({ label, learning, confirmExit, setConfirmExit, onExit }: { label: string; learning: boolean; confirmExit: boolean; setConfirmExit: (v: boolean) => void; onExit: () => void }) {
+function SessionBar({ label, warn, confirmExit, setConfirmExit, onExit }: { label: string; warn: string; confirmExit: boolean; setConfirmExit: (v: boolean) => void; onExit: () => void }) {
   return (
   <div className="flex items-center justify-between mb-3 gap-2">
     {confirmExit ? (
       <span className="flex flex-wrap items-center gap-2 text-xs font-bold">
-        <span className="text-rose-600">{learning ? "ออกตอนนี้ คำชุดนี้จะยังไม่ถูกบันทึก" : "ออกได้ ข้อที่ตอบแล้วบันทึกไว้แล้ว"}</span>
+        <span className="text-rose-600">{warn}</span>
         <button onClick={onExit} className="px-2 py-1 bg-rose-600 text-white rounded-lg">ออก</button>
         <button onClick={() => setConfirmExit(false)} className="px-2 py-1 bg-gray-100 text-gray-600 rounded-lg">ทำต่อ</button>
       </span>
@@ -195,7 +197,7 @@ function SessionBar({ label, learning, confirmExit, setConfirmExit, onExit }: { 
 function Steps({ active }: { active: number }) {
   return (
   <div className="grid grid-cols-5 gap-1 mb-3">
-    {["เดาก่อน", "เจอเต็ม", "ทำให้คิด", "ดึงความจำ", "ทวนตามคาบ"].map((l, i) => (
+    {["เดาก่อน", "เจอเต็ม", "ทำให้คิด", "ดึงความจำ", "รอบทบทวน"].map((l, i) => (
       <div key={l} className={`text-[10px] font-bold text-center ${i + 1 === active ? "text-[#003399]" : i + 1 < active ? "text-emerald-600" : "text-gray-400"}`}>
         <div className={`h-1.5 rounded-full mb-1 ${i + 1 === active ? "bg-[#003399]" : i + 1 < active ? "bg-emerald-500" : "bg-gray-200"}`} />
         {l}
@@ -275,10 +277,11 @@ function noAdjacent(items: QItem[]): QItem[] {
 
 // ───────── สถานะการเรียน 1 ชุด ─────────
 interface WordRun { g: number; p: number; pc: number; firstTry: boolean; asked: number; wrong: number }
-type Mode = "HOME" | "WEEK" | "LEARN" | "REVIEW" | "PRACTICE" | "SUMMARY";
+type Mode = "HOME" | "WEEK" | "LEARN" | "CHECK" | "REVIEW" | "PRACTICE" | "SUMMARY";
 type LearnPhase = "predict" | "meet" | "proc" | "retrieve";
 interface Summary {
-  kind: "learn" | "review" | "practice";
+  kind: "learn" | "check" | "review" | "practice";
+  set?: number;
   rows: { wid: string; ok: boolean; before?: string; after?: string; due?: string }[];
   correct: number;
   total: number;
@@ -311,6 +314,8 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
   const [qi, setQi] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const reviewDone = useRef<Record<string, { ok: boolean; before: string }>>({});
+  const checkFirst = useRef<Record<string, boolean>>({}); // รอบทบทวน: คำไหนตอบถูกตั้งแต่ครั้งแรก
+  const [checkSetNo, setCheckSetNo] = useState(0);
   const practiceScore = useRef({ c: 0, t: 0 });
   const sinceSave = useRef(0);
 
@@ -326,15 +331,23 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
   // ── โหลด ──
   useEffect(() => {
     let alive = true;
-    loadVocab300()
-      .then((c) => alive && setCourse(c))
+    const coursePromise = loadVocab300();
+    coursePromise
+      .then((c) => {
+        if (!alive) return;
+        setCourse(c);
+        // ชุดที่เรียนครบด้วยแอปแบบเดิม → นับผ่านทันทีจากข้อมูลในเครื่อง (ไม่ต้องรอระบบ)
+        setProg((cur) => normalizeProgress(cur, c.words));
+      })
       .catch(() => alive && setLoadError(true));
-    loadProgress(email).then(({ p, needSync }) => {
+    Promise.all([coursePromise.catch(() => null), loadProgress(email)]).then(([c, { p, needSync, cloudSets }]) => {
       if (!alive) return;
-      const merged = mergeProgress(progRef.current, p);
+      const raw = mergeProgress(progRef.current, p);
+      const merged = c ? normalizeProgress(raw, c.words) : raw;
       setProg(merged);
-      // คาบก่อนเน็ตหลุด → ส่งผลที่ค้างอยู่ในเครื่องขึ้นระบบให้ทันที
-      if (needSync) {
+      // คาบก่อนเน็ตหลุด / มีชุดที่ผ่านแต่ยังไม่ขึ้นระบบ (เช่น ชุดแบบเดิม) → ส่งผลขึ้นระบบให้ทันที
+      const unsynced = cloudSets !== null && Object.keys(merged.sets || {}).some((k) => !cloudSets.includes(k));
+      if (needSync || unsynced) {
         setSaving(true);
         saveProgress(email, name, merged).then((ok) => {
           if (!alive) return;
@@ -369,14 +382,19 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
   const newCap = useMemo(() => newCapToday(course, prog, today, myRoom), [course, prog, today, myRoom]);
   const newLeftToday = Math.max(0, newCap - stats.newToday);
   const planNo = plannedWeekNo(course, today, myRoom);
-  const planTarget = plannedWords(course, today, myRoom);
   const planWk = planNo ? course?.weeks[planNo - 1] : undefined;
-  // สัปดาห์ทวน = สัปดาห์ในแผนที่ไม่มีชุดใหม่ (สัปดาห์ที่ 6 และ 14 ของภาค) — ใช้ทวนคำค้างและตามคำที่ขาด
+  // สัปดาห์ทวน = สัปดาห์ในแผนที่ไม่มีชุดใหม่ (สัปดาห์ที่ 6 และ 14 ของภาค) — ใช้ทวนคำค้างและตามชุดที่ขาด
   const reviewWeek = isReviewWeek(course, today, myRoom);
-  const behindBy = planTarget === null ? 0 : Math.max(0, planTarget - learnedCount(prog));
   const activeDays = Object.values(prog.days).filter((d) => d.n + d.r > 0).length;
-  const nextNew = useMemo(() => words.filter((w) => !prog.cards[w.id]), [words, prog]);
-  const currentWeek = nextNew[0]?.week ?? (course?.weeks.length || 12);
+  // ชุดที่กำลังเรียน = ชุดแรกที่ยังไม่ผ่าน (ต้องผ่านชุดนี้ก่อนจึงเปิดชุดถัดไป)
+  const nSets = course?.weeks.length ?? 0;
+  const passedN = passedCount(prog);
+  let curSet = 0;
+  for (let k = 1; k <= nSets; k++) if (!setPassOf(prog, k)) { curSet = k; break; }
+  const curWords = curSet ? setWords(words, curSet) : [];
+  const nextNew = curWords.filter((w) => !prog.cards[w.id]);
+  const curReady = curSet > 0 && curWords.length > 0 && nextNew.length === 0; // เรียนครบ 10 คำแล้ว รอรอบทบทวน
+  const behindSets = planNo ? Array.from({ length: planNo }, (_, i) => i + 1).filter((k) => !setPassOf(prog, k)).length : 0;
 
   const doSave = async (p: VProgress) => {
     setSaving(true);
@@ -419,7 +437,21 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
     scrollTop();
   };
 
-  // ── เริ่มทวน ──
+  // ── รอบทบทวนชุด: ครบ 10 คำแล้วทำอีก 1 รอบ (คำละ 1 ข้อ) · ผิดข้อไหนวนเฉพาะข้อนั้นจนถูกครบ → ผ่านชุด ──
+  const startCheck = () => {
+    if (!curReady) return;
+    const kinds: Kind[] = ["ctx", "th2en", "form", "en2th"];
+    checkFirst.current = {};
+    setCheckSetNo(curSet);
+    setQueue(shuffle(curWords).map((w, i) => makeItem(w, kinds[i % kinds.length], curWords)));
+    setQi(0);
+    setPicked(null);
+    setConfirmExit(false);
+    setMode("CHECK");
+    scrollTop();
+  };
+
+  // ── ทวนคำของชุดก่อน ๆ ตามนัด (ไม่บังคับ) ──
   const startReview = () => {
     const list = dueWords.slice(0, REVIEW_LIMIT);
     if (!list.length) return;
@@ -466,10 +498,14 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
         r.asked++;
         if (!ok) { r.firstTry = false; r.wrong++; }
       }
-      if (!ok && it.retry < 2) {
+      // ผิด → วนกลับมาท้ายรอบจนกว่าจะถูก
+      if (!ok) {
         const pool = words.filter((x) => x.week === w.week);
         setQueue((q) => [...q, makeItem(w, it.kind, pool, it.retry + 1)]);
       }
+    } else if (mode === "CHECK") {
+      if (it.retry === 0) checkFirst.current[it.wid] = ok;
+      if (!ok) setQueue((q) => [...q, makeItem(w, it.kind, words.filter((x) => x.week === w.week), it.retry + 1)]);
     } else if (mode === "REVIEW") {
       if (it.retry === 0 && !reviewDone.current[it.wid]) {
         const before = statusOf(prog.cards[it.wid]);
@@ -513,7 +549,21 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
       }
       p = addDay(p, today, { n: batch.length, c: correct, x: total - correct });
       setProg(p);
-      setSummary({ kind: "learn", rows, correct, total, cloudOk: null });
+      setSummary({ kind: "learn", rows, correct, total, cloudOk: null, set: batch[0]?.week });
+      setMode("SUMMARY");
+      scrollTop();
+      const ok = await doSave(p);
+      setSummary((s) => (s ? { ...s, cloudOk: ok } : s));
+    } else if (mode === "CHECK") {
+      // ถูกครบทุกคำแล้ว → ผ่านชุด · ส่งขึ้นระบบทันที (หน้าครูขึ้น ✓ สีเขียว)
+      const k = checkSetNo;
+      const first = checkFirst.current;
+      const score = Object.values(first).filter(Boolean).length;
+      let p = passSet(progRef.current, words, k, today, { score });
+      p = addDay(p, today, { c: score, x: Object.keys(first).length - score });
+      setProg(p);
+      const rows = setWords(words, k).map((w) => ({ wid: w.id, ok: !!first[w.id] }));
+      setSummary({ kind: "check", set: k, rows, correct: score, total: rows.length, cloudOk: null });
       setMode("SUMMARY");
       scrollTop();
       const ok = await doSave(p);
@@ -565,12 +615,14 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
   }
 
   const total = words.length;
-  const knownPct = total ? Math.round((stats.known / total) * 100) : 0;
-  const seenPct = total ? Math.round((stats.seen / total) * 100) : 0;
 
   // ═════════════ HOME ═════════════
   if (mode === "HOME") {
-    const allLearned = nextNew.length === 0;
+    const allPassed = nSets > 0 && curSet === 0;
+    const curLearned = curWords.length - nextNew.length;
+    const curWk = curSet ? course.weeks[curSet - 1] : undefined;
+    const stepOf = (n: number) => (allPassed ? 3 : curReady ? 2 : n > 0 ? 1 : 0);
+    const step = stepOf(curLearned);
     return (
       <div className="animate-fadeIn mt-2">
         <button type="button" onClick={onExit} className="mb-4 text-sm font-bold text-[#003399] hover:underline">← เมนูหลัก</button>
@@ -584,12 +636,20 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
         {/* ความก้าวหน้า */}
         <div className="bg-[#003399] rounded-2xl p-4 mb-4 text-white">
           <div className="flex items-baseline justify-between mb-2">
-            <span className="font-black text-[#FFD700] text-lg">รู้แล้ว {stats.known}/{total} คำ</span>
-            <span className="text-sm font-bold">{knownPct}%</span>
+            <span className="font-black text-[#FFD700] text-lg">ผ่านแล้ว {passedN}/{nSets} ชุด</span>
+            <span className="text-sm font-bold">รู้แล้ว {stats.known}/{total} คำ</span>
           </div>
-          <div className="h-3 bg-white/20 rounded-full overflow-hidden relative">
-            <div className="absolute inset-y-0 left-0 bg-white/35 rounded-full" style={{ width: `${seenPct}%` }} />
-            <div className="absolute inset-y-0 left-0 bg-[#FFD700] rounded-full transition-all" style={{ width: `${knownPct}%` }} />
+          <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${nSets || 1}, minmax(0, 1fr))` }}>
+            {course.weeks.map((wk) => {
+              const st = setState(prog, words, wk.no);
+              return (
+                <span
+                  key={wk.no}
+                  title={`ชุด ${wk.no}`}
+                  className={`h-3 rounded-full ${st === "passed" ? "bg-[#FFD700]" : st === "ready" ? "bg-white/60" : st === "part" ? "bg-white/30" : "bg-white/15"}`}
+                />
+              );
+            })}
           </div>
           <div className="grid grid-cols-3 gap-2 mt-3 text-center">
             <div className="bg-white/10 rounded-xl py-2">
@@ -598,7 +658,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
             </div>
             <div className="bg-white/10 rounded-xl py-2">
               <div className="text-lg font-black text-[#FFD700]">{stats.due}</div>
-              <div className="text-[10px] font-bold text-white/70">ถึงกำหนดทวน</div>
+              <div className="text-[10px] font-bold text-white/70">ทวนได้ (ไม่บังคับ)</div>
             </div>
             <div className="bg-white/10 rounded-xl py-2">
               <div className="text-lg font-black">📅 {activeDays}</div>
@@ -606,7 +666,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
             </div>
           </div>
           <p className="text-[11px] text-white/75 mt-3 leading-relaxed">
-            คำจะนับว่า “รู้แล้ว” เมื่อตอบถูกในวันที่ต่างกันอย่างน้อย 2 วัน (คาบที่เรียน + คาบถัดไปที่ทวน) · แถบสีขาวจาง = คำที่เรียนแล้ว แถบสีทอง = คำที่รู้แล้ว
+            ผ่านชุด = เรียนครบ 10 คำ + รอบทบทวนถูกครบทุกคำ (ทำจบในคาบ) · แถบสีทอง = ชุดที่ผ่านแล้ว · คำในชุดที่ผ่านแล้วนับว่า “รู้แล้ว”
           </p>
         </div>
 
@@ -632,42 +692,64 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
           </div>
         )}
 
-        {/* แผนวันนี้ */}
+        {/* คาบนี้ทำอะไร */}
         <div className="border-2 border-[#003399]/15 rounded-2xl p-4 mb-4">
           <p className="text-xs font-black text-gray-500 uppercase tracking-widest mb-2">คาบนี้ทำอะไร</p>
           {planNo !== null && planNo > 0 && (
-            <p className={`text-xs font-bold rounded-xl px-3 py-2 mb-3 ${behindBy > 0 ? "bg-amber-50 text-amber-800" : "bg-emerald-50 text-emerald-800"}`}>
-              {reviewWeek ? `ตามแผนของครู: สัปดาห์นี้เป็นสัปดาห์ทวน ไม่มีชุดใหม่ (เรียนถึงชุดที่ ${planNo}) · ` : `ตามแผนของครู: สัปดาห์นี้เรียนถึงชุดที่ ${planNo}${planWk?.label ? ` (${planWk.label})` : ""} · `}
-              {behindBy > 0 ? `ยังขาด ${behindBy} คำ — คาบนี้เรียนได้ถึง ${newCap} คำ` : "✓ ทันแผนแล้ว"}
+            <p className={`text-xs font-bold rounded-xl px-3 py-2 mb-3 ${behindSets > 0 ? "bg-amber-50 text-amber-800" : "bg-emerald-50 text-emerald-800"}`}>
+              {reviewWeek ? `ตามแผนของครู: สัปดาห์นี้เป็นสัปดาห์ทวน ไม่มีชุดใหม่ (เรียนถึงชุดที่ ${planNo}) · ` : `ตามแผนของครู: สัปดาห์นี้เรียนชุดที่ ${planNo}${planWk?.label ? ` (${planWk.label})` : ""} · `}
+              {behindSets > 0 ? `ยังไม่ผ่าน ${behindSets} ชุด — คาบนี้เรียนคำใหม่ได้ถึง ${newCap} คำ` : "✓ ผ่านตามแผนแล้ว"}
             </p>
           )}
-          {stats.due > 0 ? (
-            <>
-              <button onClick={startReview} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg hover:bg-[#002266] text-lg">
-                ทวนคำที่ถึงกำหนด ({Math.min(stats.due, REVIEW_LIMIT)} คำ) →
-              </button>
-              <p className="text-xs text-gray-500 mt-2 text-center">
-                {stats.due > REVIEW_LIMIT ? `ค้างทวน ${stats.due} คำ รอบนี้ทำ ${REVIEW_LIMIT} คำก่อน · ` : ""}ทวนให้ครบก่อน จึงจะเปิดคำใหม่ได้
-              </p>
-            </>
-          ) : allLearned ? (
-            <p className="text-center font-black text-emerald-700 py-3">🎉 เรียนครบ {total} คำแล้ว — ทวนตามนัดในคาบถัดไปจนรู้แล้วทุกคำ</p>
-          ) : newLeftToday > 0 ? (
-            <>
-              <button onClick={startLearn} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg hover:bg-[#002266] text-lg">
-                เรียนคำใหม่ {Math.min(BATCH_SIZE, newLeftToday, nextNew.length)} คำ →
-              </button>
-              <p className="text-xs text-gray-500 mt-2 text-center">
-                คาบนี้เรียนคำใหม่แล้ว {stats.newToday}/{newCap} คำ · ต่อไปคือชุดที่ {currentWeek}
-              </p>
-            </>
+
+          {allPassed ? (
+            <p className="text-center font-black text-emerald-700 py-3">🎉 ผ่านครบทั้ง {nSets} ชุดแล้ว ({total} คำ) — ใช้ “ฝึกเพิ่ม” และ “ทวน” เตรียมสอบได้เลย</p>
           ) : (
-            <p className="text-center font-black text-emerald-700 py-3">
-              {reviewWeek && newCap === 0 ? "✓ สัปดาห์ทวน ไม่มีคำใหม่ · ใช้ “ฝึกเพิ่ม” ทบทวนคำที่เรียนแล้ว" : `✓ คาบนี้เรียนคำใหม่ครบ ${newCap} คำแล้ว · ฝึกเพิ่มได้ หรือรอคาบหน้า`}
-            </p>
+            <>
+              {/* ชุดที่กำลังเรียน: 3 ขั้นสู่การผ่าน */}
+              <div className="rounded-xl bg-gray-50 p-3 mb-3">
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="text-sm font-black text-gray-900">ชุดที่ {curSet}{curWk?.label ? <span className="font-bold text-gray-500 text-xs"> · {curWk.label}</span> : null}</span>
+                  <span className="text-[11px] font-black text-[#003399] tabular-nums">เรียนแล้ว {curLearned}/{curWords.length} คำ</span>
+                </div>
+                <div className="grid grid-cols-3 gap-1.5 text-[10px] font-black text-center">
+                  {["① เรียน 10 คำ", "② รอบทบทวน", "③ ผ่าน ✓"].map((l, i) => (
+                    <span key={l} className={`rounded-lg py-1.5 ${i < step ? "bg-emerald-500 text-white" : i === step ? "bg-[#FFD700] text-[#003399]" : "bg-white text-gray-400 border border-gray-200"}`}>{l}</span>
+                  ))}
+                </div>
+              </div>
+              {curReady ? (
+                <>
+                  <button onClick={startCheck} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg hover:bg-[#002266] text-lg">
+                    รอบทบทวนชุดที่ {curSet} ({curWords.length} ข้อ) →
+                  </button>
+                  <p className="text-xs text-gray-500 mt-2 text-center">ทำอีก 1 รอบทั้ง {curWords.length} คำ · ข้อที่ผิดจะวนกลับมาจนถูกครบ · ครบแล้วผ่านชุดทันที</p>
+                </>
+              ) : newLeftToday > 0 ? (
+                <>
+                  <button onClick={startLearn} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg hover:bg-[#002266] text-lg">
+                    เรียนคำใหม่ชุดที่ {curSet} ({Math.min(BATCH_SIZE, newLeftToday, nextNew.length)} คำ) →
+                  </button>
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    เรียนทีละ {BATCH_SIZE} คำ · ข้อที่ผิดวนกลับมาจนถูกครบ · เรียนครบ {curWords.length} คำแล้วทำรอบทบทวนเพื่อผ่านชุด
+                  </p>
+                </>
+              ) : (
+                <p className="text-center font-black text-emerald-700 py-3">
+                  {reviewWeek && newCap === 0 ? "✓ สัปดาห์ทวน ไม่มีชุดใหม่ · ใช้ “ทวน” และ “ฝึกเพิ่ม” ทบทวนคำที่เรียนแล้ว" : `✓ คาบนี้เรียนคำใหม่ครบ ${newCap} คำแล้ว · ชุดถัดไปเรียนคาบหน้า`}
+                </p>
+              )}
+            </>
+          )}
+
+          {/* ทวนคำชุดก่อน ๆ — ไม่บังคับ ไม่มีผลกับการผ่านชุด */}
+          {stats.due > 0 && (
+            <button onClick={startReview} className="w-full mt-3 py-2.5 bg-white border-2 border-[#003399]/30 text-[#003399] font-black rounded-xl text-sm">
+              🔁 ทวนคำชุดก่อน ๆ ({Math.min(stats.due, REVIEW_LIMIT)} คำ · ไม่บังคับ ช่วยให้จำได้ถึงวันสอบ)
+            </button>
           )}
           {learned.length >= 4 && (
-            <button onClick={startPractice} className="w-full mt-3 py-2.5 bg-white border-2 border-[#003399]/15 text-[#003399] font-bold rounded-xl text-sm">
+            <button onClick={startPractice} className="w-full mt-2 py-2.5 bg-white border-2 border-[#003399]/15 text-[#003399] font-bold rounded-xl text-sm">
               🎯 ฝึกเพิ่ม 10 ข้อ (ไม่นับคะแนน)
             </button>
           )}
@@ -682,29 +764,30 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
             <li><b>เดาก่อนรู้</b> — อ่านประโยคแบบข้อสอบ ผ่าคำ บอกชนิดคำ แล้วเดาความหมาย (ไม่มีคะแนน เดาผิดได้)</li>
             <li><b>เจอความหมายแบบเต็ม</b> — ฟังเสียง ดูตระกูลคำ คู่คำ ตัวอย่างที่ 2 และกับดัก</li>
             <li><b>ทำให้คิด</b> — ตอบภารกิจสั้น 1 ข้อที่ต้องตัดสินใจ</li>
-            <li><b>ดึงจากความจำ</b> — หลังเรียนครบชุด ตอบโดยไม่มีบัตรคำ ข้อที่ผิดจะวนกลับมา</li>
-            <li><b>ทวนตามคาบ</b> — ระบบนัดทวนคาบหน้า → อีก 2 สัปดาห์ → 4 สัปดาห์ … ทวนให้ครบก่อนเรียนคำใหม่ (ทุกอย่างทำจบในคาบ)</li>
+            <li><b>ดึงจากความจำ</b> — หลังเรียนครบ 5 คำ ตอบโดยไม่มีบัตรคำ ข้อที่ผิดจะวนกลับมาจนถูกครบ</li>
+            <li><b>รอบทบทวนชุด</b> — เรียนครบ 10 คำแล้วทำอีก 1 รอบ ผิดข้อไหนวนเฉพาะข้อนั้นจนถูกครบ → <b>ผ่านชุด ✓</b> (ครูเห็นสีเขียวทันที · จบในคาบ ไม่ต้องรอวันอื่น)</li>
           </ol>
         )}
 
-        {/* รายสัปดาห์ */}
+        {/* รายชุด */}
         <h2 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-2 mt-2">คำศัพท์ {course.weeks.length} ชุด (ชุดละ {course.weeks[0]?.count ?? 10} คำ · เรียนในคาบตามวันที่ของครู)</h2>
         <div className="space-y-2 mb-5">
           {course.weeks.map((wk) => {
             const ws = words.filter((w) => w.week === wk.no);
-            const k = ws.filter((w) => isKnown(prog.cards[w.id])).length;
             const s = ws.filter((w) => prog.cards[w.id]).length;
-            const isCur = wk.no === currentWeek && !allLearned;
+            const rec = setPassOf(prog, wk.no);
+            const st = setState(prog, words, wk.no);
+            const isCur = wk.no === curSet;
             return (
               <button
                 key={wk.no}
                 type="button"
                 onClick={() => { setWeekNo(wk.no); setOpenWord(null); setMode("WEEK"); scrollTop(); }}
                 className={`w-full text-left p-3 rounded-2xl border-2 flex items-center gap-3 transition-all active:scale-[0.99] ${
-                  k === ws.length ? "bg-emerald-50 border-emerald-200" : isCur ? "bg-[#FFD700]/10 border-[#FFD700]" : "bg-white border-[#003399]/10 hover:border-[#003399]/40"
+                  rec ? "bg-emerald-50 border-emerald-200" : isCur ? "bg-[#FFD700]/10 border-[#FFD700]" : "bg-white border-[#003399]/10 hover:border-[#003399]/40"
                 }`}
               >
-                <span className={`shrink-0 w-11 h-11 rounded-xl flex flex-col items-center justify-center font-black leading-none ${k === ws.length ? "bg-emerald-500 text-white" : "bg-[#003399] text-[#FFD700]"}`}>
+                <span className={`shrink-0 w-11 h-11 rounded-xl flex flex-col items-center justify-center font-black leading-none ${rec ? "bg-emerald-500 text-white" : "bg-[#003399] text-[#FFD700]"}`}>
                   <span className="text-[9px] font-bold opacity-80">ชุด</span>
                   <span className="text-base">{wk.no}</span>
                 </span>
@@ -713,15 +796,20 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
                   {wk.label && <span className="block text-[11px] font-bold text-gray-500">แผนเรียน: {wk.label}</span>}
                   <span className="flex items-center gap-2 mt-1">
                     <span className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden relative">
-                      <span className="absolute inset-y-0 left-0 bg-[#003399]/25 rounded-full" style={{ width: `${(s / ws.length) * 100}%` }} />
-                      <span className="absolute inset-y-0 left-0 bg-emerald-500 rounded-full" style={{ width: `${(k / ws.length) * 100}%` }} />
+                      <span className={`absolute inset-y-0 left-0 rounded-full ${rec ? "bg-emerald-500" : "bg-[#003399]/30"}`} style={{ width: `${(s / ws.length) * 100}%` }} />
                     </span>
-                    <span className="text-[11px] font-bold text-gray-500 tabular-nums">รู้แล้ว {k}/{ws.length}</span>
+                    <span className="text-[11px] font-bold text-gray-500 tabular-nums">
+                      {rec ? `ผ่าน · คะแนน ${rec.score}/10` : `เรียนแล้ว ${s}/${ws.length}`}
+                    </span>
                   </span>
                 </span>
-                {isCur ? (
+                {rec ? (
+                  <span className="shrink-0 text-[10px] font-black bg-emerald-500 text-white px-2 py-1 rounded-full">✓ ผ่าน</span>
+                ) : st === "ready" ? (
+                  <span className="shrink-0 text-[10px] font-black bg-[#FFD700] text-[#003399] px-2 py-1 rounded-full">รอรอบทบทวน</span>
+                ) : isCur ? (
                   <span className="shrink-0 text-[10px] font-black bg-[#FFD700] text-[#003399] px-2 py-1 rounded-full">กำลังเรียน</span>
-                ) : wk.no === planNo && !reviewWeek && k < ws.length ? (
+                ) : wk.no === planNo && !reviewWeek ? (
                   <span className="shrink-0 text-[10px] font-black bg-[#003399]/10 text-[#003399] px-2 py-1 rounded-full">ชุดสัปดาห์นี้</span>
                 ) : null}
               </button>
@@ -778,7 +866,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
             <WordCard w={open} />
             {prog.cards[open.id] && (
               <p className="text-xs font-bold text-gray-500 mt-4">
-                สถานะ: {statusOf(prog.cards[open.id]) === "known" ? "รู้แล้ว ✓" : "กำลังเรียน"} · ทวนครั้งต่อไป {dueLabel(prog.cards[open.id].due, today)}
+                สถานะ: {statusOf(prog.cards[open.id]) === "known" ? "รู้แล้ว ✓ (ชุดนี้ผ่านแล้ว)" : "กำลังเรียน (ยังไม่ผ่านชุด)"} · ทวนครั้งต่อไป (ไม่บังคับ) {dueLabel(prog.cards[open.id].due, today)}
               </p>
             )}
           </div>
@@ -801,7 +889,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
                       <span className="block text-xs text-gray-600 truncate">{w.th}</span>
                     </span>
                     <span className={`shrink-0 text-[10px] font-black px-2 py-1 rounded-full ${st === "known" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-800"}`}>
-                      {st === "known" ? "รู้แล้ว" : isDue(c, today) ? "ถึงกำหนดทวน" : "กำลังเรียน"}
+                      {st === "known" ? "รู้แล้ว" : "กำลังเรียน"}
                     </span>
                   </button>
                 ) : (
@@ -819,29 +907,39 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
 
   // ═════════════ SUMMARY ═════════════
   if (mode === "SUMMARY" && summary) {
-    const canMore = stats.due === 0 && newLeftToday > 0 && nextNew.length > 0;
+    const canLearn = !curReady && curSet > 0 && newLeftToday > 0 && nextNew.length > 0;
+    const isCheck = summary.kind === "check";
     return (
       <div className="animate-fadeIn mt-2">
-        <div className="text-center mb-4">
-          <div className="text-4xl mb-1">{summary.kind === "practice" ? "🎯" : "✅"}</div>
-          <h1 className="text-2xl font-black text-gray-900">
-            {summary.kind === "learn" ? "เรียนจบชุดนี้แล้ว" : summary.kind === "review" ? "ทวนเสร็จแล้ว" : "ฝึกเพิ่มเสร็จแล้ว"}
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {summary.kind === "practice"
-              ? `ถูก ${summary.correct}/${summary.total} ข้อ (ไม่นับเป็นความก้าวหน้า)`
-              : summary.kind === "learn"
-              ? `ขั้นที่ 4 ตอบถูกตั้งแต่ครั้งแรก ${summary.correct}/${summary.total} ข้อ`
-              : `ทวนถูก ${summary.correct}/${summary.total} คำ`}
-          </p>
-        </div>
+        {isCheck ? (
+          <div className="text-center mb-4 bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-5">
+            <div className="text-5xl mb-1">🎉</div>
+            <h1 className="text-2xl font-black text-emerald-700">ผ่านชุดที่ {summary.set} แล้ว ✓</h1>
+            <p className="text-sm font-bold text-emerald-800 mt-1">
+              คะแนนรอบทบทวน {summary.correct}/{summary.total} (ตอบถูกตั้งแต่ครั้งแรก) · ทั้ง {summary.total} คำนับว่า “รู้แล้ว”
+            </p>
+          </div>
+        ) : (
+          <div className="text-center mb-4">
+            <div className="text-4xl mb-1">{summary.kind === "practice" ? "🎯" : "✅"}</div>
+            <h1 className="text-2xl font-black text-gray-900">
+              {summary.kind === "learn" ? `เรียนครบ ${summary.rows.length} คำแล้ว` : summary.kind === "review" ? "ทวนเสร็จแล้ว" : "ฝึกเพิ่มเสร็จแล้ว"}
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              {summary.kind === "practice"
+                ? `ถูก ${summary.correct}/${summary.total} ข้อ (ไม่นับเป็นความก้าวหน้า)`
+                : summary.kind === "learn"
+                ? `ขั้นที่ 4 ตอบถูกตั้งแต่ครั้งแรก ${summary.correct}/${summary.total} ข้อ · ข้อที่ผิดทำซ้ำจนถูกครบแล้ว`
+                : `ทวนถูก ${summary.correct}/${summary.total} คำ`}
+            </p>
+          </div>
+        )}
         {summary.rows.length > 0 && (
           <div className="border-2 border-gray-100 rounded-2xl overflow-hidden mb-4">
             {summary.rows.map((r) => {
               const w = byId[r.wid];
               const c = prog.cards[r.wid];
               const st = statusOf(c);
-              const becameKnown = summary.kind === "review" && r.before !== "known" && st === "known";
               return (
                 <div key={r.wid} className="flex items-center gap-2 px-3 py-2 border-b border-gray-100 last:border-0">
                   <span className={`shrink-0 font-black ${r.ok ? "text-emerald-600" : "text-rose-500"}`}>{r.ok ? "✓" : "✗"}</span>
@@ -850,9 +948,9 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
                   </span>
                   <span className="shrink-0 text-right">
                     <span className={`block text-[10px] font-black px-2 py-0.5 rounded-full ${st === "known" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-800"}`}>
-                      {becameKnown ? "🎉 รู้แล้ว" : st === "known" ? "รู้แล้ว" : "กำลังเรียน"}
+                      {st === "known" ? "รู้แล้ว" : "กำลังเรียน"}
                     </span>
-                    {c && <span className="block text-[10px] text-gray-400 mt-0.5">ทวน {dueLabel(c.due, today)}</span>}
+                    {!r.ok && summary.kind !== "review" && <span className="block text-[10px] text-gray-400 mt-0.5">ถูกในรอบซ้ำ</span>}
                   </span>
                 </div>
               );
@@ -861,19 +959,27 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
         )}
         {summary.kind === "learn" && (
           <p className="text-xs text-gray-600 bg-gray-50 rounded-xl p-3 mb-4 leading-relaxed">
-            คำที่ตอบถูกตั้งแต่ครั้งแรกจะนัดทวนคาบหน้า ส่วนคำที่พลาดจะขึ้นให้ทวนตั้งแต่ครั้งถัดไปที่เปิดแอป · ทุกคำยังเป็น “กำลังเรียน” จนกว่าจะตอบถูกอีกครั้งในคาบถัดไป
+            {curReady
+              ? `เรียนครบ ${curWords.length} คำของชุดที่ ${curSet} แล้ว · ต่อด้วย “รอบทบทวน” อีก 1 รอบ ถูกครบทุกคำ = ผ่านชุด ✓`
+              : `ชุดนี้ยังเรียนไม่ครบ ${curWords.length} คำ · เรียนต่อให้ครบ แล้วทำรอบทบทวนเพื่อผ่านชุด`}
           </p>
         )}
-        {summary.cloudOk === false && <p className="text-xs font-bold text-amber-700 bg-amber-50 rounded-xl p-3 mb-3">⚠️ บันทึกในเครื่องแล้ว แต่ยังขึ้นระบบไม่สำเร็จ (จะซิงก์ให้อีกครั้งเมื่อบันทึกครั้งถัดไป)</p>}
+        {summary.cloudOk === true && isCheck && <p className="text-xs font-bold text-emerald-800 bg-emerald-50 rounded-xl p-3 mb-3">✓ ส่งผลขึ้นระบบแล้ว · หน้าครูขึ้นสีเขียวที่ชุดที่ {summary.set}</p>}
+        {summary.cloudOk === false && <p className="text-xs font-bold text-amber-700 bg-amber-50 rounded-xl p-3 mb-3">⚠️ บันทึกในเครื่องแล้ว แต่ยังขึ้นระบบไม่สำเร็จ — กลับหน้าหลักแล้วกด “ส่งอีกครั้ง” ก่อนหมดคาบ</p>}
         <div className="space-y-2">
-          {canMore && summary.kind !== "practice" && (
-            <button onClick={startLearn} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg text-lg">
-              เรียนต่ออีก {Math.min(BATCH_SIZE, newLeftToday, nextNew.length)} คำ →
+          {summary.kind !== "practice" && curReady && (
+            <button onClick={startCheck} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg text-lg">
+              รอบทบทวนชุดที่ {curSet} ({curWords.length} ข้อ) →
             </button>
           )}
-          {stats.due > 0 && summary.kind !== "practice" && (
-            <button onClick={startReview} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg text-lg">
-              ทวนต่อ ({Math.min(stats.due, REVIEW_LIMIT)} คำ) →
+          {summary.kind !== "practice" && canLearn && (
+            <button onClick={startLearn} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg text-lg">
+              {isCheck ? `เรียนชุดที่ ${curSet} ต่อ (${Math.min(BATCH_SIZE, newLeftToday, nextNew.length)} คำ) →` : `เรียนต่ออีก ${Math.min(BATCH_SIZE, newLeftToday, nextNew.length)} คำ →`}
+            </button>
+          )}
+          {stats.due > 0 && summary.kind !== "practice" && !curReady && (
+            <button onClick={startReview} className="w-full py-3 bg-white border-2 border-[#003399]/30 text-[#003399] font-black rounded-2xl">
+              🔁 ทวนคำชุดก่อน ๆ ({Math.min(stats.due, REVIEW_LIMIT)} คำ · ไม่บังคับ)
             </button>
           )}
           <button onClick={() => { setMode("HOME"); scrollTop(); }} className="w-full py-3 bg-white border-2 border-[#003399]/15 text-[#003399] font-black rounded-2xl">
@@ -885,22 +991,31 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
   }
 
   // ═════════════ ขั้นที่ 4 / ทวน / ฝึกเพิ่ม (คำถาม) ═════════════
-  const quizMode = (mode === "LEARN" && phase === "retrieve") || mode === "REVIEW" || mode === "PRACTICE";
+  const quizMode = (mode === "LEARN" && phase === "retrieve") || mode === "CHECK" || mode === "REVIEW" || mode === "PRACTICE";
   if (quizMode) {
     const it = queue[qi];
     if (!it) return null;
     const w = byId[it.wid];
     const ok = picked === it.ans;
-    const label = mode === "LEARN" ? "ขั้นที่ 4 · ดึงจากความจำ" : mode === "REVIEW" ? "ขั้นที่ 5 · ทวนตามคาบ" : "ฝึกเพิ่ม (ไม่นับคะแนน)";
+    const label =
+      mode === "LEARN" ? "ขั้นที่ 4 · ดึงจากความจำ" : mode === "CHECK" ? `ขั้นที่ 5 · รอบทบทวนชุดที่ ${checkSetNo}` : mode === "REVIEW" ? "ทวนคำชุดก่อน ๆ (ไม่บังคับ)" : "ฝึกเพิ่ม (ไม่นับคะแนน)";
+    const warn =
+      mode === "LEARN" ? "ออกตอนนี้ คำ 5 คำนี้จะยังไม่ถูกบันทึก" : mode === "CHECK" ? "ออกตอนนี้ รอบทบทวนต้องเริ่มใหม่ (ชุดยังไม่ผ่าน)" : "ออกได้ ข้อที่ตอบแล้วบันทึกไว้แล้ว";
+    const left = mode === "LEARN" || mode === "CHECK" ? queue.length - qi - (picked !== null ? 1 : 0) : 0;
     return (
       <div className="animate-fadeIn mt-2">
-        <SessionBar label={label} learning={false} confirmExit={confirmExit} setConfirmExit={setConfirmExit} onExit={exitSession} />
-        {mode !== "PRACTICE" && <Steps active={mode === "LEARN" ? 4 : 5} />}
+        <SessionBar label={label} warn={warn} confirmExit={confirmExit} setConfirmExit={setConfirmExit} onExit={exitSession} />
+        {(mode === "LEARN" || mode === "CHECK") && <Steps active={mode === "LEARN" ? 4 : 5} />}
+        {mode === "CHECK" && qi === 0 && picked === null && (
+          <p className="text-xs font-bold text-[#003399] bg-[#FFD700]/20 rounded-xl px-3 py-2 mb-3">
+            รอบทบทวนชุดที่ {checkSetNo}: คำละ 1 ข้อ · ข้อที่ผิดจะวนกลับมาจนถูกครบ · ครบแล้วผ่านชุดทันที ✓
+          </p>
+        )}
         <div className="flex items-center gap-3 mb-3">
           <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
             <div className="h-full bg-[#003399] rounded-full transition-all" style={{ width: `${((qi + (picked !== null ? 1 : 0)) / queue.length) * 100}%` }} />
           </div>
-          <span className="text-sm font-black text-[#003399] tabular-nums">{qi + 1}/{queue.length}</span>
+          <span className="text-sm font-black text-[#003399] tabular-nums whitespace-nowrap">{mode === "LEARN" || mode === "CHECK" ? `เหลือ ${left} ข้อ` : `${qi + 1}/${queue.length}`}</span>
         </div>
         <div className="flex flex-wrap gap-1.5 mb-3">
           <span className="text-[11px] font-black bg-[#FFD700] text-[#003399] px-2 py-1 rounded-full">{KIND_LABEL[it.kind]}</span>
@@ -948,7 +1063,13 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
           <>
             <div className={`rounded-xl p-3 mb-3 text-sm ${ok ? "bg-emerald-50 text-emerald-900" : "bg-rose-50 text-rose-900"}`}>
               <p className="font-black mb-1">
-                {ok ? "✓ ถูกต้อง" : mode === "LEARN" ? "✗ ยังไม่ถูก — ข้อนี้จะวนกลับมาอีกครั้งท้ายรอบ" : mode === "REVIEW" && it.retry === 0 ? "✗ ยังไม่ถูก — คำนี้กลับไปเป็น “กำลังเรียน” และนัดทวนพรุ่งนี้" : "✗ ยังไม่ถูก"}
+                {ok
+                  ? "✓ ถูกต้อง"
+                  : mode === "LEARN" || mode === "CHECK"
+                  ? "✗ ยังไม่ถูก — คำนี้จะวนกลับมาท้ายรอบจนกว่าจะถูก"
+                  : mode === "REVIEW" && it.retry === 0
+                  ? "✗ ยังไม่ถูก — คำนี้จะขึ้นให้ทวนอีกครั้งครั้งหน้า (ชุดที่ผ่านแล้วยังผ่านอยู่)"
+                  : "✗ ยังไม่ถูก"}
               </p>
               <p>{it.why}</p>
               {!ok && (
@@ -974,7 +1095,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
     const r = runs.current[w.id];
     const header = (
       <>
-        <SessionBar label={`คำที่ ${bi + 1}/${batch.length} · ชุดที่ ${w.week}`} learning confirmExit={confirmExit} setConfirmExit={setConfirmExit} onExit={exitSession} />
+        <SessionBar label={`คำที่ ${bi + 1}/${batch.length} · ชุดที่ ${w.week}`} warn="ออกตอนนี้ คำ 5 คำนี้จะยังไม่ถูกบันทึก" confirmExit={confirmExit} setConfirmExit={setConfirmExit} onExit={exitSession} />
         <Steps active={phase === "predict" ? 1 : phase === "meet" ? 2 : 3} />
       </>
     );
@@ -1121,9 +1242,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
   return null;
 }
 
-// สำหรับหน้าอื่นที่อยากรู้ว่ามีคำถึงกำหนดทวนไหม (เช่น ป้ายบนปุ่มเมนูหลัก)
-export function dueCountLocal(email: string): number {
-  const p = loadLocal(email);
-  const t = todayStr();
-  return Object.entries(p.cards).filter(([id, c]: [string, VCard]) => isActiveCard(id) && c.due <= t).length;
+// ป้ายบนปุ่มเมนูหลัก: ผ่านแล้วกี่ชุด (อ่านจากเครื่อง)
+export function passedSetsLocal(email: string): number {
+  return Object.keys(loadLocal(email).sets || {}).length;
 }

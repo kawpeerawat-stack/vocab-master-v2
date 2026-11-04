@@ -11,7 +11,7 @@
 
 import React, { useEffect, useState } from "react";
 import CourseRoom from "./_components/CourseRoom";
-import VocabRoom, { dueCountLocal } from "./_components/VocabRoom";
+import VocabRoom, { passedSetsLocal } from "./_components/VocabRoom";
 import { CORE_NAME } from "./lib/vocab300";
 import {
   GRADES,
@@ -90,7 +90,7 @@ export default function Home() {
   const isM4 = gradeOf(profile?.room) === "4";
 
   // ป้าย “ถึงกำหนดทวน” บนปุ่มคำศัพท์ (อ่านจากข้อมูลในเครื่องทุกครั้งที่กลับมาหน้าเมนู)
-  const dueCount = isLoggedIn && section === "HUB" && email && typeof window !== "undefined" ? dueCountLocal(email) : 0;
+  const setsPassed = isLoggedIn && section === "HUB" && email && typeof window !== "undefined" ? passedSetsLocal(email) : 0;
 
   const unlockSpeech = () => {
     // เบราว์เซอร์มือถือจะเล่นเสียงได้ก็ต่อเมื่อผู้ใช้กดปุ่มจริงก่อน 1 ครั้ง
@@ -316,8 +316,8 @@ export default function Home() {
                   icon="📚"
                   title={CORE_NAME}
                   sub="TGAT · A-Level · 12 ชุด ชุดละ 10 คำ · เรียนแบบ 5 ขั้น"
-                  hint="ทวนคำที่ถึงกำหนดก่อน → เรียนชุดของสัปดาห์นี้ 10 คำ"
-                  badge={dueCount > 0 ? `ทวน ${dueCount} คำ` : undefined}
+                  hint="เรียนชุดของสัปดาห์ 10 คำ → รอบทบทวนถูกครบ = ผ่าน ✓"
+                  badge={setsPassed > 0 ? `ผ่าน ${setsPassed} ชุด` : undefined}
                   onClick={() => setSection("VOCAB")}
                 />
               </div>
