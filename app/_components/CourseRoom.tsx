@@ -10,7 +10,7 @@
 //   RESULT → สรุปคะแนน — ฉบับ ม.6 ต้องถูกครบทุกข้อ · ฉบับ ม.4 ถูก 8/10 ขึ้นไป (course.passMin) จึงจะ "ผ่าน"
 // ─────────────────────────────────────────────────────────────
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Course,
   CourseLesson,
@@ -90,6 +90,7 @@ export default function CourseRoom({
   const [saving, setSaving] = useState(false);
   const [saveState, setSaveState] = useState<"idle" | "ok" | "local">("idle");
   const [revealed, setRevealed] = useState<Record<string, boolean>>({}); // คำศัพท์ประจำบทที่กดดูความหมายแล้ว
+  const startedAt = useRef(0); // เวลาที่เริ่มทำแบบฝึกหัดรอบนี้ (ไว้คิดเวลาที่ใช้ให้ครูดู)
 
   // โหลดเนื้อหา + ความก้าวหน้า
   useEffect(() => {
@@ -138,6 +139,7 @@ export default function CourseRoom({
     setConfirmExit(false);
     setSaveState("idle");
     setView("QUIZ");
+    startedAt.current = Date.now();
     scrollTop();
   };
 
@@ -157,6 +159,7 @@ export default function CourseRoom({
     scrollTop();
     setSaving(true);
     const score = all.filter((a) => a.correct).length;
+    const ms = startedAt.current ? Date.now() - startedAt.current : undefined;
     const { lesson: lp, cloudOk } = await saveLessonAttempt({
       courseId,
       lessonId: lesson.id,
@@ -166,6 +169,7 @@ export default function CourseRoom({
       total: lesson.questions.length,
       wrongIds: all.filter((a) => !a.correct).map((a) => a.qid),
       passMin: course?.passMin,
+      ms,
     });
     // รวมแบบไม่ถอยหลัง (กันผลรอบก่อนที่บันทึกช้ามาทับผลรอบใหม่)
     setProgress((prev) => ({ ...prev, [lesson.id]: mergeLesson(prev[lesson.id], lp) ?? lp }));
@@ -230,7 +234,7 @@ export default function CourseRoom({
             <div className="h-full bg-[#FFD700] rounded-full transition-all" style={{ width: `${pct}%` }} />
           </div>
           <p className="text-[11px] text-white/80 mt-2">
-            {`แต่ละ${L}มีแบบฝึกหัด ${qn} ข้อ (5 ตัวเลือก) ${needOf(qn) < qn ? `ถูก ${needOf(qn)} ข้อขึ้นไปจึงจะผ่าน` : "ต้องตอบถูกครบทุกข้อจึงจะผ่าน"} · ทำใหม่ได้ไม่จำกัด ข้อและตัวเลือกจะสลับทุกรอบ`}
+            {`แต่ละ${L}มีแบบฝึกหัด ${qn} ข้อ (5 ตัวเลือก) ${needOf(qn) < qn ? `ถูก ${needOf(qn)} ข้อขึ้นไปจึงจะผ่าน` : "ต้องตอบถูกครบทุกข้อจึงจะผ่าน"} · ทำใหม่ได้ไม่จำกัด ข้อและตัวเลือกจะสลับทุกรอบ${course?.gradeBy === "first" ? " · คะแนนรอบแรกเข้าสมุดคะแนนของครู" : ""}`}
           </p>
           {course.classNote && <p className="text-[11px] font-bold text-[#FFD700] mt-1.5">🕙 {course.classNote}</p>}
         </div>
@@ -374,7 +378,11 @@ export default function CourseRoom({
                 {lesson.words.every((w) => revealed[w.w]) ? "ซ่อนความหมาย" : "ดูความหมายทั้งหมด"}
               </button>
             </div>
-            <p className="text-[11px] text-gray-500 mb-2">ทดสอบตัวเองก่อน: นึกความหมายในใจ แล้วแตะคำเพื่อดูเฉลย{lesson.words.some((w) => w.core || w.n) ? " · ★ = อยู่ในคำแกน 120 คำ · ตัวเลข = ออกสอบกี่ฉบับ (จาก 18)" : ""}</p>
+            <p className="text-[11px] text-gray-500 mb-2">
+              ทดสอบตัวเองก่อน: นึกความหมายในใจ แล้วแตะคำเพื่อดูเฉลย{lesson.words.some((w) => w.core || w.n) ? " · ★ = อยู่ในคำแกน 120 คำ · ตัวเลข = ออกสอบกี่ฉบับ (จาก 18)" : ""}
+              {lesson.words.some((w) => w.x) ? " · คำขยาย = ใช้รหัสเดียวกัน ลองถอดเองก่อนเปิด" : ""}
+              {lesson.words.some((w) => w.tg || w.al) ? " · 🎯 T = พบในข้อสอบ TGAT/GAT กี่ฉบับ (จาก 7) · A = A-Level/9 วิชาสามัญ กี่ฉบับ (จาก 6)" : ""}
+            </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
               {lesson.words.map((w) => {
                 const open = !!revealed[w.w];
@@ -389,9 +397,15 @@ export default function CourseRoom({
                       <span className="font-black text-gray-900">{w.w}</span>
                       {w.core && <span className="text-amber-500 text-xs" title="อยู่ในคำแกน 120 คำ">★</span>}
                       <span className="text-[11px] italic text-gray-400">{w.pos}</span>
+                      {w.x && <span className="text-[10px] font-black text-amber-700 bg-amber-50 rounded-full px-1.5">คำขยาย</span>}
                       {typeof w.n === "number" && w.n > 0 && (
                         <span className="ml-auto text-[10px] font-black text-[#003399] bg-[#003399]/5 rounded-full px-1.5">{w.n} ฉบับ</span>
                       )}
+                      {(w.tg || w.al) ? (
+                        <span className="ml-auto text-[10px] font-black text-[#003399] bg-[#003399]/5 rounded-full px-1.5" title="พบในข้อสอบจริง: T = TGAT/GAT · A = A-Level/9 วิชาสามัญ">
+                          🎯{w.tg ? ` T${w.tg}` : ""}{w.al ? ` A${w.al}` : ""}
+                        </span>
+                      ) : null}
                     </span>
                     <span className="block text-[11px] text-gray-500">{w.parts}</span>
                     <span className={`block text-sm font-bold ${open ? "text-emerald-800" : "text-gray-300"}`}>{open ? w.th : "แตะเพื่อดูความหมาย"}</span>
@@ -410,6 +424,9 @@ export default function CourseRoom({
           เริ่มทำแบบฝึกหัด {lesson.questions.length} ข้อ →
         </button>
         <p className="text-center text-xs text-gray-500 mt-2">{needOf(lesson.questions.length) < lesson.questions.length ? `ถูก ${needOf(lesson.questions.length)} ข้อขึ้นไปจึงจะผ่าน${L}นี้` : `ต้องตอบถูกครบ ${lesson.questions.length} ข้อจึงจะผ่าน${L}นี้`}</p>
+        {course?.gradeBy === "first" && !(progress[lesson.id]?.attempts > 0) && (
+          <p className="text-center text-xs font-bold text-amber-800 bg-amber-50 rounded-xl px-3 py-2 mt-2">⭐ คะแนนรอบแรกจะเข้าสมุดคะแนนของครู — อ่านโจทย์ให้ดี ตั้งใจตั้งแต่รอบแรก</p>
+        )}
       </div>
     );
   }

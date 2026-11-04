@@ -26,7 +26,8 @@ export interface CourseQuestion {
 export interface RecapExample { word: string; th: string }
 export interface RecapPart { part: string; kind: string; meaning: string; examples: RecapExample[] }
 // คำศัพท์ประจำบท (ตรงกับตารางพับในแบบเรียน) — n = จำนวนฉบับข้อสอบที่พบคำนี้, core = อยู่ในคำแกน 120 คำ
-export interface LessonWord { w: string; pos: string; parts: string; th: string; n?: number; core?: boolean }
+// n = ออกสอบกี่ฉบับ (ม.6) · core = อยู่ในคำแกน 120 คำ (ม.6) · x = คำขยาย (ม.4) · tg / al = พบในข้อสอบจริง TGAT/GAT กี่ฉบับ (จาก 7) · A-Level/9 วิชาสามัญ กี่ฉบับ (จาก 6)
+export interface LessonWord { w: string; pos: string; parts: string; th: string; n?: number; core?: boolean; x?: boolean; tg?: number; al?: number }
 export interface CourseLesson {
   id: string;
   hour: number; // เลขบท (ตรงกับ "บทที่ / คาบที่" ในแบบเรียน)
@@ -53,6 +54,7 @@ export interface Course {
   passMin?: number;    // ถูกกี่ข้อขึ้นไปจึงผ่าน (ไม่ระบุ = ต้องถูกครบทุกข้อ) เช่น ฉบับ ม.4 = 8 จาก 10
   lessonWord?: string; // คำเรียกหน่วยบทเรียน (ค่าเริ่มต้น "บท" · ฉบับ ม.4 = "คาบ")
   classNote?: string; // วิธีใช้ในคาบ (แสดงบนการ์ดความก้าวหน้า)
+  gradeBy?: "first" | "best"; // สมุดคะแนนใช้คะแนนรอบแรกหรือคะแนนดีที่สุด (ไม่ระบุ = ดีที่สุด)
   units: { no: number; title: string; code?: string }[]; // code = ภาค A / B / C / D ในแบบเรียน
   lessons: CourseLesson[];
 }
@@ -72,6 +74,12 @@ export async function loadCourse(courseId: string): Promise<Course> {
 export interface LessonProgress {
   passed: boolean;      // เคยผ่านเกณฑ์อย่างน้อย 1 ครั้ง (ฉบับ ม.6 = ถูกครบทุกข้อ · ฉบับ ม.4 = ถูก 8/10 ขึ้นไป)
   passedAt?: number;    // เวลา (ms) ที่ผ่านครั้งแรก
+  first?: number;       // คะแนนรอบแรก (เริ่มเก็บ 4 พ.ย. 2569 · ใช้ลงสมุดคะแนนของคอร์สที่ gradeBy = "first")
+  firstTotal?: number;  // จำนวนข้อตอนทำรอบแรก
+  firstAt?: number;     // เวลา (ms) ที่ทำรอบแรกเสร็จ
+  firstMs?: number;     // เวลาที่ใช้ทำรอบแรก (ms)
+  lastMs?: number;      // เวลาที่ใช้ทำรอบล่าสุด (ms)
+  fast?: number;        // จำนวนรอบที่ทำเร็วผิดปกติ (เฉลี่ยไม่ถึง FAST_MS_PER_Q ต่อข้อ)
   best: number;         // คะแนนดีที่สุด
   last: number;         // คะแนนรอบล่าสุด
   total: number;        // จำนวนข้อในบท
@@ -80,6 +88,10 @@ export interface LessonProgress {
   missed?: Record<string, number>; // id ข้อ → จำนวนครั้งที่ตอบผิดสะสม (ไว้ดูข้อที่ยาก)
 }
 export type CourseProgress = Record<string, LessonProgress>; // key = lessonId
+
+// ทำเร็วผิดปกติ = เฉลี่ยไม่ถึง 5 วินาทีต่อข้อ (อ่านโจทย์ 5 ตัวเลือกไม่ทัน) → หน้าครูขึ้น ⚡
+export const FAST_MS_PER_Q = 5000;
+export const isFastAttempt = (ms: number | undefined, total: number | undefined) => !!ms && !!total && ms < total * FAST_MS_PER_Q;
 
 // กันค้าง: ถ้าเน็ตช้า/หลุด อย่ารอคลาวด์นานเกินไป (ข้อมูลยังเก็บในเครื่องเสมอ)
 function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
@@ -118,9 +130,16 @@ export function mergeLesson(a?: LessonProgress, b?: LessonProgress): LessonProgr
   const passedAts = [a.passedAt, b.passedAt].filter((x): x is number => typeof x === "number");
   const missed: Record<string, number> = { ...(a.missed || {}) };
   for (const [k, v] of Object.entries(b.missed || {})) missed[k] = Math.max(missed[k] ?? 0, v);
+  // รอบแรก: เอาจากฝั่งที่ทำรอบแรกก่อน
+  const fa = typeof a.first === "number" ? a : undefined;
+  const fb = typeof b.first === "number" ? b : undefined;
+  const fr = fa && fb ? ((fa.firstAt ?? 0) <= (fb.firstAt ?? 0) ? fa : fb) : fa || fb;
   return {
     passed: a.passed || b.passed,
     ...(passedAts.length ? { passedAt: Math.min(...passedAts) } : {}),
+    ...(fr ? { first: fr.first, firstTotal: fr.firstTotal, firstAt: fr.firstAt, ...(fr.firstMs ? { firstMs: fr.firstMs } : {}) } : {}),
+    ...(newer.lastMs ? { lastMs: newer.lastMs } : {}),
+    ...(a.fast || b.fast ? { fast: Math.max(a.fast ?? 0, b.fast ?? 0) } : {}),
     best: Math.max(a.best ?? 0, b.best ?? 0),
     last: newer.last ?? 0,
     total: newer.total ?? a.total ?? b.total ?? 0,
@@ -188,8 +207,9 @@ export async function saveLessonAttempt(params: {
   total: number;
   wrongIds: string[];
   passMin?: number; // ถูกกี่ข้อขึ้นไปจึงผ่าน (ไม่ระบุ = ครบทุกข้อ)
+  ms?: number;      // เวลาที่ใช้ทำรอบนี้ (ms)
 }): Promise<{ lesson: LessonProgress; cloudOk: boolean }> {
-  const { courseId, lessonId, email, name, score, total, wrongIds, passMin } = params;
+  const { courseId, lessonId, email, name, score, total, wrongIds, passMin, ms } = params;
   const now = Date.now();
   const allLocal = loadLocalCourseProgress(courseId, email);
   let base: LessonProgress | undefined = allLocal[lessonId];
@@ -211,9 +231,19 @@ export async function saveLessonAttempt(params: {
   const passedNow = total > 0 && score >= Math.min(total, passMin ?? total);
   const missed: Record<string, number> = { ...(base?.missed || {}) };
   for (const id of wrongIds) missed[id] = (missed[id] ?? 0) + 1;
+  // รอบแรกของบทนี้ (ยังไม่เคยทำเลย) → เก็บคะแนนรอบแรกไว้ลงสมุดคะแนน
+  const isFirst = !base || !(base.attempts > 0);
+  const fast = isFastAttempt(ms, total);
   const lesson: LessonProgress = {
     passed: (base?.passed ?? false) || passedNow,
     ...(base?.passedAt ? { passedAt: base.passedAt } : passedNow ? { passedAt: now } : {}),
+    ...(isFirst
+      ? { first: score, firstTotal: total, firstAt: now, ...(ms ? { firstMs: ms } : {}) }
+      : typeof base?.first === "number"
+      ? { first: base.first, firstTotal: base.firstTotal, firstAt: base.firstAt, ...(base.firstMs ? { firstMs: base.firstMs } : {}) }
+      : {}),
+    ...(ms ? { lastMs: ms } : {}),
+    ...((base?.fast ?? 0) + (fast ? 1 : 0) > 0 ? { fast: (base?.fast ?? 0) + (fast ? 1 : 0) } : {}),
     best: Math.max(base?.best ?? 0, score),
     last: score,
     total,

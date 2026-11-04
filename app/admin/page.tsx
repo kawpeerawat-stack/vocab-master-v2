@@ -7,7 +7,8 @@
 //   • ตารางรายคน: นักเรียนแต่ละคนผ่านบทไหนแล้ว (ม.6 ผ่าน = ถูกครบ 15/15 · ม.4 ผ่าน = ถูก 8/10 ขึ้นไป)
 //   • มุมมองรายบท: ใครผ่าน / ทำแล้วยังไม่ผ่าน / ยังไม่ทำ + ข้อที่นักเรียนพลาดบ่อย
 //   • จับคู่ชื่อที่นักเรียนพิมพ์กับรายชื่อทางการ (data/roster.json) → เรียงตามห้องและเลขที่
-//   • สมุดคะแนน: คะแนนดีที่สุดรายบท/รายคาบ + คะแนนรวม → ส่งออก CSV
+//   • สมุดคะแนน: คะแนนรายบท/รายคาบ (ม.4 = คะแนนรอบแรก · ม.6 = คะแนนดีที่สุด) + คะแนนรวม → ส่งออก CSV
+//   • เวลาที่ใช้ทำ + ⚡ เมื่อทำเร็วผิดปกติ (เฉลี่ยไม่ถึง 5 วินาที/ข้อ)
 //   • ข้อมูลอัปเดตสด (onSnapshot) — นักเรียนส่งผลแล้วหน้าครูเปลี่ยนเองโดยไม่ต้องกดรีเฟรช
 // เพิ่มคอร์สใหม่ในอนาคต: เพิ่มใน app/lib/courseRegistry.ts แล้วหน้านี้จะมีแท็บคอร์สใหม่ให้เอง
 // ─────────────────────────────────────────────────────────────
@@ -23,6 +24,7 @@ import {
   LessonProgress,
   loadCourse,
   mergeCourseProgress,
+  isFastAttempt,
 } from "../lib/courses";
 import { GRADES, ROSTER, extractNo, fmtThaiTime, gradeOf, matchRoster, roomOf, rosterKey, typedMismatch } from "../lib/roster";
 import { CORE_NAME, CORE_PLAN, VCourse, VProgress, loadVocab300 } from "../lib/vocab300";
@@ -88,6 +90,9 @@ function listenStudents(onData: (list: StudentDoc[]) => void, onError: (e: unkno
     onError
   );
 }
+
+// เวลาที่ใช้ทำ เช่น 2:05
+const fmtDur = (ms?: number) => (ms ? `${Math.floor(ms / 60000)}:${String(Math.round((ms % 60000) / 1000)).padStart(2, "0")}` : "");
 
 type Status = "passed" | "tried" | "none";
 const statusOf = (p?: LessonProgress): Status => (p?.passed ? "passed" : p ? "tried" : "none");
@@ -239,7 +244,22 @@ export default function AdminDashboard() {
   }, [rows, roomFilter, grade, lessons]);
 
   // ── CSV (โหมดสมุดคะแนน = คะแนนเป็นตัวเลข · โหมดอื่น = สถานะผ่าน) ──
-  const scoreOf = (r: Row) => lessons.reduce((s, l) => s + (r.progress[l.id]?.best ?? 0), 0);
+  // คะแนนที่ลงสมุด: ม.4 (gradeBy = "first") ใช้คะแนนรอบแรก · ม.6 ใช้คะแนนดีที่สุด
+  //   * = รอบแรกทำก่อนเริ่มเก็บคะแนนรอบแรก (ใช้คะแนนดีที่สุดแทน) หรือทำแบบเดิม 10 ข้อ (เทียบเป็นคะแนนเต็มปัจจุบัน)
+  const byFirst = course?.gradeBy === "first";
+  const gradeCell = (p: LessonProgress | undefined, full: number): { score: number; star: boolean; fast: boolean } | null => {
+    if (!p) return null;
+    let raw = p.best, of = p.total, star = false;
+    if (byFirst) {
+      if (typeof p.first === "number") { raw = p.first; of = p.firstTotal ?? p.total; }
+      else if ((p.attempts ?? 0) > 1) star = true;
+    }
+    let score = raw;
+    if (of && of !== full) { score = Math.round((raw * full) / of); star = true; }
+    return { score, star, fast: (p.fast ?? 0) > 0 || isFastAttempt(p.firstMs, p.firstTotal) };
+  };
+  const scoreOf = (r: Row) => lessons.reduce((s, l) => s + (gradeCell(r.progress[l.id], l.questions.length)?.score ?? 0), 0);
+  const fastRows = [...rosterRows, ...extraRows].filter((r) => lessons.some((l) => gradeCell(r.progress[l.id], l.questions.length)?.fast)).length;
   const fullScore = lessons.reduce((s, l) => s + l.questions.length, 0);
   const downloadCsv = () => {
     const esc = (v: string | number) => {
@@ -249,14 +269,19 @@ export default function AdminDashboard() {
     const list = [...rosterRows, ...extraRows];
     const grades = mode === "grades";
     const headers = grades
-      ? ["ห้อง", "เลขที่", "ชื่อ-สกุล", ...lessons.map((l) => `${L}${l.hour} (เต็ม ${l.questions.length})`), `ผ่าน (${L})`, `คะแนนรวม (เต็ม ${fullScore})`, "ชื่อที่พิมพ์ในแอป", "อีเมล", "ทำล่าสุด"]
+      ? ["ห้อง", "เลขที่", "ชื่อ-สกุล", ...lessons.map((l) => `${L}${l.hour} (เต็ม ${l.questions.length})`), `ผ่าน (${L})`, `คะแนนรวม (เต็ม ${fullScore}) · ${byFirst ? "คะแนนรอบแรก" : "คะแนนดีที่สุด"}`, "หมายเหตุ (* = ใช้คะแนนดีที่สุด/เทียบจากแบบเดิม · ⚡ = ทำเร็วผิดปกติ)", "ชื่อที่พิมพ์ในแอป", "อีเมล", "ทำล่าสุด"]
       : ["ห้อง", "เลขที่", "ชื่อ-สกุล", "ชื่อที่พิมพ์ในแอป", "อีเมล", ...lessons.map((l) => `${L}${l.hour}`), `ผ่าน (${L})`, "ทำล่าสุด"];
     const lines = list.map((r) =>
       (grades
         ? [
             r.room ?? "", r.no ?? "", r.name,
-            ...lessons.map((l) => r.progress[l.id]?.best ?? ""),
-            passedCountOf(r), scoreOf(r), r.typedNames.join(" / "), r.emails.join(" / "),
+            ...lessons.map((l) => gradeCell(r.progress[l.id], l.questions.length)?.score ?? ""),
+            passedCountOf(r), scoreOf(r),
+            [
+              ...lessons.filter((l) => gradeCell(r.progress[l.id], l.questions.length)?.star).map((l) => `${L}${l.hour}*`),
+              ...lessons.filter((l) => gradeCell(r.progress[l.id], l.questions.length)?.fast).map((l) => `${L}${l.hour}⚡`),
+            ].join(" "),
+            r.typedNames.join(" / "), r.emails.join(" / "),
             r.activeAt ? new Date(r.activeAt).toLocaleString("th-TH") : "",
           ]
         : [
@@ -537,11 +562,13 @@ export default function AdminDashboard() {
                               {lessons.map((l) => {
                                 const p = r.progress[l.id];
                                 const st = statusOf(p);
+                                const fast = !!p && ((p.fast ?? 0) > 0 || isFastAttempt(p.firstMs, p.firstTotal));
                                 const tip = p
-                                  ? `${L} ${l.hour} ${l.titleEn}\nดีที่สุด ${p.best}/${p.total} · ล่าสุด ${p.last}/${p.total} · ทำ ${p.attempts} รอบ${p.passedAt ? `\nผ่านเมื่อ ${new Date(p.passedAt).toLocaleString("th-TH")}` : ""}`
+                                  ? `${L} ${l.hour} ${l.titleEn}\n${typeof p.first === "number" ? `รอบแรก ${p.first}/${p.firstTotal ?? p.total}${p.firstMs ? ` (${fmtDur(p.firstMs)} นาที)` : ""} · ` : ""}ดีที่สุด ${p.best}/${p.total} · ล่าสุด ${p.last}/${p.total}${p.lastMs ? ` (${fmtDur(p.lastMs)} นาที)` : ""} · ทำ ${p.attempts} รอบ${fast ? `\n⚡ ทำเร็วผิดปกติ ${p.fast ?? 1} รอบ (เฉลี่ยไม่ถึง 5 วินาที/ข้อ)` : ""}${p.passedAt ? `\nผ่านเมื่อ ${new Date(p.passedAt).toLocaleString("th-TH")}` : ""}`
                                   : `${L} ${l.hour} ยังไม่ทำ`;
                                 return (
-                                  <td key={l.id} className="text-center px-0.5 py-1" title={tip}>
+                                  <td key={l.id} className="text-center px-0.5 py-1 relative" title={tip}>
+                                    {fast && <span className="absolute -top-0.5 right-0 text-[10px]" aria-label="ทำเร็วผิดปกติ">⚡</span>}
                                     {st === "passed" ? (
                                       <span className="inline-flex w-7 h-7 rounded-lg bg-emerald-500 text-white font-black items-center justify-center text-xs">✓</span>
                                     ) : st === "tried" ? (
@@ -566,7 +593,7 @@ export default function AdminDashboard() {
                   </table>
                 </div>
                 <p className="text-[11px] text-gray-500 px-4 py-3">
-                  ✓ = ผ่าน ({passText}) · ตัวเลข = คะแนนดีที่สุดที่ยังไม่ผ่าน · ชี้ที่ช่องเพื่อดูจำนวนรอบและวันที่ผ่าน · หัวคอลัมน์ = {L}ที่
+                  ✓ = ผ่าน ({passText}) · ตัวเลข = คะแนนดีที่สุดที่ยังไม่ผ่าน · ⚡ = ทำเร็วผิดปกติ (เฉลี่ยไม่ถึง 5 วินาทีต่อข้อ){fastRows > 0 ? ` — ${fastRows} คนในมุมมองนี้` : ""} · ชี้ที่ช่องเพื่อดูคะแนนรอบแรก เวลาที่ใช้ จำนวนรอบ และวันที่ผ่าน · หัวคอลัมน์ = {L}ที่
                 </p>
               </div>
             )}
@@ -605,10 +632,16 @@ export default function AdminDashboard() {
                               </td>
                               {lessons.map((l) => {
                                 const p = r.progress[l.id];
+                                const g = gradeCell(p, l.questions.length);
                                 return (
-                                  <td key={l.id} className="text-center px-0.5 py-1" title={p ? `ดีที่สุด ${p.best}/${p.total} · ทำ ${p.attempts} รอบ` : "ยังไม่ทำ"}>
-                                    {p ? (
-                                      <span className={`inline-flex w-7 h-7 rounded-lg font-black items-center justify-center text-[11px] tabular-nums ${p.passed ? "bg-emerald-500 text-white" : "bg-amber-100 text-amber-800"}`}>{p.best}</span>
+                                  <td
+                                    key={l.id}
+                                    className="text-center px-0.5 py-1 relative"
+                                    title={p ? `${typeof p.first === "number" ? `รอบแรก ${p.first}/${p.firstTotal ?? p.total}${p.firstMs ? ` · ${fmtDur(p.firstMs)} นาที` : ""} · ` : ""}ดีที่สุด ${p.best}/${p.total} · ทำ ${p.attempts} รอบ${g?.star ? "\n* ใช้คะแนนดีที่สุด / เทียบจากแบบเดิม 10 ข้อ" : ""}${g?.fast ? "\n⚡ ทำเร็วผิดปกติ" : ""}` : "ยังไม่ทำ"}
+                                  >
+                                    {g?.fast && <span className="absolute -top-0.5 right-0 text-[10px]" aria-label="ทำเร็วผิดปกติ">⚡</span>}
+                                    {p && g ? (
+                                      <span className={`inline-flex min-w-7 h-7 px-0.5 rounded-lg font-black items-center justify-center text-[11px] tabular-nums ${p.passed ? "bg-emerald-500 text-white" : "bg-amber-100 text-amber-800"}`}>{g.score}{g.star ? "*" : ""}</span>
                                     ) : (
                                       <span className="inline-flex w-7 h-7 rounded-lg bg-gray-50 text-gray-300 items-center justify-center text-xs">·</span>
                                     )}
@@ -625,7 +658,8 @@ export default function AdminDashboard() {
                   </table>
                 </div>
                 <p className="text-[11px] text-gray-500 px-4 py-3">
-                  ตัวเลข = คะแนนดีที่สุดของ{L}นั้น (เต็ม {qn}) · เขียว = ผ่าน ({passText}) · รวม = ผลรวมคะแนนดีที่สุดทุก{L} (เต็ม {fullScore}) · กด “⬇ สมุดคะแนน CSV” เพื่อนำไปลงคะแนน
+                  ตัวเลข = {byFirst ? "คะแนนรอบแรก" : "คะแนนดีที่สุด"}ของ{L}นั้น (เต็ม {qn}) · เขียว = ผ่าน ({passText}) · รวม = ผลรวมทุก{L} (เต็ม {fullScore}) ·
+                  {byFirst ? " * = ทำก่อนเริ่มเก็บคะแนนรอบแรก (ใช้คะแนนดีที่สุดแทน) หรือทำแบบเดิม 10 ข้อ (เทียบเป็นคะแนนเต็มปัจจุบัน) ·" : ""} ⚡ = ทำเร็วผิดปกติ · กด “⬇ สมุดคะแนน CSV” เพื่อนำไปลงคะแนน
                 </p>
               </div>
             )}
@@ -688,6 +722,9 @@ function LessonPanel({
     .slice(0, 8);
 
   const label = (r: Row) => `${roomFilter === "ALL" && r.room ? `ม.${r.room} ` : ""}${r.no != null ? `${r.no}. ` : ""}${r.name}`;
+  // เวลาที่ใช้ทำรอบล่าสุด + ⚡ ถ้าเร็วผิดปกติ
+  const timeNote = (p?: LessonProgress) =>
+    !p ? "" : `${p.lastMs ? ` · ⏱ ${fmtDur(p.lastMs)}` : ""}${(p.fast ?? 0) > 0 || isFastAttempt(p.firstMs, p.firstTotal) ? " ⚡" : ""}`;
   const strip = (t: string) => t.replace(/\*\*/g, "");
 
   const Col = ({ title, list, cls, render }: { title: string; list: Row[]; cls: string; render: (r: Row) => React.ReactNode }) => (
@@ -721,8 +758,8 @@ function LessonPanel({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-        <Col title="✓ ผ่านแล้ว" list={groups.passed} cls="bg-emerald-50 text-emerald-700" render={(r) => `${fmtDate(r.progress[lesson.id]?.passedAt)} · ${r.progress[lesson.id]?.attempts} รอบ`} />
-        <Col title="ทำแล้ว ยังไม่ผ่าน" list={groups.tried} cls="bg-amber-50 text-amber-800" render={(r) => `ดีสุด ${r.progress[lesson.id]?.best}/${r.progress[lesson.id]?.total} · ${r.progress[lesson.id]?.attempts} รอบ`} />
+        <Col title="✓ ผ่านแล้ว" list={groups.passed} cls="bg-emerald-50 text-emerald-700" render={(r) => `${fmtDate(r.progress[lesson.id]?.passedAt)} · ${r.progress[lesson.id]?.attempts} รอบ${timeNote(r.progress[lesson.id])}`} />
+        <Col title="ทำแล้ว ยังไม่ผ่าน" list={groups.tried} cls="bg-amber-50 text-amber-800" render={(r) => `ดีสุด ${r.progress[lesson.id]?.best}/${r.progress[lesson.id]?.total} · ${r.progress[lesson.id]?.attempts} รอบ${timeNote(r.progress[lesson.id])}`} />
         <Col title="ยังไม่ได้ทำ" list={groups.none} cls="bg-gray-100 text-gray-600" render={() => ""} />
       </div>
 
