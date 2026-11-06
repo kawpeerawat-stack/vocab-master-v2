@@ -377,7 +377,8 @@ export default function AdminDashboard() {
               )}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <a href="/demo/camera" target="_blank" rel="noreferrer" className="px-3 py-2 rounded-xl bg-white border-2 border-[#003399]/15 text-[#003399] font-bold text-sm hover:border-[#003399]/40" title="หน้าทดลองสำหรับผู้บริหาร (ยังไม่ใช้กับนักเรียน)">🧪 ทดลองกล้องซ้อน</a>
             <button onClick={reconnect} disabled={loading} className="px-4 py-2 bg-white border-2 border-[#003399]/20 text-[#003399] font-bold rounded-xl disabled:opacity-50">
               {loading ? "⏳ กำลังเชื่อมต่อ..." : "🔄 เชื่อมต่อใหม่"}
             </button>

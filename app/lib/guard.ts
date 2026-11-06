@@ -23,19 +23,26 @@ export interface GuardStats {
   mode: GuardMode;
 }
 
+export const COVER_MS = 3000; // หน้าเสียโฟกัสแต่ยังแสดงอยู่ (หน้าต่าง Gemini / วงกลมค้นหาบัง) นานเกินนี้ = นับเหมือนออกจากหน้า
+export type LeaveKind = "leave" | "cover"; // leave = สลับแอป/แท็บ/หน้าโฮม · cover = มีหน้าต่างอื่นบังนานเกิน 3 วินาที
+export interface GuardNotice { n: number; key: string; kind: LeaveKind; skipped: boolean }
+
 // ใช้ในหน้าทำข้อสอบ: active = กำลังทำรอบที่เข้าสมุดคะแนน · qKey = ข้อที่กำลังทำอยู่
-export function useLeaveGuard(active: boolean, qKey: string | null) {
+// onLeft(key) = เรียกเมื่อตรวจพบ (จากเหตุการณ์ ไม่ใช่ระหว่างวาดหน้าจอ) → คืน true ถ้าหน้าจอข้ามข้อนั้นไปแล้ว
+export function useLeaveGuard(active: boolean, qKey: string | null, onLeft?: (key: string, kind: LeaveKind) => boolean) {
   const [leaves, setLeaves] = useState(0);
-  const [notice, setNotice] = useState<{ n: number; key: string } | null>(null);
-  const st = useRef({ leaves: 0, awayMs: 0, blurs: 0, hiddenAt: 0, blurAt: 0 });
+  const [notice, setNotice] = useState<GuardNotice | null>(null);
+  const st = useRef({ leaves: 0, awayMs: 0, blurs: 0, hiddenAt: 0, blurAt: 0, blurKey: "" as string, covered: false });
   const leftKeys = useRef<Set<string>>(new Set());
   const keyRef = useRef<string | null>(qKey);
+  const onLeftRef = useRef(onLeft);
   useEffect(() => {
     keyRef.current = qKey;
-  }, [qKey]);
+    onLeftRef.current = onLeft;
+  });
 
   const reset = useCallback(() => {
-    st.current = { leaves: 0, awayMs: 0, blurs: 0, hiddenAt: 0, blurAt: 0 };
+    st.current = { leaves: 0, awayMs: 0, blurs: 0, hiddenAt: 0, blurAt: 0, blurKey: "", covered: false };
     leftKeys.current = new Set();
     setLeaves(0);
     setNotice(null);
@@ -43,36 +50,60 @@ export function useLeaveGuard(active: boolean, qKey: string | null) {
 
   useEffect(() => {
     if (!active) return;
+    let coverT: ReturnType<typeof setTimeout> | undefined;
+    const record = (key: string, kind: LeaveKind) => {
+      const s = st.current;
+      s.leaves++;
+      if (key) leftKeys.current.add(key);
+      const skipped = key ? !!onLeftRef.current?.(key, kind) : false;
+      setLeaves(s.leaves);
+      setNotice({ n: s.leaves, key, kind, skipped });
+    };
     const onVis = () => {
       const s = st.current;
       if (document.visibilityState === "hidden") {
-        s.hiddenAt = Date.now();
+        if (coverT) clearTimeout(coverT);
+        // ถ้ากำลังนับว่า "ถูกบัง" อยู่แล้ว ไม่นับซ้ำ
+        if (!s.covered) s.hiddenAt = Date.now();
+        s.blurAt = 0;
       } else if (s.hiddenAt) {
         s.awayMs += Date.now() - s.hiddenAt;
         s.hiddenAt = 0;
-        s.leaves++;
-        if (keyRef.current) leftKeys.current.add(keyRef.current);
-        setLeaves(s.leaves);
-        setNotice({ n: s.leaves, key: keyRef.current || "" });
+        record(keyRef.current || "", "leave");
       }
     };
     const onBlur = () => {
       // เสียโฟกัสแต่หน้ายังแสดงอยู่ (ถ้าซ่อนหน้า visibilitychange จะนับแทน)
       setTimeout(() => {
-        if (document.visibilityState === "visible" && !document.hasFocus()) st.current.blurAt = Date.now();
+        const s = st.current;
+        if (document.visibilityState !== "visible" || document.hasFocus() || s.blurAt) return;
+        s.blurAt = Date.now() - 300;
+        s.blurKey = keyRef.current || "";
+        if (coverT) clearTimeout(coverT);
+        coverT = setTimeout(() => {
+          if (st.current.blurAt && document.visibilityState === "visible" && !document.hasFocus()) {
+            st.current.covered = true;
+            record(st.current.blurKey, "cover"); // นานเกิน 3 วินาที → นับเหมือนออกจากหน้า (ข้ามข้อทันที)
+          }
+        }, COVER_MS - 300);
       }, 300);
     };
     const onFocus = () => {
       const s = st.current;
+      if (coverT) clearTimeout(coverT);
       if (s.blurAt) {
-        if (Date.now() - s.blurAt > 1500) s.blurs++;
+        const dur = Date.now() - s.blurAt;
+        if (s.covered) s.awayMs += dur;
+        else if (dur > 1500) s.blurs++; // สั้น ๆ: บันทึกให้ครูเห็นเท่านั้น
         s.blurAt = 0;
       }
+      s.covered = false;
     };
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("blur", onBlur);
     window.addEventListener("focus", onFocus);
     return () => {
+      if (coverT) clearTimeout(coverT);
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("blur", onBlur);
       window.removeEventListener("focus", onFocus);
@@ -86,6 +117,15 @@ export function useLeaveGuard(active: boolean, qKey: string | null) {
     return { leaves: s.leaves, awayMs: s.awayMs, blurs: s.blurs, voided, mode };
   }, []);
   return { leaves, notice, clearNotice: () => setNotice(null), wasLeft, stats, reset };
+}
+
+// ข้อความเตือนเมื่อกลับมา
+export function noticeText(nt: GuardNotice, mode: GuardMode, unit = "ข้อ"): string {
+  const what = nt.kind === "cover" ? "มีหน้าต่างอื่นบังหน้าแอปนานเกิน 3 วินาที" : "ออกจากหน้าแอป";
+  const tail = mode === "enforce"
+    ? (nt.skipped ? ` — ${unit}นี้ถูกข้าม (ไม่ได้คะแนน)` : ` — ${unit}นี้ไม่นับคะแนน`)
+    : " — ช่วงทดลอง ระบบบันทึกให้ครูเห็น (ยังไม่หักคะแนน)";
+  return `⚠️ ${what} ครั้งที่ ${nt.n}${tail}${nt.n >= GUARD_FLAG_AT ? " · ครูจะเห็น 🚩" : ""}`;
 }
 
 // กันคัดลอกข้อความโจทย์ / เมนูกดค้าง (ใส่ใน props ของกล่องโจทย์)

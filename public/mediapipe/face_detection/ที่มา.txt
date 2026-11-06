@@ -1,0 +1,2 @@
+MediaPipe Face Detection 0.4.1646425229 (Apache-2.0) — จาก npm @mediapipe/face_detection
+ใช้ในหน้าทดลอง /demo/camera เท่านั้น · ประมวลผลในเครื่องผู้ใช้ ไม่ส่งภาพออกไป

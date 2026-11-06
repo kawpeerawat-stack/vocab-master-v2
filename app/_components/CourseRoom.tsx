@@ -26,13 +26,13 @@ import {
   shuffled,
 } from "../lib/courses";
 import { isIssue, issueText, loadLocalUnlock, openDay, serverToday, syncClock, thaiShort, type SyncState } from "../lib/sync";
-import { GUARD_FLAG_AT, guardMode, noCopyProps, useLeaveGuard } from "../lib/guard";
+import { GUARD_FLAG_AT, guardMode, noCopyProps, noticeText, useLeaveGuard } from "../lib/guard";
 import { roomOf } from "../lib/names";
 
 type View = "LIST" | "LESSON" | "GATE" | "QUIZ" | "RESULT";
 type QuizItem = { q: CourseQuestion; order: number[] }; // order[i] = index ตัวเลือกเดิมที่แสดงในช่อง i
 // chosen = index เดิม (ก่อนสลับ) · voided = ออกจากหน้าระหว่างข้อนี้ในรอบที่เข้าสมุดคะแนน (ช่วงหักคะแนน) → ไม่นับ
-type Answer = { qid: string; chosen: number; correct: boolean; voided?: boolean };
+type Answer = { qid: string; chosen: number; correct: boolean; voided?: boolean; skipped?: boolean }; // skipped = ระบบข้ามข้อนี้ทันทีเพราะออกจากหน้า (chosen = -1)
 const nowMs = () => Date.now(); // เวลาปัจจุบัน (เรียกเฉพาะตอนกดปุ่ม ไม่ได้เรียกระหว่างวาดหน้าจอ)
 const scoreOf = (all: Answer[]) => all.filter((a) => a.correct && !a.voided).length;
 
@@ -188,7 +188,24 @@ export default function CourseRoom({
 
   const current = items[idx];
   const answered = selected !== null;
-  const guard = useLeaveGuard(view === "QUIZ" && guarded, view === "QUIZ" && current && !answered ? current.q.id : null);
+  // ช่วงหักคะแนน: ตรวจพบว่าออกจากหน้า/ถูกบังนานระหว่างข้อไหน → ข้ามข้อนั้นทันที (ไม่ได้คะแนน)
+  const finishRef = useRef<(all: Answer[]) => void>(() => undefined);
+  const skipCurrent = (key: string) => {
+    if (!guarded || mode !== "enforce" || !current || current.q.id !== key || selected !== null) return false;
+    qTimes.current.push(Math.round((nowMs() - qStart.current) / 1000));
+    const all = [...answers, { qid: key, chosen: -1, correct: false, voided: true, skipped: true }];
+    setAnswers(all);
+    if (idx + 1 >= items.length) {
+      finishRef.current(all);
+    } else {
+      setIdx((i) => i + 1);
+      setSelected(null);
+      setShowHint(false);
+      qStart.current = nowMs();
+    }
+    return true;
+  };
+  const guard = useLeaveGuard(view === "QUIZ" && guarded, view === "QUIZ" && current && !answered ? current.q.id : null, skipCurrent);
 
   // รอบแรกของบท (เข้าสมุดคะแนน) → หน้ากติกาก่อน
   const beginQuiz = () => {
@@ -253,6 +270,9 @@ export default function CourseRoom({
     setSaveState(cloudOk ? "ok" : issue ?? "error");
     setPending(hasPendingLessons(courseId, email));
   };
+  useEffect(() => {
+    finishRef.current = (all) => void finish(all);
+  });
 
   const next = () => {
     if (!answered) return;
@@ -538,10 +558,10 @@ export default function CourseRoom({
           <p className="text-center text-xs font-bold text-[#003399] mb-4">คะแนนรอบนี้{course?.gradeBy === "first" ? "เข้าสมุดคะแนนของครู" : "ครูดูประกอบการให้คะแนน"}</p>
           <ol className="text-sm text-gray-800 space-y-2 list-decimal pl-5">
             <li>เปิด <b>โหมดห้ามรบกวน</b> ก่อน (กันแจ้งเตือนเด้งทับ)</li>
-            <li><b>อยู่ในหน้านี้ตลอด</b> จนทำครบ {lesson.questions.length} ข้อ — ห้ามสลับแอป สลับแท็บ หรือกลับหน้าโฮม</li>
+            <li><b>อยู่ในหน้านี้ตลอด</b> จนทำครบ {lesson.questions.length} ข้อ — ห้ามสลับแอป สลับแท็บ กลับหน้าโฮม หรือเรียก Gemini / วงกลมค้นหา · คลุมหรือคัดลอกโจทย์ไม่ได้</li>
             <li>
               {mode === "enforce"
-                ? <>ออกจากหน้าระหว่างข้อไหน <b className="text-rose-600">ข้อนั้นไม่นับคะแนน</b> (ทำต่อได้ ไม่ต้องเริ่มใหม่)</>
+                ? <>ออกจากหน้า หรือมีหน้าต่างอื่น (เช่น Gemini / วงกลมค้นหา) บังนานเกิน 3 วินาที ระหว่างข้อไหน <b className="text-rose-600">ระบบข้ามข้อนั้นทันที ไม่ได้คะแนน</b> (ทำข้อต่อไปได้ ไม่ต้องเริ่มใหม่)</>
                 : <>ช่วงทดลอง: ระบบ <b>บันทึก</b> การออกจากหน้าให้ครูเห็น (ยังไม่หักคะแนน)</>}
             </li>
             <li>ออกจากหน้าครบ {GUARD_FLAG_AT} ครั้ง ครูจะเห็นเครื่องหมาย 🚩 และอาจให้ทำต่อหน้าครู</li>
@@ -589,11 +609,7 @@ export default function CourseRoom({
         </div>
         {guarded && guard.notice && (
           <div className={`rounded-xl p-3 mb-3 text-sm font-bold flex items-start gap-2 ${mode === "enforce" ? "bg-orange-100 text-orange-900 border-2 border-orange-300" : "bg-amber-50 text-amber-900 border-2 border-amber-200"}`}>
-            <span className="flex-1">
-              ⚠️ ออกจากหน้าครั้งที่ {guard.notice.n}
-              {mode === "enforce" ? " — ข้อนี้ไม่นับคะแนนรอบแรก" : " — ช่วงทดลอง ระบบบันทึกให้ครูเห็น (ยังไม่หักคะแนน)"}
-              {guard.notice.n >= GUARD_FLAG_AT ? " · ครูจะเห็น 🚩" : ""}
-            </span>
+            <span className="flex-1">{noticeText(guard.notice, mode).replace("ข้อนี้ถูกข้าม", "ข้อที่แล้วถูกข้าม")}</span>
             <button onClick={guard.clearNotice} className="shrink-0 text-xs underline">รับทราบ</button>
           </div>
         )}
@@ -697,7 +713,7 @@ export default function CourseRoom({
           <p className={`font-black text-lg ${passed ? "text-emerald-700" : "text-amber-800"}`}>
             {passed ? `ผ่าน${L}นี้แล้ว!` : `อีก ${need - score} ข้อจะผ่าน — ลองใหม่อีกครั้ง`}
           </p>
-          {nVoid > 0 && <p className="text-xs font-bold text-orange-700 mt-2">ไม่นับ {nVoid} ข้อ เพราะออกจากหน้าระหว่างทำ</p>}
+          {nVoid > 0 && <p className="text-xs font-bold text-orange-700 mt-2">ถูกข้าม/ไม่นับ {nVoid} ข้อ เพราะออกจากหน้าระหว่างทำ</p>}
           {guarded && guard.leaves > 0 && mode === "log" && <p className="text-xs font-bold text-amber-700 mt-2">ออกจากหน้า {guard.leaves} ครั้ง (ช่วงทดลอง — บันทึกให้ครูเห็น ยังไม่หักคะแนน)</p>}
           <p className={`text-xs mt-2 ${isIssue(saveState) ? "font-bold text-amber-800" : "text-gray-500"}`}>
             {saveState === "ok" ? "✓ บันทึกผลแล้ว ครูเห็นผลนี้ในระบบ" : issueText(saveState)}
@@ -717,7 +733,11 @@ export default function CourseRoom({
                 return (
                   <div key={a.qid} className="border-2 border-rose-100 rounded-2xl p-3">
                     <p className="text-sm font-bold text-gray-900 mb-1"><Rich text={q.q} /></p>
-                    <p className="text-xs text-rose-600">✗ ตอบ: <Rich text={q.options[a.chosen]} /></p>
+                    {a.skipped ? (
+                      <p className="text-xs text-orange-700 font-bold">⏭ ถูกข้าม เพราะออกจากหน้าแอประหว่างทำ</p>
+                    ) : (
+                      <p className="text-xs text-rose-600">✗ ตอบ: <Rich text={q.options[a.chosen]} /></p>
+                    )}
                     <p className="text-xs text-emerald-700 font-bold">✓ ที่ถูก: <Rich text={q.options[q.answer]} /></p>
                     {q.explain && <p className="text-xs text-gray-600 mt-1"><Rich text={q.explain} /></p>}
                   </div>

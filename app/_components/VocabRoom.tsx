@@ -46,7 +46,7 @@ import {
 } from "../lib/vocab300";
 import { displayName, roomOf } from "../lib/names";
 import { isIssue, issueText, loadLocalUnlock, openDay, serverToday, syncClock, thaiDate, type SyncState } from "../lib/sync";
-import { GUARD_FLAG_AT, guardMode, noCopyProps, useLeaveGuard } from "../lib/guard";
+import { GUARD_FLAG_AT, guardMode, noCopyProps, noticeText, useLeaveGuard } from "../lib/guard";
 
 // ───────── ตัวช่วยแสดงผล ─────────
 function Rich({ text, className = "" }: { text: string; className?: string }) {
@@ -438,8 +438,20 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
   // ── ระบบกัน AI ในรอบทบทวน (รอบที่เข้าสมุดคะแนน) ──
   const gMode = guardMode(sToday);
   const curItem = queue[qi];
-  const guard = useLeaveGuard(mode === "CHECK" && !checkGate, mode === "CHECK" && !checkGate && curItem && picked === null && curItem.retry === 0 ? curItem.wid : null);
   const voidedRef = useRef(0);
+  // ช่วงหักคะแนน: ตรวจพบระหว่างคำไหน → ข้ามคำนั้นทันที (ไม่ได้คะแนนรอบทบทวน) และวนกลับมาท้ายรอบให้ตอบให้ถูกเพื่อผ่านชุด
+  const skipCheckItem = (key: string) => {
+    const it = queue[qi];
+    if (gMode !== "enforce" || mode !== "CHECK" || !it || it.wid !== key || it.retry !== 0 || picked !== null) return false;
+    checkFirst.current[it.wid] = false;
+    voidedRef.current++;
+    const w = byId[it.wid];
+    setQueue((q) => [...q, makeItem(w, it.kind, words.filter((x) => x.week === w.week), it.retry + 1)]);
+    setQi(qi + 1);
+    setPicked(null);
+    return true;
+  };
+  const guard = useLeaveGuard(mode === "CHECK" && !checkGate, mode === "CHECK" && !checkGate && curItem && picked === null && curItem.retry === 0 ? curItem.wid : null, skipCheckItem);
 
   // ── เริ่มชุดเรียนใหม่ ──
   const startWord = (i: number) => {
@@ -1066,10 +1078,10 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
           <p className="text-center text-xs font-bold text-[#003399] mb-4">คะแนนชุด (เต็ม 10) = คำที่ตอบถูกตั้งแต่ครั้งแรกในรอบนี้ · เข้าสมุดคะแนนของครู</p>
           <ol className="text-sm text-gray-800 space-y-2 list-decimal pl-5">
             <li>เปิด <b>โหมดห้ามรบกวน</b> ก่อน (กันแจ้งเตือนเด้งทับ)</li>
-            <li><b>อยู่ในหน้านี้ตลอด</b> จนผ่านชุด — ห้ามสลับแอป สลับแท็บ หรือกลับหน้าโฮม</li>
+            <li><b>อยู่ในหน้านี้ตลอด</b> จนผ่านชุด — ห้ามสลับแอป สลับแท็บ กลับหน้าโฮม หรือเรียก Gemini / วงกลมค้นหา · คลุมหรือคัดลอกโจทย์ไม่ได้</li>
             <li>
               {gMode === "enforce"
-                ? <>ออกจากหน้าระหว่างคำไหน <b className="text-rose-600">คำนั้นไม่นับคะแนน</b> (ยังต้องตอบให้ถูกเพื่อผ่านชุดตามเดิม)</>
+                ? <>ออกจากหน้า หรือมีหน้าต่างอื่น (เช่น Gemini / วงกลมค้นหา) บังนานเกิน 3 วินาที ระหว่างคำไหน <b className="text-rose-600">ระบบข้ามคำนั้นทันที ไม่ได้คะแนน</b> (คำนั้นวนกลับมาท้ายรอบ ยังต้องตอบให้ถูกเพื่อผ่านชุด)</>
                 : <>ช่วงทดลอง: ระบบ <b>บันทึก</b> การออกจากหน้าให้ครูเห็น (ยังไม่หักคะแนน)</>}
             </li>
             <li>ออกจากหน้าครบ {GUARD_FLAG_AT} ครั้ง ครูจะเห็นเครื่องหมาย 🚩</li>
@@ -1098,11 +1110,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
         {(mode === "LEARN" || mode === "CHECK") && <Steps active={mode === "LEARN" ? 4 : 5} />}
         {mode === "CHECK" && guard.notice && (
           <div className={`rounded-xl p-3 mb-3 text-sm font-bold flex items-start gap-2 ${gMode === "enforce" ? "bg-orange-100 text-orange-900 border-2 border-orange-300" : "bg-amber-50 text-amber-900 border-2 border-amber-200"}`}>
-            <span className="flex-1">
-              ⚠️ ออกจากหน้าครั้งที่ {guard.notice.n}
-              {gMode === "enforce" ? " — คำนี้ไม่นับคะแนนรอบทบทวน" : " — ช่วงทดลอง ระบบบันทึกให้ครูเห็น (ยังไม่หักคะแนน)"}
-              {guard.notice.n >= GUARD_FLAG_AT ? " · ครูจะเห็น 🚩" : ""}
-            </span>
+            <span className="flex-1">{noticeText(guard.notice, gMode, "คำ").replace("คำนี้ถูกข้าม", "คำที่แล้วถูกข้าม และจะวนกลับมาท้ายรอบ")}</span>
             <button onClick={guard.clearNotice} className="shrink-0 text-xs underline">รับทราบ</button>
           </div>
         )}
