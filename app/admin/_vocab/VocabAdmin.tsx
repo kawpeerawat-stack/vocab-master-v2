@@ -13,8 +13,9 @@
 import React, { useMemo, useState } from "react";
 import { VCourse, VProgress, VSetPass, VWord, computeStats, emptyProgress, isKnown, mergeProgress, normalizeProgress, plannedWeekNo, setPassOf, setState, todayStr } from "../../lib/vocab300";
 import { ROOMS, ROSTER, extractNo, fmtThaiTime, gradeOf, matchRoster, roomOf, rosterKey, downloadCsv, typedMismatch } from "../../lib/roster";
+import { GuardMark, UnlockButton, guardTip, isFlagged } from "../_parts/AdminTools";
 
-export type V300Doc = { id: string; name?: string; email?: string; v300?: VProgress; v300At?: number };
+export type V300Doc = { id: string; name?: string; email?: string; v300?: VProgress; v300At?: number; unlock?: Record<string, number> };
 
 type VRow = {
   key: string;
@@ -23,6 +24,8 @@ type VRow = {
   name: string;
   typedNames: string[];
   emails: string[];
+  ids: string[];
+  unlock: number; // ครูเปิดชุดล่วงหน้าถึงชุดที่ … (0 = ไม่ได้เปิด)
   prog: VProgress;
   at: number;
   inRoster: boolean;
@@ -56,7 +59,7 @@ export default function VocabAdmin({
   const rows: VRow[] = useMemo(() => {
     const byRoster: Record<string, VRow> = {};
     for (const r of ROSTER) {
-      byRoster[rosterKey(r)] = { key: rosterKey(r), room: r.room, no: r.no, name: r.name, typedNames: [], emails: [], prog: emptyProgress(), at: 0, inRoster: true };
+      byRoster[rosterKey(r)] = { key: rosterKey(r), room: r.room, no: r.no, name: r.name, typedNames: [], emails: [], ids: [], unlock: 0, prog: emptyProgress(), at: 0, inRoster: true };
     }
     const extra: VRow[] = [];
     for (const s of students) {
@@ -67,12 +70,14 @@ export default function VocabAdmin({
         const row = byRoster[rosterKey(hit)];
         if (s.name && !row.typedNames.includes(s.name)) row.typedNames.push(s.name);
         if (s.email) row.emails.push(s.email);
+        row.ids.push(s.id);
+        row.unlock = Math.max(row.unlock, s.unlock?.v300 ?? 0);
         if (has) row.prog = mergeProgress(row.prog, { cards: p!.cards || {}, days: p!.days || {}, sets: p!.sets || {} });
         row.at = Math.max(row.at, s.v300At ?? 0);
       } else if (has) {
         extra.push({
           key: `x|${s.id}`, room: roomOf(s.name), no: extractNo(s.name), name: s.name || s.email || s.id,
-          typedNames: s.name ? [s.name] : [], emails: s.email ? [s.email] : [], prog: { cards: p!.cards || {}, days: p!.days || {}, sets: p!.sets || {} },
+          typedNames: s.name ? [s.name] : [], emails: s.email ? [s.email] : [], ids: [s.id], unlock: s.unlock?.v300 ?? 0, prog: { cards: p!.cards || {}, days: p!.days || {}, sets: p!.sets || {} },
           at: s.v300At ?? 0, inRoster: false,
         });
       }
@@ -174,7 +179,10 @@ export default function VocabAdmin({
         r.room ?? "", r.no ?? "", r.name,
         ...m.sets.map((x) => (x.rec ? x.rec.score : "")),
         m.passed, m.score,
-        legacy.length ? `ชุด ${legacy.join(", ")} ผ่านจากแอปแบบเดิม (คะแนนคิดจากขั้นที่ 4)` : "",
+        [
+          legacy.length ? `ชุด ${legacy.join(", ")} ผ่านจากแอปแบบเดิม (คะแนนคิดจากขั้นที่ 4)` : "",
+          ...m.sets.filter((x) => (x.rec?.gl ?? 0) > 0).map((x) => `ชุด ${x.no} ออกจากหน้า ${x.rec!.gl} ครั้ง${isFlagged(x.rec) ? " 🚩" : ""}`),
+        ].filter(Boolean).join(" · "),
         r.emails.join(" / "),
       ];
     });
@@ -268,6 +276,7 @@ export default function VocabAdmin({
                             </div>
                           )}
                           {!r.inRoster && <div className="text-[10px] text-gray-400 truncate max-w-[250px]">{r.emails.join(" / ")}</div>}
+                          <UnlockButton ids={r.ids} keyName="v300" current={r.unlock} max={course.weeks.length} unit="ชุด" />
                         </td>
                         <td className="px-2 py-1">
                           <div className="flex items-center gap-1.5">
@@ -295,7 +304,8 @@ export default function VocabAdmin({
                         </td>
                         <td className="text-center text-xs tabular-nums text-gray-600">{m.seen ? `${m.guessPct}%` : "–"}</td>
                         {m.sets.map((x) => (
-                          <td key={x.no} className="text-center px-0.5 py-1" title={setTip(x)}>
+                          <td key={x.no} className="text-center px-0.5 py-1 relative" title={setTip(x)}>
+                            <GuardMark g={x.rec} />
                             <SetCell x={x} />
                           </td>
                         ))}
@@ -309,7 +319,7 @@ export default function VocabAdmin({
           </div>
           <p className="text-[11px] text-gray-500 px-4 py-3 leading-relaxed">
             <b>ชุด1–ชุด{course.weeks.length}</b>: <span className="text-emerald-700 font-black">✓ เขียว = ผ่านชุดแล้ว</span> (เรียนครบ 10 คำ + รอบทบทวนถูกครบ) ·
-            <span className="text-amber-700 font-black"> R = เรียนครบ 10 คำแล้ว รอทำรอบทบทวน</span> · ตัวเลข = เรียนแล้วกี่คำในชุดนั้น · ชี้ที่ช่องเพื่อดูเวลาที่ผ่านและคะแนน ·
+            <span className="text-amber-700 font-black"> R = เรียนครบ 10 คำแล้ว รอทำรอบทบทวน</span> · ตัวเลข = เรียนแล้วกี่คำในชุดนั้น · ชี้ที่ช่องเพื่อดูเวลาที่ผ่านและคะแนน · ↗n = ออกจากหน้า n ครั้งในรอบทบทวน · 🚩 = 3 ครั้งขึ้นไป (ควรเรียกมาถาม) · 🔓 = เปิดชุดล่วงหน้าให้รายคน ·
             รู้แล้ว = คำในชุดที่ผ่านแล้ว · ทวนได้ = คำของชุดก่อน ๆ ที่ถึงนัดทวน (ไม่บังคับ ไม่มีผลกับการผ่าน) ·
             ตามแผน = ผ่านครบถึงชุดของสัปดาห์นี้ของห้องนั้นหรือยัง{planRoom && planNo ? ` (ม.${planRoom} วันนี้ควรผ่านถึงชุดที่ ${planNo})` : ""} · วันนี้ = คำใหม่ · ข้อทวน ที่ทำวันนี้ (✓ ผ่าน = ผ่านชุดในวันนี้) ·
             เดาถูก = สัดส่วนที่ขั้น “เดาก่อนรู้” เดาความหมายถูก · หน้านี้อัปเดตเองทันทีที่นักเรียนส่งผล
@@ -347,7 +357,8 @@ export default function VocabAdmin({
                           </div>
                         </td>
                         {m.sets.map((x) => (
-                          <td key={x.no} className="text-center px-0.5 py-1" title={setTip(x)}>
+                          <td key={x.no} className="text-center px-0.5 py-1 relative" title={setTip(x)}>
+                            <GuardMark g={x.rec} />
                             {x.rec ? (
                               <span className="inline-flex w-8 h-6 rounded-md bg-emerald-500 text-white font-black items-center justify-center text-[11px] tabular-nums">
                                 {x.rec.score}{x.rec.legacy ? "*" : ""}
@@ -535,7 +546,7 @@ function PlanCell({ plan, behind }: { plan: number | null; behind: number }) {
 function setTip(x: SetInfo): string {
   if (x.rec) {
     const when = new Date(x.rec.at).toLocaleString("th-TH", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-    return `ชุด ${x.no}: ✓ ผ่านเมื่อ ${when} · คะแนน ${x.rec.score}/10${x.rec.legacy ? " (แอปแบบเดิม คิดจากขั้นที่ 4)" : " (รอบทบทวน ถูกตั้งแต่ครั้งแรก)"}`;
+    return `ชุด ${x.no}: ✓ ผ่านเมื่อ ${when} · คะแนน ${x.rec.score}/10${x.rec.legacy ? " (แอปแบบเดิม คิดจากขั้นที่ 4)" : " (รอบทบทวน ถูกตั้งแต่ครั้งแรก)"}${guardTip(x.rec)}`;
   }
   if (x.state === "ready") return `ชุด ${x.no}: เรียนครบ ${x.n} คำแล้ว — ยังไม่ได้ทำรอบทบทวน`;
   return x.seen ? `ชุด ${x.no}: เรียนแล้ว ${x.seen}/${x.n} คำ` : `ชุด ${x.no}: ยังไม่เรียน`;

@@ -1,0 +1,190 @@
+"use client";
+// app/admin/_parts/AdminTools.tsx
+// ─────────────────────────────────────────────────────────────
+// เครื่องมือหน้าครูที่ใช้ร่วมกันทั้งแท็บ 📚 และ 🧩
+//   • GuardMark / guardTip — ผลระบบกัน AI ของรอบที่เข้าสมุดคะแนน (🚩 = ออกจากหน้าครบ 3 ครั้ง · ↗n = ออก n ครั้ง)
+//   • UnlockButton — เปิดบท/ชุดล่วงหน้าให้นักเรียนรายคน (เช่น ลาไปแข่งขันวันที่ห้องเรียน)
+//   • LegacyPanel — ข้อมูลแอปเทอม 1 ที่ค้างอยู่ (ทำให้ที่เก็บข้อมูลของนักเรียนเต็ม) → สำรองแล้วล้าง
+// ─────────────────────────────────────────────────────────────
+import React, { useMemo, useState } from "react";
+import { db } from "../../lib/firebase";
+import { deleteField, doc, setDoc, updateDoc } from "firebase/firestore";
+import { GUARD_FLAG_AT, fmtAway } from "../../lib/guard";
+
+// ── ระบบกัน AI ──
+export interface GuardInfo { gl?: number; ga?: number; gb?: number; gv?: number; gm?: "log" | "enforce" }
+export const isFlagged = (g?: GuardInfo | null) => !!g && (g.gl ?? 0) >= GUARD_FLAG_AT;
+export function guardTip(g?: GuardInfo | null): string {
+  if (!g || (g.gl === undefined && g.gb === undefined)) return "";
+  const parts = [`ออกจากหน้า ${g.gl ?? 0} ครั้ง (รวม ${fmtAway(g.ga)})`];
+  if (g.gb) parts.push(`เสียโฟกัส ${g.gb} ครั้ง`);
+  if (g.gm === "enforce") parts.push(`ไม่นับ ${g.gv ?? 0} ข้อ`);
+  else parts.push("ช่วงทดลอง ไม่หักคะแนน");
+  return `\n${isFlagged(g) ? "🚩 " : ""}รอบแรก: ${parts.join(" · ")}`;
+}
+export function GuardMark({ g }: { g?: GuardInfo | null }) {
+  if (!g || !g.gl) return null;
+  return isFlagged(g) ? (
+    <span className="absolute -top-0.5 left-0 text-[10px]" aria-label="ออกจากหน้าบ่อย">🚩</span>
+  ) : (
+    <span className="absolute -top-1 left-0 text-[9px] font-black text-orange-600" aria-label={`ออกจากหน้า ${g.gl} ครั้ง`}>↗{g.gl}</span>
+  );
+}
+
+// ── เปิดล่วงหน้ารายคน ──
+export function UnlockButton({ ids, keyName, current, max, unit }: { ids: string[]; keyName: string; current: number; max: number; unit: string }) {
+  const [open, setOpen] = useState(false);
+  const [val, setVal] = useState(current || 1);
+  const [state, setState] = useState<"idle" | "saving" | "ok" | "err">("idle");
+  if (!ids.length) return null;
+  const save = async (n: number) => {
+    setState("saving");
+    try {
+      await Promise.all(ids.map((id) => setDoc(doc(db, "students", id), { unlock: { [keyName]: n } }, { merge: true })));
+      setState("ok");
+      setOpen(false);
+    } catch (e) {
+      console.error("unlock failed:", e);
+      setState("err");
+    }
+  };
+  return (
+    <span className="inline-flex flex-wrap items-center gap-1 text-[10px] font-bold">
+      {current > 0 && !open && <span className="text-violet-700 bg-violet-50 rounded-full px-1.5">🔓 เปิดล่วงหน้าถึง{unit} {current}</span>}
+      {!open ? (
+        <button type="button" onClick={() => { setVal(current || 1); setOpen(true); setState("idle"); }} className="text-[#003399]/60 hover:text-[#003399] underline" title={`เปิด${unit}ล่วงหน้าให้นักเรียนคนนี้ (เช่น ลาไปแข่งขันวันที่ห้องเรียน)`}>
+          {current > 0 ? "แก้" : `🔓 เปิด${unit}ล่วงหน้า`}
+        </button>
+      ) : (
+        <span className="inline-flex items-center gap-1 bg-violet-50 rounded-lg px-1.5 py-0.5">
+          เปิดถึง{unit}
+          <select value={val} onChange={(e) => setVal(Number(e.target.value))} className="border border-violet-200 rounded px-1 bg-white">
+            {Array.from({ length: max }, (_, i) => i + 1).map((n) => <option key={n} value={n}>{n}</option>)}
+          </select>
+          <button type="button" disabled={state === "saving"} onClick={() => save(val)} className="px-1.5 py-0.5 bg-violet-600 text-white rounded">บันทึก</button>
+          {current > 0 && <button type="button" disabled={state === "saving"} onClick={() => save(0)} className="px-1.5 py-0.5 bg-white border border-violet-200 rounded">ยกเลิกที่เปิดไว้</button>}
+          <button type="button" onClick={() => setOpen(false)} className="px-1 text-gray-500">✕</button>
+        </span>
+      )}
+      {state === "saving" && <span className="text-gray-500">⏳</span>}
+      {state === "ok" && <span className="text-emerald-600">✓ บันทึกแล้ว (นักเรียนเปิดห้องใหม่จึงเห็น)</span>}
+      {state === "err" && <span className="text-rose-600">บันทึกไม่สำเร็จ ลองใหม่</span>}
+    </span>
+  );
+}
+
+// ── ข้อมูลแอปเทอม 1 (แอปเดิมก่อน 14–17 ต.ค. 2569) — แอปปัจจุบันไม่ได้ใช้แล้ว ──
+export const LEGACY_FIELDS = [
+  "srs", "history", "reading", "readingLeaves", "conversation", "masteredPassages", "completedPassages", "weeklyReading",
+  "mastered", "learning", "seen", "total", "percent", "answered", "lastDeltaPercent", "lastDeltaAnswered", "lastActiveAt",
+  "score", "bestScore", "lastScore", "weeklyXp", "weekId", "streak", "bestStreak", "lastStudyDate", "todayCount", "dailyGoal", "points",
+] as const;
+type RawDoc = { id: string } & Record<string, unknown>;
+export function legacyOf(d: RawDoc): { keys: string[]; words: number } {
+  const keys = LEGACY_FIELDS.filter((k) => d[k] !== undefined);
+  const srs = d.srs && typeof d.srs === "object" ? Object.keys(d.srs as object).length : 0;
+  return { keys, words: srs };
+}
+// คำในข้อมูลเก่าตั้งแต่เท่านี้ขึ้นไป → เสี่ยงที่เก็บเต็ม (ราว 2,000 คำ = เต็มเพดาน)
+export const LEGACY_RISK_WORDS = 1200;
+
+function download(name: string, text: string, type: string) {
+  const blob = new Blob([text], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+export function LegacyPanel({ students }: { students: RawDoc[] }) {
+  const list = useMemo(() => students.map((d) => ({ d, ...legacyOf(d) })).filter((x) => x.keys.length > 0), [students]);
+  const [open, setOpen] = useState(false);
+  const [backedUp, setBackedUp] = useState(false);
+  const [confirm, setConfirm] = useState(false);
+  const [prog, setProg] = useState<{ done: number; fail: number; total: number } | null>(null);
+  if (!list.length && !prog) return null;
+  const risky = list.filter((x) => x.words >= LEGACY_RISK_WORDS).length;
+  const words = list.reduce((s, x) => s + x.words, 0);
+
+  const backup = () => {
+    const out: Record<string, Record<string, unknown>> = {};
+    for (const x of list) {
+      const o: Record<string, unknown> = { name: x.d.name, email: x.d.email };
+      for (const k of x.keys) o[k] = x.d[k];
+      out[x.d.id] = o;
+    }
+    download(`vocab-term1-backup-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify({ savedAt: new Date().toISOString(), count: list.length, students: out }), "application/json");
+    setBackedUp(true);
+  };
+  const clean = async () => {
+    setConfirm(false);
+    const todo = list.slice();
+    setProg({ done: 0, fail: 0, total: todo.length });
+    let done = 0, fail = 0;
+    for (const x of todo) {
+      try {
+        await updateDoc(doc(db, "students", x.d.id), Object.fromEntries(x.keys.map((k) => [k, deleteField()])));
+        done++;
+      } catch (e) {
+        console.error("clean legacy failed:", x.d.id, e);
+        fail++;
+      }
+      setProg({ done, fail, total: todo.length });
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border-2 border-amber-200 p-4 mb-5">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="font-black text-amber-900">🧹 ข้อมูลแอปเทอม 1 ค้างอยู่ {list.length} บัญชี</span>
+        <span className="text-xs font-bold text-amber-800">
+          (รวม {words.toLocaleString()} คำ{risky > 0 ? ` · เสี่ยงที่เก็บเต็ม ${risky} บัญชี` : ""})
+        </span>
+        <button type="button" onClick={() => setOpen(!open)} className="ml-auto text-xs font-bold text-[#003399] underline">{open ? "ซ่อน" : "ดู / ล้างข้อมูล"}</button>
+      </div>
+      {open && (
+        <div className="mt-3 space-y-3">
+          <p className="text-xs text-gray-600 leading-relaxed">
+            เป็นข้อมูลของแอปเวอร์ชันเทอม 1 (คลัง 3,467 คำ) ซึ่งแอปปัจจุบันไม่ได้ใช้แล้ว แต่ทำให้ที่เก็บข้อมูลของนักเรียนบางคนเต็ม จนส่งผลไม่ขึ้นระบบ ·
+            ล้างแล้ว <b>ผลของภาคเรียนนี้ (📚 · 🧩) ไม่ถูกแตะต้อง</b> · หน้าครูและหน้านักเรียนโหลดเร็วขึ้น
+          </p>
+          <div className="max-h-40 overflow-auto border border-gray-100 rounded-xl text-xs">
+            {list
+              .slice()
+              .sort((a, b) => b.words - a.words)
+              .map((x) => (
+                <div key={x.d.id} className="flex gap-2 px-3 py-1 border-b border-gray-50 last:border-0">
+                  <span className="flex-1 truncate">{String(x.d.name || x.d.email || x.d.id)}</span>
+                  <span className={`tabular-nums font-bold ${x.words >= LEGACY_RISK_WORDS ? "text-rose-600" : "text-gray-500"}`}>{x.words.toLocaleString()} คำ</span>
+                </div>
+              ))}
+          </div>
+          <div className="flex flex-wrap gap-2 items-center">
+            <button type="button" onClick={backup} className="px-3 py-2 bg-[#003399] text-[#FFD700] font-black rounded-xl text-sm">① ⬇ ดาวน์โหลดไฟล์สำรอง (.json)</button>
+            {!confirm ? (
+              <button type="button" disabled={!backedUp || !!prog} onClick={() => setConfirm(true)} className="px-3 py-2 bg-amber-500 text-white font-black rounded-xl text-sm disabled:opacity-40">
+                ② ล้างข้อมูลเทอม 1 ออกจากระบบ
+              </button>
+            ) : (
+              <span className="flex flex-wrap items-center gap-2 text-sm font-bold">
+                <span className="text-rose-700">ยืนยันล้าง {list.length} บัญชี? (ย้อนกลับไม่ได้ ใช้ไฟล์สำรองแทน)</span>
+                <button type="button" onClick={clean} className="px-3 py-1.5 bg-rose-600 text-white rounded-lg">ยืนยันล้าง</button>
+                <button type="button" onClick={() => setConfirm(false)} className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg">ยกเลิก</button>
+              </span>
+            )}
+            {!backedUp && <span className="text-[11px] text-gray-500">ต้องดาวน์โหลดไฟล์สำรองก่อน จึงกดล้างได้</span>}
+          </div>
+          {prog && (
+            <p className={`text-sm font-bold ${prog.fail ? "text-rose-700" : "text-emerald-700"}`}>
+              {prog.done + prog.fail < prog.total ? `⏳ กำลังล้าง ${prog.done + prog.fail}/${prog.total}…` : `✓ ล้างแล้ว ${prog.done} บัญชี${prog.fail ? ` · ไม่สำเร็จ ${prog.fail} บัญชี (กดล้างอีกครั้ง)` : ""}`}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

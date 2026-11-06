@@ -10,6 +10,8 @@
 //   • สมุดคะแนน: คะแนนรายบท/รายคาบ (ม.4 = คะแนนรอบแรก · ม.6 = คะแนนดีที่สุด) + คะแนนรวม → ส่งออก CSV
 //   • เวลาที่ใช้ทำ + ⚡ เมื่อทำเร็วผิดปกติ (เฉลี่ยไม่ถึง 5 วินาที/ข้อ)
 //   • ข้อมูลอัปเดตสด (onSnapshot) — นักเรียนส่งผลแล้วหน้าครูเปลี่ยนเองโดยไม่ต้องกดรีเฟรช
+//   • ระบบกัน AI (รอบแรก): 🚩 = ออกจากหน้าครบ 3 ครั้ง · ↗n = ออก n ครั้ง · 🔓 เปิดบทล่วงหน้ารายคน
+//   • 🧹 ข้อมูลแอปเทอม 1 ที่ค้างอยู่ → สำรองแล้วล้าง (แก้ที่เก็บข้อมูลของนักเรียนเต็ม)
 // เพิ่มคอร์สใหม่ในอนาคต: เพิ่มใน app/lib/courseRegistry.ts แล้วหน้านี้จะมีแท็บคอร์สใหม่ให้เอง
 // ─────────────────────────────────────────────────────────────
 
@@ -29,6 +31,7 @@ import {
 import { GRADES, ROSTER, extractNo, fmtThaiTime, gradeOf, matchRoster, roomOf, rosterKey, typedMismatch } from "../lib/roster";
 import { CORE_NAME, CORE_PLAN, VCourse, VProgress, loadVocab300 } from "../lib/vocab300";
 import VocabAdmin from "./_vocab/VocabAdmin";
+import { GuardMark, LegacyPanel, UnlockButton, guardTip, isFlagged } from "./_parts/AdminTools";
 
 // ── สิทธิ์เข้าหน้า /admin (เหมือนเดิม) ──
 const ADMIN_EMAIL = "kawpeerawat@gmail.com";
@@ -47,7 +50,8 @@ type StudentDoc = {
   courseActiveAt?: number;
   v300?: VProgress;
   v300At?: number;
-};
+  unlock?: Record<string, number>; // ครูเปิดบท/ชุดล่วงหน้า (รายคน)
+} & Record<string, unknown>;
 
 type Row = {
   key: string;
@@ -56,6 +60,8 @@ type Row = {
   name: string;          // ชื่อทางการ (หรือชื่อที่พิมพ์ ถ้าจับคู่ไม่ได้)
   typedNames: string[];  // ชื่อที่นักเรียนพิมพ์ในแอป
   emails: string[];
+  ids: string[];         // id เอกสารของนักเรียน (หลายบัญชีได้)
+  unlock: number;        // เปิดล่วงหน้าถึงบทที่ … (0 = ไม่ได้เปิด)
   progress: CourseProgress;
   activeAt: number;
   inRoster: boolean;
@@ -74,16 +80,7 @@ function listenStudents(onData: (list: StudentDoc[]) => void, onError: (e: unkno
     (snap) => {
       const data: StudentDoc[] = [];
       snap.forEach((d) => {
-        const v = d.data() as Record<string, unknown>;
-        data.push({
-          id: d.id,
-          name: v.name as string | undefined,
-          email: v.email as string | undefined,
-          courses: v.courses as Record<string, CourseProgress> | undefined,
-          courseActiveAt: v.courseActiveAt as number | undefined,
-          v300: v.v300 as VProgress | undefined,
-          v300At: v.v300At as number | undefined,
-        });
+        data.push({ id: d.id, ...(d.data() as Record<string, unknown>) } as StudentDoc);
       });
       onData(data);
     },
@@ -179,7 +176,7 @@ export default function AdminDashboard() {
     for (const r of ROSTER) {
       byRoster[rosterKey(r)] = {
         key: rosterKey(r), room: r.room, no: r.no, name: r.name,
-        typedNames: [], emails: [], progress: {}, activeAt: 0, inRoster: true,
+        typedNames: [], emails: [], ids: [], unlock: 0, progress: {}, activeAt: 0, inRoster: true,
       };
     }
     const extra: Row[] = [];
@@ -191,12 +188,14 @@ export default function AdminDashboard() {
         const row = byRoster[rosterKey(hit)];
         if (s.name && !row.typedNames.includes(s.name)) row.typedNames.push(s.name);
         if (s.email) row.emails.push(s.email);
+        row.ids.push(s.id);
+        row.unlock = Math.max(row.unlock, s.unlock?.[courseId] ?? 0);
         if (hasProgress) row.progress = mergeCourseProgress(row.progress, prog!);
         row.activeAt = Math.max(row.activeAt, s.courseActiveAt ?? 0);
       } else if (hasProgress) {
         extra.push({
           key: `x|${s.id}`, room: roomOf(s.name), no: extractNo(s.name), name: s.name || s.email || s.id,
-          typedNames: s.name ? [s.name] : [], emails: s.email ? [s.email] : [], progress: prog!,
+          typedNames: s.name ? [s.name] : [], emails: s.email ? [s.email] : [], ids: [s.id], unlock: s.unlock?.[courseId] ?? 0, progress: prog!,
           activeAt: s.courseActiveAt ?? 0, inRoster: false,
         });
       }
@@ -269,7 +268,7 @@ export default function AdminDashboard() {
     const list = [...rosterRows, ...extraRows];
     const grades = mode === "grades";
     const headers = grades
-      ? ["ห้อง", "เลขที่", "ชื่อ-สกุล", ...lessons.map((l) => `${L}${l.hour} (เต็ม ${l.questions.length})`), `ผ่าน (${L})`, `คะแนนรวม (เต็ม ${fullScore}) · ${byFirst ? "คะแนนรอบแรก" : "คะแนนดีที่สุด"}`, "หมายเหตุ (* = ใช้คะแนนดีที่สุด/เทียบจากแบบเดิม · ⚡ = ทำเร็วผิดปกติ)", "ชื่อที่พิมพ์ในแอป", "อีเมล", "ทำล่าสุด"]
+      ? ["ห้อง", "เลขที่", "ชื่อ-สกุล", ...lessons.map((l) => `${L}${l.hour} (เต็ม ${l.questions.length})`), `ผ่าน (${L})`, `คะแนนรวม (เต็ม ${fullScore}) · ${byFirst ? "คะแนนรอบแรก" : "คะแนนดีที่สุด"}`, "หมายเหตุ (* = ใช้คะแนนดีที่สุด/เทียบจากแบบเดิม · ⚡ = ทำเร็วผิดปกติ · ↗n/🚩n = ออกจากหน้าในรอบแรก n ครั้ง)", "ชื่อที่พิมพ์ในแอป", "อีเมล", "ทำล่าสุด"]
       : ["ห้อง", "เลขที่", "ชื่อ-สกุล", "ชื่อที่พิมพ์ในแอป", "อีเมล", ...lessons.map((l) => `${L}${l.hour}`), `ผ่าน (${L})`, "ทำล่าสุด"];
     const lines = list.map((r) =>
       (grades
@@ -280,6 +279,7 @@ export default function AdminDashboard() {
             [
               ...lessons.filter((l) => gradeCell(r.progress[l.id], l.questions.length)?.star).map((l) => `${L}${l.hour}*`),
               ...lessons.filter((l) => gradeCell(r.progress[l.id], l.questions.length)?.fast).map((l) => `${L}${l.hour}⚡`),
+              ...lessons.filter((l) => (r.progress[l.id]?.gl ?? 0) > 0).map((l) => `${L}${l.hour}${isFlagged(r.progress[l.id]) ? "🚩" : "↗"}${r.progress[l.id]?.gl}`),
             ].join(" "),
             r.typedNames.join(" / "), r.emails.join(" / "),
             r.activeAt ? new Date(r.activeAt).toLocaleString("th-TH") : "",
@@ -457,6 +457,7 @@ export default function AdminDashboard() {
         </div>
 
         {error && <p className="bg-rose-50 text-rose-700 font-bold rounded-xl p-3 mb-4">{error}</p>}
+        <LegacyPanel students={students} />
         {(area === "vocab300" ? !v300 : !course) && <p className="text-center text-[#003399] font-bold animate-pulse py-10">กำลังโหลดข้อมูล...</p>}
 
         {area === "vocab300" && v300 && <VocabAdmin course={v300} students={students} roomFilter={roomFilter} grade={grade} search={search} />}
@@ -558,17 +559,19 @@ export default function AdminDashboard() {
                                   </div>
                                 )}
                                 {!r.inRoster && <div className="text-[10px] text-gray-400 truncate max-w-[260px]">{r.emails.join(" / ")}</div>}
+                                <UnlockButton ids={r.ids} keyName={courseId} current={r.unlock} max={lessons.length} unit={L} />
                               </td>
                               {lessons.map((l) => {
                                 const p = r.progress[l.id];
                                 const st = statusOf(p);
                                 const fast = !!p && ((p.fast ?? 0) > 0 || isFastAttempt(p.firstMs, p.firstTotal));
                                 const tip = p
-                                  ? `${L} ${l.hour} ${l.titleEn}\n${typeof p.first === "number" ? `รอบแรก ${p.first}/${p.firstTotal ?? p.total}${p.firstMs ? ` (${fmtDur(p.firstMs)} นาที)` : ""} · ` : ""}ดีที่สุด ${p.best}/${p.total} · ล่าสุด ${p.last}/${p.total}${p.lastMs ? ` (${fmtDur(p.lastMs)} นาที)` : ""} · ทำ ${p.attempts} รอบ${fast ? `\n⚡ ทำเร็วผิดปกติ ${p.fast ?? 1} รอบ (เฉลี่ยไม่ถึง 5 วินาที/ข้อ)` : ""}${p.passedAt ? `\nผ่านเมื่อ ${new Date(p.passedAt).toLocaleString("th-TH")}` : ""}`
+                                  ? `${L} ${l.hour} ${l.titleEn}\n${typeof p.first === "number" ? `รอบแรก ${p.first}/${p.firstTotal ?? p.total}${p.firstMs ? ` (${fmtDur(p.firstMs)} นาที)` : ""} · ` : ""}ดีที่สุด ${p.best}/${p.total} · ล่าสุด ${p.last}/${p.total}${p.lastMs ? ` (${fmtDur(p.lastMs)} นาที)` : ""} · ทำ ${p.attempts} รอบ${fast ? `\n⚡ ทำเร็วผิดปกติ ${p.fast ?? 1} รอบ (เฉลี่ยไม่ถึง 5 วินาที/ข้อ)` : ""}${guardTip(p)}${p.fqt?.length ? `\nข้อที่ใช้เวลานานสุด ${Math.max(...p.fqt)} วินาที` : ""}${p.passedAt ? `\nผ่านเมื่อ ${new Date(p.passedAt).toLocaleString("th-TH")}` : ""}`
                                   : `${L} ${l.hour} ยังไม่ทำ`;
                                 return (
                                   <td key={l.id} className="text-center px-0.5 py-1 relative" title={tip}>
                                     {fast && <span className="absolute -top-0.5 right-0 text-[10px]" aria-label="ทำเร็วผิดปกติ">⚡</span>}
+                                    <GuardMark g={p} />
                                     {st === "passed" ? (
                                       <span className="inline-flex w-7 h-7 rounded-lg bg-emerald-500 text-white font-black items-center justify-center text-xs">✓</span>
                                     ) : st === "tried" ? (
@@ -593,7 +596,7 @@ export default function AdminDashboard() {
                   </table>
                 </div>
                 <p className="text-[11px] text-gray-500 px-4 py-3">
-                  ✓ = ผ่าน ({passText}) · ตัวเลข = คะแนนดีที่สุดที่ยังไม่ผ่าน · ⚡ = ทำเร็วผิดปกติ (เฉลี่ยไม่ถึง 5 วินาทีต่อข้อ){fastRows > 0 ? ` — ${fastRows} คนในมุมมองนี้` : ""} · ชี้ที่ช่องเพื่อดูคะแนนรอบแรก เวลาที่ใช้ จำนวนรอบ และวันที่ผ่าน · หัวคอลัมน์ = {L}ที่
+                  ✓ = ผ่าน ({passText}) · ตัวเลข = คะแนนดีที่สุดที่ยังไม่ผ่าน · ⚡ = ทำเร็วผิดปกติ (เฉลี่ยไม่ถึง 5 วินาทีต่อข้อ){fastRows > 0 ? ` — ${fastRows} คนในมุมมองนี้` : ""} · ↗n = ออกจากหน้า n ครั้งในรอบแรก · 🚩 = ออกครบ 3 ครั้งขึ้นไป (ควรเรียกมาถาม) · 🔓 = เปิด{L}ล่วงหน้าให้รายคน · ชี้ที่ช่องเพื่อดูคะแนนรอบแรก เวลาที่ใช้ จำนวนรอบ และวันที่ผ่าน · หัวคอลัมน์ = {L}ที่
                 </p>
               </div>
             )}
@@ -637,9 +640,10 @@ export default function AdminDashboard() {
                                   <td
                                     key={l.id}
                                     className="text-center px-0.5 py-1 relative"
-                                    title={p ? `${typeof p.first === "number" ? `รอบแรก ${p.first}/${p.firstTotal ?? p.total}${p.firstMs ? ` · ${fmtDur(p.firstMs)} นาที` : ""} · ` : ""}ดีที่สุด ${p.best}/${p.total} · ทำ ${p.attempts} รอบ${g?.star ? "\n* ใช้คะแนนดีที่สุด / เทียบจากแบบเดิม 10 ข้อ" : ""}${g?.fast ? "\n⚡ ทำเร็วผิดปกติ" : ""}` : "ยังไม่ทำ"}
+                                    title={p ? `${typeof p.first === "number" ? `รอบแรก ${p.first}/${p.firstTotal ?? p.total}${p.firstMs ? ` · ${fmtDur(p.firstMs)} นาที` : ""} · ` : ""}ดีที่สุด ${p.best}/${p.total} · ทำ ${p.attempts} รอบ${g?.star ? "\n* ใช้คะแนนดีที่สุด / เทียบจากแบบเดิม 10 ข้อ" : ""}${g?.fast ? "\n⚡ ทำเร็วผิดปกติ" : ""}${guardTip(p)}` : "ยังไม่ทำ"}
                                   >
                                     {g?.fast && <span className="absolute -top-0.5 right-0 text-[10px]" aria-label="ทำเร็วผิดปกติ">⚡</span>}
+                                    <GuardMark g={p} />
                                     {p && g ? (
                                       <span className={`inline-flex min-w-7 h-7 px-0.5 rounded-lg font-black items-center justify-center text-[11px] tabular-nums ${p.passed ? "bg-emerald-500 text-white" : "bg-amber-100 text-amber-800"}`}>{g.score}{g.star ? "*" : ""}</span>
                                     ) : (
@@ -659,7 +663,7 @@ export default function AdminDashboard() {
                 </div>
                 <p className="text-[11px] text-gray-500 px-4 py-3">
                   ตัวเลข = {byFirst ? "คะแนนรอบแรก" : "คะแนนดีที่สุด"}ของ{L}นั้น (เต็ม {qn}) · เขียว = ผ่าน ({passText}) · รวม = ผลรวมทุก{L} (เต็ม {fullScore}) ·
-                  {byFirst ? " * = ทำก่อนเริ่มเก็บคะแนนรอบแรก (ใช้คะแนนดีที่สุดแทน) หรือทำแบบเดิม 10 ข้อ (เทียบเป็นคะแนนเต็มปัจจุบัน) ·" : ""} ⚡ = ทำเร็วผิดปกติ · กด “⬇ สมุดคะแนน CSV” เพื่อนำไปลงคะแนน
+                  {byFirst ? " * = ทำก่อนเริ่มเก็บคะแนนรอบแรก (ใช้คะแนนดีที่สุดแทน) หรือทำแบบเดิม 10 ข้อ (เทียบเป็นคะแนนเต็มปัจจุบัน) ·" : ""} ⚡ = ทำเร็วผิดปกติ · ↗n / 🚩 = ออกจากหน้าในรอบแรก (🚩 = 3 ครั้งขึ้นไป) · กด “⬇ สมุดคะแนน CSV” เพื่อนำไปลงคะแนน
                 </p>
               </div>
             )}

@@ -45,6 +45,8 @@ import {
   todayStr,
 } from "../lib/vocab300";
 import { displayName, roomOf } from "../lib/names";
+import { isIssue, issueText, loadLocalUnlock, openDay, serverToday, syncClock, thaiDate, type SyncState } from "../lib/sync";
+import { GUARD_FLAG_AT, guardMode, noCopyProps, useLeaveGuard } from "../lib/guard";
 
 // ───────── ตัวช่วยแสดงผล ─────────
 function Rich({ text, className = "" }: { text: string; className?: string }) {
@@ -321,8 +323,11 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
 
   const [summary, setSummary] = useState<Summary | null>(null);
   const [confirmExit, setConfirmExit] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [cloudState, setCloudState] = useState<"idle" | "ok" | "local">("idle");
+  const [cloudState, setCloudState] = useState<SyncState>("idle");
+  const saving = cloudState === "saving" || cloudState === "slow";
+  const [sToday, setSToday] = useState(() => serverToday()); // วันที่ตามเซิร์ฟเวอร์ (ใช้ล็อกชุดตามวันเรียน)
+  const [unlockN, setUnlockN] = useState(() => loadLocalUnlock(email).v300 || 0); // ครูเปิดให้ล่วงหน้าถึงชุดที่ … (รายคน)
+  const [checkGate, setCheckGate] = useState(false); // หน้ากติกาก่อนรอบทบทวน (รอบที่เข้าสมุดคะแนน)
   const [savedAt, setSavedAt] = useState(0);
   const [showRank, setShowRank] = useState(false);
   const [rank, setRank] = useState<RankEntry[] | null>(null);
@@ -340,20 +345,20 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
         setProg((cur) => normalizeProgress(cur, c.words));
       })
       .catch(() => alive && setLoadError(true));
-    Promise.all([coursePromise.catch(() => null), loadProgress(email)]).then(([c, { p, needSync, cloudSets }]) => {
+    syncClock().then(() => alive && setSToday(serverToday()));
+    Promise.all([coursePromise.catch(() => null), loadProgress(email)]).then(([c, { p, needSync }]) => {
       if (!alive) return;
+      setUnlockN(loadLocalUnlock(email).v300 || 0);
       const raw = mergeProgress(progRef.current, p);
       const merged = c ? normalizeProgress(raw, c.words) : raw;
       setProg(merged);
-      // คาบก่อนเน็ตหลุด / มีชุดที่ผ่านแต่ยังไม่ขึ้นระบบ (เช่น ชุดแบบเดิม) → ส่งผลขึ้นระบบให้ทันที
-      const unsynced = cloudSets !== null && Object.keys(merged.sets || {}).some((k) => !cloudSets.includes(k));
-      if (needSync || unsynced) {
-        setSaving(true);
-        saveProgress(email, name, merged).then((ok) => {
+      // คาบก่อนเน็ตหลุด / มีชุดที่ผ่านแต่ยังไม่ขึ้นระบบ (เช่น ชุดแบบเดิม) → ส่งเฉพาะส่วนที่ยังไม่ขึ้นระบบให้ทันที
+      if (needSync || merged !== raw) {
+        setCloudState("saving");
+        saveProgress(email, name, merged, () => alive && setCloudState("slow")).then((r) => {
           if (!alive) return;
-          setCloudState(ok ? "ok" : "local");
-          if (ok) setSavedAt(Date.now());
-          setSaving(false);
+          setCloudState(r.ok ? "ok" : r.issue);
+          if (r.ok) setSavedAt(Date.now());
         });
       }
     });
@@ -397,13 +402,44 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
   const behindSets = planNo ? Array.from({ length: planNo }, (_, i) => i + 1).filter((k) => !setPassOf(prog, k)).length : 0;
 
   const doSave = async (p: VProgress) => {
-    setSaving(true);
-    const ok = await saveProgress(email, name, p);
-    setCloudState(ok ? "ok" : "local");
-    if (ok) setSavedAt(stampNow());
-    setSaving(false);
-    return ok;
+    setCloudState("saving");
+    const r = await saveProgress(email, name, p, () => setCloudState("slow"));
+    setCloudState(r.ok ? "ok" : r.issue);
+    if (r.ok) setSavedAt(stampNow());
+    return r.ok;
   };
+  // ลองส่งใหม่เองทุก 20 วินาที / เมื่อเน็ตกลับมา / เมื่อกลับเข้าหน้าแอป (ยกเว้นที่เก็บเต็ม — ต้องให้ครูแก้)
+  const doSaveRef = useRef(doSave);
+  useEffect(() => {
+    doSaveRef.current = doSave;
+  });
+  const needRetry = isIssue(cloudState) && cloudState !== "full";
+  useEffect(() => {
+    if (!needRetry) return;
+    const tick = () => {
+      if (document.visibilityState === "visible") void doSaveRef.current(progRef.current);
+    };
+    const t = setInterval(tick, 20000);
+    window.addEventListener("online", tick);
+    document.addEventListener("visibilitychange", tick);
+    return () => {
+      clearInterval(t);
+      window.removeEventListener("online", tick);
+      document.removeEventListener("visibilitychange", tick);
+    };
+  }, [needRetry]);
+
+  // ── ล็อกชุดตามวันเรียนของห้อง (เวลาเซิร์ฟเวอร์) · ชุดที่ถึงวันเรียนแล้วเปิดค้างไว้ · ครูเปิดล่วงหน้ารายคนได้ ──
+  const openPlan = plannedWeekNo(course, sToday, myRoom);
+  const openUpTo = openPlan === null ? Infinity : Math.max(openPlan, unlockN);
+  const curLocked = curSet > 0 && curSet > openUpTo && !curReady;
+  const curOpenDay = curLocked ? openDay(course?.weeks[curSet - 1]?.start, myRoom, course?.classDays) : null;
+
+  // ── ระบบกัน AI ในรอบทบทวน (รอบที่เข้าสมุดคะแนน) ──
+  const gMode = guardMode(sToday);
+  const curItem = queue[qi];
+  const guard = useLeaveGuard(mode === "CHECK" && !checkGate, mode === "CHECK" && !checkGate && curItem && picked === null && curItem.retry === 0 ? curItem.wid : null);
+  const voidedRef = useRef(0);
 
   // ── เริ่มชุดเรียนใหม่ ──
   const startWord = (i: number) => {
@@ -442,6 +478,9 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
     if (!curReady) return;
     const kinds: Kind[] = ["ctx", "th2en", "form", "en2th"];
     checkFirst.current = {};
+    voidedRef.current = 0;
+    guard.reset();
+    setCheckGate(true);
     setCheckSetNo(curSet);
     setQueue(shuffle(curWords).map((w, i) => makeItem(w, kinds[i % kinds.length], curWords)));
     setQi(0);
@@ -504,7 +543,12 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
         setQueue((q) => [...q, makeItem(w, it.kind, pool, it.retry + 1)]);
       }
     } else if (mode === "CHECK") {
-      if (it.retry === 0) checkFirst.current[it.wid] = ok;
+      if (it.retry === 0) {
+        // ช่วงหักคะแนน: ออกจากหน้าระหว่างข้อนี้ → ไม่นับว่าถูกตั้งแต่ครั้งแรก (ยังต้องตอบให้ถูกเพื่อผ่านชุดตามเดิม)
+        const left = gMode === "enforce" && guard.wasLeft(it.wid);
+        if (left && ok) voidedRef.current++;
+        checkFirst.current[it.wid] = ok && !left;
+      }
       if (!ok) setQueue((q) => [...q, makeItem(w, it.kind, words.filter((x) => x.week === w.week), it.retry + 1)]);
     } else if (mode === "REVIEW") {
       if (it.retry === 0 && !reviewDone.current[it.wid]) {
@@ -516,7 +560,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
         sinceSave.current++;
         if (sinceSave.current >= 5) {
           sinceSave.current = 0;
-          saveProgress(email, name, p2).then((s) => setCloudState(s ? "ok" : "local"));
+          saveProgress(email, name, p2).then((r) => setCloudState(r.ok ? "ok" : r.issue));
         }
         if (!ok) setQueue((q) => [...q, makeItem(w, "en2th", words.filter((x) => x.week === w.week), 1)]);
       }
@@ -529,6 +573,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
   };
 
   const nextQuestion = async () => {
+    guard.clearNotice();
     if (qi + 1 < queue.length) {
       setQi(qi + 1);
       setPicked(null);
@@ -560,6 +605,9 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
       const first = checkFirst.current;
       const score = Object.values(first).filter(Boolean).length;
       let p = passSet(progRef.current, words, k, today, { score });
+      // แนบผลการเฝ้าดู (ออกจากหน้า / เวลาที่หายไป) ไว้กับชุดที่ผ่าน ให้ครูเห็น
+      const g = guard.stats(voidedRef.current, gMode);
+      p = { ...p, sets: { ...p.sets, [String(k)]: { ...p.sets![String(k)], gl: g.leaves, ga: g.awayMs, gb: g.blurs, gv: g.voided, gm: g.mode } } };
       p = addDay(p, today, { c: score, x: Object.keys(first).length - score });
       setProg(p);
       const rows = setWords(words, k).map((w) => ({ wid: w.id, ok: !!first[w.id] }));
@@ -678,13 +726,11 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
             }`}
           >
             <span className="flex-1">
-              {saving
-                ? "⏳ กำลังส่งผลขึ้นระบบ..."
-                : cloudState === "ok"
+              {cloudState === "ok"
                 ? `✓ ส่งผลขึ้นระบบแล้ว ${savedAt ? new Date(savedAt).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }) + " น." : ""} · ครูเห็นผลแล้ว`
-                : "⚠️ ผลยังอยู่ในเครื่อง ยังไม่ขึ้นระบบ — ต่อเน็ตแล้วกดส่งอีกครั้งก่อนหมดคาบ"}
+                : issueText(cloudState)}
             </span>
-            {!saving && cloudState === "local" && (
+            {isIssue(cloudState) && (
               <button onClick={() => doSave(prog)} className="shrink-0 px-3 py-1.5 bg-amber-500 text-white rounded-xl font-black text-xs">
                 ส่งอีกครั้ง
               </button>
@@ -725,6 +771,11 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
                   </button>
                   <p className="text-xs text-gray-500 mt-2 text-center">ทำอีก 1 รอบทั้ง {curWords.length} คำ · ข้อที่ผิดจะวนกลับมาจนถูกครบ · ครบแล้วผ่านชุดทันที</p>
                 </>
+              ) : curLocked ? (
+                <div className="text-center rounded-xl bg-gray-50 border-2 border-dashed border-gray-200 py-3 px-3">
+                  <p className="font-black text-gray-700">🔒 ชุดที่ {curSet} เปิด{curOpenDay ? thaiDate(curOpenDay) : "ในคาบถัดไป"}</p>
+                  <p className="text-xs text-gray-500 mt-1">ชุดใหม่เปิดในวันที่ห้อง {myRoom || "ของคุณ"} เรียน · ชุดที่ถึงวันเรียนแล้วเปิดไว้ให้ทำย้อนหลังได้เสมอ</p>
+                </div>
               ) : newLeftToday > 0 ? (
                 <>
                   <button onClick={startLearn} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg hover:bg-[#002266] text-lg">
@@ -907,7 +958,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
 
   // ═════════════ SUMMARY ═════════════
   if (mode === "SUMMARY" && summary) {
-    const canLearn = !curReady && curSet > 0 && newLeftToday > 0 && nextNew.length > 0;
+    const canLearn = !curReady && !curLocked && curSet > 0 && newLeftToday > 0 && nextNew.length > 0;
     const isCheck = summary.kind === "check";
     return (
       <div className="animate-fadeIn mt-2">
@@ -965,7 +1016,19 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
           </p>
         )}
         {summary.cloudOk === true && isCheck && <p className="text-xs font-bold text-emerald-800 bg-emerald-50 rounded-xl p-3 mb-3">✓ ส่งผลขึ้นระบบแล้ว · หน้าครูขึ้นสีเขียวที่ชุดที่ {summary.set}</p>}
-        {summary.cloudOk === false && <p className="text-xs font-bold text-amber-700 bg-amber-50 rounded-xl p-3 mb-3">⚠️ บันทึกในเครื่องแล้ว แต่ยังขึ้นระบบไม่สำเร็จ — กลับหน้าหลักแล้วกด “ส่งอีกครั้ง” ก่อนหมดคาบ</p>}
+        {summary.cloudOk === null && saving && <p className="text-xs font-bold text-[#003399] bg-blue-50 rounded-xl p-3 mb-3">{issueText(cloudState)}</p>}
+        {summary.cloudOk === false && <p className="text-xs font-bold text-amber-700 bg-amber-50 rounded-xl p-3 mb-3">{issueText(cloudState)}</p>}
+        {isCheck && summary.set && (() => {
+          const rec = setPassOf(prog, summary.set);
+          if (!rec?.gl) return null;
+          return (
+            <p className="text-xs font-bold text-orange-800 bg-orange-50 rounded-xl p-3 mb-3">
+              ออกจากหน้าระหว่างรอบทบทวน {rec.gl} ครั้ง
+              {rec.gm === "enforce" ? (rec.gv ? ` · ไม่นับคะแนน ${rec.gv} คำ` : "") : " (ช่วงทดลอง — บันทึกให้ครูเห็น ยังไม่หักคะแนน)"}
+              {rec.gl >= GUARD_FLAG_AT ? " · ครูจะเห็น 🚩" : ""}
+            </p>
+          );
+        })()}
         <div className="space-y-2">
           {summary.kind !== "practice" && curReady && (
             <button onClick={startCheck} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg text-lg">
@@ -992,6 +1055,33 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
 
   // ═════════════ ขั้นที่ 4 / ทวน / ฝึกเพิ่ม (คำถาม) ═════════════
   const quizMode = (mode === "LEARN" && phase === "retrieve") || mode === "CHECK" || mode === "REVIEW" || mode === "PRACTICE";
+  if (mode === "CHECK" && checkGate) {
+    return (
+      <div className="animate-fadeIn mt-2">
+        <button type="button" onClick={() => { setCheckGate(false); setMode("HOME"); scrollTop(); }} className="mb-4 text-sm font-bold text-[#003399] hover:underline">← กลับ</button>
+        <Steps active={5} />
+        <div className="border-4 border-[#003399] rounded-3xl p-5 mb-4">
+          <div className="text-4xl text-center mb-1">📝</div>
+          <h1 className="text-xl font-black text-center text-gray-900 mb-1">รอบทบทวนชุดที่ {checkSetNo}</h1>
+          <p className="text-center text-xs font-bold text-[#003399] mb-4">คะแนนชุด (เต็ม 10) = คำที่ตอบถูกตั้งแต่ครั้งแรกในรอบนี้ · เข้าสมุดคะแนนของครู</p>
+          <ol className="text-sm text-gray-800 space-y-2 list-decimal pl-5">
+            <li>เปิด <b>โหมดห้ามรบกวน</b> ก่อน (กันแจ้งเตือนเด้งทับ)</li>
+            <li><b>อยู่ในหน้านี้ตลอด</b> จนผ่านชุด — ห้ามสลับแอป สลับแท็บ หรือกลับหน้าโฮม</li>
+            <li>
+              {gMode === "enforce"
+                ? <>ออกจากหน้าระหว่างคำไหน <b className="text-rose-600">คำนั้นไม่นับคะแนน</b> (ยังต้องตอบให้ถูกเพื่อผ่านชุดตามเดิม)</>
+                : <>ช่วงทดลอง: ระบบ <b>บันทึก</b> การออกจากหน้าให้ครูเห็น (ยังไม่หักคะแนน)</>}
+            </li>
+            <li>ออกจากหน้าครบ {GUARD_FLAG_AT} ครั้ง ครูจะเห็นเครื่องหมาย 🚩</li>
+          </ol>
+        </div>
+        <button onClick={() => { guard.reset(); setCheckGate(false); scrollTop(); }} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg text-lg">
+          เข้าใจแล้ว เริ่มรอบทบทวน →
+        </button>
+      </div>
+    );
+  }
+
   if (quizMode) {
     const it = queue[qi];
     if (!it) return null;
@@ -1006,6 +1096,16 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
       <div className="animate-fadeIn mt-2">
         <SessionBar label={label} warn={warn} confirmExit={confirmExit} setConfirmExit={setConfirmExit} onExit={exitSession} />
         {(mode === "LEARN" || mode === "CHECK") && <Steps active={mode === "LEARN" ? 4 : 5} />}
+        {mode === "CHECK" && guard.notice && (
+          <div className={`rounded-xl p-3 mb-3 text-sm font-bold flex items-start gap-2 ${gMode === "enforce" ? "bg-orange-100 text-orange-900 border-2 border-orange-300" : "bg-amber-50 text-amber-900 border-2 border-amber-200"}`}>
+            <span className="flex-1">
+              ⚠️ ออกจากหน้าครั้งที่ {guard.notice.n}
+              {gMode === "enforce" ? " — คำนี้ไม่นับคะแนนรอบทบทวน" : " — ช่วงทดลอง ระบบบันทึกให้ครูเห็น (ยังไม่หักคะแนน)"}
+              {guard.notice.n >= GUARD_FLAG_AT ? " · ครูจะเห็น 🚩" : ""}
+            </span>
+            <button onClick={guard.clearNotice} className="shrink-0 text-xs underline">รับทราบ</button>
+          </div>
+        )}
         {mode === "CHECK" && qi === 0 && picked === null && (
           <p className="text-xs font-bold text-[#003399] bg-[#FFD700]/20 rounded-xl px-3 py-2 mb-3">
             รอบทบทวนชุดที่ {checkSetNo}: คำละ 1 ข้อ · ข้อที่ผิดจะวนกลับมาจนถูกครบ · ครบแล้วผ่านชุดทันที ✓
@@ -1021,7 +1121,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
           <span className="text-[11px] font-black bg-[#FFD700] text-[#003399] px-2 py-1 rounded-full">{KIND_LABEL[it.kind]}</span>
           {it.retry > 0 && <span className="text-[11px] font-black bg-rose-100 text-rose-700 px-2 py-1 rounded-full">🔁 วนกลับมาถามอีกครั้ง</span>}
         </div>
-        <div className="bg-gray-50 rounded-2xl p-4 mb-4">
+        <div className="bg-gray-50 rounded-2xl p-4 mb-4" {...(mode === "CHECK" ? noCopyProps : {})}>
           {it.kind === "en2th" && (
             <p className="text-center">
               <span className="text-3xl font-black font-serif text-[#003399]">{w.w}</span> <span className="text-gray-400 font-bold">{w.pos}</span>
@@ -1047,7 +1147,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
             </>
           )}
         </div>
-        <div className="space-y-2 mb-4">
+        <div className="space-y-2 mb-4" {...(mode === "CHECK" ? noCopyProps : {})}>
           {it.options.map((o, i) => (
             <Opt
               key={i}

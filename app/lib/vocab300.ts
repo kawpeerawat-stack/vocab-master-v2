@@ -16,6 +16,7 @@
 
 import { db } from "./firebase";
 import { collection, doc, getDoc, getDocs, setDoc, serverTimestamp } from "firebase/firestore";
+import { saveLocalUnlock, serial, verifiedWrite, type SyncIssue } from "./sync";
 
 // ── เนื้อหา ──
 export type PosKey = "n" | "v" | "adj" | "adv" | "prep" | "conj";
@@ -95,6 +96,12 @@ export interface VSetPass {
   score: number;            // คะแนนชุด เต็ม 10
   learn?: [number, number]; // ขั้นที่ 4 ตอบถูกตั้งแต่ครั้งแรก / จำนวนข้อ (ทั้งชุด)
   legacy?: 1;               // ผ่านจากการเรียนครบ 10 คำด้วยแอปแบบเดิม
+  // ระบบกัน AI ในรอบทบทวน: ออกจากหน้ากี่ครั้ง · เวลาที่หายไป (ms) · เสียโฟกัสกี่ครั้ง · คำที่ไม่นับคะแนน · โหมด
+  gl?: number;
+  ga?: number;
+  gb?: number;
+  gv?: number;
+  gm?: "log" | "enforce";
 }
 export interface VProgress { cards: Record<string, VCard>; days: Record<string, VDay>; sets?: Record<string, VSetPass> }
 
@@ -399,42 +406,100 @@ function trimDays(p: VProgress): VProgress {
   return { ...p, days };
 }
 
+// ── ส่งเฉพาะส่วนที่เปลี่ยน ──
+// เก็บ "ลายนิ้วมือ" ของข้อมูลที่ขึ้นระบบแล้ว (ต่อการ์ด / ต่อวัน / ต่อชุด) ไว้ในเครื่อง
+//   ครั้งต่อไปส่งเฉพาะการ์ด/วัน/ชุดที่ต่างจากที่ขึ้นระบบแล้ว → ข้อมูลที่ส่งเล็กลงหลายสิบเท่า (ปลายภาค ~150 KB → 2–5 KB)
+interface SyncMeta { c: Record<string, string>; d: Record<string, string>; s: Record<string, string> }
+const metaKey = (email: string) => `v300sync:${emailToId(email)}`;
+// เรียงชื่อฟิลด์ก่อน (ข้อมูลจากระบบอาจเรียงฟิลด์ต่างจากในเครื่อง)
+function stable(x: unknown): string {
+  if (Array.isArray(x)) return `[${x.map(stable).join(",")}]`;
+  if (x && typeof x === "object") {
+    const o = x as Record<string, unknown>;
+    return `{${Object.keys(o).filter((k) => o[k] !== undefined).sort().map((k) => `${JSON.stringify(k)}:${stable(o[k])}`).join(",")}}`;
+  }
+  return JSON.stringify(x) ?? "null";
+}
+function fp(x: unknown): string {
+  const t = stable(x);
+  let h = 5381;
+  for (let i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36) + t.length.toString(36);
+}
+function loadMeta(email: string): SyncMeta {
+  try {
+    const m = JSON.parse(localStorage.getItem(metaKey(email)) || "null") as SyncMeta | null;
+    if (m && m.c && m.d && m.s) return m;
+  } catch {
+    /* เริ่มใหม่ */
+  }
+  return { c: {}, d: {}, s: {} };
+}
+function saveMeta(email: string, m: SyncMeta) {
+  try {
+    localStorage.setItem(metaKey(email), JSON.stringify(m));
+  } catch {
+    /* ไม่เป็นไร */
+  }
+}
+const metaOf = (p: VProgress): SyncMeta => ({
+  c: Object.fromEntries(Object.entries(p.cards || {}).map(([k, v]) => [k, fp(v)])),
+  d: Object.fromEntries(Object.entries(p.days || {}).map(([k, v]) => [k, fp(v)])),
+  s: Object.fromEntries(Object.entries(p.sets || {}).map(([k, v]) => [k, fp(v)])),
+});
+// ส่วนที่ยังไม่ขึ้นระบบ
+function diffOf(p: VProgress, m: SyncMeta): { part: VProgress; n: number } {
+  const cards: Record<string, VCard> = {};
+  const days: Record<string, VDay> = {};
+  const sets: Record<string, VSetPass> = {};
+  for (const [k, v] of Object.entries(p.cards || {})) if (m.c[k] !== fp(v)) cards[k] = v;
+  for (const [k, v] of Object.entries(p.days || {})) if (m.d[k] !== fp(v)) days[k] = v;
+  for (const [k, v] of Object.entries(p.sets || {})) if (m.s[k] !== fp(v)) sets[k] = v;
+  return { part: { cards, days, sets }, n: Object.keys(cards).length + Object.keys(days).length + Object.keys(sets).length };
+}
+// ในเครื่องมีผลที่ยังไม่ขึ้นระบบหรือไม่
+export const hasUnsynced = (email: string, p: VProgress) => diffOf(p, loadMeta(email)).n > 0;
+
 // คืนค่า needSync = true ถ้าในเครื่องมีผลที่ยังไม่ขึ้นคลาวด์ (เช่น คาบก่อนเน็ตหลุด) → ห้องคำศัพท์จะส่งขึ้นให้ทันที
-// cloudSets = ชุดที่ผ่านแล้วซึ่งอยู่บนระบบแล้ว (ใช้ตัดสินว่าต้องส่งผลขึ้นใหม่ไหม) · null = เชื่อมระบบไม่ได้
+// cloudSets = ชุดที่ผ่านแล้วซึ่งอยู่บนระบบแล้ว · null = เชื่อมระบบไม่ได้
 export async function loadProgress(email: string): Promise<{ p: VProgress; needSync: boolean; cloudSets: string[] | null }> {
   const local = loadLocal(email);
   if (!email || !db) return { p: local, needSync: false, cloudSets: null };
   try {
     const snap = await withTimeout(getDoc(doc(db, "students", emailToId(email))), 8000);
-    const cloud = (snap.exists() ? (snap.data()?.v300 as VProgress | undefined) : undefined) ?? emptyProgress();
-    const cc = cloud.cards || {};
-    const cs = cloud.sets || {};
-    const needSync =
-      Object.entries(local.cards).some(([id, c]) => !cc[id] || (cc[id].at ?? 0) < (c.at ?? 0)) || Object.keys(local.sets || {}).some((k) => !cs[k]);
-    const merged = mergeProgress(local, { cards: cc, days: cloud.days || {}, sets: cs });
+    const data = snap.exists() ? snap.data() : undefined;
+    saveLocalUnlock(email, data?.unlock ?? {});
+    const cloud = (data?.v300 as VProgress | undefined) ?? emptyProgress();
+    const cloudP: VProgress = { cards: cloud.cards || {}, days: cloud.days || {}, sets: cloud.sets || {} };
+    saveMeta(email, metaOf(cloudP)); // สิ่งที่อยู่บนระบบตอนนี้
+    const merged = mergeProgress(local, cloudP);
     saveLocal(email, merged);
-    return { p: merged, needSync, cloudSets: Object.keys(cs) };
+    return { p: merged, needSync: diffOf(merged, metaOf(cloudP)).n > 0, cloudSets: Object.keys(cloudP.sets || {}) };
   } catch (e) {
     console.error("loadProgress v300 error:", e);
-    // เชื่อมระบบไม่ได้ (เน็ตหลุด) → ถือว่าผลในเครื่องยังไม่ขึ้นระบบ เพื่อให้หน้าแอปขึ้นแถบ ⚠️ พร้อมปุ่ม “ส่งอีกครั้ง”
-    return { p: local, needSync: Object.keys(local.cards).length > 0, cloudSets: null };
+    // เชื่อมระบบไม่ได้ → ดูจากที่จำไว้ว่าขึ้นระบบอะไรไปแล้ว
+    return { p: local, needSync: hasUnsynced(email, local), cloudSets: null };
   }
 }
 
-// บันทึก (เครื่องทันที + คลาวด์) — คืน true ถ้าขึ้นคลาวด์สำเร็จ
-export async function saveProgress(email: string, name: string, p: VProgress): Promise<boolean> {
+// บันทึก (เครื่องทันที + ส่งขึ้นระบบเฉพาะส่วนที่เปลี่ยน) — ส่งทีละครั้งต่อนักเรียน
+export type SaveResult = { ok: true } | { ok: false; issue: SyncIssue };
+export async function saveProgress(email: string, name: string, p: VProgress, onSlow?: () => void): Promise<SaveResult> {
   const data = trimDays(p);
   saveLocal(email, data);
-  if (!email || !db) return false;
-  const st = computeStats(data);
-  try {
-    await withTimeout(
+  if (!email || !db) return { ok: false, issue: "error" };
+  return serial(emailToId(email), async () => {
+    const meta = loadMeta(email);
+    const { part, n } = diffOf(data, meta);
+    if (n === 0) return { ok: true as const };
+    const st = computeStats(data);
+    const r = await verifiedWrite(() =>
       setDoc(
         doc(db, "students", emailToId(email)),
         {
           name,
           email: email.trim().toLowerCase(),
-          v300: data,
+          v300: part,
           v300Known: st.known,
           v300Seen: st.seen,
           v300Sets: passedCount(data),
@@ -443,19 +508,37 @@ export async function saveProgress(email: string, name: string, p: VProgress): P
         },
         { merge: true }
       ),
-      10000
+      onSlow
     );
-    return true;
-  } catch (e) {
-    console.error("saveProgress v300 error:", e);
-    return false;
-  }
+    if (r.ok) {
+      const m = loadMeta(email);
+      const pm = metaOf(part);
+      saveMeta(email, { c: { ...m.c, ...pm.c }, d: { ...m.d, ...pm.d }, s: { ...m.s, ...pm.s } });
+    }
+    return r;
+  });
 }
 
 // ── อันดับ (คำที่รู้แล้ว) ──
 export interface RankEntry { email: string; name: string; known: number; seen: number; at: number }
+// เก็บผลอันดับไว้ใช้ซ้ำ 10 นาที (อ่านข้อมูลทั้งห้องครั้งเดียว — ประหยัดโควตาฟรีของ Firebase)
+let rankCache: { at: number; list: RankEntry[] } | null = null;
+const RANK_TTL = 10 * 60 * 1000;
 export async function loadRanking(): Promise<RankEntry[]> {
   if (!db) return [];
+  if (rankCache && Date.now() - rankCache.at < RANK_TTL) return rankCache.list;
+  try {
+    const raw = sessionStorage.getItem("v300rank");
+    if (raw) {
+      const c = JSON.parse(raw) as { at: number; list: RankEntry[] };
+      if (Date.now() - c.at < RANK_TTL) {
+        rankCache = c;
+        return c.list;
+      }
+    }
+  } catch {
+    /* ไม่เป็นไร */
+  }
   try {
     const snap = await withTimeout(getDocs(collection(db, "students")), 12000);
     const out: RankEntry[] = [];
@@ -465,6 +548,12 @@ export async function loadRanking(): Promise<RankEntry[]> {
       out.push({ email: (v.email || d.id).toLowerCase(), name: v.name || "(ไม่มีชื่อ)", known: v.v300Known ?? 0, seen: v.v300Seen ?? 0, at: v.v300At ?? 0 });
     });
     out.sort((a, b) => b.known - a.known || b.seen - a.seen || a.at - b.at);
+    rankCache = { at: Date.now(), list: out };
+    try {
+      sessionStorage.setItem("v300rank", JSON.stringify(rankCache));
+    } catch {
+      /* ไม่เป็นไร */
+    }
     return out;
   } catch (e) {
     console.error("loadRanking error:", e);

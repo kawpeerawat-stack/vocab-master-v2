@@ -9,6 +9,8 @@
 
 import { db } from "./firebase";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { saveLocalUnlock, serial, verifiedWrite, type SyncIssue } from "./sync";
+import type { GuardStats } from "./guard";
 
 export { COURSE_REGISTRY, courseMeta } from "./courseRegistry";
 export type { CourseMeta } from "./courseRegistry";
@@ -55,6 +57,7 @@ export interface Course {
   lessonWord?: string; // คำเรียกหน่วยบทเรียน (ค่าเริ่มต้น "บท" · ฉบับ ม.4 = "คาบ")
   classNote?: string; // วิธีใช้ในคาบ (แสดงบนการ์ดความก้าวหน้า)
   gradeBy?: "first" | "best"; // สมุดคะแนนใช้คะแนนรอบแรกหรือคะแนนดีที่สุด (ไม่ระบุ = ดีที่สุด)
+  classDays?: Record<string, number>; // วันเรียนของแต่ละห้องนับจากวันจันทร์ (0–4) — บทเปิดเมื่อถึงวันเรียนของห้องในสัปดาห์นั้น
   units: { no: number; title: string; code?: string }[]; // code = ภาค A / B / C / D ในแบบเรียน
   lessons: CourseLesson[];
 }
@@ -86,6 +89,20 @@ export interface LessonProgress {
   attempts: number;     // จำนวนรอบที่ทำจบ
   lastAt: number;       // เวลา (ms) ที่ทำจบรอบล่าสุด
   missed?: Record<string, number>; // id ข้อ → จำนวนครั้งที่ตอบผิดสะสม (ไว้ดูข้อที่ยาก)
+  // ระบบกัน AI (รอบแรก): ออกจากหน้ากี่ครั้ง · เวลาที่หายไป (ms) · เสียโฟกัสกี่ครั้ง · ข้อที่ไม่นับคะแนน · โหมด (log = ทดลอง / enforce = หักคะแนน)
+  gl?: number;
+  ga?: number;
+  gb?: number;
+  gv?: number;
+  gm?: "log" | "enforce";
+  fqt?: number[];       // เวลาที่ใช้รายข้อของรอบแรก (วินาที ตามลำดับที่ทำ)
+}
+// ฟิลด์ที่ติดไปกับคะแนนรอบแรก
+const FIRST_KEYS = ["first", "firstTotal", "firstAt", "firstMs", "gl", "ga", "gb", "gv", "gm", "fqt"] as const;
+function pickFirst(x: LessonProgress): Partial<LessonProgress> {
+  const out: Record<string, unknown> = {};
+  for (const k of FIRST_KEYS) if (x[k] !== undefined && x[k] !== null) out[k] = x[k];
+  return out as Partial<LessonProgress>;
 }
 export type CourseProgress = Record<string, LessonProgress>; // key = lessonId
 
@@ -137,7 +154,7 @@ export function mergeLesson(a?: LessonProgress, b?: LessonProgress): LessonProgr
   return {
     passed: a.passed || b.passed,
     ...(passedAts.length ? { passedAt: Math.min(...passedAts) } : {}),
-    ...(fr ? { first: fr.first, firstTotal: fr.firstTotal, firstAt: fr.firstAt, ...(fr.firstMs ? { firstMs: fr.firstMs } : {}) } : {}),
+    ...(fr ? pickFirst(fr) : {}),
     ...(newer.lastMs ? { lastMs: newer.lastMs } : {}),
     ...(a.fast || b.fast ? { fast: Math.max(a.fast ?? 0, b.fast ?? 0) } : {}),
     best: Math.max(a.best ?? 0, b.best ?? 0),
@@ -165,7 +182,9 @@ export async function loadCourseProgress(courseId: string, email: string, name?:
   try {
     const ref = doc(db, "students", emailToId(email));
     const snap = await withTimeout(getDoc(ref), 8000);
-    const cloud = (snap.exists() ? (snap.data()?.courses?.[courseId] as CourseProgress | undefined) : undefined) || {};
+    const data = snap.exists() ? snap.data() : undefined;
+    saveLocalUnlock(email, data?.unlock ?? {});
+    const cloud = (data?.courses?.[courseId] as CourseProgress | undefined) || {};
     const merged = mergeCourseProgress(local, cloud);
     saveLocalCourseProgress(courseId, email, merged);
     // หาบทที่ในเครื่อง "ใหม่กว่า" คลาวด์
@@ -175,20 +194,7 @@ export async function loadCourseProgress(courseId: string, email: string, name?:
       if (!c || (c.lastAt ?? 0) < (m.lastAt ?? 0) || (!c.passed && m.passed) || (c.attempts ?? 0) < (m.attempts ?? 0)) behind[id] = m;
     }
     if (Object.keys(behind).length > 0) {
-      withTimeout(
-        setDoc(
-          ref,
-          {
-            ...(name ? { name } : {}),
-            email: email.trim().toLowerCase(),
-            courses: { [courseId]: behind },
-            courseActiveAt: Math.max(...Object.values(behind).map((x) => x.lastAt ?? 0)),
-            updatedAt: serverTimestamp(),
-          },
-          { merge: true }
-        ),
-        10000
-      ).catch((e) => console.error("resync course progress failed:", e));
+      void writeLessons(courseId, email, name, behind);
     }
     return merged;
   } catch (e) {
@@ -208,8 +214,11 @@ export async function saveLessonAttempt(params: {
   wrongIds: string[];
   passMin?: number; // ถูกกี่ข้อขึ้นไปจึงผ่าน (ไม่ระบุ = ครบทุกข้อ)
   ms?: number;      // เวลาที่ใช้ทำรอบนี้ (ms)
-}): Promise<{ lesson: LessonProgress; cloudOk: boolean }> {
-  const { courseId, lessonId, email, name, score, total, wrongIds, passMin, ms } = params;
+  guard?: GuardStats; // ระบบกัน AI (เฉพาะรอบที่เข้าสมุดคะแนน)
+  qt?: number[];      // เวลาที่ใช้รายข้อ (วินาที)
+  onSlow?: () => void;
+}): Promise<{ lesson: LessonProgress; cloudOk: boolean; issue?: SyncIssue }> {
+  const { courseId, lessonId, email, name, score, total, wrongIds, passMin, ms, guard, qt, onSlow } = params;
   const now = Date.now();
   const allLocal = loadLocalCourseProgress(courseId, email);
   let base: LessonProgress | undefined = allLocal[lessonId];
@@ -220,7 +229,7 @@ export async function saveLessonAttempt(params: {
   if (email && db) {
     try {
       ref = doc(db, "students", emailToId(email));
-      const snap = await withTimeout(getDoc(ref), 6000);
+      const snap = await withTimeout(getDoc(ref), 5000);
       const cloudLesson = snap.exists() ? (snap.data()?.courses?.[courseId]?.[lessonId] as LessonProgress | undefined) : undefined;
       base = mergeLesson(base, cloudLesson);
     } catch (e) {
@@ -238,9 +247,16 @@ export async function saveLessonAttempt(params: {
     passed: (base?.passed ?? false) || passedNow,
     ...(base?.passedAt ? { passedAt: base.passedAt } : passedNow ? { passedAt: now } : {}),
     ...(isFirst
-      ? { first: score, firstTotal: total, firstAt: now, ...(ms ? { firstMs: ms } : {}) }
+      ? {
+          first: score,
+          firstTotal: total,
+          firstAt: now,
+          ...(ms ? { firstMs: ms } : {}),
+          ...(guard ? { gl: guard.leaves, ga: guard.awayMs, gb: guard.blurs, gv: guard.voided, gm: guard.mode } : {}),
+          ...(qt && qt.length ? { fqt: qt } : {}),
+        }
       : typeof base?.first === "number"
-      ? { first: base.first, firstTotal: base.firstTotal, firstAt: base.firstAt, ...(base.firstMs ? { firstMs: base.firstMs } : {}) }
+      ? pickFirst(base)
       : {}),
     ...(ms ? { lastMs: ms } : {}),
     ...((base?.fast ?? 0) + (fast ? 1 : 0) > 0 ? { fast: (base?.fast ?? 0) + (fast ? 1 : 0) } : {}),
@@ -253,26 +269,82 @@ export async function saveLessonAttempt(params: {
   };
 
   saveLocalCourseProgress(courseId, email, { ...allLocal, [lessonId]: lesson });
+  markPending(courseId, email, [lessonId], true);
 
+  let issue: SyncIssue | undefined;
   if (ref) {
-    try {
-      await withTimeout(setDoc(
-        ref,
+    const r = await writeLessons(courseId, email, name, { [lessonId]: lesson }, onSlow);
+    cloudOk = r.ok;
+    if (!r.ok) issue = r.issue;
+  }
+  return { lesson, cloudOk, issue };
+}
+
+// ── บทที่ยังไม่ขึ้นระบบ (ไว้ส่งซ้ำอัตโนมัติ) ──
+const pendKey = (courseId: string, email: string) => `coursePending:${courseId}:${emailToId(email)}`;
+function loadPending(courseId: string, email: string): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(pendKey(courseId, email)) || "[]") as string[];
+  } catch {
+    return [];
+  }
+}
+function markPending(courseId: string, email: string, ids: string[], on: boolean) {
+  try {
+    const cur = new Set(loadPending(courseId, email));
+    for (const id of ids) {
+      if (on) cur.add(id);
+      else cur.delete(id);
+    }
+    localStorage.setItem(pendKey(courseId, email), JSON.stringify(Array.from(cur)));
+  } catch {
+    /* ไม่เป็นไร */
+  }
+}
+export const hasPendingLessons = (courseId: string, email: string) => loadPending(courseId, email).length > 0;
+
+// เขียนผลรายบทขึ้นระบบ (ส่งทีละครั้งต่อนักเรียน · เน็ตช้าไม่ตัดสินว่าล้มเหลวทันที)
+async function writeLessons(
+  courseId: string,
+  email: string,
+  name: string | undefined,
+  lessons: CourseProgress,
+  onSlow?: () => void
+): Promise<{ ok: true } | { ok: false; issue: SyncIssue }> {
+  if (!email || !db) return { ok: false, issue: "error" };
+  const ids = Object.keys(lessons);
+  return serial(emailToId(email), async () => {
+    const r = await verifiedWrite(() =>
+      setDoc(
+        doc(db, "students", emailToId(email)),
         {
-          name,
+          ...(name ? { name } : {}),
           email: email.trim().toLowerCase(),
-          courses: { [courseId]: { [lessonId]: lesson } },
-          courseActiveAt: now,
+          courses: { [courseId]: lessons },
+          courseActiveAt: Math.max(...Object.values(lessons).map((x) => x.lastAt ?? 0)),
           updatedAt: serverTimestamp(),
         },
         { merge: true }
-      ), 10000);
-      cloudOk = true;
-    } catch (e) {
-      console.error("saveLessonAttempt error:", e);
-    }
+      ),
+      onSlow
+    );
+    if (r.ok) markPending(courseId, email, ids, false);
+    return r;
+  });
+}
+
+// ส่งบทที่ค้างในเครื่องขึ้นระบบอีกครั้ง (ปุ่ม "ส่งอีกครั้ง" / ลองใหม่อัตโนมัติ)
+export async function resendPendingLessons(courseId: string, email: string, name: string, onSlow?: () => void): Promise<{ ok: true } | { ok: false; issue: SyncIssue }> {
+  const ids = loadPending(courseId, email);
+  if (!ids.length) return { ok: true };
+  const local = loadLocalCourseProgress(courseId, email);
+  const lessons: CourseProgress = {};
+  for (const id of ids) if (local[id]) lessons[id] = local[id];
+  if (!Object.keys(lessons).length) {
+    markPending(courseId, email, ids, false);
+    return { ok: true };
   }
-  return { lesson, cloudOk };
+  return writeLessons(courseId, email, name, lessons, onSlow);
 }
 
 // ── ตัวช่วยทั่วไป ──

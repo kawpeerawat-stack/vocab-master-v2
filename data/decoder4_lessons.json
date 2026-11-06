@@ -1,6 +1,6 @@
 {
  "id": "decoder4",
- "version": 2,
+ "version": 3,
  "title": "Root Words Decoder · Foundation",
  "titleTh": "ถอดรหัสคำศัพท์ ม.4",
  "subtitle": "ปูพื้นฐาน ปัจจัย • อุปสรรค • รากศัพท์ — 14 คาบ คาบละ 45 นาที ตรงกับแบบเรียน ม.4 · คาบละ 15 คำ",
@@ -9,6 +9,11 @@
  "passMin": 12,
  "lessonWord": "คาบ",
  "gradeBy": "first",
+ "classDays": {
+  "4/1": 4,
+  "4/2": 1,
+  "4/3": 2
+ },
  "units": [
   {
    "no": 1,

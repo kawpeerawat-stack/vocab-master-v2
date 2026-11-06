@@ -19,14 +19,22 @@ import {
   loadCourse,
   loadCourseProgress,
   loadLocalCourseProgress,
+  hasPendingLessons,
   mergeLesson,
+  resendPendingLessons,
   saveLessonAttempt,
   shuffled,
 } from "../lib/courses";
+import { isIssue, issueText, loadLocalUnlock, openDay, serverToday, syncClock, thaiShort, type SyncState } from "../lib/sync";
+import { GUARD_FLAG_AT, guardMode, noCopyProps, useLeaveGuard } from "../lib/guard";
+import { roomOf } from "../lib/names";
 
-type View = "LIST" | "LESSON" | "QUIZ" | "RESULT";
+type View = "LIST" | "LESSON" | "GATE" | "QUIZ" | "RESULT";
 type QuizItem = { q: CourseQuestion; order: number[] }; // order[i] = index ตัวเลือกเดิมที่แสดงในช่อง i
-type Answer = { qid: string; chosen: number; correct: boolean }; // chosen = index เดิม (ก่อนสลับ)
+// chosen = index เดิม (ก่อนสลับ) · voided = ออกจากหน้าระหว่างข้อนี้ในรอบที่เข้าสมุดคะแนน (ช่วงหักคะแนน) → ไม่นับ
+type Answer = { qid: string; chosen: number; correct: boolean; voided?: boolean };
+const nowMs = () => Date.now(); // เวลาปัจจุบัน (เรียกเฉพาะตอนกดปุ่ม ไม่ได้เรียกระหว่างวาดหน้าจอ)
+const scoreOf = (all: Answer[]) => all.filter((a) => a.correct && !a.voided).length;
 
 const KIND_STYLE: Record<string, { label: string; cls: string }> = {
   prefix: { label: "อุปสรรค", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
@@ -87,8 +95,17 @@ export default function CourseRoom({
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [showHint, setShowHint] = useState(false);
   const [confirmExit, setConfirmExit] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [saveState, setSaveState] = useState<"idle" | "ok" | "local">("idle");
+  const [saveState, setSaveState] = useState<SyncState>("idle");
+  const saving = saveState === "saving" || saveState === "slow";
+  const [pending, setPending] = useState(() => hasPendingLessons(courseId, email)); // มีผลในเครื่องที่ยังไม่ขึ้นระบบ
+  const [today, setToday] = useState(() => serverToday());
+  const [unlockN, setUnlockN] = useState(() => loadLocalUnlock(email)[courseId] || 0); // ครูเปิดให้ล่วงหน้าถึงบทที่ … (รายคน)
+  const room = roomOf(name);
+  // ระบบกัน AI: เฝ้าดูเฉพาะรอบที่เข้าสมุดคะแนน (รอบแรกของบท)
+  const [guarded, setGuarded] = useState(false);
+  const mode = guardMode(today);
+  const qStart = useRef(0);
+  const qTimes = useRef<number[]>([]);
   const [revealed, setRevealed] = useState<Record<string, boolean>>({}); // คำศัพท์ประจำบทที่กดดูความหมายแล้ว
   const startedAt = useRef(0); // เวลาที่เริ่มทำแบบฝึกหัดรอบนี้ (ไว้คิดเวลาที่ใช้ให้ครูดู)
 
@@ -99,15 +116,56 @@ export default function CourseRoom({
     loadCourse(courseId)
       .then((c) => alive && setCourse(c))
       .catch(() => alive && setLoadError(true));
-    loadCourseProgress(courseId, email, name).then((p) => alive && setProgress((prev) => mergeProgressMaps(prev, p)));
+    loadCourseProgress(courseId, email, name).then((p) => {
+      if (!alive) return;
+      setProgress((prev) => mergeProgressMaps(prev, p));
+      setUnlockN(loadLocalUnlock(email)[courseId] || 0);
+      setPending(hasPendingLessons(courseId, email));
+    });
+    syncClock().then(() => alive && setToday(serverToday()));
     return () => {
       alive = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId, email]);
 
+  // ส่งผลที่ค้างในเครื่องขึ้นระบบอีกครั้ง (ปุ่ม / อัตโนมัติ)
+  const resend = async () => {
+    if (saving) return;
+    setSaveState("saving");
+    const r = await resendPendingLessons(courseId, email, name, () => setSaveState("slow"));
+    setSaveState(r.ok ? "ok" : r.issue);
+    setPending(hasPendingLessons(courseId, email));
+  };
+  const resendRef = useRef(resend);
+  useEffect(() => {
+    resendRef.current = resend;
+  });
+  // ลองส่งใหม่เองทุก 20 วินาที / เมื่อเน็ตกลับมา / เมื่อกลับเข้าหน้าแอป (ยกเว้นที่เก็บเต็ม — ต้องให้ครูแก้)
+  const needRetry = pending && isIssue(saveState) && saveState !== "full";
+  useEffect(() => {
+    if (!needRetry) return;
+    const tick = () => {
+      if (document.visibilityState === "visible") void resendRef.current();
+    };
+    const t = setInterval(tick, 20000);
+    window.addEventListener("online", tick);
+    document.addEventListener("visibilitychange", tick);
+    return () => {
+      clearInterval(t);
+      window.removeEventListener("online", tick);
+      document.removeEventListener("visibilitychange", tick);
+    };
+  }, [needRetry]);
+
   const lessons = course?.lessons ?? [];
   const L = course?.lessonWord ?? "บท"; // ฉบับ ม.4 เรียกว่า "คาบ"
+  // บทเปิดเมื่อถึงวันเรียนของห้องในสัปดาห์นั้น · บทที่ผ่านวันเรียนแล้วเปิดค้างไว้ (ทำย้อนหลังได้) · ครูเปิดล่วงหน้ารายคนได้
+  const openOn = (l: CourseLesson) => openDay(l.start, room, course?.classDays);
+  const isOpen = (l: CourseLesson) => {
+    const d = openOn(l);
+    return !d || d <= today || l.hour <= unlockN || !!progress[l.id];
+  };
   const needOf = (total: number) => Math.min(total, course?.passMin ?? total); // ถูกกี่ข้อจึงผ่าน
   const qn = lessons[0]?.questions.length ?? 0;
   const passedCount = lessons.filter((l) => progress[l.id]?.passed).length;
@@ -128,8 +186,26 @@ export default function CourseRoom({
     scrollTop();
   };
 
-  const startQuiz = () => {
+  const current = items[idx];
+  const answered = selected !== null;
+  const guard = useLeaveGuard(view === "QUIZ" && guarded, view === "QUIZ" && current && !answered ? current.q.id : null);
+
+  // รอบแรกของบท (เข้าสมุดคะแนน) → หน้ากติกาก่อน
+  const beginQuiz = () => {
     if (!lesson) return;
+    if (!(progress[lesson.id]?.attempts > 0)) {
+      setView("GATE");
+      scrollTop();
+      return;
+    }
+    startQuiz(false);
+  };
+  const startQuiz = (g: boolean) => {
+    if (!lesson) return;
+    setGuarded(g);
+    guard.reset();
+    qTimes.current = [];
+    qStart.current = nowMs();
     const qs = shuffled(lesson.questions).map((q) => ({ q, order: shuffled(q.options.map((_, i) => i)) }));
     setItems(qs);
     setIdx(0);
@@ -139,28 +215,27 @@ export default function CourseRoom({
     setConfirmExit(false);
     setSaveState("idle");
     setView("QUIZ");
-    startedAt.current = Date.now();
+    startedAt.current = nowMs();
     scrollTop();
   };
-
-  const current = items[idx];
-  const answered = selected !== null;
 
   const choose = (slot: number) => {
     if (!current || answered) return;
     const original = current.order[slot];
+    const voided = guarded && mode === "enforce" && guard.wasLeft(current.q.id);
+    if (guarded) qTimes.current.push(Math.round((nowMs() - qStart.current) / 1000));
     setSelected(slot);
-    setAnswers((prev) => [...prev, { qid: current.q.id, chosen: original, correct: original === current.q.answer }]);
+    setAnswers((prev) => [...prev, { qid: current.q.id, chosen: original, correct: original === current.q.answer, ...(voided ? { voided: true } : {}) }]);
   };
 
   const finish = async (all: Answer[]) => {
     if (!lesson) return;
     setView("RESULT");
     scrollTop();
-    setSaving(true);
-    const score = all.filter((a) => a.correct).length;
-    const ms = startedAt.current ? Date.now() - startedAt.current : undefined;
-    const { lesson: lp, cloudOk } = await saveLessonAttempt({
+    setSaveState("saving");
+    const score = scoreOf(all);
+    const ms = startedAt.current ? nowMs() - startedAt.current : undefined;
+    const { lesson: lp, cloudOk, issue } = await saveLessonAttempt({
       courseId,
       lessonId: lesson.id,
       email,
@@ -170,11 +245,13 @@ export default function CourseRoom({
       wrongIds: all.filter((a) => !a.correct).map((a) => a.qid),
       passMin: course?.passMin,
       ms,
+      ...(guarded ? { guard: guard.stats(all.filter((a) => a.voided).length, mode), qt: qTimes.current } : {}),
+      onSlow: () => setSaveState("slow"),
     });
     // รวมแบบไม่ถอยหลัง (กันผลรอบก่อนที่บันทึกช้ามาทับผลรอบใหม่)
     setProgress((prev) => ({ ...prev, [lesson.id]: mergeLesson(prev[lesson.id], lp) ?? lp }));
-    setSaveState(cloudOk ? "ok" : "local");
-    setSaving(false);
+    setSaveState(cloudOk ? "ok" : issue ?? "error");
+    setPending(hasPendingLessons(courseId, email));
   };
 
   const next = () => {
@@ -186,6 +263,8 @@ export default function CourseRoom({
     setIdx((i) => i + 1);
     setSelected(null);
     setShowHint(false);
+    qStart.current = nowMs();
+    guard.clearNotice();
   };
 
   const lessonIndex = lesson ? lessons.findIndex((l) => l.id === lesson.id) : -1;
@@ -239,6 +318,16 @@ export default function CourseRoom({
           {course.classNote && <p className="text-[11px] font-bold text-[#FFD700] mt-1.5">🕙 {course.classNote}</p>}
         </div>
 
+        {pending || saveState === "ok" ? (
+          <div className={`rounded-2xl px-4 py-3 mb-4 text-sm font-bold flex items-center gap-2 ${!pending ? "bg-emerald-50 text-emerald-800 border-2 border-emerald-200" : saving ? "bg-blue-50 text-[#003399]" : "bg-amber-50 text-amber-900 border-2 border-amber-300"}`}>
+            <span className="flex-1">{!pending ? issueText("ok") + " · ครูเห็นผลแล้ว" : saving ? issueText(saveState) : isIssue(saveState) ? issueText(saveState) : "⚠️ มีผลในเครื่องที่ยังไม่ขึ้นระบบ — กดส่งอีกครั้ง"}</span>
+            {pending && !saving && (
+              <button onClick={resend} className="shrink-0 px-3 py-1.5 bg-amber-500 text-white rounded-xl font-black text-xs">ส่งอีกครั้ง</button>
+            )}
+          </div>
+        ) : null}
+
+        <p className="text-[11px] font-bold text-gray-500 mb-3">🔒 {L}ใหม่เปิดในวันที่ห้อง {room || "ของคุณ"} เรียน{L}นั้น · {L}ที่ผ่านวันเรียนแล้วเปิดไว้ให้ทำย้อนหลังได้เสมอ (เช่น วันที่ลาเรียน)</p>
         <div className="space-y-5">
           {unitsWithLessons.map((u) => (
             <div key={u.no}>
@@ -248,15 +337,20 @@ export default function CourseRoom({
               <div className="space-y-2">
                 {u.lessons.map((l) => {
                   const p = progress[l.id];
+                  const open = isOpen(l);
+                  const od = openOn(l);
                   return (
                     <button
                       key={l.id}
                       type="button"
-                      onClick={() => openLesson(l)}
-                      className={`w-full text-left p-4 rounded-2xl border-2 transition-all active:scale-[0.99] flex items-center gap-3 ${
-                        p?.passed
-                          ? "bg-emerald-50 border-emerald-200 hover:border-emerald-400"
-                          : "bg-white border-[#003399]/10 hover:border-[#003399]/40"
+                      disabled={!open}
+                      onClick={() => open && openLesson(l)}
+                      className={`w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center gap-3 ${
+                        !open
+                          ? "bg-gray-50 border-dashed border-gray-200 opacity-70 cursor-not-allowed"
+                          : p?.passed
+                          ? "bg-emerald-50 border-emerald-200 hover:border-emerald-400 active:scale-[0.99]"
+                          : "bg-white border-[#003399]/10 hover:border-[#003399]/40 active:scale-[0.99]"
                       }`}
                     >
                       <span
@@ -273,7 +367,9 @@ export default function CourseRoom({
                         {l.week && <span className="block text-[11px] font-bold text-[#003399]/70">สัปดาห์ที่ {l.week}{l.dateLabel ? ` · ${l.dateLabel}` : ""}{l.pairNote ? ` · ${l.pairNote}` : ""}</span>}
                       </span>
                       <span className="shrink-0 text-right">
-                        {p?.passed ? (
+                        {!open ? (
+                          <span className="text-[11px] font-black text-gray-500 bg-gray-100 px-2 py-1 rounded-full whitespace-nowrap">🔒 {od ? thaiShort(od) : ""}</span>
+                        ) : p?.passed ? (
                           <span className="text-[11px] font-black text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full">✓ ผ่าน</span>
                         ) : p ? (
                           <span className="text-[11px] font-black text-amber-700 bg-amber-100 px-2 py-1 rounded-full">
@@ -418,7 +514,7 @@ export default function CourseRoom({
 
         <button
           type="button"
-          onClick={startQuiz}
+          onClick={beginQuiz}
           className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-xl hover:bg-[#002266] transition-all text-lg"
         >
           เริ่มทำแบบฝึกหัด {lesson.questions.length} ข้อ →
@@ -431,9 +527,41 @@ export default function CourseRoom({
     );
   }
 
+  // ── GATE: กติการอบที่เข้าสมุดคะแนน ──
+  if (view === "GATE") {
+    return (
+      <div className="animate-fadeIn mt-2">
+        <button type="button" onClick={() => { setView("LESSON"); scrollTop(); }} className="mb-4 text-sm font-bold text-[#003399] hover:underline">← กลับ</button>
+        <div className="border-4 border-[#003399] rounded-3xl p-5 mb-4">
+          <div className="text-4xl text-center mb-1">📝</div>
+          <h1 className="text-xl font-black text-center text-gray-900 mb-1">โหมดรอบแรก · {L} {lesson.hour}</h1>
+          <p className="text-center text-xs font-bold text-[#003399] mb-4">คะแนนรอบนี้{course?.gradeBy === "first" ? "เข้าสมุดคะแนนของครู" : "ครูดูประกอบการให้คะแนน"}</p>
+          <ol className="text-sm text-gray-800 space-y-2 list-decimal pl-5">
+            <li>เปิด <b>โหมดห้ามรบกวน</b> ก่อน (กันแจ้งเตือนเด้งทับ)</li>
+            <li><b>อยู่ในหน้านี้ตลอด</b> จนทำครบ {lesson.questions.length} ข้อ — ห้ามสลับแอป สลับแท็บ หรือกลับหน้าโฮม</li>
+            <li>
+              {mode === "enforce"
+                ? <>ออกจากหน้าระหว่างข้อไหน <b className="text-rose-600">ข้อนั้นไม่นับคะแนน</b> (ทำต่อได้ ไม่ต้องเริ่มใหม่)</>
+                : <>ช่วงทดลอง: ระบบ <b>บันทึก</b> การออกจากหน้าให้ครูเห็น (ยังไม่หักคะแนน)</>}
+            </li>
+            <li>ออกจากหน้าครบ {GUARD_FLAG_AT} ครั้ง ครูจะเห็นเครื่องหมาย 🚩 และอาจให้ทำต่อหน้าครู</li>
+            <li>รอบต่อไปทำซ้ำได้ไม่จำกัด (ไม่มีการเฝ้าดู)</li>
+          </ol>
+        </div>
+        <button
+          type="button"
+          onClick={() => startQuiz(true)}
+          className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-xl hover:bg-[#002266] transition-all text-lg"
+        >
+          เข้าใจแล้ว เริ่มทำ {lesson.questions.length} ข้อ →
+        </button>
+      </div>
+    );
+  }
+
   // ── QUIZ ──
   if (view === "QUIZ" && current) {
-    const correctSoFar = answers.filter((a) => a.correct).length;
+    const correctSoFar = scoreOf(answers);
     const wrongSoFar = answers.length - correctSoFar;
     const lastAnswer = answered ? answers[answers.length - 1] : null;
     return (
@@ -459,19 +587,32 @@ export default function CourseRoom({
           </div>
           <span className="text-sm font-black text-[#003399] tabular-nums">{idx + 1}/{items.length}</span>
         </div>
+        {guarded && guard.notice && (
+          <div className={`rounded-xl p-3 mb-3 text-sm font-bold flex items-start gap-2 ${mode === "enforce" ? "bg-orange-100 text-orange-900 border-2 border-orange-300" : "bg-amber-50 text-amber-900 border-2 border-amber-200"}`}>
+            <span className="flex-1">
+              ⚠️ ออกจากหน้าครั้งที่ {guard.notice.n}
+              {mode === "enforce" ? " — ข้อนี้ไม่นับคะแนนรอบแรก" : " — ช่วงทดลอง ระบบบันทึกให้ครูเห็น (ยังไม่หักคะแนน)"}
+              {guard.notice.n >= GUARD_FLAG_AT ? " · ครูจะเห็น 🚩" : ""}
+            </span>
+            <button onClick={guard.clearNotice} className="shrink-0 text-xs underline">รับทราบ</button>
+          </div>
+        )}
+        {guarded && (
+          <p className="text-[11px] font-bold text-[#003399]/70 mb-2">📝 รอบแรก · อยู่ในหน้านี้จนทำครบ{guard.leaves > 0 ? ` · ออกจากหน้าแล้ว ${guard.leaves} ครั้ง` : ""}</p>
+        )}
         <div className="flex gap-3 text-xs font-bold mb-4">
           <span className="text-emerald-600">✓ {correctSoFar}</span>
           <span className="text-rose-500">✗ {wrongSoFar}</span>
           {wrongSoFar > 0 && <span className="text-gray-400">รอบนี้ยังไม่ผ่าน แต่ทำให้จบเพื่อดูเฉลยแล้วลองใหม่</span>}
         </div>
 
-        <div className="bg-gray-50 rounded-2xl p-4 mb-4">
+        <div className="bg-gray-50 rounded-2xl p-4 mb-4" {...noCopyProps}>
           <p className="text-base md:text-lg font-bold text-gray-900 leading-relaxed">
             <Rich text={current.q.q} />
           </p>
         </div>
 
-        <div className="space-y-2 mb-4">
+        <div className="space-y-2 mb-4" {...noCopyProps}>
           {current.order.map((orig, slot) => {
             const isCorrect = orig === current.q.answer;
             const isPicked = selected === slot;
@@ -512,6 +653,7 @@ export default function CourseRoom({
           <div className={`rounded-2xl p-4 mb-4 ${lastAnswer.correct ? "bg-emerald-50" : "bg-rose-50"}`}>
             <p className={`font-black mb-1 ${lastAnswer.correct ? "text-emerald-700" : "text-rose-700"}`}>
               {lastAnswer.correct ? "✓ ถูกต้อง!" : "✗ ยังไม่ถูก"}
+              {lastAnswer.voided ? <span className="block text-xs font-bold text-orange-700">ข้อนี้ไม่นับคะแนน เพราะออกจากหน้าระหว่างทำ</span> : null}
             </p>
             {!lastAnswer.correct && (
               <p className="text-sm text-gray-800 mb-1">
@@ -538,7 +680,8 @@ export default function CourseRoom({
   // ── RESULT ──
   if (view === "RESULT") {
     const total = items.length;
-    const score = answers.filter((a) => a.correct).length;
+    const score = scoreOf(answers);
+    const nVoid = answers.filter((a) => a.voided).length;
     const need = needOf(total);
     const passed = score >= need && total > 0;
     const wrong = answers.filter((a) => !a.correct);
@@ -554,15 +697,14 @@ export default function CourseRoom({
           <p className={`font-black text-lg ${passed ? "text-emerald-700" : "text-amber-800"}`}>
             {passed ? `ผ่าน${L}นี้แล้ว!` : `อีก ${need - score} ข้อจะผ่าน — ลองใหม่อีกครั้ง`}
           </p>
-          <p className="text-xs text-gray-500 mt-2">
-            {saving
-              ? "⏳ กำลังบันทึกผล..."
-              : saveState === "ok"
-              ? "✓ บันทึกผลแล้ว ครูเห็นผลนี้ในระบบ"
-              : saveState === "local"
-              ? "⚠️ บันทึกไว้ในเครื่องแล้ว แต่ส่งขึ้นระบบยังไม่สำเร็จ — ระบบจะส่งให้อัตโนมัติเมื่อเปิดห้องนี้อีกครั้งตอนมีอินเทอร์เน็ต (ใช้อีเมลเดิม)"
-              : ""}
+          {nVoid > 0 && <p className="text-xs font-bold text-orange-700 mt-2">ไม่นับ {nVoid} ข้อ เพราะออกจากหน้าระหว่างทำ</p>}
+          {guarded && guard.leaves > 0 && mode === "log" && <p className="text-xs font-bold text-amber-700 mt-2">ออกจากหน้า {guard.leaves} ครั้ง (ช่วงทดลอง — บันทึกให้ครูเห็น ยังไม่หักคะแนน)</p>}
+          <p className={`text-xs mt-2 ${isIssue(saveState) ? "font-bold text-amber-800" : "text-gray-500"}`}>
+            {saveState === "ok" ? "✓ บันทึกผลแล้ว ครูเห็นผลนี้ในระบบ" : issueText(saveState)}
           </p>
+          {isIssue(saveState) && pending && (
+            <button onClick={resend} className="mt-2 px-4 py-2 bg-amber-500 text-white rounded-xl font-black text-xs">ส่งอีกครั้ง</button>
+          )}
         </div>
 
         {wrong.length > 0 && (
@@ -586,7 +728,7 @@ export default function CourseRoom({
         )}
 
         <div className="space-y-2">
-          {passed && nextLesson ? (
+          {passed && nextLesson && isOpen(nextLesson) ? (
             <button
               type="button"
               onClick={() => openLesson(nextLesson)}
@@ -598,7 +740,7 @@ export default function CourseRoom({
           {!passed && (
             <button
               type="button"
-              onClick={startQuiz}
+              onClick={() => startQuiz(false)}
               className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-xl hover:bg-[#002266] disabled:bg-gray-300 transition-all"
             >
               🔁 ทำใหม่ (สลับข้อและตัวเลือกใหม่)
