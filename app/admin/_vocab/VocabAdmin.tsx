@@ -13,7 +13,7 @@
 import React, { useMemo, useState } from "react";
 import { VCourse, VProgress, VSetPass, VWord, computeStats, emptyProgress, isKnown, mergeProgress, normalizeProgress, plannedWeekNo, setPassOf, setState, todayStr } from "../../lib/vocab300";
 import { ROOMS, ROSTER, extractNo, fmtThaiTime, gradeOf, matchRoster, roomOf, rosterKey, downloadCsv, typedMismatch } from "../../lib/roster";
-import { GuardMark, UnlockButton, guardTip, isFlagged } from "../_parts/AdminTools";
+import { GuardMark, SpotCheck, UnlockButton, guardEvents, guardTip, isFlagged, pickSpot, type SpotCand } from "../_parts/AdminTools";
 
 export type V300Doc = { id: string; name?: string; email?: string; v300?: VProgress; v300At?: number; unlock?: Record<string, number> };
 
@@ -109,6 +109,26 @@ export default function VocabAdmin({
     return list;
   }, [visible, sortBy, metrics]);
 
+  // ── 🎯 สุ่มตรวจคาบนี้: คนที่ผ่านรอบทบทวนวันนี้ (ห้องที่เลือก) ──
+  const spot = (() => {
+    if (roomFilter === "ALL") return null;
+    const cands: SpotCand[] = [];
+    for (const r of visible) {
+      const recs = Object.entries(r.prog.sets || {}).filter(([, x]) => x.day === today && !x.legacy);
+      if (!recs.length) continue;
+      const reasons: string[] = [];
+      let w = 0;
+      for (const [k, x] of recs) {
+        if (isFlagged(x)) { w += 3; reasons.push(`ชุด ${k} 🚩`); }
+        if (x.cm === "nocam" || x.cm === "camfail") { w += 1; reasons.push(`ชุด ${k} ${x.cm === "nocam" ? "🚫 ไม่ใช้กล้อง" : "⚠️ กล้องใช้ไม่ได้"}`); }
+        if (x.score >= 10) { w += 1; reasons.push(`ชุด ${k} รอบทบทวน 10/10`); }
+        if ((x.gt ?? 0) >= 3) { w += 1; reasons.push(`ชุด ${k} หมดเวลา ${x.gt} คำ`); }
+      }
+      cands.push({ key: r.key, name: `${r.no != null ? `${r.no}. ` : ""}${r.name}`, reasons, weight: w });
+    }
+    return cands.length ? { picks: pickSpot(cands, `${today}|${roomFilter}|v300`, 3), total: cands.length } : null;
+  })();
+
   // ชุดที่ควรผ่านแล้วตามแผน ณ วันนี้ — คิดตามวันเรียนของแต่ละห้อง (ห้องที่ยังไม่ถึงคาบในสัปดาห์นี้ จะยังไม่นับชุดใหม่)
   const planRoom = roomFilter === "ALL" ? null : roomFilter;
   const planNo = plannedWeekNo(course, today, planRoom);
@@ -181,7 +201,8 @@ export default function VocabAdmin({
         m.passed, m.score,
         [
           legacy.length ? `ชุด ${legacy.join(", ")} ผ่านจากแอปแบบเดิม (คะแนนคิดจากขั้นที่ 4)` : "",
-          ...m.sets.filter((x) => (x.rec?.gl ?? 0) > 0).map((x) => `ชุด ${x.no} ออกจากหน้า ${x.rec!.gl} ครั้ง${isFlagged(x.rec) ? " 🚩" : ""}`),
+          ...m.sets.filter((x) => guardEvents(x.rec) > 0).map((x) => `ชุด ${x.no} ออกจากหน้า ${x.rec!.gl ?? 0} · บังใบหน้า ${x.rec!.gc ?? 0} ครั้ง${isFlagged(x.rec) ? " 🚩" : ""}`),
+          ...m.sets.filter((x) => x.rec?.cm === "nocam" || x.rec?.cm === "camfail").map((x) => `ชุด ${x.no} ${x.rec!.cm === "nocam" ? "ไม่ใช้กล้อง" : "กล้องใช้ไม่ได้"}`),
         ].filter(Boolean).join(" · "),
         r.emails.join(" / "),
       ];
@@ -206,6 +227,8 @@ export default function VocabAdmin({
           </div>
         ))}
       </div>
+
+      {spot && <SpotCheck title={`ม.${roomFilter} · คำศัพท์แกน 120 คำ`} picks={spot.picks} total={spot.total} />}
 
       {/* ── โหมด ── */}
       <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -319,7 +342,7 @@ export default function VocabAdmin({
           </div>
           <p className="text-[11px] text-gray-500 px-4 py-3 leading-relaxed">
             <b>ชุด1–ชุด{course.weeks.length}</b>: <span className="text-emerald-700 font-black">✓ เขียว = ผ่านชุดแล้ว</span> (เรียนครบ 10 คำ + รอบทบทวนถูกครบ) ·
-            <span className="text-amber-700 font-black"> R = เรียนครบ 10 คำแล้ว รอทำรอบทบทวน</span> · ตัวเลข = เรียนแล้วกี่คำในชุดนั้น · ชี้ที่ช่องเพื่อดูเวลาที่ผ่านและคะแนน · ↗n = ออกจากหน้า n ครั้งในรอบทบทวน · 🚩 = 3 ครั้งขึ้นไป (ควรเรียกมาถาม) · 🔓 = เปิดชุดล่วงหน้าให้รายคน ·
+            <span className="text-amber-700 font-black"> R = เรียนครบ 10 คำแล้ว รอทำรอบทบทวน</span> · ตัวเลข = เรียนแล้วกี่คำในชุดนั้น · ชี้ที่ช่องเพื่อดูเวลาที่ผ่านและคะแนน · ↗n = ออกจากหน้า · 📷n = บังใบหน้า (รอบทบทวน) · 🚫 = ไม่ใช้กล้อง · 🚩 = รวม 3 ครั้งขึ้นไป (ควรเรียกมาถาม) · 🔓 = เปิดชุดล่วงหน้าให้รายคน ·
             รู้แล้ว = คำในชุดที่ผ่านแล้ว · ทวนได้ = คำของชุดก่อน ๆ ที่ถึงนัดทวน (ไม่บังคับ ไม่มีผลกับการผ่าน) ·
             ตามแผน = ผ่านครบถึงชุดของสัปดาห์นี้ของห้องนั้นหรือยัง{planRoom && planNo ? ` (ม.${planRoom} วันนี้ควรผ่านถึงชุดที่ ${planNo})` : ""} · วันนี้ = คำใหม่ · ข้อทวน ที่ทำวันนี้ (✓ ผ่าน = ผ่านชุดในวันนี้) ·
             เดาถูก = สัดส่วนที่ขั้น “เดาก่อนรู้” เดาความหมายถูก · หน้านี้อัปเดตเองทันทีที่นักเรียนส่งผล

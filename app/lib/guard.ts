@@ -137,3 +137,46 @@ export const noCopyProps = {
 };
 
 export const fmtAway = (ms?: number) => (!ms ? "0 วิ" : ms < 60000 ? `${Math.round(ms / 1000)} วิ` : `${Math.floor(ms / 60000)} นาที ${Math.round((ms % 60000) / 1000)} วิ`);
+
+// ── เกณฑ์ผ่านตามการยินยอมใช้กล้อง (ช่วงหักคะแนน) ──
+//   ใช้กล้อง = ถูก 80% ขึ้นไป · ไม่ใช้กล้อง / กล้องใช้ไม่ได้ = ต้องถูกครบทุกข้อ (ระบบกันสลับหน้าจอยังทำงาน)
+//   ช่วงทดลอง (ก่อน GUARD_ENFORCE_FROM) และรอบฝึกหลังผ่านแล้ว = เกณฑ์เดิมของคอร์ส
+export type CamMode = "cam" | "nocam" | "camfail";
+export const CAM_PASS_RATIO = 0.8;
+export function passNeed(total: number, o: { mode: GuardMode; guarded: boolean; cm?: CamMode; passMin?: number }): number {
+  // 8 พ.ย.: ครูเลือกให้เกณฑ์เท่ากันทั้งสองแบบ (80%) — ไม่ใช้กล้องพิสูจน์ด้วยการจับเวลาต่อข้อ + ครูดูหน้าติดตามสด (นั่งที่เดิม) + สุ่มตรวจ
+  if (o.mode === "enforce" && o.guarded) return Math.ceil(total * CAM_PASS_RATIO - 1e-9);
+  return Math.min(total, o.passMin ?? total);
+}
+
+// ── จับเวลาต่อข้อ (รอบที่เข้าสมุดคะแนน · ไม่ใช้กล้อง) ──
+//   ถ่ายรูปแล้วรอ AI ตอบใช้ ~10–20 วินาที → หมดเวลา = ข้ามข้อ (ช่วงหักคะแนน) · ข้อที่โจทย์+ตัวเลือกยาว ได้เพิ่ม 5 วินาที
+export const Q_TIME_MS = 20000;
+export const Q_TIME_LONG_EXTRA = 5000;
+export const Q_LONG_CHARS = 120;
+export const qTimeLimit = (text: string) => Q_TIME_MS + (text.replace(/\*\*|<[^>]+>/g, "").length > Q_LONG_CHARS ? Q_TIME_LONG_EXTRA : 0);
+
+// นับถอยหลังของข้อปัจจุบัน · onTimeout เรียกครั้งเดียวต่อข้อ (จากตัวจับเวลา ไม่ใช่ระหว่างวาดหน้าจอ)
+export function useQuestionTimer(active: boolean, key: string | null, limitMs: number, onTimeout: (key: string) => void) {
+  const [st, setSt] = useState<{ key: string | null; left: number }>({ key: null, left: limitMs });
+  const cb = useRef(onTimeout);
+  useEffect(() => {
+    cb.current = onTimeout;
+  });
+  useEffect(() => {
+    if (!active || !key) return;
+    const t0 = Date.now();
+    let fired = false;
+    const t = setInterval(() => {
+      const l = Math.max(0, limitMs - (Date.now() - t0));
+      setSt({ key, left: l });
+      if (l <= 0 && !fired) {
+        fired = true;
+        clearInterval(t);
+        cb.current(key);
+      }
+    }, 250);
+    return () => clearInterval(t);
+  }, [active, key, limitMs]);
+  return st.key === key ? st.left : limitMs; // ข้อใหม่ยังไม่ถึงรอบนับแรก = เต็มเวลา
+}

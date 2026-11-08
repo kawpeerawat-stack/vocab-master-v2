@@ -26,13 +26,15 @@ import {
   shuffled,
 } from "../lib/courses";
 import { isIssue, issueText, loadLocalUnlock, openDay, serverToday, syncClock, thaiShort, type SyncState } from "../lib/sync";
-import { GUARD_FLAG_AT, guardMode, noCopyProps, noticeText, useLeaveGuard } from "../lib/guard";
+import { GUARD_FLAG_AT, guardMode, noCopyProps, noticeText, passNeed, qTimeLimit, Q_TIME_MS, Q_TIME_LONG_EXTRA, useLeaveGuard, useQuestionTimer, type CamMode } from "../lib/guard";
+import { CamBox, CamChooser, CoverShield, isCovered, loadCamChoice, saveCamChoice, TimerBar, useCameraGuard } from "./CamGuard";
 import { roomOf } from "../lib/names";
+import { liveEnd, liveEvent, liveLeaves, liveQuit, liveStart, liveStep } from "../lib/live";
 
 type View = "LIST" | "LESSON" | "GATE" | "QUIZ" | "RESULT";
 type QuizItem = { q: CourseQuestion; order: number[] }; // order[i] = index ตัวเลือกเดิมที่แสดงในช่อง i
 // chosen = index เดิม (ก่อนสลับ) · voided = ออกจากหน้าระหว่างข้อนี้ในรอบที่เข้าสมุดคะแนน (ช่วงหักคะแนน) → ไม่นับ
-type Answer = { qid: string; chosen: number; correct: boolean; voided?: boolean; skipped?: boolean }; // skipped = ระบบข้ามข้อนี้ทันทีเพราะออกจากหน้า (chosen = -1)
+type Answer = { qid: string; chosen: number; correct: boolean; voided?: boolean; skipped?: boolean; why?: "leave" | "cover" | "face" | "time" }; // skipped = ระบบข้ามข้อนี้ทันทีเพราะออกจากหน้า (chosen = -1)
 const nowMs = () => Date.now(); // เวลาปัจจุบัน (เรียกเฉพาะตอนกดปุ่ม ไม่ได้เรียกระหว่างวาดหน้าจอ)
 const scoreOf = (all: Answer[]) => all.filter((a) => a.correct && !a.voided).length;
 
@@ -106,6 +108,11 @@ export default function CourseRoom({
   const mode = guardMode(today);
   const qStart = useRef(0);
   const qTimes = useRef<number[]>([]);
+  // กล้องกันกล้องซ้อน: นักเรียนเลือกเองที่หน้ากติกา (จำไว้ในเครื่อง)
+  const [camWant, setCamWant] = useState<boolean>(() => loadCamChoice(email) ?? true);
+  const [roundCam, setRoundCam] = useState<CamMode>("nocam");
+  const [camNotice, setCamNotice] = useState<string | null>(null);
+  const [triedNow, setTriedNow] = useState<Record<string, true>>({}); // บทที่ทำไปแล้วในรอบเปิดห้องนี้ (ก่อนผลบันทึกเสร็จ)
   const [revealed, setRevealed] = useState<Record<string, boolean>>({}); // คำศัพท์ประจำบทที่กดดูความหมายแล้ว
   const startedAt = useRef(0); // เวลาที่เริ่มทำแบบฝึกหัดรอบนี้ (ไว้คิดเวลาที่ใช้ให้ครูดู)
 
@@ -190,11 +197,12 @@ export default function CourseRoom({
   const answered = selected !== null;
   // ช่วงหักคะแนน: ตรวจพบว่าออกจากหน้า/ถูกบังนานระหว่างข้อไหน → ข้ามข้อนั้นทันที (ไม่ได้คะแนน)
   const finishRef = useRef<(all: Answer[]) => void>(() => undefined);
-  const skipCurrent = (key: string) => {
+  const skipCurrent = (key: string, why: "leave" | "cover" | "face" | "time" = "leave") => {
     if (!guarded || mode !== "enforce" || !current || current.q.id !== key || selected !== null) return false;
     qTimes.current.push(Math.round((nowMs() - qStart.current) / 1000));
-    const all = [...answers, { qid: key, chosen: -1, correct: false, voided: true, skipped: true }];
+    const all: Answer[] = [...answers, { qid: key, chosen: -1, correct: false, voided: true, skipped: true, why }];
     setAnswers(all);
+    liveStep(all.length);
     if (idx + 1 >= items.length) {
       finishRef.current(all);
     } else {
@@ -206,20 +214,64 @@ export default function CourseRoom({
     return true;
   };
   const guard = useLeaveGuard(view === "QUIZ" && guarded, view === "QUIZ" && current && !answered ? current.q.id : null, skipCurrent);
+  // กล้อง: มีอะไรบังใบหน้า (จมูกขึ้นไป) นานเกิน 0.5 วินาที → ช่วงหักคะแนนข้ามข้อ · ช่วงทดลองเตือน+บันทึก
+  const cam = useCameraGuard(() => {
+    if (guarded) liveEvent("face");
+    const skipped = current ? skipCurrent(current.q.id, "face") : false;
+    setCamNotice(
+      mode === "enforce"
+        ? skipped
+          ? `📷 มีอะไรบังใบหน้า (จมูกขึ้นไป) — ข้อที่แล้วถูกข้าม (ไม่ได้คะแนน)`
+          : `📷 มีอะไรบังใบหน้า (จมูกขึ้นไป)`
+        : `📷 มีอะไรบังใบหน้า (จมูกขึ้นไป) — ช่วงทดลอง ระบบบันทึกให้ครูเห็น (ยังไม่หักคะแนน)`
+    );
+    return skipped;
+  });
+  // ไม่ใช้กล้อง: จับเวลาข้อละ 20 วินาที (ข้อยาว 25) · หมดเวลา → ช่วงหักคะแนนข้ามข้อ · ช่วงทดลองเตือน+บันทึก
+  const timeoutsRef = useRef(0);
+  const timed = view === "QUIZ" && guarded && roundCam !== "cam" && !!current && !answered;
+  const qLimit = current ? qTimeLimit(current.q.q + " " + current.q.options.join(" ")) : Q_TIME_MS;
+  const timeLeft = useQuestionTimer(timed, current ? `${idx}:${current.q.id}` : null, qLimit, () => {
+    if (!current) return;
+    timeoutsRef.current++;
+    liveEvent("time");
+    const skipped = mode === "enforce" ? skipCurrent(current.q.id, "time") : false;
+    setCamNotice(skipped ? `⏱ หมดเวลา ${Math.round(qLimit / 1000)} วินาที — ข้อที่แล้วถูกข้าม (ไม่ได้คะแนน)` : `⏱ หมดเวลา ${Math.round(qLimit / 1000)} วินาที — ช่วงทดลอง ระบบบันทึกให้ครูเห็น (ยังไม่ข้ามข้อ)`);
+  });
+  const { arm: camArm, stop: camStop } = cam;
+  useEffect(() => {
+    camArm(view === "QUIZ" && guarded && roundCam === "cam" && !answered);
+  }, [camArm, view, guarded, roundCam, answered, idx]);
+  useEffect(() => {
+    if (view !== "QUIZ" && view !== "GATE") camStop();
+  }, [camStop, view]);
+  // หน้าติดตามสดของครู: ออกจากหน้ากี่ครั้ง · ออกจากรอบกลางคัน
+  useEffect(() => {
+    if (guarded && guard.leaves > 0) liveLeaves(guard.leaves);
+  }, [guarded, guard.leaves]);
+  useEffect(() => {
+    if (view !== "QUIZ" && view !== "RESULT") liveQuit();
+  }, [view]);
 
   // รอบแรกของบท (เข้าสมุดคะแนน) → หน้ากติกาก่อน
   const beginQuiz = () => {
     if (!lesson) return;
-    if (!(progress[lesson.id]?.attempts > 0)) {
+    // บทที่ยังไม่ผ่าน = ทุกรอบผ่านหน้ากติกา (เลือกใช้กล้อง/ไม่ใช้) · ผ่านแล้ว = ฝึกได้อิสระ
+    if (!progress[lesson.id]?.passed) {
       setView("GATE");
       scrollTop();
       return;
     }
     startQuiz(false);
   };
-  const startQuiz = (g: boolean) => {
+  const startQuiz = (g: boolean, cm: CamMode = "nocam") => {
     if (!lesson) return;
     setGuarded(g);
+    setRoundCam(g ? cm : "nocam");
+    if (!g || cm !== "cam") cam.stop();
+    cam.resetCounts();
+    timeoutsRef.current = 0;
+    setCamNotice(null);
     guard.reset();
     qTimes.current = [];
     qStart.current = nowMs();
@@ -233,6 +285,10 @@ export default function CourseRoom({
     setSaveState("idle");
     setView("QUIZ");
     startedAt.current = nowMs();
+    if (g) {
+      const n = lessons.findIndex((x) => x.id === lesson.id) + 1;
+      liveStart(email, { room, a: "course", c: courseId, l: lesson.id, t: `${L}ที่ ${lesson.hour || n}`, tot: qs.length, cm });
+    }
     scrollTop();
   };
 
@@ -243,14 +299,18 @@ export default function CourseRoom({
     if (guarded) qTimes.current.push(Math.round((nowMs() - qStart.current) / 1000));
     setSelected(slot);
     setAnswers((prev) => [...prev, { qid: current.q.id, chosen: original, correct: original === current.q.answer, ...(voided ? { voided: true } : {}) }]);
+    if (guarded) liveStep(answers.length + 1);
   };
 
   const finish = async (all: Answer[]) => {
     if (!lesson) return;
     setView("RESULT");
     scrollTop();
+    cam.stop();
+    setTriedNow((t) => ({ ...t, [lesson.id]: true }));
     setSaveState("saving");
     const score = scoreOf(all);
+    if (guarded) liveEnd(score);
     const ms = startedAt.current ? nowMs() - startedAt.current : undefined;
     const { lesson: lp, cloudOk, issue } = await saveLessonAttempt({
       courseId,
@@ -260,9 +320,15 @@ export default function CourseRoom({
       score,
       total: lesson.questions.length,
       wrongIds: all.filter((a) => !a.correct).map((a) => a.qid),
-      passMin: course?.passMin,
+      passMin: passNeed(lesson.questions.length, { mode, guarded, cm: roundCam, passMin: course?.passMin }),
       ms,
-      ...(guarded ? { guard: guard.stats(all.filter((a) => a.voided).length, mode), qt: qTimes.current } : {}),
+      ...(guarded
+        ? {
+            guard: guard.stats(all.filter((a) => a.voided).length, mode),
+            qt: qTimes.current,
+            cam: { mode: roundCam, covers: cam.counts().covers, coverMs: cam.counts().coverMs, timeouts: timeoutsRef.current },
+          }
+        : {}),
       onSlow: () => setSaveState("slow"),
     });
     // รวมแบบไม่ถอยหลัง (กันผลรอบก่อนที่บันทึกช้ามาทับผลรอบใหม่)
@@ -285,6 +351,7 @@ export default function CourseRoom({
     setShowHint(false);
     qStart.current = nowMs();
     guard.clearNotice();
+    setCamNotice(null);
   };
 
   const lessonIndex = lesson ? lessons.findIndex((l) => l.id === lesson.id) : -1;
@@ -539,7 +606,13 @@ export default function CourseRoom({
         >
           เริ่มทำแบบฝึกหัด {lesson.questions.length} ข้อ →
         </button>
-        <p className="text-center text-xs text-gray-500 mt-2">{needOf(lesson.questions.length) < lesson.questions.length ? `ถูก ${needOf(lesson.questions.length)} ข้อขึ้นไปจึงจะผ่าน${L}นี้` : `ต้องตอบถูกครบ ${lesson.questions.length} ข้อจึงจะผ่าน${L}นี้`}</p>
+        <p className="text-center text-xs text-gray-500 mt-2">
+          {mode === "enforce" && !progress[lesson.id]?.passed
+            ? `ถูก ${passNeed(lesson.questions.length, { mode, guarded: true, cm: "cam" })} ข้อขึ้นไปจึงผ่าน (ใช้กล้อง หรือไม่ใช้กล้อง + จับเวลาข้อละ ${Q_TIME_MS / 1000} วินาที)`
+            : needOf(lesson.questions.length) < lesson.questions.length
+            ? `ถูก ${needOf(lesson.questions.length)} ข้อขึ้นไปจึงจะผ่าน${L}นี้`
+            : `ต้องตอบถูกครบ ${lesson.questions.length} ข้อจึงจะผ่าน${L}นี้`}
+        </p>
         {course?.gradeBy === "first" && !(progress[lesson.id]?.attempts > 0) && (
           <p className="text-center text-xs font-bold text-amber-800 bg-amber-50 rounded-xl px-3 py-2 mt-2">⭐ คะแนนรอบแรกจะเข้าสมุดคะแนนของครู — อ่านโจทย์ให้ดี ตั้งใจตั้งแต่รอบแรก</p>
         )}
@@ -547,34 +620,45 @@ export default function CourseRoom({
     );
   }
 
-  // ── GATE: กติการอบที่เข้าสมุดคะแนน ──
+  // ── GATE: กติการอบที่เข้าสมุดคะแนน + เลือกใช้กล้อง ──
   if (view === "GATE") {
+    const total = lesson.questions.length;
+    const camNeed = passNeed(total, { mode: "enforce", guarded: true, cm: "cam" });
+    const first = !(progress[lesson.id]?.attempts > 0) && !triedNow[lesson.id];
     return (
       <div className="animate-fadeIn mt-2">
-        <button type="button" onClick={() => { setView("LESSON"); scrollTop(); }} className="mb-4 text-sm font-bold text-[#003399] hover:underline">← กลับ</button>
+        <button type="button" onClick={() => { cam.stop(); setView("LESSON"); scrollTop(); }} className="mb-4 text-sm font-bold text-[#003399] hover:underline">← กลับ</button>
         <div className="border-4 border-[#003399] rounded-3xl p-5 mb-4">
           <div className="text-4xl text-center mb-1">📝</div>
-          <h1 className="text-xl font-black text-center text-gray-900 mb-1">โหมดรอบแรก · {L} {lesson.hour}</h1>
-          <p className="text-center text-xs font-bold text-[#003399] mb-4">คะแนนรอบนี้{course?.gradeBy === "first" ? "เข้าสมุดคะแนนของครู" : "ครูดูประกอบการให้คะแนน"}</p>
+          <h1 className="text-xl font-black text-center text-gray-900 mb-1">{first ? "โหมดรอบแรก" : "รอบผ่าน" + L} · {L} {lesson.hour}</h1>
+          <p className="text-center text-xs font-bold text-[#003399] mb-4">
+            {first ? `คะแนนรอบนี้${course?.gradeBy === "first" ? "เข้าสมุดคะแนนของครู" : "ครูดูประกอบการให้คะแนน"}` : `ยังไม่ผ่าน${L}นี้ — ทุกรอบจนกว่าจะผ่านใช้กติกาเดียวกัน`}
+          </p>
           <ol className="text-sm text-gray-800 space-y-2 list-decimal pl-5">
-            <li>เปิด <b>โหมดห้ามรบกวน</b> ก่อน (กันแจ้งเตือนเด้งทับ)</li>
-            <li><b>อยู่ในหน้านี้ตลอด</b> จนทำครบ {lesson.questions.length} ข้อ — ห้ามสลับแอป สลับแท็บ กลับหน้าโฮม หรือเรียก Gemini / วงกลมค้นหา · คลุมหรือคัดลอกโจทย์ไม่ได้</li>
+            <li>เปิด <b>โหมดห้ามรบกวน</b> ก่อน (กันแจ้งเตือนเด้งทับ) · ใช้มือถือเครื่องเดียว</li>
+            <li><b>อยู่ในหน้านี้ตลอด</b> จนทำครบ {total} ข้อ — ห้ามสลับแอป สลับแท็บ กลับหน้าโฮม หรือเรียก Gemini / วงกลมค้นหา · คลุมหรือคัดลอกโจทย์ไม่ได้</li>
             <li>
               {mode === "enforce"
-                ? <>ออกจากหน้า หรือมีหน้าต่างอื่น (เช่น Gemini / วงกลมค้นหา) บังนานเกิน 3 วินาที ระหว่างข้อไหน <b className="text-rose-600">ระบบข้ามข้อนั้นทันที ไม่ได้คะแนน</b> (ทำข้อต่อไปได้ ไม่ต้องเริ่มใหม่)</>
-                : <>ช่วงทดลอง: ระบบ <b>บันทึก</b> การออกจากหน้าให้ครูเห็น (ยังไม่หักคะแนน)</>}
+                ? <>ออกจากหน้า หน้าต่างอื่นบังนานเกิน 3 วินาที (ใช้กล้อง) มีอะไรบังใบหน้าตั้งแต่จมูกขึ้นไป หรือ (ไม่ใช้กล้อง) หมดเวลาข้อละ {Q_TIME_MS / 1000} วินาที ระหว่างข้อไหน <b className="text-rose-600">ระบบข้ามข้อนั้นทันที ไม่ได้คะแนน</b></>
+                : <>ช่วงทดลอง (ถึง 15 พ.ย.): ระบบ <b>บันทึก</b> การออกจากหน้า การบังใบหน้า และการหมดเวลาให้ครูเห็น (ยังไม่หักคะแนน)</>}
             </li>
+            <li>ใช้กล้อง: <b>ห้ามเอามือหรือสิ่งของขึ้นใกล้หน้า</b> (เกาจมูก ขยี้ตา หาว ก็นับ) · ตั้งมือถือให้กล้องเห็นหน้า ไม่วางราบ · ไม่ใช้กล้อง: นั่งที่เดิม ครูดูจากหน้าติดตามสด · จับเวลาข้อละ {Q_TIME_MS / 1000} วินาที (ข้อยาว {(Q_TIME_MS + Q_TIME_LONG_EXTRA) / 1000})</li>
             <li>ออกจากหน้าครบ {GUARD_FLAG_AT} ครั้ง ครูจะเห็นเครื่องหมาย 🚩 และอาจให้ทำต่อหน้าครู</li>
-            <li>รอบต่อไปทำซ้ำได้ไม่จำกัด (ไม่มีการเฝ้าดู)</li>
           </ol>
         </div>
-        <button
-          type="button"
-          onClick={() => startQuiz(true)}
-          className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-xl hover:bg-[#002266] transition-all text-lg"
-        >
-          เข้าใจแล้ว เริ่มทำ {lesson.questions.length} ข้อ →
-        </button>
+        <CamChooser
+          cam={cam}
+          want={camWant}
+          setWant={(on) => {
+            setCamWant(on);
+            saveCamChoice(email, on);
+          }}
+          camRule={`ผ่านเมื่อถูก ${camNeed}/${total} (80%)`}
+          noCamRule={`ผ่านเมื่อถูก ${camNeed}/${total} · จับเวลาข้อละ ${Q_TIME_MS / 1000} วินาที`}
+          note={mode === "enforce" ? undefined : `ช่วงทดลองถึง 15 พ.ย.: ยังใช้เกณฑ์เดิม (${needOf(total) < total ? `ถูก ${needOf(total)}/${total}` : `ถูกครบ ${total}/${total}`}) · เกณฑ์ 80% เริ่ม 16 พ.ย.`}
+          startLabel={`เริ่มทำ ${total} ข้อ`}
+          onStart={(cm) => startQuiz(true, cm)}
+        />
       </div>
     );
   }
@@ -582,6 +666,7 @@ export default function CourseRoom({
   // ── QUIZ ──
   if (view === "QUIZ" && current) {
     const correctSoFar = scoreOf(answers);
+    const shield = guarded && roundCam === "cam" && !answered && isCovered(cam);
     const wrongSoFar = answers.length - correctSoFar;
     const lastAnswer = answered ? answers[answers.length - 1] : null;
     return (
@@ -613,22 +698,34 @@ export default function CourseRoom({
             <button onClick={guard.clearNotice} className="shrink-0 text-xs underline">รับทราบ</button>
           </div>
         )}
-        {guarded && (
-          <p className="text-[11px] font-bold text-[#003399]/70 mb-2">📝 รอบแรก · อยู่ในหน้านี้จนทำครบ{guard.leaves > 0 ? ` · ออกจากหน้าแล้ว ${guard.leaves} ครั้ง` : ""}</p>
+        {guarded && camNotice && (
+          <div className={`rounded-xl p-3 mb-3 text-sm font-bold flex items-start gap-2 ${mode === "enforce" ? "bg-orange-100 text-orange-900 border-2 border-orange-300" : "bg-amber-50 text-amber-900 border-2 border-amber-200"}`}>
+            <span className="flex-1">{camNotice}</span>
+            <button onClick={() => setCamNotice(null)} className="shrink-0 text-xs underline">รับทราบ</button>
+          </div>
         )}
+        {guarded && (
+          <p className="text-[11px] font-bold text-[#003399]/70 mb-2">
+            📝 {roundCam === "cam" ? "ใช้กล้อง" : "ไม่ใช้กล้อง"} · ผ่านเมื่อถูก {passNeed(items.length, { mode, guarded, cm: roundCam, passMin: course?.passMin })}/{items.length} · อยู่ในหน้านี้จนทำครบ
+            {guard.leaves > 0 ? ` · ออกจากหน้าแล้ว ${guard.leaves} ครั้ง` : ""}
+          </p>
+        )}
+        {guarded && roundCam === "cam" && <CamBox cam={cam} floating />}
+        {timed && <TimerBar left={timeLeft} limit={qLimit} />}
         <div className="flex gap-3 text-xs font-bold mb-4">
           <span className="text-emerald-600">✓ {correctSoFar}</span>
           <span className="text-rose-500">✗ {wrongSoFar}</span>
           {wrongSoFar > 0 && <span className="text-gray-400">รอบนี้ยังไม่ผ่าน แต่ทำให้จบเพื่อดูเฉลยแล้วลองใหม่</span>}
         </div>
 
-        <div className="bg-gray-50 rounded-2xl p-4 mb-4" {...noCopyProps}>
+        {shield && <CoverShield />}
+        <div className="bg-gray-50 rounded-2xl p-4 mb-4" hidden={shield} {...noCopyProps}>
           <p className="text-base md:text-lg font-bold text-gray-900 leading-relaxed">
             <Rich text={current.q.q} />
           </p>
         </div>
 
-        <div className="space-y-2 mb-4" {...noCopyProps}>
+        <div className="space-y-2 mb-4" hidden={shield} {...noCopyProps}>
           {current.order.map((orig, slot) => {
             const isCorrect = orig === current.q.answer;
             const isPicked = selected === slot;
@@ -698,7 +795,7 @@ export default function CourseRoom({
     const total = items.length;
     const score = scoreOf(answers);
     const nVoid = answers.filter((a) => a.voided).length;
-    const need = needOf(total);
+    const need = passNeed(total, { mode, guarded, cm: roundCam, passMin: course?.passMin });
     const passed = score >= need && total > 0;
     const wrong = answers.filter((a) => !a.correct);
     const qById = Object.fromEntries(lesson.questions.map((q) => [q.id, q]));
@@ -713,7 +810,7 @@ export default function CourseRoom({
           <p className={`font-black text-lg ${passed ? "text-emerald-700" : "text-amber-800"}`}>
             {passed ? `ผ่าน${L}นี้แล้ว!` : `อีก ${need - score} ข้อจะผ่าน — ลองใหม่อีกครั้ง`}
           </p>
-          {nVoid > 0 && <p className="text-xs font-bold text-orange-700 mt-2">ถูกข้าม/ไม่นับ {nVoid} ข้อ เพราะออกจากหน้าระหว่างทำ</p>}
+          {nVoid > 0 && <p className="text-xs font-bold text-orange-700 mt-2">ถูกข้าม/ไม่นับ {nVoid} ข้อ (ออกจากหน้าแอป · มีอะไรบังใบหน้า · หมดเวลา)</p>}
           {guarded && guard.leaves > 0 && mode === "log" && <p className="text-xs font-bold text-amber-700 mt-2">ออกจากหน้า {guard.leaves} ครั้ง (ช่วงทดลอง — บันทึกให้ครูเห็น ยังไม่หักคะแนน)</p>}
           <p className={`text-xs mt-2 ${isIssue(saveState) ? "font-bold text-amber-800" : "text-gray-500"}`}>
             {saveState === "ok" ? "✓ บันทึกผลแล้ว ครูเห็นผลนี้ในระบบ" : issueText(saveState)}
@@ -734,7 +831,7 @@ export default function CourseRoom({
                   <div key={a.qid} className="border-2 border-rose-100 rounded-2xl p-3">
                     <p className="text-sm font-bold text-gray-900 mb-1"><Rich text={q.q} /></p>
                     {a.skipped ? (
-                      <p className="text-xs text-orange-700 font-bold">⏭ ถูกข้าม เพราะออกจากหน้าแอประหว่างทำ</p>
+                      <p className="text-xs text-orange-700 font-bold">⏭ ถูกข้าม เพราะ{a.why === "face" ? "มีอะไรบังใบหน้า (จมูกขึ้นไป)" : a.why === "cover" ? "มีหน้าต่างอื่นบังหน้าแอป" : a.why === "time" ? "หมดเวลา" : "ออกจากหน้าแอป"}ระหว่างทำ</p>
                     ) : (
                       <p className="text-xs text-rose-600">✗ ตอบ: <Rich text={q.options[a.chosen]} /></p>
                     )}
@@ -760,7 +857,7 @@ export default function CourseRoom({
           {!passed && (
             <button
               type="button"
-              onClick={() => startQuiz(false)}
+              onClick={beginQuiz}
               className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-xl hover:bg-[#002266] disabled:bg-gray-300 transition-all"
             >
               🔁 ทำใหม่ (สลับข้อและตัวเลือกใหม่)

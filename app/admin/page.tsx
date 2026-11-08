@@ -31,7 +31,9 @@ import {
 import { GRADES, ROSTER, extractNo, fmtThaiTime, gradeOf, matchRoster, roomOf, rosterKey, typedMismatch } from "../lib/roster";
 import { CORE_NAME, CORE_PLAN, VCourse, VProgress, loadVocab300 } from "../lib/vocab300";
 import VocabAdmin from "./_vocab/VocabAdmin";
-import { GuardMark, LegacyPanel, UnlockButton, guardTip, isFlagged } from "./_parts/AdminTools";
+import { LivePanel, type LiveEntry } from "./_parts/LivePanel";
+import type { LiveDoc } from "../lib/live";
+import { GuardMark, LegacyPanel, SpotCheck, UnlockButton, guardEvents, guardTip, isFlagged, pickSpot, type SpotCand } from "./_parts/AdminTools";
 
 // ── สิทธิ์เข้าหน้า /admin (เหมือนเดิม) ──
 const ADMIN_EMAIL = "kawpeerawat@gmail.com";
@@ -42,6 +44,11 @@ const ADMIN_USING_DEFAULT_PW = !process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
 // ── ระดับชั้น: ม.6 และ ม.4 แยกกันคนละมุมมอง ไม่ปนกัน (ห้องที่อ่านไม่ออกนับอยู่ใน ม.6 ตามเดิม) ──
 const inGrade = (room: string | null, grade: string) => (room ? gradeOf(room) === grade : grade === "6");
 // ── ข้อมูลนักเรียนจาก Firestore (อ่านเฉพาะฟิลด์ที่ใช้) ──
+// วันนี้ตามเวลาไทย (เรียกตอนวาดหน้า — ใช้เลือกรายชื่อสุ่มตรวจ)
+function thaiToday(): string {
+  return new Date(Date.now() + 7 * 3600000).toISOString().slice(0, 10);
+}
+
 type StudentDoc = {
   id: string;
   name?: string;
@@ -51,6 +58,7 @@ type StudentDoc = {
   v300?: VProgress;
   v300At?: number;
   unlock?: Record<string, number>; // ครูเปิดบท/ชุดล่วงหน้า (รายคน)
+  live?: LiveDoc; // กำลังทำรอบเข้าสมุดคะแนนอยู่ตอนนี้ (หน้าติดตามสด)
 } & Record<string, unknown>;
 
 type Row = {
@@ -170,6 +178,20 @@ export default function AdminDashboard() {
     setLiveKey((k) => k + 1);
   }, []);
 
+  // ── 🔴 กำลังทำอยู่ตอนนี้ (ตามระดับชั้น/ห้องที่เลือก) ──
+  const liveEntries: LiveEntry[] = useMemo(() => {
+    const out: LiveEntry[] = [];
+    for (const s of students) {
+      if (!s.live || typeof s.live.at !== "number") continue;
+      const hit = matchRoster(s.name);
+      const room = hit?.room ?? s.live.room ?? roomOf(s.name) ?? null;
+      if (!inGrade(room, grade)) continue;
+      if (roomFilter !== "ALL" && room !== roomFilter) continue;
+      out.push({ id: s.id, name: hit?.name ?? s.name ?? s.email ?? s.id, no: hit?.no ?? extractNo(s.name) ?? null, room, live: s.live });
+    }
+    return out;
+  }, [students, grade, roomFilter]);
+
   // ── รวมข้อมูลเป็นแถวตามรายชื่อทางการ ──
   const rows: Row[] = useMemo(() => {
     const byRoster: Record<string, Row> = {};
@@ -260,6 +282,31 @@ export default function AdminDashboard() {
   const scoreOf = (r: Row) => lessons.reduce((s, l) => s + (gradeCell(r.progress[l.id], l.questions.length)?.score ?? 0), 0);
   const fastRows = [...rosterRows, ...extraRows].filter((r) => lessons.some((l) => gradeCell(r.progress[l.id], l.questions.length)?.fast)).length;
   const fullScore = lessons.reduce((s, l) => s + l.questions.length, 0);
+
+  // ── 🎯 สุ่มตรวจคาบนี้: คนที่ทำรอบแรกวันนี้ (ห้องที่เลือก) ──
+  const todayTH = thaiToday();
+  const dayOf = (t?: number) => (t ? new Date(t + 7 * 3600000).toISOString().slice(0, 10) : "");
+  const spot = (() => {
+    if (roomFilter === "ALL") return null;
+    const cands: SpotCand[] = [];
+    for (const r of [...rosterRows, ...extraRows]) {
+      const ls = lessons.filter((l) => dayOf(r.progress[l.id]?.firstAt) === todayTH);
+      if (!ls.length) continue;
+      const reasons: string[] = [];
+      let w = 0;
+      for (const l of ls) {
+        const p = r.progress[l.id]!;
+        const tag = `${L}${l.hour}`;
+        if (isFlagged(p)) { w += 3; reasons.push(`${tag} 🚩`); }
+        if ((p.fast ?? 0) > 0 || isFastAttempt(p.firstMs, p.firstTotal)) { w += 2; reasons.push(`${tag} ⚡ ทำเร็วผิดปกติ`); }
+        if (p.cm === "nocam" || p.cm === "camfail") { w += 1; reasons.push(`${tag} ${p.cm === "nocam" ? "🚫 ไม่ใช้กล้อง" : "⚠️ กล้องใช้ไม่ได้"}`); }
+        if (typeof p.first === "number" && p.firstTotal && p.first / p.firstTotal >= 0.9) { w += 1; reasons.push(`${tag} คะแนนรอบแรก ${p.first}/${p.firstTotal}`); }
+        if ((p.gt ?? 0) >= 3) { w += 1; reasons.push(`${tag} หมดเวลา ${p.gt} ข้อ`); }
+      }
+      cands.push({ key: r.key, name: `${r.no != null ? `${r.no}. ` : ""}${r.name}`, reasons, weight: w });
+    }
+    return cands.length ? { picks: pickSpot(cands, `${todayTH}|${roomFilter}|${courseId}`, 3), total: cands.length } : null;
+  })();
   const downloadCsv = () => {
     const esc = (v: string | number) => {
       const s = String(v ?? "");
@@ -268,7 +315,7 @@ export default function AdminDashboard() {
     const list = [...rosterRows, ...extraRows];
     const grades = mode === "grades";
     const headers = grades
-      ? ["ห้อง", "เลขที่", "ชื่อ-สกุล", ...lessons.map((l) => `${L}${l.hour} (เต็ม ${l.questions.length})`), `ผ่าน (${L})`, `คะแนนรวม (เต็ม ${fullScore}) · ${byFirst ? "คะแนนรอบแรก" : "คะแนนดีที่สุด"}`, "หมายเหตุ (* = ใช้คะแนนดีที่สุด/เทียบจากแบบเดิม · ⚡ = ทำเร็วผิดปกติ · ↗n/🚩n = ออกจากหน้าในรอบแรก n ครั้ง)", "ชื่อที่พิมพ์ในแอป", "อีเมล", "ทำล่าสุด"]
+      ? ["ห้อง", "เลขที่", "ชื่อ-สกุล", ...lessons.map((l) => `${L}${l.hour} (เต็ม ${l.questions.length})`), `ผ่าน (${L})`, `คะแนนรวม (เต็ม ${fullScore}) · ${byFirst ? "คะแนนรอบแรก" : "คะแนนดีที่สุด"}`, "หมายเหตุ (* = ใช้คะแนนดีที่สุด/เทียบจากแบบเดิม · ⚡ = ทำเร็วผิดปกติ · ↗ = ออกจากหน้า · 📷 = บังใบหน้า (ครั้ง) · 🚩 = รวม 3 ครั้งขึ้นไป · 🚫 = ไม่ใช้กล้อง)", "ชื่อที่พิมพ์ในแอป", "อีเมล", "ทำล่าสุด"]
       : ["ห้อง", "เลขที่", "ชื่อ-สกุล", "ชื่อที่พิมพ์ในแอป", "อีเมล", ...lessons.map((l) => `${L}${l.hour}`), `ผ่าน (${L})`, "ทำล่าสุด"];
     const lines = list.map((r) =>
       (grades
@@ -279,7 +326,8 @@ export default function AdminDashboard() {
             [
               ...lessons.filter((l) => gradeCell(r.progress[l.id], l.questions.length)?.star).map((l) => `${L}${l.hour}*`),
               ...lessons.filter((l) => gradeCell(r.progress[l.id], l.questions.length)?.fast).map((l) => `${L}${l.hour}⚡`),
-              ...lessons.filter((l) => (r.progress[l.id]?.gl ?? 0) > 0).map((l) => `${L}${l.hour}${isFlagged(r.progress[l.id]) ? "🚩" : "↗"}${r.progress[l.id]?.gl}`),
+              ...lessons.filter((l) => guardEvents(r.progress[l.id]) > 0).map((l) => `${L}${l.hour}${isFlagged(r.progress[l.id]) ? "🚩" : ""}↗${r.progress[l.id]?.gl ?? 0}📷${r.progress[l.id]?.gc ?? 0}`),
+              ...lessons.filter((l) => r.progress[l.id]?.cm === "nocam" || r.progress[l.id]?.cm === "camfail").map((l) => `${L}${l.hour}${r.progress[l.id]?.cm === "nocam" ? "🚫ไม่ใช้กล้อง" : "⚠️กล้องใช้ไม่ได้"}`),
             ].join(" "),
             r.typedNames.join(" / "), r.emails.join(" / "),
             r.activeAt ? new Date(r.activeAt).toLocaleString("th-TH") : "",
@@ -458,6 +506,7 @@ export default function AdminDashboard() {
         </div>
 
         {error && <p className="bg-rose-50 text-rose-700 font-bold rounded-xl p-3 mb-4">{error}</p>}
+        <LivePanel entries={liveEntries} />
         <LegacyPanel students={students} />
         {(area === "vocab300" ? !v300 : !course) && <p className="text-center text-[#003399] font-bold animate-pulse py-10">กำลังโหลดข้อมูล...</p>}
 
@@ -514,6 +563,8 @@ export default function AdminDashboard() {
                 })}
               </div>
             </div>
+
+            {spot && <SpotCheck title={`ม.${roomFilter} · ${course.title ?? ""}`.trim()} picks={spot.picks} total={spot.total} />}
 
             {/* ── ตารางรายคน ── */}
             {mode === "matrix" && (
@@ -597,7 +648,7 @@ export default function AdminDashboard() {
                   </table>
                 </div>
                 <p className="text-[11px] text-gray-500 px-4 py-3">
-                  ✓ = ผ่าน ({passText}) · ตัวเลข = คะแนนดีที่สุดที่ยังไม่ผ่าน · ⚡ = ทำเร็วผิดปกติ (เฉลี่ยไม่ถึง 5 วินาทีต่อข้อ){fastRows > 0 ? ` — ${fastRows} คนในมุมมองนี้` : ""} · ↗n = ออกจากหน้า n ครั้งในรอบแรก · 🚩 = ออกครบ 3 ครั้งขึ้นไป (ควรเรียกมาถาม) · 🔓 = เปิด{L}ล่วงหน้าให้รายคน · ชี้ที่ช่องเพื่อดูคะแนนรอบแรก เวลาที่ใช้ จำนวนรอบ และวันที่ผ่าน · หัวคอลัมน์ = {L}ที่
+                  ✓ = ผ่าน ({passText}) · ตัวเลข = คะแนนดีที่สุดที่ยังไม่ผ่าน · ⚡ = ทำเร็วผิดปกติ (เฉลี่ยไม่ถึง 5 วินาทีต่อข้อ){fastRows > 0 ? ` — ${fastRows} คนในมุมมองนี้` : ""} · ↗n = ออกจากหน้า n ครั้ง · 📷n = มีอะไรบังใบหน้า n ครั้ง · 🚫 = ไม่ใช้กล้อง · 🚩 = รวม 3 ครั้งขึ้นไป (ควรเรียกมาถาม) · 🔓 = เปิด{L}ล่วงหน้าให้รายคน · ชี้ที่ช่องเพื่อดูคะแนนรอบแรก เวลาที่ใช้ จำนวนรอบ และวันที่ผ่าน · หัวคอลัมน์ = {L}ที่
                 </p>
               </div>
             )}
@@ -664,7 +715,7 @@ export default function AdminDashboard() {
                 </div>
                 <p className="text-[11px] text-gray-500 px-4 py-3">
                   ตัวเลข = {byFirst ? "คะแนนรอบแรก" : "คะแนนดีที่สุด"}ของ{L}นั้น (เต็ม {qn}) · เขียว = ผ่าน ({passText}) · รวม = ผลรวมทุก{L} (เต็ม {fullScore}) ·
-                  {byFirst ? " * = ทำก่อนเริ่มเก็บคะแนนรอบแรก (ใช้คะแนนดีที่สุดแทน) หรือทำแบบเดิม 10 ข้อ (เทียบเป็นคะแนนเต็มปัจจุบัน) ·" : ""} ⚡ = ทำเร็วผิดปกติ · ↗n / 🚩 = ออกจากหน้าในรอบแรก (🚩 = 3 ครั้งขึ้นไป) · กด “⬇ สมุดคะแนน CSV” เพื่อนำไปลงคะแนน
+                  {byFirst ? " * = ทำก่อนเริ่มเก็บคะแนนรอบแรก (ใช้คะแนนดีที่สุดแทน) หรือทำแบบเดิม 10 ข้อ (เทียบเป็นคะแนนเต็มปัจจุบัน) ·" : ""} ⚡ = ทำเร็วผิดปกติ · ↗n ออกจากหน้า · 📷n บังใบหน้า · 🚫 ไม่ใช้กล้อง · 🚩 รวม 3 ครั้งขึ้นไป · กด “⬇ สมุดคะแนน CSV” เพื่อนำไปลงคะแนน
                 </p>
               </div>
             )}

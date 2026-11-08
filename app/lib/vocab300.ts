@@ -102,6 +102,10 @@ export interface VSetPass {
   gb?: number;
   gv?: number;
   gm?: "log" | "enforce";
+  cm?: "cam" | "nocam" | "camfail"; // ใช้กล้องในรอบทบทวนหรือไม่ · gc = ถูกบังใบหน้ากี่ครั้ง · gca = เวลารวม (ms)
+  gc?: number;
+  gca?: number;
+  gt?: number; // หมดเวลากี่คำ (ไม่ใช้กล้อง)
 }
 export interface VProgress { cards: Record<string, VCard>; days: Record<string, VDay>; sets?: Record<string, VSetPass> }
 

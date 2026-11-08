@@ -96,9 +96,15 @@ export interface LessonProgress {
   gv?: number;
   gm?: "log" | "enforce";
   fqt?: number[];       // เวลาที่ใช้รายข้อของรอบแรก (วินาที ตามลำดับที่ทำ)
+  // กล้องกันกล้องซ้อน (รอบแรก): cm = cam ใช้กล้อง · nocam ไม่ใช้กล้อง · camfail เลือกกล้องแต่ใช้ไม่ได้ · gc = ถูกบังหน้ากี่ครั้ง · gca = เวลารวม (ms)
+  cm?: "cam" | "nocam" | "camfail";
+  gc?: number;
+  gca?: number;
+  gt?: number;          // หมดเวลากี่ข้อ (ไม่ใช้กล้อง · จับเวลาข้อละ 20 วินาที)
+  pm?: "cam" | "nocam" | "camfail"; // ผ่านบทนี้ด้วยรอบแบบไหน (ใช้กล้อง = เกณฑ์ 80% · ไม่ใช้กล้อง = ครบทุกข้อ)
 }
 // ฟิลด์ที่ติดไปกับคะแนนรอบแรก
-const FIRST_KEYS = ["first", "firstTotal", "firstAt", "firstMs", "gl", "ga", "gb", "gv", "gm", "fqt"] as const;
+const FIRST_KEYS = ["first", "firstTotal", "firstAt", "firstMs", "gl", "ga", "gb", "gv", "gm", "fqt", "cm", "gc", "gca", "gt"] as const;
 function pickFirst(x: LessonProgress): Partial<LessonProgress> {
   const out: Record<string, unknown> = {};
   for (const k of FIRST_KEYS) if (x[k] !== undefined && x[k] !== null) out[k] = x[k];
@@ -154,6 +160,7 @@ export function mergeLesson(a?: LessonProgress, b?: LessonProgress): LessonProgr
   return {
     passed: a.passed || b.passed,
     ...(passedAts.length ? { passedAt: Math.min(...passedAts) } : {}),
+    ...(a.pm || b.pm ? { pm: ((a.passedAt ?? Infinity) <= (b.passedAt ?? Infinity) ? a.pm ?? b.pm : b.pm ?? a.pm)! } : {}),
     ...(fr ? pickFirst(fr) : {}),
     ...(newer.lastMs ? { lastMs: newer.lastMs } : {}),
     ...(a.fast || b.fast ? { fast: Math.max(a.fast ?? 0, b.fast ?? 0) } : {}),
@@ -216,9 +223,10 @@ export async function saveLessonAttempt(params: {
   ms?: number;      // เวลาที่ใช้ทำรอบนี้ (ms)
   guard?: GuardStats; // ระบบกัน AI (เฉพาะรอบที่เข้าสมุดคะแนน)
   qt?: number[];      // เวลาที่ใช้รายข้อ (วินาที)
+  cam?: { mode: "cam" | "nocam" | "camfail"; covers: number; coverMs: number; timeouts?: number }; // กล้องในรอบนี้ (รอบที่เข้าสมุดคะแนน)
   onSlow?: () => void;
 }): Promise<{ lesson: LessonProgress; cloudOk: boolean; issue?: SyncIssue }> {
-  const { courseId, lessonId, email, name, score, total, wrongIds, passMin, ms, guard, qt, onSlow } = params;
+  const { courseId, lessonId, email, name, score, total, wrongIds, passMin, ms, guard, qt, cam, onSlow } = params;
   const now = Date.now();
   const allLocal = loadLocalCourseProgress(courseId, email);
   let base: LessonProgress | undefined = allLocal[lessonId];
@@ -246,6 +254,7 @@ export async function saveLessonAttempt(params: {
   const lesson: LessonProgress = {
     passed: (base?.passed ?? false) || passedNow,
     ...(base?.passedAt ? { passedAt: base.passedAt } : passedNow ? { passedAt: now } : {}),
+    ...(base?.pm ? { pm: base.pm } : passedNow && !base?.passed && cam ? { pm: cam.mode } : {}),
     ...(isFirst
       ? {
           first: score,
@@ -254,6 +263,7 @@ export async function saveLessonAttempt(params: {
           ...(ms ? { firstMs: ms } : {}),
           ...(guard ? { gl: guard.leaves, ga: guard.awayMs, gb: guard.blurs, gv: guard.voided, gm: guard.mode } : {}),
           ...(qt && qt.length ? { fqt: qt } : {}),
+          ...(cam ? { cm: cam.mode, gc: cam.covers, gca: cam.coverMs, gt: cam.timeouts ?? 0 } : {}),
         }
       : typeof base?.first === "number"
       ? pickFirst(base)

@@ -2,7 +2,7 @@
 // app/admin/_parts/AdminTools.tsx
 // ─────────────────────────────────────────────────────────────
 // เครื่องมือหน้าครูที่ใช้ร่วมกันทั้งแท็บ 📚 และ 🧩
-//   • GuardMark / guardTip — ผลระบบกัน AI ของรอบที่เข้าสมุดคะแนน (🚩 = ออกจากหน้าครบ 3 ครั้ง · ↗n = ออก n ครั้ง)
+//   • GuardMark / guardTip — ผลระบบกัน AI ของรอบที่เข้าสมุดคะแนน (🚩 = รวม 3 ครั้งขึ้นไป · ↗n = ออกจากหน้า · 📷n = บังใบหน้า · 🚫 = ไม่ใช้กล้อง)
 //   • UnlockButton — เปิดบท/ชุดล่วงหน้าให้นักเรียนรายคน (เช่น ลาไปแข่งขันวันที่ห้องเรียน)
 //   • LegacyPanel — ข้อมูลแอปเทอม 1 ที่ค้างอยู่ (ทำให้ที่เก็บข้อมูลของนักเรียนเต็ม) → สำรองแล้วล้าง
 // ─────────────────────────────────────────────────────────────
@@ -11,21 +11,38 @@ import { db } from "../../lib/firebase";
 import { deleteField, doc, setDoc, updateDoc } from "firebase/firestore";
 import { GUARD_FLAG_AT, fmtAway } from "../../lib/guard";
 
-// ── ระบบกัน AI ──
-export interface GuardInfo { gl?: number; ga?: number; gb?: number; gv?: number; gm?: "log" | "enforce" }
-export const isFlagged = (g?: GuardInfo | null) => !!g && (g.gl ?? 0) >= GUARD_FLAG_AT;
-export function guardTip(g?: GuardInfo | null): string {
-  if (!g || (g.gl === undefined && g.gb === undefined)) return "";
-  const parts = [`ออกจากหน้า ${g.gl ?? 0} ครั้ง (รวม ${fmtAway(g.ga)})`];
-  if (g.gb) parts.push(`เสียโฟกัส ${g.gb} ครั้ง`);
-  if (g.gm === "enforce") parts.push(`ไม่นับ ${g.gv ?? 0} ข้อ`);
-  else parts.push("ช่วงทดลอง ไม่หักคะแนน");
-  return `\n${isFlagged(g) ? "🚩 " : ""}รอบแรก: ${parts.join(" · ")}`;
+// ── ระบบกัน AI + กล้องกันกล้องซ้อน ──
+//   gl = ออกจากหน้า/หน้าต่างบัง · gc = มีอะไรบังใบหน้า (กล้อง) · cm = ใช้กล้องหรือไม่ · pm = ผ่านด้วยรอบแบบไหน
+export interface GuardInfo {
+  gl?: number; ga?: number; gb?: number; gv?: number; gm?: "log" | "enforce";
+  cm?: "cam" | "nocam" | "camfail"; gc?: number; gca?: number; gt?: number; pm?: "cam" | "nocam" | "camfail";
 }
+export const CM_TH: Record<string, string> = { cam: "📷 ใช้กล้อง", nocam: "🚫 ไม่ใช้กล้อง", camfail: "⚠️ เลือกกล้องแต่กล้องใช้ไม่ได้" };
+export const guardEvents = (g?: GuardInfo | null) => (g?.gl ?? 0) + (g?.gc ?? 0);
+export const isFlagged = (g?: GuardInfo | null) => !!g && guardEvents(g) >= GUARD_FLAG_AT;
+export function guardTip(g?: GuardInfo | null): string {
+  if (!g || (g.gl === undefined && g.gb === undefined && g.cm === undefined)) return "";
+  const parts = [`ออกจากหน้า ${g.gl ?? 0} ครั้ง (รวม ${fmtAway(g.ga)})`];
+  if (g.cm) parts.push(CM_TH[g.cm]);
+  if (g.cm === "cam") parts.push(`มีอะไรบังใบหน้า ${g.gc ?? 0} ครั้ง${g.gca ? ` (รวม ${fmtAway(g.gca)})` : ""}`);
+  if (g.cm && g.cm !== "cam") parts.push(`หมดเวลา ${g.gt ?? 0} ข้อ`);
+  if (g.gb) parts.push(`เสียโฟกัสสั้น ๆ ${g.gb} ครั้ง`);
+  if (g.gm === "enforce") parts.push(`ถูกข้าม/ไม่นับ ${g.gv ?? 0} ข้อ`);
+  else if (g.gm) parts.push("ช่วงทดลอง ไม่หักคะแนน");
+  return `\n${isFlagged(g) ? "🚩 " : ""}รอบแรก: ${parts.join(" · ")}${g.pm ? `\nผ่านด้วยรอบ: ${CM_TH[g.pm]}` : ""}`;
+}
+// สัญลักษณ์มุมซ้ายบนของช่อง: 🚩 = รวม 3 ครั้งขึ้นไป · 📷n = ถูกบังหน้า n ครั้ง · ↗n = ออกจากหน้า n ครั้ง · 🚫 = ไม่ใช้กล้อง
 export function GuardMark({ g }: { g?: GuardInfo | null }) {
-  if (!g || !g.gl) return null;
-  return isFlagged(g) ? (
-    <span className="absolute -top-0.5 left-0 text-[10px]" aria-label="ออกจากหน้าบ่อย">🚩</span>
+  if (!g) return null;
+  const ev = guardEvents(g);
+  if (ev === 0) {
+    return g.cm === "nocam" || g.cm === "camfail" ? (
+      <span className="absolute -top-1 left-0 text-[8px]" aria-label={CM_TH[g.cm]}>{g.cm === "nocam" ? "🚫" : "⚠️"}</span>
+    ) : null;
+  }
+  if (isFlagged(g)) return <span className="absolute -top-0.5 left-0 text-[10px]" aria-label="ออกจากหน้า/บังหน้าบ่อย">🚩</span>;
+  return (g.gc ?? 0) > 0 ? (
+    <span className="absolute -top-1 left-0 text-[9px] font-black text-rose-600" aria-label={`บังใบหน้า ${g.gc} ครั้ง`}>📷{g.gc}</span>
   ) : (
     <span className="absolute -top-1 left-0 text-[9px] font-black text-orange-600" aria-label={`ออกจากหน้า ${g.gl} ครั้ง`}>↗{g.gl}</span>
   );
@@ -185,6 +202,42 @@ export function LegacyPanel({ students }: { students: RawDoc[] }) {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// ── สุ่มตรวจคาบนี้ (ครูเรียกถามปากเปล่า 3 คำ · คนละไม่ถึง 1 นาที) ──
+//   ให้น้ำหนัก: 🚩 +3 · ⚡ ทำเร็วผิดปกติ +2 · ไม่ใช้กล้อง/กล้องใช้ไม่ได้ +1 · คะแนนรอบแรก ≥ 90% +1 · หมดเวลาบ่อย +1 · ที่เหลือสุ่ม (คงที่ทั้งวัน)
+export interface SpotCand { key: string; name: string; reasons: string[]; weight: number }
+function hash(s: string) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
+  return (h >>> 0) / 4294967296;
+}
+export function pickSpot(cands: SpotCand[], seed: string, n = 3): SpotCand[] {
+  return cands
+    .map((c) => ({ c, r: c.weight + hash(seed + c.key) }))
+    .sort((a, b) => b.r - a.r)
+    .slice(0, n)
+    .map((x) => x.c);
+}
+export function SpotCheck({ title, picks, total }: { title: string; picks: SpotCand[]; total: number }) {
+  if (!picks.length) return null;
+  return (
+    <div className="bg-white rounded-2xl border-2 border-violet-200 p-4 mb-5" data-spot="1">
+      <div className="flex flex-wrap items-baseline gap-2 mb-2">
+        <h2 className="font-black text-violet-900">🎯 สุ่มตรวจคาบนี้</h2>
+        <span className="text-xs font-bold text-violet-700">{title} · เลือก {picks.length} จาก {total} คนที่ทำรอบแรกวันนี้ · ถามปากเปล่า 3 คำ</span>
+      </div>
+      <ol className="space-y-1 text-sm">
+        {picks.map((p, i) => (
+          <li key={p.key} className="flex flex-wrap gap-x-2">
+            <span className="font-black text-violet-900">{i + 1}. {p.name}</span>
+            <span className="text-xs font-bold text-gray-500">{p.reasons.length ? p.reasons.join(" · ") : "สุ่ม"}</span>
+          </li>
+        ))}
+      </ol>
+      <p className="text-[11px] text-gray-500 mt-2">รายชื่อคงที่ทั้งวัน (รีเฟรชแล้วไม่เปลี่ยน) · นักเรียนทุกคนมีโอกาสถูกสุ่ม · คนที่มี 🚩 ⚡ หรือไม่ใช้กล้องมีโอกาสมากกว่า</p>
     </div>
   );
 }
