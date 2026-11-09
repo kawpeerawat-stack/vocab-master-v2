@@ -46,7 +46,7 @@ import {
 } from "../lib/vocab300";
 import { displayName, roomOf } from "../lib/names";
 import { isIssue, issueText, loadLocalUnlock, openDay, serverToday, syncClock, thaiDate, type SyncState } from "../lib/sync";
-import { GUARD_FLAG_AT, guardMode, noCopyProps, noticeText, Q_TIME_MS, qTimeLimit, useLeaveGuard, useQuestionTimer, type CamMode } from "../lib/guard";
+import { camMode, GUARD_FLAG_AT, guardMode, noCopyProps, noticeText, Q_TIME_MS, qTimeLimit, useLeaveGuard, useQuestionTimer, type CamMode } from "../lib/guard";
 import { CamBox, CamChooser, CoverShield, isCovered, loadCamChoice, saveCamChoice, TimerBar, useCameraGuard } from "./CamGuard";
 import { liveEnd, liveEvent, liveLeaves, liveQuit, liveStart, liveStep } from "../lib/live";
 
@@ -441,13 +441,14 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
   const curOpenDay = curLocked ? openDay(course?.weeks[curSet - 1]?.start, myRoom, course?.classDays) : null;
 
   // ── ระบบกัน AI ในรอบทบทวน (รอบที่เข้าสมุดคะแนน) ──
-  const gMode = guardMode(sToday);
+  const gMode = guardMode(sToday); // ออกจากหน้าแอป / หน้าต่างบัง
+  const cMode = camMode(sToday); // กล้อง + จับเวลา (ตั้งแต่ 9 พ.ย.)
   const curItem = queue[qi];
   const voidedRef = useRef(0);
   // ช่วงหักคะแนน: ตรวจพบระหว่างคำไหน → ข้ามคำนั้นทันที (ไม่ได้คะแนนรอบทบทวน) และวนกลับมาท้ายรอบให้ตอบให้ถูกเพื่อผ่านชุด
-  const skipCheckItem = (key: string) => {
+  const skipCheckItem = (key: string, kind: "leave" | "cam" = "cam") => {
     const it = queue[qi];
-    if (gMode !== "enforce" || mode !== "CHECK" || !it || it.wid !== key || it.retry !== 0 || picked !== null) return false;
+    if ((kind === "leave" ? gMode : cMode) !== "enforce" || mode !== "CHECK" || !it || it.wid !== key || it.retry !== 0 || picked !== null) return false;
     checkFirst.current[it.wid] = false;
     voidedRef.current++;
     liveStep(Object.keys(checkFirst.current).length);
@@ -457,20 +458,22 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
     setPicked(null);
     return true;
   };
-  const guard = useLeaveGuard(mode === "CHECK" && !checkGate, mode === "CHECK" && !checkGate && curItem && picked === null && curItem.retry === 0 ? curItem.wid : null, skipCheckItem);
+  const guard = useLeaveGuard(mode === "CHECK" && !checkGate, mode === "CHECK" && !checkGate && curItem && picked === null && curItem.retry === 0 ? curItem.wid : null, (k) => skipCheckItem(k, "leave"));
   // กล้อง: มีอะไรบังใบหน้า (จมูกขึ้นไป) นานเกิน 0.5 วินาที → ช่วงหักคะแนนข้ามคำ · ช่วงทดลองเตือน+บันทึก
-  const cam = useCameraGuard(() => {
-    liveEvent("face");
+  //   พบมือถือในกล้อง 2 ภาพติดกัน (9 พ.ย.) → เหมือนกัน
+  const cam = useCameraGuard((_ms, kind) => {
+    liveEvent(kind);
     const skipped = curItem ? skipCheckItem(curItem.wid) : false;
+    const what = kind === "phone" ? "📱 พบมือถือในกล้อง" : "📷 มีอะไรบังใบหน้า (จมูกขึ้นไป)";
     setCamNotice(
-      gMode === "enforce"
+      cMode === "enforce"
         ? skipped
-          ? `📷 มีอะไรบังใบหน้า (จมูกขึ้นไป) — คำที่แล้วถูกข้าม และจะวนกลับมาท้ายรอบ`
-          : `📷 มีอะไรบังใบหน้า (จมูกขึ้นไป)`
-        : `📷 มีอะไรบังใบหน้า (จมูกขึ้นไป) — ช่วงทดลอง ระบบบันทึกให้ครูเห็น (ยังไม่หักคะแนน)`
+          ? `${what} — คำที่แล้วถูกข้าม และจะวนกลับมาท้ายรอบ`
+          : what
+        : `${what} — ช่วงทดลอง ระบบบันทึกให้ครูเห็น (ยังไม่หักคะแนน)`
     );
     return skipped;
-  });
+  }, () => liveEvent("far")); // มือถือเล็ก ๆ ไกล ๆ: ไม่ข้ามคำ แจ้งครูในแผงสด
   // ไม่ใช้กล้อง: จับเวลาคำละ 20 วินาที · หมดเวลา → ช่วงหักคะแนนข้ามคำ (วนกลับท้ายรอบ) · ช่วงทดลองเตือน+บันทึก
   const timeoutsRef = useRef(0);
   const timed = mode === "CHECK" && !checkGate && roundCam !== "cam" && !!curItem && picked === null && curItem.retry === 0;
@@ -479,7 +482,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
     if (!curItem) return;
     timeoutsRef.current++;
     liveEvent("time");
-    const skipped = gMode === "enforce" ? skipCheckItem(curItem.wid) : false;
+    const skipped = cMode === "enforce" ? skipCheckItem(curItem.wid) : false;
     setCamNotice(
       skipped
         ? `⏱ หมดเวลา ${Math.round(qLimit / 1000)} วินาที — คำที่แล้วถูกข้าม และจะวนกลับมาท้ายรอบ`
@@ -676,7 +679,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
         ...p,
         sets: {
           ...p.sets,
-          [String(k)]: { ...p.sets![String(k)], gl: g.leaves, ga: g.awayMs, gb: g.blurs, gv: g.voided, gm: g.mode, cm: roundCam, gc: cc.covers, gca: cc.coverMs, gt: timeoutsRef.current },
+          [String(k)]: { ...p.sets![String(k)], gl: g.leaves, ga: g.awayMs, gb: g.blurs, gv: g.voided, gm: g.mode, cm: roundCam, gc: cc.covers, gca: cc.coverMs, gt: timeoutsRef.current, ...(roundCam === "cam" ? { gp: cc.phones, gpf: cc.phonesFar, gpd: cc.phoneState } : {}) },
         },
       };
       p = addDay(p, today, { c: score, x: Object.keys(first).length - score });
@@ -1139,9 +1142,9 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
             <li>เปิด <b>โหมดห้ามรบกวน</b> ก่อน (กันแจ้งเตือนเด้งทับ)</li>
             <li><b>อยู่ในหน้านี้ตลอด</b> จนผ่านชุด — ห้ามสลับแอป สลับแท็บ กลับหน้าโฮม หรือเรียก Gemini / วงกลมค้นหา · คลุมหรือคัดลอกโจทย์ไม่ได้</li>
             <li>
-              {gMode === "enforce"
-                ? <>ออกจากหน้า หน้าต่างอื่นบังนานเกิน 3 วินาที (ใช้กล้อง) มีอะไรบังใบหน้าตั้งแต่จมูกขึ้นไป หรือ (ไม่ใช้กล้อง) หมดเวลาคำละ {Q_TIME_MS / 1000} วินาที ระหว่างคำไหน <b className="text-rose-600">ระบบข้ามคำนั้นทันที ไม่ได้คะแนน</b> (คำนั้นวนกลับมาท้ายรอบ ยังต้องตอบให้ถูกเพื่อผ่านชุด)</>
-                : <>ช่วงทดลอง (ถึง 15 พ.ย.): ระบบ <b>บันทึก</b> การออกจากหน้าและการบังใบหน้าให้ครูเห็น (ยังไม่หักคะแนน)</>}
+              {cMode === "enforce"
+                ? <>(ใช้กล้อง) มีอะไรบังใบหน้าตั้งแต่จมูกขึ้นไป หรือมีมือถือเครื่องอื่นในภาพ · (ไม่ใช้กล้อง) หมดเวลาคำละ {Q_TIME_MS / 1000} วินาที — ระหว่างคำไหน <b className="text-rose-600">ระบบข้ามคำนั้นทันที ไม่ได้คะแนน</b> (คำนั้นวนกลับมาท้ายรอบ ยังต้องตอบให้ถูกเพื่อผ่านชุด){gMode === "enforce" ? <> · ออกจากหน้า หรือหน้าต่างอื่นบังนานเกิน 3 วินาที ก็ข้ามคำเช่นกัน</> : <> · ออกจากหน้า / หน้าต่างอื่นบัง: ถึง 15 พ.ย. บันทึกให้ครูเห็น เริ่มข้ามคำ 16 พ.ย.</>}</>
+                : <>ช่วงทดลอง: ระบบ <b>บันทึก</b> การออกจากหน้าและการบังใบหน้าให้ครูเห็น (ยังไม่หักคะแนน)</>}
             </li>
             <li>ออกจากหน้าครบ {GUARD_FLAG_AT} ครั้ง ครูจะเห็นเครื่องหมาย 🚩</li>
           </ol>
@@ -1155,7 +1158,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
           }}
           camRule="ใช้กล้องยืนยันว่าทำเอง"
           noCamRule={`จับเวลาคำละ ${Q_TIME_MS / 1000} วินาที`}
-          note={gMode === "enforce" ? undefined : "ช่วงทดลองถึง 15 พ.ย.: บันทึกให้ครูเห็นอย่างเดียว"}
+          note={cMode === "enforce" ? undefined : "ช่วงทดลอง: บันทึกให้ครูเห็นอย่างเดียว"}
           startLabel="เข้าใจแล้ว เริ่มรอบทบทวน"
           onStart={(cm) => {
             setRoundCam(cm);
@@ -1165,7 +1168,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
             setCamNotice(null);
             guard.reset();
             setCheckGate(false);
-            liveStart(email, { room: myRoom, a: "v300", c: "v300", l: String(checkSetNo), t: `📚 ชุดที่ ${checkSetNo}`, tot: queue.length, cm });
+            liveStart(email, { room: myRoom, a: "v300", c: "v300", l: String(checkSetNo), t: `📚 ชุดที่ ${checkSetNo}`, tot: queue.length, cm, pd: cm === "cam" ? cam.phoneState : undefined });
             scrollTop();
           }}
         />
@@ -1188,7 +1191,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
         <SessionBar label={label} warn={warn} confirmExit={confirmExit} setConfirmExit={setConfirmExit} onExit={exitSession} />
         {(mode === "LEARN" || mode === "CHECK") && <Steps active={mode === "LEARN" ? 4 : 5} />}
         {mode === "CHECK" && camNotice && (
-          <div className={`rounded-xl p-3 mb-3 text-sm font-bold flex items-start gap-2 ${gMode === "enforce" ? "bg-orange-100 text-orange-900 border-2 border-orange-300" : "bg-amber-50 text-amber-900 border-2 border-amber-200"}`}>
+          <div className={`rounded-xl p-3 mb-3 text-sm font-bold flex items-start gap-2 ${cMode === "enforce" ? "bg-orange-100 text-orange-900 border-2 border-orange-300" : "bg-amber-50 text-amber-900 border-2 border-amber-200"}`}>
             <span className="flex-1">{camNotice}</span>
             <button onClick={() => setCamNotice(null)} className="shrink-0 text-xs underline">รับทราบ</button>
           </div>
@@ -1216,7 +1219,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
           <span className="text-[11px] font-black bg-[#FFD700] text-[#003399] px-2 py-1 rounded-full">{KIND_LABEL[it.kind]}</span>
           {it.retry > 0 && <span className="text-[11px] font-black bg-rose-100 text-rose-700 px-2 py-1 rounded-full">🔁 วนกลับมาถามอีกครั้ง</span>}
         </div>
-        {mode === "CHECK" && roundCam === "cam" && picked === null && isCovered(cam) && <CoverShield />}
+        {mode === "CHECK" && roundCam === "cam" && picked === null && isCovered(cam) && <CoverShield phone={cam.phone} />}
         <div className="bg-gray-50 rounded-2xl p-4 mb-4" hidden={mode === "CHECK" && roundCam === "cam" && picked === null && isCovered(cam)} {...(mode === "CHECK" ? noCopyProps : {})}>
           {it.kind === "en2th" && (
             <p className="text-center">

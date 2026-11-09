@@ -101,10 +101,13 @@ export interface LessonProgress {
   gc?: number;
   gca?: number;
   gt?: number;          // หมดเวลากี่ข้อ (ไม่ใช้กล้อง · จับเวลาข้อละ 20 วินาที)
+  gp?: number;          // พบมือถือในกล้องกี่ครั้ง (9 พ.ย. · ใกล้/แตะขอบ = ข้ามข้อ)
+  gpf?: number;         // เห็นมือถือเล็ก ๆ ไกล ๆ กี่ครั้ง (ไม่ข้ามข้อ · ให้ครูดู)
+  gpd?: "ready" | "slow" | "error" | "loading" | "off"; // ตัวตรวจมือถือทำงานไหม (slow = เครื่องช้า ปิดชั้นนี้)
   pm?: "cam" | "nocam" | "camfail"; // ผ่านบทนี้ด้วยรอบแบบไหน (ใช้กล้อง = เกณฑ์ 80% · ไม่ใช้กล้อง = ครบทุกข้อ)
 }
 // ฟิลด์ที่ติดไปกับคะแนนรอบแรก
-const FIRST_KEYS = ["first", "firstTotal", "firstAt", "firstMs", "gl", "ga", "gb", "gv", "gm", "fqt", "cm", "gc", "gca", "gt"] as const;
+const FIRST_KEYS = ["first", "firstTotal", "firstAt", "firstMs", "gl", "ga", "gb", "gv", "gm", "fqt", "cm", "gc", "gca", "gt", "gp", "gpf", "gpd"] as const;
 function pickFirst(x: LessonProgress): Partial<LessonProgress> {
   const out: Record<string, unknown> = {};
   for (const k of FIRST_KEYS) if (x[k] !== undefined && x[k] !== null) out[k] = x[k];
@@ -223,7 +226,7 @@ export async function saveLessonAttempt(params: {
   ms?: number;      // เวลาที่ใช้ทำรอบนี้ (ms)
   guard?: GuardStats; // ระบบกัน AI (เฉพาะรอบที่เข้าสมุดคะแนน)
   qt?: number[];      // เวลาที่ใช้รายข้อ (วินาที)
-  cam?: { mode: "cam" | "nocam" | "camfail"; covers: number; coverMs: number; timeouts?: number }; // กล้องในรอบนี้ (รอบที่เข้าสมุดคะแนน)
+  cam?: { mode: "cam" | "nocam" | "camfail"; covers: number; coverMs: number; timeouts?: number; phones?: number; phonesFar?: number; pd?: string }; // กล้องในรอบนี้ (รอบที่เข้าสมุดคะแนน)
   onSlow?: () => void;
 }): Promise<{ lesson: LessonProgress; cloudOk: boolean; issue?: SyncIssue }> {
   const { courseId, lessonId, email, name, score, total, wrongIds, passMin, ms, guard, qt, cam, onSlow } = params;
@@ -263,7 +266,7 @@ export async function saveLessonAttempt(params: {
           ...(ms ? { firstMs: ms } : {}),
           ...(guard ? { gl: guard.leaves, ga: guard.awayMs, gb: guard.blurs, gv: guard.voided, gm: guard.mode } : {}),
           ...(qt && qt.length ? { fqt: qt } : {}),
-          ...(cam ? { cm: cam.mode, gc: cam.covers, gca: cam.coverMs, gt: cam.timeouts ?? 0 } : {}),
+          ...(cam ? { cm: cam.mode, gc: cam.covers, gca: cam.coverMs, gt: cam.timeouts ?? 0, ...(cam.mode === "cam" ? { gp: cam.phones ?? 0, gpf: cam.phonesFar ?? 0, gpd: (cam.pd ?? "off") as LessonProgress["gpd"] } : {}) } : {}),
         }
       : typeof base?.first === "number"
       ? pickFirst(base)

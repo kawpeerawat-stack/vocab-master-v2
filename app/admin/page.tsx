@@ -326,7 +326,7 @@ export default function AdminDashboard() {
             [
               ...lessons.filter((l) => gradeCell(r.progress[l.id], l.questions.length)?.star).map((l) => `${L}${l.hour}*`),
               ...lessons.filter((l) => gradeCell(r.progress[l.id], l.questions.length)?.fast).map((l) => `${L}${l.hour}⚡`),
-              ...lessons.filter((l) => guardEvents(r.progress[l.id]) > 0).map((l) => `${L}${l.hour}${isFlagged(r.progress[l.id]) ? "🚩" : ""}↗${r.progress[l.id]?.gl ?? 0}📷${r.progress[l.id]?.gc ?? 0}`),
+              ...lessons.filter((l) => guardEvents(r.progress[l.id]) > 0).map((l) => `${L}${l.hour}${isFlagged(r.progress[l.id]) ? "🚩" : ""}↗${r.progress[l.id]?.gl ?? 0}📷${r.progress[l.id]?.gc ?? 0}📱${r.progress[l.id]?.gp ?? 0}`),
               ...lessons.filter((l) => r.progress[l.id]?.cm === "nocam" || r.progress[l.id]?.cm === "camfail").map((l) => `${L}${l.hour}${r.progress[l.id]?.cm === "nocam" ? "🚫ไม่ใช้กล้อง" : "⚠️กล้องใช้ไม่ได้"}`),
             ].join(" "),
             r.typedNames.join(" / "), r.emails.join(" / "),

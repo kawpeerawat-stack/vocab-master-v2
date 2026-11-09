@@ -2,7 +2,7 @@
 // app/admin/_parts/LivePanel.tsx
 // ─────────────────────────────────────────────────────────────
 // 🔴 กำลังทำอยู่ตอนนี้ — ครูเห็นนักเรียนที่กำลังทำรอบเข้าสมุดคะแนนแบบสด (จากฟิลด์ students/{id}.live)
-//   - ทำถึงข้อไหน · ใช้กล้อง/ไม่ใช้ · ออกจากหน้า ↗ · บังหน้า 📷 · หมดเวลา ⏱
+//   - ทำถึงข้อไหน · ใช้กล้อง/ไม่ใช้ · ออกจากหน้า ↗ · พบมือถือ 📱 · บังหน้า 📷 · หมดเวลา ⏱ · 📱✕ = เครื่องนี้ตรวจมือถือไม่ได้
 //   - เหตุการณ์ใหม่ (15 วินาทีล่าสุด) → กรอบแดงกระพริบ · คนที่มีเหตุการณ์มากเรียงขึ้นบน
 //   - ⚠️ ใช้บนจอครูเท่านั้น อย่าฉายขึ้นโปรเจกเตอร์ (มีชื่อนักเรียน)
 // ─────────────────────────────────────────────────────────────
@@ -18,8 +18,8 @@ const QUIET_MS = 2 * 60000; // ไม่มีความเคลื่อน�
 const FLASH_MS = 15000;
 
 const CM_LABEL: Record<string, string> = { cam: "📷 กล้อง", nocam: "🚫 ไม่ใช้กล้อง", camfail: "🚫 กล้องใช้ไม่ได้" };
-const EV_LABEL: Record<string, string> = { leave: "↗ ออกจากหน้า", face: "📷 บังหน้า", time: "⏱ หมดเวลา" };
-const events = (d: LiveDoc) => (d.lv || 0) + (d.cv || 0) + (d.to || 0);
+const EV_LABEL: Record<string, string> = { leave: "↗ ออกจากหน้า", face: "📷 บังหน้า", time: "⏱ หมดเวลา", phone: "📱 พบมือถือ", far: "📱 มือถือไกล ๆ (ไม่ข้ามข้อ · ดูว่าใครถือ)" };
+const events = (d: LiveDoc) => (d.lv || 0) + (d.cv || 0) + (d.to || 0) + (d.ph || 0);
 const ago = (ms: number) => (ms < 60000 ? `${Math.max(0, Math.round(ms / 1000))} วิ` : `${Math.floor(ms / 60000)} นาที`);
 
 export function LivePanel({ entries }: { entries: LiveEntry[] }) {
@@ -96,7 +96,10 @@ export function LivePanel({ entries }: { entries: LiveEntry[] }) {
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2 text-xs font-bold">
                       <span className={d.cm === "cam" ? "text-gray-600" : "text-amber-700"}>{CM_LABEL[d.cm] ?? d.cm}</span>
                       {d.lv > 0 && <span className="text-rose-700 tabular-nums">↗{d.lv}</span>}
+                      {(d.ph || 0) > 0 && <span className="text-rose-700 tabular-nums">📱{d.ph}</span>}
+                      {(d.pf || 0) > 0 && <span className="text-amber-700 tabular-nums" title="มือถือเล็ก ๆ ไกล ๆ ในกล้อง (ไม่ข้ามข้อ)">📱ไกล{d.pf}</span>}
                       {d.cv > 0 && <span className="text-rose-700 tabular-nums">📷{d.cv}</span>}
+                      {d.cm === "cam" && d.pd && d.pd !== "ready" && <span className="text-amber-700" title="เครื่องนี้ตรวจมือถือไม่ได้ (ยังจับบังหน้าได้)">📱✕</span>}
                       {d.to > 0 && <span className="text-rose-700 tabular-nums">⏱{d.to}</span>}
                       <span className="ml-auto text-gray-500">
                         {d.done

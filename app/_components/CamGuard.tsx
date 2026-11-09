@@ -6,6 +6,12 @@
 //   ชั้น 2: บริเวณ "จมูกขึ้นไป" (ตา–หน้าผาก) ต่างจากตอนเทียบหน้าก่อนเริ่มมาก
 //           → จับกรณีเอียงมือถือบังช่วงตา ทั้งที่กล้องยังเห็นปาก/คาง
 //   บังต่อเนื่อง COVER_FACE_MS → นับ 1 ครั้ง (onCover) — หน้าทำข้อสอบเป็นคนตัดสินว่าจะข้ามข้อหรือไม่
+//   ชั้น 3 (9 พ.ย.): ตรวจหา "มือถือ" ในภาพกล้อง — ตัวตรวจเดียวกับแอป Grammar Master
+//           (MediaPipe Object Detector · EfficientDet-Lite0 · ไฟล์อยู่ในเว็บเรา /mediapipe/tasks)
+//           ครูเลือก "ทางสายกลาง": เห็นมือถือ PHONE_FRAMES ภาพติดกัน
+//             · มือถือใหญ่ (≥ PHONE_MIN_AREA ของภาพ = อยู่ใกล้กล้อง) หรือแตะขอบภาพ (กำลังยกเข้ามาในกรอบ) ทุกขนาด → นับ 1 ครั้ง (onCover kind = "phone")
+//             · มือถือเล็กอยู่กลางภาพ (น่าจะเป็นของเพื่อนด้านหลัง) → ไม่ข้ามข้อ บันทึก "📱ไกล" ให้ครูเห็น (onFar)
+//           เครื่องช้ามาก / โหลดไม่ได้ → ปิดชั้นนี้ ใช้ชั้น 1–2 ต่อ
 //   ประมวลผลในเครื่องเท่านั้น · ไม่เก็บ ไม่ส่งภาพ · ไม่ใช้ไมโครโฟน · ปิดกล้องเมื่อเลิกใช้
 // ─────────────────────────────────────────────────────────────
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -13,6 +19,18 @@ import { useCallback, useEffect, useRef, useState } from "react";
 export const COVER_FACE_MS = 500; // บังต่อเนื่องนานเท่านี้ (~5 ภาพ) = นับ 1 ครั้ง — กรองการกะพริบตา/ขยับหัว (8 พ.ย. ครูปรับจาก 0.3 เป็น 0.5 วินาที)
 export const UPPER_CORR_MIN = 0.3; // ความคล้ายของบริเวณตา–หน้าผากกับตอนเทียบหน้า ต่ำกว่านี้ = มีอะไรบัง
 const BASE = "/mediapipe/face_detection";
+// ── ชั้น 3: ตรวจหามือถือ ──
+export const PHONE_FRAMES = 2;        // เห็นมือถือกี่ภาพติดกันจึงนับ (ครูเลือก 9 พ.ย.)
+export const PHONE_SCORE = 0.5;       // ความมั่นใจขั้นต่ำ (เท่าแอป Grammar)
+export const PHONE_MIN_AREA = 0.03;   // กรอบมือถือใหญ่อย่างน้อย 3% ของภาพ = อยู่ใกล้กล้อง → นับ
+export const PHONE_EDGE = 0.02;       // กรอบมือถือห่างขอบภาพไม่เกิน 2% = แตะขอบ (กำลังยกเข้ามา) → นับทุกขนาด
+const PHONE_CLEAR = 2;                // ไม่เห็นมือถือกี่ภาพติดกัน = เก็บแล้ว
+const PHONE_GAP_MS = 250;             // ~3–4 ภาพ/วินาที (แอป Grammar 300)
+const PHONE_SLOW_MS = 1200;           // เฉลี่ยช้ากว่านี้ต่อภาพ = เครื่องช้าเกินไป → ปิดชั้นนี้
+const TASKS = "/mediapipe/tasks";
+export type PhoneState = "off" | "loading" | "ready" | "slow" | "error";
+export type CoverKind = "face" | "phone";
+type PhoneSeen = "near" | "far" | null;
 const TW = 24, TH = 12; // ขนาดภาพย่อบริเวณตา–หน้าผาก (ใช้เทียบเท่านั้น ไม่เก็บ)
 
 export type CamStatus = "off" | "loading" | "calib" | "ready" | "denied" | "error";
@@ -25,14 +43,24 @@ type FaceDet = {
   send: (i: { image: HTMLVideoElement }) => Promise<void>;
   close?: () => Promise<void>;
 };
+// MediaPipe Tasks Vision (เฉพาะส่วนที่ใช้)
+type ObjBox = { originX: number; originY: number; width: number; height: number };
+type ObjDet = {
+  detectForVideo: (v: HTMLVideoElement, ts: number) => { detections: { boundingBox?: ObjBox; categories: { categoryName: string; score: number }[] }[] };
+  close: () => void;
+};
+type VisionModule = {
+  FilesetResolver: { forVisionTasks: (path: string) => Promise<unknown> };
+  ObjectDetector: { createFromOptions: (fs: unknown, o: Record<string, unknown>) => Promise<ObjDet> };
+};
 declare global {
   interface Window {
     FaceDetection?: new (o: { locateFile: (f: string) => string }) => FaceDet;
   }
 }
-function loadScript(src: string): Promise<void> {
+function loadScript(src: string, loaded: () => boolean = () => !!window.FaceDetection): Promise<void> {
   return new Promise((res, rej) => {
-    if (window.FaceDetection) return res();
+    if (loaded()) return res();
     const old = document.querySelector(`script[src="${src}"]`);
     const s = (old as HTMLScriptElement) || document.createElement("script");
     s.addEventListener("load", () => res());
@@ -84,11 +112,66 @@ const corr = (a: Float32Array, b: Float32Array) => {
   return s / a.length;
 };
 
-export interface CamCounts { covers: number; coverMs: number }
+// กันค้าง: งานที่ใช้เวลานานเกินกำหนด → ถือว่าล้มเหลว (iPhone/iPad บางรุ่นค้างเงียบ · ยกมาจากแอป Grammar)
+function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise((res, rej) => {
+    const t = setTimeout(() => rej(new Error(`${label}: หมดเวลา ${Math.round(ms / 1000)} วิ`)), ms);
+    p.then((v) => { clearTimeout(t); res(v); }, (e) => { clearTimeout(t); rej(e); });
+  });
+}
+// โหลดไฟล์ .mjs จากเว็บเราโดยไม่ผ่านตัวรวมไฟล์ของ Next
+const importUrl = (u: string) => (new Function("u", "return import(u)") as (u: string) => Promise<unknown>)(u);
+
+// ตัวตรวจมือถือ: สร้างครั้งเดียวต่อหน้า ใช้ซ้ำทุกรอบ (ไฟล์ ~17 MB · เบราว์เซอร์จำไว้ใช้ครั้งต่อไป)
+let phoneDetP: Promise<ObjDet> | null = null;
+function loadPhoneDetector() {
+  if (!phoneDetP) {
+    phoneDetP = (async () => {
+      const vision = (await withTimeout(importUrl(`${TASKS}/vision_bundle.mjs`), 20000, "โหลดตัวตรวจมือถือ")) as VisionModule;
+      const fs = await withTimeout(vision.FilesetResolver.forVisionTasks(`${TASKS}/wasm`), 30000, "โหลด wasm ตัวตรวจมือถือ");
+      return withTimeout(
+        vision.ObjectDetector.createFromOptions(fs, {
+          baseOptions: { modelAssetPath: `${TASKS}/efficientdet_lite0.tflite`, delegate: "CPU" },
+          runningMode: "VIDEO",
+          scoreThreshold: PHONE_SCORE,
+          maxResults: 5,
+          categoryAllowlist: ["cell phone"],
+        }),
+        40000,
+        "เริ่มตัวตรวจมือถือ"
+      );
+    })();
+    phoneDetP.catch(() => {
+      phoneDetP = null; // ครั้งหน้าลองใหม่
+    });
+  }
+  return phoneDetP;
+}
+// มือถือในภาพ: near = ใหญ่หรือแตะขอบ (นับ) · far = เล็กอยู่กลางภาพ (บันทึกให้ครูเห็นเท่านั้น)
+function classifyPhone(r: ReturnType<ObjDet["detectForVideo"]>, vw: number, vh: number): PhoneSeen {
+  let far = false;
+  for (const d of r.detections) {
+    if (!d.categories.some((c) => c.categoryName === "cell phone" && c.score >= PHONE_SCORE)) continue;
+    const b = d.boundingBox;
+    if (!b) return "near";
+    const area = (b.width * b.height) / (vw * vh);
+    const mx = vw * PHONE_EDGE, my = vh * PHONE_EDGE;
+    const edge = b.originX <= mx || b.originY <= my || b.originX + b.width >= vw - mx || b.originY + b.height >= vh - my;
+    if (area >= PHONE_MIN_AREA || edge) return "near";
+    far = true;
+  }
+  return far ? "far" : null;
+}
+
+export interface CamCounts { covers: number; coverMs: number; phones: number; phonesFar: number; phoneState: PhoneState }
 
 // active = เปิดกล้องอยู่ · armed = กำลังทำข้อ (นับการบัง) · onCover คืน true ถ้าหน้าจอข้ามข้อไปแล้ว
-export function useCameraGuard(onCover?: (ms: number) => boolean | void) {
+export function useCameraGuard(onCover?: (ms: number, kind: CoverKind) => boolean | void, onFar?: () => void) {
   const [status, setStatus] = useState<CamStatus>("off");
+  const [phoneState, setPhoneState] = useState<PhoneState>("off");
+  const [phone, setPhone] = useState(false); // เห็นมือถือ (ใกล้/แตะขอบ) ในภาพอยู่ตอนนี้
+  const [phoneFar, setPhoneFar] = useState(false); // เห็นมือถือเล็ก ๆ ไกล ๆ อยู่ตอนนี้ (ไม่นับ)
+  const [errorDetail, setErrorDetail] = useState(""); // สาเหตุที่เปิดกล้องไม่ได้ (นักเรียนถ่ายรูปส่งครูได้)
   const [visible, setVisible] = useState(false);
   const [missMs, setMissMs] = useState(0);
   const [calibrated, setCalibrated] = useState(false);
@@ -100,7 +183,8 @@ export function useCameraGuard(onCover?: (ms: number) => boolean | void) {
   const baseRef = useRef<Float32Array | null>(null);
   const baseFlat = useRef(false); // ตอนเทียบหน้าภาพเรียบเกินไป (มืด/แสงจ้า) → ไม่ใช้ชั้นที่ 2
   const calibBuf = useRef<Float32Array[]>([]);
-  const st = useRef({ armed: false, missStart: 0, fired: false, lastSeen: 0, covers: 0, coverMs: 0, gotResult: false });
+  const st = useRef({ armed: false, missStart: 0, fired: false, lastSeen: 0, covers: 0, coverMs: 0, gotResult: false, faceOk: true, phoneHits: 0, phoneMiss: 0, phones: 0, farHits: 0, farMiss: 0, farFired: false, phonesFar: 0, phoneState: "off" as PhoneState });
+  const phoneRun = useRef(0); // รอบการทำงานของตัวตรวจมือถือ (เปลี่ยนเลข = หยุดรอบเก่า)
   // หน้าจอเปลี่ยน (กติกา → ทำข้อ) แล้วกล่องวิดีโอถูกสร้างใหม่ → ต่อภาพกล้องเข้าไปใหม่
   const setVideo = useCallback((el: HTMLVideoElement | null) => {
     videoRef.current = el;
@@ -110,13 +194,18 @@ export function useCameraGuard(onCover?: (ms: number) => boolean | void) {
     }
   }, []);
   const onCoverRef = useRef(onCover);
+  const onFarRef = useRef(onFar);
   useEffect(() => {
     onCoverRef.current = onCover;
+    onFarRef.current = onFar;
   });
 
   const stop = useCallback(() => {
     if (loopRef.current) cancelAnimationFrame(loopRef.current);
     loopRef.current = null;
+    phoneRun.current++;
+    setPhone(false);
+    setPhoneFar(false);
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
@@ -124,6 +213,27 @@ export function useCameraGuard(onCover?: (ms: number) => boolean | void) {
     detRef.current = null;
     st.current.armed = false;
     setStatus("off");
+    setPhoneState("off");
+  }, []);
+
+  // ตัดสินรวมทั้งใบหน้าและมือถือ: 1 ช่วงที่บัง/มีมือถือ = นับครั้งเดียว (ข้ามข้อเดียว)
+  //   ช่วงจบเมื่อเห็นหน้าอีกครั้ง และไม่เห็นมือถือแล้ว
+  const judge = useCallback((t: number) => {
+    const s = st.current;
+    const phoneNow = s.phoneHits >= PHONE_FRAMES;
+    const faceMiss = s.faceOk ? 0 : t - s.missStart;
+    if (s.faceOk && s.phoneHits === 0 && s.phoneMiss >= PHONE_CLEAR) {
+      s.fired = false;
+      return;
+    }
+    if (!s.armed || s.fired) return;
+    const kind: CoverKind | null = phoneNow ? "phone" : faceMiss >= COVER_FACE_MS ? "face" : null;
+    if (!kind) return;
+    s.fired = true;
+    if (kind === "phone") s.phones++;
+    else s.covers++;
+    onCoverRef.current?.(kind === "face" ? faceMiss : 0, kind);
+    // ระหว่างที่ยังบัง/ยังเห็นมือถือ หน้าทำข้อจะซ่อนโจทย์ไว้ (ดู CoverShield) จึงถ่ายโจทย์ข้อถัดไปไม่ได้
   }, []);
   useEffect(() => stop, [stop]);
 
@@ -165,53 +275,151 @@ export function useCameraGuard(onCover?: (ms: number) => boolean | void) {
       if (s.fired && s.missStart) s.coverMs += t - s.missStart; // จบช่วงที่ถูกบัง
       s.lastSeen = t;
       s.missStart = 0;
-      s.fired = false;
     } else if (!s.missStart) {
       s.missStart = t;
     }
+    s.faceOk = ok;
     setVisible(ok);
-    const miss = ok ? 0 : t - s.missStart;
-    setMissMs(miss);
-    if (s.armed && !ok && !s.fired && miss >= COVER_FACE_MS) {
-      s.fired = true;
-      s.covers++;
-      const skipped = onCoverRef.current?.(miss);
-      void skipped;
-      // บังต่อเนื่อง = นับครั้งเดียว (ข้ามข้อเดียว) · ต้องเห็นหน้าอีกครั้งจึงนับครั้งใหม่
-      // ระหว่างที่ยังบังอยู่ หน้าทำข้อจะซ่อนโจทย์ไว้ (ดู CoverShield) จึงถ่ายโจทย์ข้อถัดไปไม่ได้
+    setMissMs(ok ? 0 : t - s.missStart);
+    judge(t);
+  }, [judge]);
+
+  // ชั้น 3: วนตรวจหามือถือ (~3–4 ภาพ/วินาที · ทีละภาพ)
+  const startPhone = useCallback(async () => {
+    const run = ++phoneRun.current;
+    const s = st.current;
+    s.phoneHits = 0;
+    s.phoneMiss = PHONE_CLEAR;
+    s.farHits = 0;
+    s.farMiss = PHONE_CLEAR;
+    s.farFired = false;
+    const set = (p: PhoneState) => {
+      s.phoneState = p;
+      setPhoneState(p);
+    };
+    set("loading");
+    let det: ObjDet;
+    try {
+      det = await loadPhoneDetector();
+    } catch (e) {
+      console.warn("phone detector unavailable:", e);
+      if (run === phoneRun.current) set("error");
+      return;
     }
-  }, []);
+    if (run !== phoneRun.current) return;
+    set("ready");
+    const times: number[] = [];
+    while (run === phoneRun.current) {
+      const v = videoRef.current;
+      if (!v || v.readyState < 2 || !v.videoWidth) {
+        await new Promise((r) => setTimeout(r, 200));
+        continue;
+      }
+      const t0 = now();
+      let seen: PhoneSeen = null;
+      try {
+        seen = classifyPhone(det.detectForVideo(v, performance.now()), v.videoWidth, v.videoHeight);
+      } catch (e) {
+        console.warn("phone frame failed:", e); // ข้ามภาพนี้
+      }
+      if (run !== phoneRun.current) return;
+      times.push(now() - t0);
+      if (times.length === 4 && times.reduce((a, b) => a + b, 0) / 4 > PHONE_SLOW_MS) {
+        set("slow"); // เครื่องช้าเกินไป → ใช้แค่ชั้น 1–2
+        setPhone(false);
+        setPhoneFar(false);
+        s.phoneHits = 0;
+        s.phoneMiss = PHONE_CLEAR;
+        judge(now());
+        return;
+      }
+      if (seen === "near") {
+        s.phoneHits++;
+        s.phoneMiss = 0;
+      } else {
+        s.phoneMiss++;
+        if (s.phoneMiss >= PHONE_CLEAR) s.phoneHits = 0;
+      }
+      // มือถือไกล ๆ: บันทึกครั้งเดียวต่อช่วง (ไม่ข้ามข้อ)
+      if (seen === "far") {
+        s.farHits++;
+        s.farMiss = 0;
+        if (s.armed && !s.farFired && s.farHits >= PHONE_FRAMES) {
+          s.farFired = true;
+          s.phonesFar++;
+          onFarRef.current?.();
+        }
+      } else {
+        s.farMiss++;
+        if (s.farMiss >= PHONE_CLEAR) {
+          s.farHits = 0;
+          s.farFired = false;
+        }
+      }
+      setPhone(s.phoneHits >= PHONE_FRAMES);
+      setPhoneFar(s.farHits >= PHONE_FRAMES);
+      judge(now());
+      await new Promise((r) => setTimeout(r, PHONE_GAP_MS));
+    }
+  }, [judge]);
 
   // เปิดกล้อง + ตัวตรวจจับ → คืน false ถ้าใช้ไม่ได้ (ไม่อนุญาต / เครื่องไม่รองรับ)
   const start = useCallback(async (): Promise<boolean> => {
     if (streamRef.current && detRef.current) return true;
     setStatus("loading");
+    setErrorDetail("");
     setCalibrated(false);
     baseRef.current = null;
     baseFlat.current = false;
     calibBuf.current = [];
-    st.current = { armed: false, missStart: 0, fired: false, lastSeen: 0, covers: 0, coverMs: 0, gotResult: false };
+    st.current = { armed: false, missStart: 0, fired: false, lastSeen: 0, covers: 0, coverMs: 0, gotResult: false, faceOk: true, phoneHits: 0, phoneMiss: PHONE_CLEAR, phones: 0, farHits: 0, farMiss: PHONE_CLEAR, farFired: false, phonesFar: 0, phoneState: "off" };
+    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+      setErrorDetail("เบราว์เซอร์นี้ไม่รองรับกล้อง — ถ้าเปิดจากในแอป LINE / Facebook ให้กด ⋯ แล้วเลือกเปิดด้วย Safari หรือ Chrome");
+      setStatus("error");
+      return false;
+    }
     try {
-      if (!navigator.mediaDevices?.getUserMedia) throw new Error("no camera api");
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 320 }, height: { ideal: 240 } }, audio: false });
       streamRef.current = stream;
       const v = videoRef.current;
       if (!v) throw new Error("no video element");
+      v.setAttribute("playsinline", "true");
+      v.muted = true;
       v.srcObject = stream;
       await v.play();
+      // รอภาพจริงจากกล้อง (iPhone/iPad บางรุ่นยังไม่มีขนาดภาพทันที)
+      if (v.readyState < 2 || !v.videoWidth) {
+        await withTimeout(new Promise<void>((res) => v.addEventListener("loadeddata", () => res(), { once: true })), 8000, "รอภาพจากกล้อง").catch(() => undefined);
+      }
     } catch (e) {
       console.error("camera denied:", e);
+      setErrorDetail(String((e as Error)?.name || e));
       streamRef.current?.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
       setStatus("denied");
       return false;
     }
-    try {
-      await loadScript(`${BASE}/face_detection.js`);
-      const det = new window.FaceDetection!({ locateFile: (f) => `${BASE}/${f}` });
+    void startPhone(); // โหลดตัวตรวจมือถือเบื้องหลัง ไปพร้อมกับเทียบหน้า
+    // สร้างตัวตรวจใบหน้า · noSimd = ไฟล์รุ่นธรรมดา (สำรองเมื่อรุ่น SIMD ใช้กับเครื่องนี้ไม่ได้ · ยกมาจากแอป Grammar)
+    const create = (noSimd: boolean): FaceDet => {
+      const det = new window.FaceDetection!({ locateFile: (f) => `${BASE}/${noSimd ? f.replace("_simd_wasm_bin", "_wasm_bin") : f}` });
       det.setOptions({ model: "short", minDetectionConfidence: 0.6 });
       det.onResults(onResults);
-      if (det.initialize) await det.initialize();
+      return det;
+    };
+    try {
+      await withTimeout(loadScript(`${BASE}/face_detection.js`), 20000, "โหลดตัวตรวจใบหน้า");
+      let det = create(false);
+      try {
+        if (det.initialize) await withTimeout(det.initialize(), 25000, "เริ่มตัวตรวจใบหน้า (SIMD)");
+        if (videoRef.current) await withTimeout(det.send({ image: videoRef.current }), 15000, "ทดสอบภาพแรก (SIMD)");
+      } catch (e1) {
+        console.warn("SIMD failed, retry without SIMD:", e1);
+        void det.close?.().catch(() => undefined);
+        det = create(true);
+        if (det.initialize) await withTimeout(det.initialize(), 25000, "เริ่มตัวตรวจใบหน้า");
+        if (videoRef.current) await withTimeout(det.send({ image: videoRef.current }), 15000, "ทดสอบภาพแรก");
+      }
       detRef.current = det;
       setStatus("calib");
       let busy = false, lastSend = 0;
@@ -231,47 +439,52 @@ export function useCameraGuard(onCover?: (ms: number) => boolean | void) {
         const chk = () => (st.current.gotResult || now() - t0 > 15000 ? res() : setTimeout(chk, 200));
         chk();
       });
-      if (!st.current.gotResult) throw new Error("no results");
+      if (!st.current.gotResult) throw new Error("ตัวตรวจใบหน้าไม่ตอบใน 15 วินาที");
       return true;
     } catch (e) {
       console.error("face detector failed:", e);
       stop();
+      setErrorDetail((e as Error)?.message || String(e));
       setStatus("error");
       return false;
     }
-  }, [onResults, stop]);
+  }, [onResults, stop, startPhone]);
 
   // เริ่ม/หยุดนับการบัง (ระหว่างทำข้อ)
   const arm = useCallback((on: boolean) => {
     st.current.armed = on;
   }, []);
-  const counts = useCallback((): CamCounts => ({ covers: st.current.covers, coverMs: st.current.coverMs }), []);
+  const counts = useCallback((): CamCounts => ({ covers: st.current.covers, coverMs: st.current.coverMs, phones: st.current.phones, phonesFar: st.current.phonesFar, phoneState: st.current.phoneState }), []);
   const resetCounts = useCallback(() => {
     st.current.covers = 0;
     st.current.coverMs = 0;
+    st.current.phones = 0;
+    st.current.phonesFar = 0;
   }, []);
-  return { status, visible, missMs, calibrated, setVideo, start, stop, arm, counts, resetCounts };
+  return { status, visible, missMs, calibrated, phone, phoneFar, phoneState, errorDetail, setVideo, start, stop, arm, counts, resetCounts };
 }
 
 export type CamGuard = ReturnType<typeof useCameraGuard>;
 
 // กล่องภาพกล้อง (แสดงให้นักเรียนเห็นตัวเอง) — floating = มุมขวาล่างระหว่างทำข้อ
 export function CamBox({ cam, floating }: { cam: CamGuard; floating?: boolean }) {
-  return <CamView status={cam.status} visible={cam.visible} missMs={cam.missMs} setVideo={cam.setVideo} floating={floating} />;
+  return <CamView status={cam.status} visible={cam.visible} missMs={cam.missMs} phone={cam.phone} phoneFar={cam.phoneFar} setVideo={cam.setVideo} floating={floating} />;
 }
-function CamView({ status, visible, missMs, setVideo, floating }: { status: CamStatus; visible: boolean; missMs: number; setVideo: (el: HTMLVideoElement | null) => void; floating?: boolean }) {
+function CamView({ status, visible, missMs, phone, phoneFar, setVideo, floating }: { status: CamStatus; visible: boolean; missMs: number; phone: boolean; phoneFar?: boolean; setVideo: (el: HTMLVideoElement | null) => void; floating?: boolean }) {
   const ready = status === "ready" || status === "calib";
-  const color = !ready ? "#9ca3af" : visible ? "#10b981" : "#f43f5e";
+  const color = !ready ? "#9ca3af" : visible && !phone ? "#10b981" : "#f43f5e";
   return (
     <div className={floating ? "fixed bottom-4 right-4 z-30 w-24" : "w-full max-w-[220px] mx-auto"}>
       <div className="relative rounded-2xl overflow-hidden border-4 bg-black" style={{ borderColor: color }}>
         <video ref={setVideo} playsInline muted className="w-full block" style={{ transform: "scaleX(-1)" }} />
       </div>
-      <p className="text-[10px] font-bold text-center mt-1 bg-white/90 rounded" data-cam={visible ? "face" : "noface"}>
+      <p className="text-[10px] font-bold text-center mt-1 bg-white/90 rounded" data-cam={phone ? "phone" : visible ? "face" : "noface"}>
         {status === "loading" ? (
           <span className="text-gray-500">⏳ กำลังเปิดกล้อง…</span>
-        ) : !ready ? null : visible ? (
-          <span className="text-emerald-700">● เห็นใบหน้า</span>
+        ) : !ready ? null : phone ? (
+          <span className="text-rose-600">● พบมือถือในกล้อง</span>
+        ) : visible ? (
+          <span className="text-emerald-700">● เห็นใบหน้า{phoneFar ? <span className="text-amber-600"> · 📱ไกล</span> : null}</span>
         ) : (
           <span className="text-rose-600">● มีอะไรบังหน้า {(missMs / 1000).toFixed(1)} วิ</span>
         )}
@@ -343,7 +556,7 @@ export function CamChooser({
       </div>
       {note && <p className="text-[11px] font-bold text-amber-800 bg-amber-50 rounded-xl px-3 py-2">{note}</p>}
       <p className="text-[11px] text-gray-500 leading-relaxed">
-        🔒 กล้องใช้ดูว่า “ยังเห็นใบหน้า (จมูกขึ้นไป)” อยู่หรือไม่เท่านั้น — ประมวลผลในเครื่องนี้ <b>ไม่บันทึก ไม่ส่งภาพ ไม่ใช้ไมโครโฟน</b> · ครูเห็นแค่จำนวนครั้งที่มีอะไรบังหน้า · ปิดกล้องทันทีเมื่อทำจบ
+        🔒 กล้องใช้ดูว่า “ยังเห็นใบหน้า (จมูกขึ้นไป)” และ “มีมือถือเครื่องอื่นในภาพ” หรือไม่เท่านั้น — ประมวลผลในเครื่องนี้ <b>ไม่บันทึก ไม่ส่งภาพ ไม่ใช้ไมโครโฟน</b> · ครูเห็นแค่จำนวนครั้ง · ปิดกล้องทันทีเมื่อทำจบ
       </p>
       {want ? (
         <div className="space-y-2">
@@ -355,7 +568,11 @@ export function CamChooser({
           )}
           {st === "loading" && <p className="text-center text-sm font-bold text-gray-500">⏳ กำลังเปิดกล้อง (ครั้งแรกอาจใช้ 5–15 วินาที)…</p>}
           {st === "calib" && <p className="text-center text-sm font-bold text-[#003399]">มองหน้าจอให้กล้องเห็นใบหน้าชัด ๆ สักครู่… (เทียบหน้า)</p>}
-          {st === "ready" && (
+          {st === "ready" && cam.phoneState === "loading" && <p className="text-center text-sm font-bold text-[#003399]" data-phone-loading="1">⏳ กำลังโหลดตัวตรวจมือถือ (ครั้งแรกอาจใช้ 10–20 วินาที)…</p>}
+          {st === "ready" && cam.phone && <p className="text-center text-sm font-bold text-rose-700 bg-rose-50 rounded-xl p-2" data-phone-block="1">📱 กล้องเห็นมือถืออีกเครื่อง — วางให้พ้นกล้องก่อนเริ่ม</p>}
+          {st === "ready" && cam.phoneState === "ready" && !cam.phone && <p className="text-center text-[11px] font-bold text-gray-400">✓ ตัวตรวจมือถือพร้อม</p>}
+          {st === "ready" && (cam.phoneState === "error" || cam.phoneState === "slow") && <p className="text-center text-[11px] font-bold text-gray-400">เครื่องนี้ใช้ตัวตรวจมือถือไม่ได้ — ตรวจเฉพาะใบหน้า</p>}
+          {st === "ready" && cam.phoneState !== "loading" && !cam.phone && (
             <button type="button" onClick={() => onStart("cam")} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-xl text-lg">
               ✓ เทียบหน้าแล้ว · {startLabel} →
             </button>
@@ -364,6 +581,7 @@ export function CamChooser({
             <div className="space-y-2">
               <p className="bg-rose-50 text-rose-700 font-bold rounded-xl p-3 text-sm">
                 {st === "denied" ? "ไม่ได้รับอนุญาตให้ใช้กล้อง (กดอนุญาตกล้องในเบราว์เซอร์แล้วลองใหม่ได้)" : "เปิดตัวตรวจจับใบหน้าไม่ได้ในเครื่องนี้ (ลองเบราว์เซอร์ Chrome / Safari)"}
+                {cam.errorDetail && <span className="block text-[11px] font-bold text-rose-500 mt-1" data-cam-error="1">สาเหตุ: {cam.errorDetail}</span>}
               </p>
               <button type="button" onClick={() => void cam.start()} className="w-full py-3 bg-white border-2 border-[#003399] text-[#003399] font-black rounded-2xl">ลองเปิดกล้องอีกครั้ง</button>
               <button type="button" onClick={() => onStart("camfail")} className="w-full py-3 bg-gray-100 text-gray-700 font-black rounded-2xl">
@@ -400,13 +618,18 @@ export function TimerBar({ left, limit }: { left: number; limit: number }) {
 }
 
 // ระหว่างที่มีอะไรบังใบหน้า (ใช้กล้อง) → ซ่อนโจทย์และตัวเลือก จนกว่าจะเห็นหน้าอีกครั้ง
-export const isCovered = (cam: { status: CamStatus; visible: boolean; missMs: number }) => cam.status === "ready" && !cam.visible && cam.missMs >= COVER_FACE_MS;
-export function CoverShield() {
+// และระหว่างที่เห็นมือถือในกล้อง
+export const isCovered = (cam: { status: CamStatus; visible: boolean; missMs: number; phone?: boolean }) =>
+  cam.status === "ready" && (!!cam.phone || (!cam.visible && cam.missMs >= COVER_FACE_MS));
+export function CoverShield({ phone }: { phone?: boolean }) {
   return (
-    <div className="rounded-2xl border-2 border-rose-300 bg-rose-50 p-6 mb-4 text-center" data-shield="1">
-      <div className="text-4xl mb-1">📷</div>
-      <p className="font-black text-rose-800">มีอะไรบังใบหน้าอยู่</p>
-      <p className="text-sm font-bold text-rose-700 mt-1">เอามือ/สิ่งของออก แล้วมองหน้าจอ — โจทย์จะกลับมาเอง</p>
+    <div className="rounded-2xl border-2 border-rose-300 bg-rose-50 p-6 mb-4 text-center" data-shield={phone ? "phone" : "face"}>
+      <div className="text-4xl mb-1">{phone ? "📱" : "📷"}</div>
+      <p className="font-black text-rose-800">{phone ? "พบมือถือในกล้อง" : "มีอะไรบังใบหน้าอยู่"}</p>
+      <p className="text-sm font-bold text-rose-700 mt-1">{phone ? "เก็บมือถือเครื่องอื่นให้พ้นกล้อง" : "เอามือ/สิ่งของออก แล้วมองหน้าจอ"} — โจทย์จะกลับมาเอง</p>
     </div>
   );
 }
+// ข้อความแจ้งหลังถูกข้ามเพราะกล้อง
+export const camSkipText = (kind: CoverKind, unit = "ข้อ") =>
+  kind === "phone" ? `📱 พบมือถือในกล้อง — ${unit}ที่แล้วถูกข้าม (ไม่ได้คะแนน)` : `📷 มีอะไรบังใบหน้า (จมูกขึ้นไป) — ${unit}ที่แล้วถูกข้าม (ไม่ได้คะแนน)`;

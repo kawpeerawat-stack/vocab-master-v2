@@ -11,7 +11,7 @@ import { db } from "./firebase";
 import { serverNow } from "./sync";
 import type { CamMode } from "./guard";
 
-export type LiveEv = "leave" | "face" | "time";
+export type LiveEv = "leave" | "face" | "time" | "phone" | "far";
 export interface LiveDoc {
   room: string | null;
   a: "course" | "v300"; // ห้อง 🧩 หรือ 📚
@@ -24,6 +24,9 @@ export interface LiveDoc {
   lv: number;           // ออกจากหน้า (รวมหน้าต่างอื่นบังนานเกิน 3 วินาที)
   cv: number;           // มีอะไรบังใบหน้า
   to: number;           // หมดเวลา
+  ph: number;           // พบมือถือในกล้อง (ใกล้ / แตะขอบ → ข้ามข้อ)
+  pf?: number;          // เห็นมือถือเล็ก ๆ ไกล ๆ (น่าจะของเพื่อนด้านหลัง · ไม่ข้ามข้อ)
+  pd?: string;          // ตัวตรวจมือถือ (ready / slow / error)
   ev: LiveEv | null;    // เหตุการณ์ล่าสุด
   evAt: number;
   st: number;           // เวลาเริ่ม
@@ -43,23 +46,25 @@ function push() {
   const { id, d } = cur;
   d.at = serverNow();
   try {
-    setDoc(doc(db, "students", id), { live: { ...d } }, { merge: true }).catch((e) => console.warn("live:", e));
+    setDoc(doc(db, "students", id), { live: Object.fromEntries(Object.entries(d).filter(([, v]) => v !== undefined)) }, { merge: true }).catch((e) => console.warn("live:", e));
   } catch {
     /* ไม่กระทบการทำข้อสอบ */
   }
 }
 
-export function liveStart(email: string, info: Pick<LiveDoc, "room" | "a" | "c" | "l" | "t" | "tot" | "cm">) {
+export function liveStart(email: string, info: Pick<LiveDoc, "room" | "a" | "c" | "l" | "t" | "tot" | "cm" | "pd">) {
   if (!email) return;
   const now = serverNow();
-  cur = { id: idOf(email), d: { ...info, q: 0, lv: 0, cv: 0, to: 0, ev: null, evAt: 0, st: now, at: now, done: false, quit: false, sc: null } };
+  cur = { id: idOf(email), d: { ...info, q: 0, lv: 0, cv: 0, to: 0, ph: 0, pf: 0, ev: null, evAt: 0, st: now, at: now, done: false, quit: false, sc: null } };
   push();
 }
 
 // เหตุการณ์ → ส่งทันที (ครูเห็นกรอบแดงกระพริบ)
-export function liveEvent(kind: "face" | "time") {
+export function liveEvent(kind: "face" | "time" | "phone" | "far") {
   if (!cur || cur.d.done) return;
   if (kind === "face") cur.d.cv++;
+  else if (kind === "phone") cur.d.ph = (cur.d.ph || 0) + 1;
+  else if (kind === "far") cur.d.pf = (cur.d.pf || 0) + 1;
   else cur.d.to++;
   cur.d.ev = kind;
   cur.d.evAt = serverNow();

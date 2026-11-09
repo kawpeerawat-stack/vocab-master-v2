@@ -13,6 +13,10 @@ export const GUARD_ENFORCE_FROM = "2026-11-16"; // เริ่มหักค�
 export const GUARD_FLAG_AT = 3;                  // ออกจากหน้ากี่ครั้งขึ้น 🚩
 export type GuardMode = "log" | "enforce";
 export const guardMode = (today: string = serverToday()): GuardMode => (today >= GUARD_ENFORCE_FROM ? "enforce" : "log");
+// 9 พ.ย.: ครูให้ "กล้อง (บังหน้า / มือถือ) + จับเวลา (ไม่ใช้กล้อง) + เกณฑ์ 80%" ข้ามข้อตั้งแต่วันนี้ เหมือนแอป Grammar
+//   ส่วนการออกจากหน้าแอป / หน้าต่างอื่นบัง ยังบันทึกอย่างเดียวถึง 15 พ.ย. แล้วเริ่มข้ามข้อ 16 พ.ย. (เหมือน Grammar)
+export const CAM_ENFORCE_FROM = "2026-11-09";
+export const camMode = (today: string = serverToday()): GuardMode => (today >= CAM_ENFORCE_FROM ? "enforce" : "log");
 
 // ผลการเฝ้าดู 1 รอบ (เก็บคู่กับคะแนนรอบแรก)
 export interface GuardStats {

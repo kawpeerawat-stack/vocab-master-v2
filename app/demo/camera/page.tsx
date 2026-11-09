@@ -3,21 +3,23 @@
 // ─────────────────────────────────────────────────────────────
 // หน้าทดลองสำหรับผู้บริหาร/ครู: ระบบเดียวกับที่นักเรียนใช้ในรอบที่เข้าสมุดคะแนน (ใช้ app/_components/CamGuard.tsx ตัวเดียวกัน)
 //   - มีอะไรบังใบหน้าตั้งแต่จมูกขึ้นไป (มือถืออีกเครื่อง / สมุด / มือ) นานเกิน 0.5 วินาที → ข้ามข้อนั้นทันที
+//   - เห็นมือถือเครื่องอื่นในภาพกล้อง 2 ภาพติดกัน (ใกล้กล้อง หรือแตะขอบภาพ · แม้ไม่บังหน้า) → ข้ามข้อนั้นทันที
 //   - ออกจากหน้าแอป / หน้าต่าง Gemini หรือวงกลมค้นหาบังนานเกิน 3 วินาที → ข้ามข้อ
 //   - ประมวลผลในเครื่องเท่านั้น · ไม่บันทึก ไม่ส่งภาพ · ไม่ใช้ไมโครโฟน · หน้านี้ไม่บันทึกผลลงระบบ
 // ─────────────────────────────────────────────────────────────
 import { useEffect, useRef, useState } from "react";
 import { noCopyProps, noticeText, useLeaveGuard } from "../../lib/guard";
-import { CamBox, CamChooser, CoverShield, COVER_FACE_MS, isCovered, useCameraGuard } from "../../_components/CamGuard";
+import { CamBox, CamChooser, camSkipText, CoverShield, COVER_FACE_MS, isCovered, useCameraGuard } from "../../_components/CamGuard";
 
 type Q = { id: string; q: string; options: string[]; answer: number };
 type Phase = "INTRO" | "QUIZ" | "DONE";
-type Reason = "face" | "leave" | "cover";
+type Reason = "face" | "leave" | "cover" | "phone";
 type Ev = { t: number; q: number; reason: Reason };
 
 const strip = (s: string) => s.replace(/\*\*/g, "").replace(/<[^>]+>/g, "");
 const REASON_TH: Record<Reason, string> = {
   face: "📷 มีอะไรบังใบหน้า (จมูกขึ้นไป)",
+  phone: "📱 พบมือถือในกล้อง",
   leave: "↗ ออกจากหน้าแอป",
   cover: "🪟 หน้าต่างอื่นบังหน้าแอป",
 };
@@ -65,9 +67,9 @@ export default function CameraDemo() {
     advance();
     return true;
   };
-  const cam = useCameraGuard(() => {
-    const ok = skip("face");
-    if (ok) setCamNotice(`📷 มีอะไรบังใบหน้า (จมูกขึ้นไป) — ข้อที่แล้วถูกข้าม (ไม่ได้คะแนน)`);
+  const cam = useCameraGuard((_ms, kind) => {
+    const ok = skip(kind);
+    if (ok) setCamNotice(camSkipText(kind));
     return ok;
   });
   const guard = useLeaveGuard(phase === "QUIZ", phase === "QUIZ" && cur && picked === null ? cur.id : null, (_k, kind) => skip(kind));
@@ -124,6 +126,7 @@ export default function CameraDemo() {
             <div className="bg-white rounded-2xl border-2 border-[#003399]/10 p-4 text-sm leading-relaxed">
               <h2 className="font-black text-[#003399] mb-2">ลองทำแบบนี้</h2>
               <ul className="list-disc pl-5 space-y-1">
+                <li>ยกมือถืออีกเครื่องขึ้นมาในภาพกล้อง (ถือต่ำระดับอก ไม่บังหน้าก็ได้ · แค่โผล่เข้ามาที่ขอบภาพก็นับ) → เห็น 2 ภาพติดกันก็ข้ามข้อ · ตัวตรวจเดียวกับแอป Grammar</li>
                 <li>ยกมือถืออีกเครื่อง / สมุด / มือ ขึ้นบังตั้งแต่จมูกขึ้นไป (รวมเอียงมือถือบังแค่ช่วงตา) → นับทันที (~{COVER_FACE_MS / 1000} วินาที) และข้ามข้อ</li>
                 <li>สลับไปแอปอื่น หรือเรียก Gemini / วงกลมค้นหานานเกิน 3 วินาที → ข้ามข้อ</li>
                 <li>ลองคลุมข้อความโจทย์ → คัดลอกไม่ได้</li>
@@ -134,6 +137,7 @@ export default function CameraDemo() {
               <ul className="list-disc pl-5 space-y-1">
                 <li>ถ่ายจอจากด้านบนหรือด้านข้างโดยไม่บังหน้า → กล้องจับไม่ได้ (ระบบอื่นและครูในห้องช่วยดูแทน)</li>
                 <li>ก้มจดสมุด หรือห้องมืด → อาจถูกนับว่ามีอะไรบังหน้า จึงให้นักเรียนจดหลังทำเสร็จ</li>
+                <li>ตัวตรวจมือถือต้องโหลดเพิ่ม ~17 MB ครั้งแรก · เครื่องที่ช้ามากจะปิดการตรวจมือถือเอง (ยังจับบังหน้าได้) · มือถือเล็ก ๆ อยู่กลางภาพ (เพื่อนด้านหลัง) ไม่ข้ามข้อ แต่ขึ้น “📱ไกล” ให้ครูเห็นในแผงติดตามสด</li>
               </ul>
             </div>
             <CamChooser
@@ -161,7 +165,7 @@ export default function CameraDemo() {
                 <button onClick={() => { setCamNotice(null); guard.clearNotice(); }} className="text-xs underline shrink-0">รับทราบ</button>
               </div>
             )}
-            {useCam && picked === null && isCovered(cam) && <CoverShield />}
+            {useCam && picked === null && isCovered(cam) && <CoverShield phone={cam.phone} />}
             <div className="bg-gray-50 rounded-2xl p-4 mb-4" hidden={useCam && picked === null && isCovered(cam)} {...noCopyProps}>
               <p className="text-base font-bold text-gray-900">{strip(cur.q)}</p>
             </div>

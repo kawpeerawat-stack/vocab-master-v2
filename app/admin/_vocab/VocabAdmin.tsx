@@ -201,7 +201,7 @@ export default function VocabAdmin({
         m.passed, m.score,
         [
           legacy.length ? `ชุด ${legacy.join(", ")} ผ่านจากแอปแบบเดิม (คะแนนคิดจากขั้นที่ 4)` : "",
-          ...m.sets.filter((x) => guardEvents(x.rec) > 0).map((x) => `ชุด ${x.no} ออกจากหน้า ${x.rec!.gl ?? 0} · บังใบหน้า ${x.rec!.gc ?? 0} ครั้ง${isFlagged(x.rec) ? " 🚩" : ""}`),
+          ...m.sets.filter((x) => guardEvents(x.rec) > 0).map((x) => `ชุด ${x.no} ออกจากหน้า ${x.rec!.gl ?? 0} · บังใบหน้า ${x.rec!.gc ?? 0} · มือถือ ${x.rec!.gp ?? 0} ครั้ง${isFlagged(x.rec) ? " 🚩" : ""}`),
           ...m.sets.filter((x) => x.rec?.cm === "nocam" || x.rec?.cm === "camfail").map((x) => `ชุด ${x.no} ${x.rec!.cm === "nocam" ? "ไม่ใช้กล้อง" : "กล้องใช้ไม่ได้"}`),
         ].filter(Boolean).join(" · "),
         r.emails.join(" / "),

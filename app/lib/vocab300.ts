@@ -106,6 +106,9 @@ export interface VSetPass {
   gc?: number;
   gca?: number;
   gt?: number; // หมดเวลากี่คำ (ไม่ใช้กล้อง)
+  gp?: number; // พบมือถือในกล้องกี่ครั้ง · gpf = มือถือไกล ๆ (ไม่ข้าม) · gpd = ตัวตรวจมือถือทำงานไหม
+  gpf?: number;
+  gpd?: "ready" | "slow" | "error" | "loading" | "off";
 }
 export interface VProgress { cards: Record<string, VCard>; days: Record<string, VDay>; sets?: Record<string, VSetPass> }
 

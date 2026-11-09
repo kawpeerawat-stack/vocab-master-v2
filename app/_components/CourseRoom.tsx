@@ -26,15 +26,15 @@ import {
   shuffled,
 } from "../lib/courses";
 import { isIssue, issueText, loadLocalUnlock, openDay, serverToday, syncClock, thaiShort, type SyncState } from "../lib/sync";
-import { GUARD_FLAG_AT, guardMode, noCopyProps, noticeText, passNeed, qTimeLimit, Q_TIME_MS, Q_TIME_LONG_EXTRA, useLeaveGuard, useQuestionTimer, type CamMode } from "../lib/guard";
-import { CamBox, CamChooser, CoverShield, isCovered, loadCamChoice, saveCamChoice, TimerBar, useCameraGuard } from "./CamGuard";
+import { camMode, GUARD_FLAG_AT, guardMode, noCopyProps, noticeText, passNeed, qTimeLimit, Q_TIME_MS, Q_TIME_LONG_EXTRA, useLeaveGuard, useQuestionTimer, type CamMode } from "../lib/guard";
+import { CamBox, CamChooser, camSkipText, CoverShield, isCovered, loadCamChoice, saveCamChoice, TimerBar, useCameraGuard } from "./CamGuard";
 import { roomOf } from "../lib/names";
 import { liveEnd, liveEvent, liveLeaves, liveQuit, liveStart, liveStep } from "../lib/live";
 
 type View = "LIST" | "LESSON" | "GATE" | "QUIZ" | "RESULT";
 type QuizItem = { q: CourseQuestion; order: number[] }; // order[i] = index ตัวเลือกเดิมที่แสดงในช่อง i
 // chosen = index เดิม (ก่อนสลับ) · voided = ออกจากหน้าระหว่างข้อนี้ในรอบที่เข้าสมุดคะแนน (ช่วงหักคะแนน) → ไม่นับ
-type Answer = { qid: string; chosen: number; correct: boolean; voided?: boolean; skipped?: boolean; why?: "leave" | "cover" | "face" | "time" }; // skipped = ระบบข้ามข้อนี้ทันทีเพราะออกจากหน้า (chosen = -1)
+type Answer = { qid: string; chosen: number; correct: boolean; voided?: boolean; skipped?: boolean; why?: "leave" | "cover" | "face" | "time" | "phone" }; // skipped = ระบบข้ามข้อนี้ทันทีเพราะออกจากหน้า (chosen = -1)
 const nowMs = () => Date.now(); // เวลาปัจจุบัน (เรียกเฉพาะตอนกดปุ่ม ไม่ได้เรียกระหว่างวาดหน้าจอ)
 const scoreOf = (all: Answer[]) => all.filter((a) => a.correct && !a.voided).length;
 
@@ -105,7 +105,8 @@ export default function CourseRoom({
   const room = roomOf(name);
   // ระบบกัน AI: เฝ้าดูเฉพาะรอบที่เข้าสมุดคะแนน (รอบแรกของบท)
   const [guarded, setGuarded] = useState(false);
-  const mode = guardMode(today);
+  const mode = guardMode(today); // ออกจากหน้าแอป / หน้าต่างบัง
+  const cMode = camMode(today); // กล้อง + จับเวลา + เกณฑ์ 80%
   const qStart = useRef(0);
   const qTimes = useRef<number[]>([]);
   // กล้องกันกล้องซ้อน: นักเรียนเลือกเองที่หน้ากติกา (จำไว้ในเครื่อง)
@@ -197,8 +198,8 @@ export default function CourseRoom({
   const answered = selected !== null;
   // ช่วงหักคะแนน: ตรวจพบว่าออกจากหน้า/ถูกบังนานระหว่างข้อไหน → ข้ามข้อนั้นทันที (ไม่ได้คะแนน)
   const finishRef = useRef<(all: Answer[]) => void>(() => undefined);
-  const skipCurrent = (key: string, why: "leave" | "cover" | "face" | "time" = "leave") => {
-    if (!guarded || mode !== "enforce" || !current || current.q.id !== key || selected !== null) return false;
+  const skipCurrent = (key: string, why: "leave" | "cover" | "face" | "time" | "phone" = "leave") => {
+    if (!guarded || (why === "leave" || why === "cover" ? mode : cMode) !== "enforce" || !current || current.q.id !== key || selected !== null) return false;
     qTimes.current.push(Math.round((nowMs() - qStart.current) / 1000));
     const all: Answer[] = [...answers, { qid: key, chosen: -1, correct: false, voided: true, skipped: true, why }];
     setAnswers(all);
@@ -215,17 +216,21 @@ export default function CourseRoom({
   };
   const guard = useLeaveGuard(view === "QUIZ" && guarded, view === "QUIZ" && current && !answered ? current.q.id : null, skipCurrent);
   // กล้อง: มีอะไรบังใบหน้า (จมูกขึ้นไป) นานเกิน 0.5 วินาที → ช่วงหักคะแนนข้ามข้อ · ช่วงทดลองเตือน+บันทึก
-  const cam = useCameraGuard(() => {
-    if (guarded) liveEvent("face");
-    const skipped = current ? skipCurrent(current.q.id, "face") : false;
+  //   พบมือถือในกล้อง 2 ภาพติดกัน (9 พ.ย.) → เหมือนกัน
+  const cam = useCameraGuard((_ms, kind) => {
+    if (guarded) liveEvent(kind);
+    const skipped = current ? skipCurrent(current.q.id, kind) : false;
+    const what = kind === "phone" ? "📱 พบมือถือในกล้อง" : "📷 มีอะไรบังใบหน้า (จมูกขึ้นไป)";
     setCamNotice(
-      mode === "enforce"
+      cMode === "enforce"
         ? skipped
-          ? `📷 มีอะไรบังใบหน้า (จมูกขึ้นไป) — ข้อที่แล้วถูกข้าม (ไม่ได้คะแนน)`
-          : `📷 มีอะไรบังใบหน้า (จมูกขึ้นไป)`
-        : `📷 มีอะไรบังใบหน้า (จมูกขึ้นไป) — ช่วงทดลอง ระบบบันทึกให้ครูเห็น (ยังไม่หักคะแนน)`
+          ? camSkipText(kind)
+          : what
+        : `${what} — ช่วงทดลอง ระบบบันทึกให้ครูเห็น (ยังไม่หักคะแนน)`
     );
     return skipped;
+  }, () => {
+    if (guarded) liveEvent("far"); // มือถือเล็ก ๆ ไกล ๆ: ไม่ข้ามข้อ แจ้งครูในแผงสด
   });
   // ไม่ใช้กล้อง: จับเวลาข้อละ 20 วินาที (ข้อยาว 25) · หมดเวลา → ช่วงหักคะแนนข้ามข้อ · ช่วงทดลองเตือน+บันทึก
   const timeoutsRef = useRef(0);
@@ -235,7 +240,7 @@ export default function CourseRoom({
     if (!current) return;
     timeoutsRef.current++;
     liveEvent("time");
-    const skipped = mode === "enforce" ? skipCurrent(current.q.id, "time") : false;
+    const skipped = cMode === "enforce" ? skipCurrent(current.q.id, "time") : false;
     setCamNotice(skipped ? `⏱ หมดเวลา ${Math.round(qLimit / 1000)} วินาที — ข้อที่แล้วถูกข้าม (ไม่ได้คะแนน)` : `⏱ หมดเวลา ${Math.round(qLimit / 1000)} วินาที — ช่วงทดลอง ระบบบันทึกให้ครูเห็น (ยังไม่ข้ามข้อ)`);
   });
   const { arm: camArm, stop: camStop } = cam;
@@ -287,7 +292,7 @@ export default function CourseRoom({
     startedAt.current = nowMs();
     if (g) {
       const n = lessons.findIndex((x) => x.id === lesson.id) + 1;
-      liveStart(email, { room, a: "course", c: courseId, l: lesson.id, t: `${L}ที่ ${lesson.hour || n}`, tot: qs.length, cm });
+      liveStart(email, { room, a: "course", c: courseId, l: lesson.id, t: `${L}ที่ ${lesson.hour || n}`, tot: qs.length, cm, pd: cm === "cam" ? cam.phoneState : undefined });
     }
     scrollTop();
   };
@@ -320,13 +325,13 @@ export default function CourseRoom({
       score,
       total: lesson.questions.length,
       wrongIds: all.filter((a) => !a.correct).map((a) => a.qid),
-      passMin: passNeed(lesson.questions.length, { mode, guarded, cm: roundCam, passMin: course?.passMin }),
+      passMin: passNeed(lesson.questions.length, { mode: cMode, guarded, cm: roundCam, passMin: course?.passMin }),
       ms,
       ...(guarded
         ? {
             guard: guard.stats(all.filter((a) => a.voided).length, mode),
             qt: qTimes.current,
-            cam: { mode: roundCam, covers: cam.counts().covers, coverMs: cam.counts().coverMs, timeouts: timeoutsRef.current },
+            cam: { mode: roundCam, covers: cam.counts().covers, coverMs: cam.counts().coverMs, timeouts: timeoutsRef.current, phones: cam.counts().phones, phonesFar: cam.counts().phonesFar, pd: cam.counts().phoneState },
           }
         : {}),
       onSlow: () => setSaveState("slow"),
@@ -607,8 +612,8 @@ export default function CourseRoom({
           เริ่มทำแบบฝึกหัด {lesson.questions.length} ข้อ →
         </button>
         <p className="text-center text-xs text-gray-500 mt-2">
-          {mode === "enforce" && !progress[lesson.id]?.passed
-            ? `ถูก ${passNeed(lesson.questions.length, { mode, guarded: true, cm: "cam" })} ข้อขึ้นไปจึงผ่าน (ใช้กล้อง หรือไม่ใช้กล้อง + จับเวลาข้อละ ${Q_TIME_MS / 1000} วินาที)`
+          {cMode === "enforce" && !progress[lesson.id]?.passed
+            ? `ถูก ${passNeed(lesson.questions.length, { mode: cMode, guarded: true, cm: "cam" })} ข้อขึ้นไปจึงผ่าน (ใช้กล้อง หรือไม่ใช้กล้อง + จับเวลาข้อละ ${Q_TIME_MS / 1000} วินาที)`
             : needOf(lesson.questions.length) < lesson.questions.length
             ? `ถูก ${needOf(lesson.questions.length)} ข้อขึ้นไปจึงจะผ่าน${L}นี้`
             : `ต้องตอบถูกครบ ${lesson.questions.length} ข้อจึงจะผ่าน${L}นี้`}
@@ -638,11 +643,11 @@ export default function CourseRoom({
             <li>เปิด <b>โหมดห้ามรบกวน</b> ก่อน (กันแจ้งเตือนเด้งทับ) · ใช้มือถือเครื่องเดียว</li>
             <li><b>อยู่ในหน้านี้ตลอด</b> จนทำครบ {total} ข้อ — ห้ามสลับแอป สลับแท็บ กลับหน้าโฮม หรือเรียก Gemini / วงกลมค้นหา · คลุมหรือคัดลอกโจทย์ไม่ได้</li>
             <li>
-              {mode === "enforce"
-                ? <>ออกจากหน้า หน้าต่างอื่นบังนานเกิน 3 วินาที (ใช้กล้อง) มีอะไรบังใบหน้าตั้งแต่จมูกขึ้นไป หรือ (ไม่ใช้กล้อง) หมดเวลาข้อละ {Q_TIME_MS / 1000} วินาที ระหว่างข้อไหน <b className="text-rose-600">ระบบข้ามข้อนั้นทันที ไม่ได้คะแนน</b></>
-                : <>ช่วงทดลอง (ถึง 15 พ.ย.): ระบบ <b>บันทึก</b> การออกจากหน้า การบังใบหน้า และการหมดเวลาให้ครูเห็น (ยังไม่หักคะแนน)</>}
+              {cMode === "enforce"
+                ? <>(ใช้กล้อง) มีอะไรบังใบหน้าตั้งแต่จมูกขึ้นไป หรือมีมือถือเครื่องอื่นในภาพ · (ไม่ใช้กล้อง) หมดเวลาข้อละ {Q_TIME_MS / 1000} วินาที — ระหว่างข้อไหน <b className="text-rose-600">ระบบข้ามข้อนั้นทันที ไม่ได้คะแนน</b>{mode === "enforce" ? <> · ออกจากหน้า หรือหน้าต่างอื่นบังนานเกิน 3 วินาที ก็ข้ามข้อเช่นกัน</> : <> · ออกจากหน้า / หน้าต่างอื่นบัง: ถึง 15 พ.ย. บันทึกให้ครูเห็น เริ่มข้ามข้อ 16 พ.ย.</>}</>
+                : <>ช่วงทดลอง: ระบบ <b>บันทึก</b> การออกจากหน้า การบังใบหน้า และการหมดเวลาให้ครูเห็น (ยังไม่หักคะแนน)</>}
             </li>
-            <li>ใช้กล้อง: <b>ห้ามเอามือหรือสิ่งของขึ้นใกล้หน้า</b> (เกาจมูก ขยี้ตา หาว ก็นับ) · ตั้งมือถือให้กล้องเห็นหน้า ไม่วางราบ · ไม่ใช้กล้อง: นั่งที่เดิม ครูดูจากหน้าติดตามสด · จับเวลาข้อละ {Q_TIME_MS / 1000} วินาที (ข้อยาว {(Q_TIME_MS + Q_TIME_LONG_EXTRA) / 1000})</li>
+            <li>ใช้กล้อง: <b>ห้ามเอามือหรือสิ่งของขึ้นใกล้หน้า</b> (เกาจมูก ขยี้ตา หาว ก็นับ) · <b>เก็บมือถือเครื่องอื่นให้พ้นกล้อง</b> (เห็นแวบเดียวก็นับ) · ตั้งมือถือให้กล้องเห็นหน้า ไม่วางราบ · ไม่ใช้กล้อง: นั่งที่เดิม ครูดูจากหน้าติดตามสด · จับเวลาข้อละ {Q_TIME_MS / 1000} วินาที (ข้อยาว {(Q_TIME_MS + Q_TIME_LONG_EXTRA) / 1000})</li>
             <li>ออกจากหน้าครบ {GUARD_FLAG_AT} ครั้ง ครูจะเห็นเครื่องหมาย 🚩 และอาจให้ทำต่อหน้าครู</li>
           </ol>
         </div>
@@ -655,7 +660,7 @@ export default function CourseRoom({
           }}
           camRule={`ผ่านเมื่อถูก ${camNeed}/${total} (80%)`}
           noCamRule={`ผ่านเมื่อถูก ${camNeed}/${total} · จับเวลาข้อละ ${Q_TIME_MS / 1000} วินาที`}
-          note={mode === "enforce" ? undefined : `ช่วงทดลองถึง 15 พ.ย.: ยังใช้เกณฑ์เดิม (${needOf(total) < total ? `ถูก ${needOf(total)}/${total}` : `ถูกครบ ${total}/${total}`}) · เกณฑ์ 80% เริ่ม 16 พ.ย.`}
+          note={cMode === "enforce" ? undefined : `ช่วงทดลองถึง 15 พ.ย.: ยังใช้เกณฑ์เดิม (${needOf(total) < total ? `ถูก ${needOf(total)}/${total}` : `ถูกครบ ${total}/${total}`}) · เกณฑ์ 80% เริ่ม 16 พ.ย.`}
           startLabel={`เริ่มทำ ${total} ข้อ`}
           onStart={(cm) => startQuiz(true, cm)}
         />
@@ -699,14 +704,14 @@ export default function CourseRoom({
           </div>
         )}
         {guarded && camNotice && (
-          <div className={`rounded-xl p-3 mb-3 text-sm font-bold flex items-start gap-2 ${mode === "enforce" ? "bg-orange-100 text-orange-900 border-2 border-orange-300" : "bg-amber-50 text-amber-900 border-2 border-amber-200"}`}>
+          <div className={`rounded-xl p-3 mb-3 text-sm font-bold flex items-start gap-2 ${cMode === "enforce" ? "bg-orange-100 text-orange-900 border-2 border-orange-300" : "bg-amber-50 text-amber-900 border-2 border-amber-200"}`}>
             <span className="flex-1">{camNotice}</span>
             <button onClick={() => setCamNotice(null)} className="shrink-0 text-xs underline">รับทราบ</button>
           </div>
         )}
         {guarded && (
           <p className="text-[11px] font-bold text-[#003399]/70 mb-2">
-            📝 {roundCam === "cam" ? "ใช้กล้อง" : "ไม่ใช้กล้อง"} · ผ่านเมื่อถูก {passNeed(items.length, { mode, guarded, cm: roundCam, passMin: course?.passMin })}/{items.length} · อยู่ในหน้านี้จนทำครบ
+            📝 {roundCam === "cam" ? "ใช้กล้อง" : "ไม่ใช้กล้อง"} · ผ่านเมื่อถูก {passNeed(items.length, { mode: cMode, guarded, cm: roundCam, passMin: course?.passMin })}/{items.length} · อยู่ในหน้านี้จนทำครบ
             {guard.leaves > 0 ? ` · ออกจากหน้าแล้ว ${guard.leaves} ครั้ง` : ""}
           </p>
         )}
@@ -718,7 +723,7 @@ export default function CourseRoom({
           {wrongSoFar > 0 && <span className="text-gray-400">รอบนี้ยังไม่ผ่าน แต่ทำให้จบเพื่อดูเฉลยแล้วลองใหม่</span>}
         </div>
 
-        {shield && <CoverShield />}
+        {shield && <CoverShield phone={cam.phone} />}
         <div className="bg-gray-50 rounded-2xl p-4 mb-4" hidden={shield} {...noCopyProps}>
           <p className="text-base md:text-lg font-bold text-gray-900 leading-relaxed">
             <Rich text={current.q.q} />
@@ -795,7 +800,7 @@ export default function CourseRoom({
     const total = items.length;
     const score = scoreOf(answers);
     const nVoid = answers.filter((a) => a.voided).length;
-    const need = passNeed(total, { mode, guarded, cm: roundCam, passMin: course?.passMin });
+    const need = passNeed(total, { mode: cMode, guarded, cm: roundCam, passMin: course?.passMin });
     const passed = score >= need && total > 0;
     const wrong = answers.filter((a) => !a.correct);
     const qById = Object.fromEntries(lesson.questions.map((q) => [q.id, q]));
@@ -831,7 +836,7 @@ export default function CourseRoom({
                   <div key={a.qid} className="border-2 border-rose-100 rounded-2xl p-3">
                     <p className="text-sm font-bold text-gray-900 mb-1"><Rich text={q.q} /></p>
                     {a.skipped ? (
-                      <p className="text-xs text-orange-700 font-bold">⏭ ถูกข้าม เพราะ{a.why === "face" ? "มีอะไรบังใบหน้า (จมูกขึ้นไป)" : a.why === "cover" ? "มีหน้าต่างอื่นบังหน้าแอป" : a.why === "time" ? "หมดเวลา" : "ออกจากหน้าแอป"}ระหว่างทำ</p>
+                      <p className="text-xs text-orange-700 font-bold">⏭ ถูกข้าม เพราะ{a.why === "face" ? "มีอะไรบังใบหน้า (จมูกขึ้นไป)" : a.why === "phone" ? "พบมือถือในกล้อง" : a.why === "cover" ? "มีหน้าต่างอื่นบังหน้าแอป" : a.why === "time" ? "หมดเวลา" : "ออกจากหน้าแอป"}ระหว่างทำ</p>
                     ) : (
                       <p className="text-xs text-rose-600">✗ ตอบ: <Rich text={q.options[a.chosen]} /></p>
                     )}
