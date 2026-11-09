@@ -26,7 +26,7 @@ import {
   shuffled,
 } from "../lib/courses";
 import { isIssue, issueText, loadLocalUnlock, openDay, serverToday, syncClock, thaiShort, type SyncState } from "../lib/sync";
-import { camMode, GUARD_FLAG_AT, guardMode, noCopyProps, noticeText, passNeed, qTimeLimit, Q_TIME_MS, Q_TIME_LONG_EXTRA, useLeaveGuard, useQuestionTimer, type CamMode } from "../lib/guard";
+import { camMode, GUARD_FLAG_AT, guardMode, noCopyProps, noticeText, passNeed, qTimeLimit, Q_TIME_MS, useLeaveGuard, useQuestionTimer, type CamMode } from "../lib/guard";
 import { CamBox, CamChooser, camSkipText, CoverShield, isCovered, loadCamChoice, saveCamChoice, TimerBar, useCameraGuard } from "./CamGuard";
 import { roomOf } from "../lib/names";
 import { liveEnd, liveEvent, liveLeaves, liveQuit, liveStart, liveStep } from "../lib/live";
@@ -232,9 +232,9 @@ export default function CourseRoom({
   }, () => {
     if (guarded) liveEvent("far"); // มือถือเล็ก ๆ ไกล ๆ: ไม่ข้ามข้อ แจ้งครูในแผงสด
   });
-  // ไม่ใช้กล้อง: จับเวลาข้อละ 20 วินาที (ข้อยาว 25) · หมดเวลา → ช่วงหักคะแนนข้ามข้อ · ช่วงทดลองเตือน+บันทึก
+  // จับเวลาทุกคน ข้อละ 45 วินาที (9 พ.ย.) · หมดเวลา → ข้ามข้อ · ช่วงทดลองเตือน+บันทึก
   const timeoutsRef = useRef(0);
-  const timed = view === "QUIZ" && guarded && roundCam !== "cam" && !!current && !answered;
+  const timed = view === "QUIZ" && guarded && !!current && !answered;
   const qLimit = current ? qTimeLimit(current.q.q + " " + current.q.options.join(" ")) : Q_TIME_MS;
   const timeLeft = useQuestionTimer(timed, current ? `${idx}:${current.q.id}` : null, qLimit, () => {
     if (!current) return;
@@ -613,7 +613,7 @@ export default function CourseRoom({
         </button>
         <p className="text-center text-xs text-gray-500 mt-2">
           {cMode === "enforce" && !progress[lesson.id]?.passed
-            ? `ถูก ${passNeed(lesson.questions.length, { mode: cMode, guarded: true, cm: "cam" })} ข้อขึ้นไปจึงผ่าน (ใช้กล้อง หรือไม่ใช้กล้อง + จับเวลาข้อละ ${Q_TIME_MS / 1000} วินาที)`
+            ? `ถูก ${passNeed(lesson.questions.length, { mode: cMode, guarded: true, cm: "cam" })} ข้อขึ้นไปจึงผ่าน (ผิดได้ 20%) · ใช้กล้องทุกคน · จับเวลาข้อละ ${Q_TIME_MS / 1000} วินาที`
             : needOf(lesson.questions.length) < lesson.questions.length
             ? `ถูก ${needOf(lesson.questions.length)} ข้อขึ้นไปจึงจะผ่าน${L}นี้`
             : `ต้องตอบถูกครบ ${lesson.questions.length} ข้อจึงจะผ่าน${L}นี้`}
@@ -644,10 +644,10 @@ export default function CourseRoom({
             <li><b>อยู่ในหน้านี้ตลอด</b> จนทำครบ {total} ข้อ — ห้ามสลับแอป สลับแท็บ กลับหน้าโฮม หรือเรียก Gemini / วงกลมค้นหา · คลุมหรือคัดลอกโจทย์ไม่ได้</li>
             <li>
               {cMode === "enforce"
-                ? <>(ใช้กล้อง) มีอะไรบังใบหน้าตั้งแต่จมูกขึ้นไป หรือมีมือถือเครื่องอื่นในภาพ · (ไม่ใช้กล้อง) หมดเวลาข้อละ {Q_TIME_MS / 1000} วินาที — ระหว่างข้อไหน <b className="text-rose-600">ระบบข้ามข้อนั้นทันที ไม่ได้คะแนน</b>{mode === "enforce" ? <> · ออกจากหน้า หรือหน้าต่างอื่นบังนานเกิน 3 วินาที ก็ข้ามข้อเช่นกัน</> : <> · ออกจากหน้า / หน้าต่างอื่นบัง: ถึง 15 พ.ย. บันทึกให้ครูเห็น เริ่มข้ามข้อ 16 พ.ย.</>}</>
+                ? <>มีอะไรบังใบหน้าตั้งแต่จมูกขึ้นไป · มีมือถือเครื่องอื่นในภาพ · หรือหมดเวลาข้อละ {Q_TIME_MS / 1000} วินาที — ระหว่างข้อไหน <b className="text-rose-600">ระบบข้ามข้อนั้นทันที ไม่ได้คะแนน</b>{mode === "enforce" ? <> · ออกจากหน้า หรือหน้าต่างอื่นบังนานเกิน 3 วินาที ก็ข้ามข้อเช่นกัน</> : <> · ออกจากหน้า / หน้าต่างอื่นบัง: ถึง 15 พ.ย. บันทึกให้ครูเห็น เริ่มข้ามข้อ 16 พ.ย.</>}</>
                 : <>ช่วงทดลอง: ระบบ <b>บันทึก</b> การออกจากหน้า การบังใบหน้า และการหมดเวลาให้ครูเห็น (ยังไม่หักคะแนน)</>}
             </li>
-            <li>ใช้กล้อง: <b>ห้ามเอามือหรือสิ่งของขึ้นใกล้หน้า</b> (เกาจมูก ขยี้ตา หาว ก็นับ) · <b>เก็บมือถือเครื่องอื่นให้พ้นกล้อง</b> (เห็นแวบเดียวก็นับ) · ตั้งมือถือให้กล้องเห็นหน้า ไม่วางราบ · ไม่ใช้กล้อง: นั่งที่เดิม ครูดูจากหน้าติดตามสด · จับเวลาข้อละ {Q_TIME_MS / 1000} วินาที (ข้อยาว {(Q_TIME_MS + Q_TIME_LONG_EXTRA) / 1000})</li>
+            <li><b>ใช้กล้องทุกคน</b> · <b>ห้ามเอามือหรือสิ่งของขึ้นใกล้หน้า</b> (เกาจมูก ขยี้ตา หาว ก็นับ) · <b>เก็บมือถือเครื่องอื่นให้พ้นกล้อง</b> (เห็นแวบเดียวก็นับ) · ตั้งมือถือให้กล้องเห็นหน้า ไม่วางราบ · จับเวลาข้อละ {Q_TIME_MS / 1000} วินาที</li>
             <li>ออกจากหน้าครบ {GUARD_FLAG_AT} ครั้ง ครูจะเห็นเครื่องหมาย 🚩 และอาจให้ทำต่อหน้าครู</li>
           </ol>
         </div>
@@ -658,8 +658,9 @@ export default function CourseRoom({
             setCamWant(on);
             saveCamChoice(email, on);
           }}
-          camRule={`ผ่านเมื่อถูก ${camNeed}/${total} (80%)`}
-          noCamRule={`ผ่านเมื่อถูก ${camNeed}/${total} · จับเวลาข้อละ ${Q_TIME_MS / 1000} วินาที`}
+          required
+          camRule={`ผ่านเมื่อถูก ${camNeed}/${total} (ผิดได้ 20%) · จับเวลาข้อละ ${Q_TIME_MS / 1000} วินาที`}
+          noCamRule={`ข้อละ ${Q_TIME_MS / 1000} วินาที`}
           note={cMode === "enforce" ? undefined : `ช่วงทดลองถึง 15 พ.ย.: ยังใช้เกณฑ์เดิม (${needOf(total) < total ? `ถูก ${needOf(total)}/${total}` : `ถูกครบ ${total}/${total}`}) · เกณฑ์ 80% เริ่ม 16 พ.ย.`}
           startLabel={`เริ่มทำ ${total} ข้อ`}
           onStart={(cm) => startQuiz(true, cm)}

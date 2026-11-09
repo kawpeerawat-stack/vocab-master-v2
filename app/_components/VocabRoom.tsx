@@ -474,9 +474,9 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
     );
     return skipped;
   }, () => liveEvent("far")); // มือถือเล็ก ๆ ไกล ๆ: ไม่ข้ามคำ แจ้งครูในแผงสด
-  // ไม่ใช้กล้อง: จับเวลาคำละ 20 วินาที · หมดเวลา → ช่วงหักคะแนนข้ามคำ (วนกลับท้ายรอบ) · ช่วงทดลองเตือน+บันทึก
+  // จับเวลาทุกคน คำละ 45 วินาที (9 พ.ย.) · หมดเวลา → ข้ามคำ (วนกลับท้ายรอบ) · ช่วงทดลองเตือน+บันทึก
   const timeoutsRef = useRef(0);
-  const timed = mode === "CHECK" && !checkGate && roundCam !== "cam" && !!curItem && picked === null && curItem.retry === 0;
+  const timed = mode === "CHECK" && !checkGate && !!curItem && picked === null && curItem.retry === 0;
   const qLimit = curItem ? qTimeLimit(curItem.options.join(" ") + " " + (byId[curItem.wid]?.ctx ?? "")) : Q_TIME_MS;
   const timeLeft = useQuestionTimer(timed, curItem ? `${qi}:${curItem.wid}` : null, qLimit, () => {
     if (!curItem) return;
@@ -1143,7 +1143,7 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
             <li><b>อยู่ในหน้านี้ตลอด</b> จนผ่านชุด — ห้ามสลับแอป สลับแท็บ กลับหน้าโฮม หรือเรียก Gemini / วงกลมค้นหา · คลุมหรือคัดลอกโจทย์ไม่ได้</li>
             <li>
               {cMode === "enforce"
-                ? <>(ใช้กล้อง) มีอะไรบังใบหน้าตั้งแต่จมูกขึ้นไป หรือมีมือถือเครื่องอื่นในภาพ · (ไม่ใช้กล้อง) หมดเวลาคำละ {Q_TIME_MS / 1000} วินาที — ระหว่างคำไหน <b className="text-rose-600">ระบบข้ามคำนั้นทันที ไม่ได้คะแนน</b> (คำนั้นวนกลับมาท้ายรอบ ยังต้องตอบให้ถูกเพื่อผ่านชุด){gMode === "enforce" ? <> · ออกจากหน้า หรือหน้าต่างอื่นบังนานเกิน 3 วินาที ก็ข้ามคำเช่นกัน</> : <> · ออกจากหน้า / หน้าต่างอื่นบัง: ถึง 15 พ.ย. บันทึกให้ครูเห็น เริ่มข้ามคำ 16 พ.ย.</>}</>
+                ? <>มีอะไรบังใบหน้าตั้งแต่จมูกขึ้นไป · มีมือถือเครื่องอื่นในภาพ · หรือหมดเวลาคำละ {Q_TIME_MS / 1000} วินาที — ระหว่างคำไหน <b className="text-rose-600">ระบบข้ามคำนั้นทันที ไม่ได้คะแนน</b> (คำนั้นวนกลับมาท้ายรอบ ยังต้องตอบให้ถูกเพื่อผ่านชุด){gMode === "enforce" ? <> · ออกจากหน้า หรือหน้าต่างอื่นบังนานเกิน 3 วินาที ก็ข้ามคำเช่นกัน</> : <> · ออกจากหน้า / หน้าต่างอื่นบัง: ถึง 15 พ.ย. บันทึกให้ครูเห็น เริ่มข้ามคำ 16 พ.ย.</>}</>
                 : <>ช่วงทดลอง: ระบบ <b>บันทึก</b> การออกจากหน้าและการบังใบหน้าให้ครูเห็น (ยังไม่หักคะแนน)</>}
             </li>
             <li>ออกจากหน้าครบ {GUARD_FLAG_AT} ครั้ง ครูจะเห็นเครื่องหมาย 🚩</li>
@@ -1156,8 +1156,9 @@ export default function VocabRoom({ email, name, onExit }: { email: string; name
             setCamWant(on);
             saveCamChoice(email, on);
           }}
-          camRule="ใช้กล้องยืนยันว่าทำเอง"
-          noCamRule={`จับเวลาคำละ ${Q_TIME_MS / 1000} วินาที`}
+          required
+          camRule={`ใช้กล้องยืนยันว่าทำเอง · จับเวลาคำละ ${Q_TIME_MS / 1000} วินาที`}
+          noCamRule={`คำละ ${Q_TIME_MS / 1000} วินาที`}
           note={cMode === "enforce" ? undefined : "ช่วงทดลอง: บันทึกให้ครูเห็นอย่างเดียว"}
           startLabel="เข้าใจแล้ว เริ่มรอบทบทวน"
           onStart={(cm) => {

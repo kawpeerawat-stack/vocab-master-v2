@@ -145,7 +145,7 @@ export default function CameraDemo() {
               want={want}
               setWant={setWant}
               camRule="นักเรียน: ผ่านเมื่อถูก 80%"
-              noCamRule="นักเรียน: ถูก 80% · จับเวลาข้อละ 20 วินาที"
+              noCamRule="นักเรียน: ใช้กล้องทุกคน · ถูก 80% · ข้อละ 45 วินาที"
               startLabel={`เริ่มทดลอง ${qs.length} ข้อ`}
               onStart={begin}
             />

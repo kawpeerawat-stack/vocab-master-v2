@@ -154,9 +154,10 @@ export function passNeed(total: number, o: { mode: GuardMode; guarded: boolean; 
 }
 
 // ── จับเวลาต่อข้อ (รอบที่เข้าสมุดคะแนน · ไม่ใช้กล้อง) ──
-//   ถ่ายรูปแล้วรอ AI ตอบใช้ ~10–20 วินาที → หมดเวลา = ข้ามข้อ (ช่วงหักคะแนน) · ข้อที่โจทย์+ตัวเลือกยาว ได้เพิ่ม 5 วินาที
-export const Q_TIME_MS = 20000;
-export const Q_TIME_LONG_EXTRA = 5000;
+//   9 พ.ย. (บ่าย): ครูให้ใช้กล้อง 100% และจับเวลาทุกคน ข้อละ 45 วินาที (เดิม: เฉพาะไม่ใช้กล้อง 20 วิ / ข้อยาว 25)
+//   หมดเวลา = ข้ามข้อ · ปิดช่อง "อ่านโจทย์ให้ AI ในเครื่องอื่นที่อยู่นอกกล้องฟัง"
+export const Q_TIME_MS = 45000;
+export const Q_TIME_LONG_EXTRA = 0;
 export const Q_LONG_CHARS = 120;
 export const qTimeLimit = (text: string) => Q_TIME_MS + (text.replace(/\*\*|<[^>]+>/g, "").length > Q_LONG_CHARS ? Q_TIME_LONG_EXTRA : 0);
 

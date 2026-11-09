@@ -8,7 +8,8 @@
 // ─────────────────────────────────────────────────────────────
 import React, { useEffect, useMemo, useState } from "react";
 import type { LiveDoc } from "../../lib/live";
-import { serverNow, syncClock } from "../../lib/sync";
+import { serverNow, serverToday, syncClock } from "../../lib/sync";
+import { nocamCode } from "../../lib/nocamCode";
 
 export type LiveEntry = { id: string; name: string; no: number | null; room: string | null; live: LiveDoc };
 
@@ -56,7 +57,10 @@ export function LivePanel({ entries }: { entries: LiveEntry[] }) {
         <span className="text-sm font-bold text-gray-700 tabular-nums">{active.length} คน</span>
         {alerts > 0 && <span className="text-sm font-black text-rose-700 tabular-nums">มีเหตุการณ์ {alerts} คน</span>}
         {noCam > 0 && <span className="text-sm font-bold text-gray-600 tabular-nums">ไม่ใช้กล้อง {noCam} คน</span>}
-        <span className="ml-auto text-xs font-bold text-gray-400">{open ? "ย่อ ▲" : "ขยาย ▼"}</span>
+        <span className="ml-auto text-xs font-bold text-gray-500" data-nocam-today title="กล้องเครื่องนักเรียนเปิดไม่ได้จริง → ครูเดินไปดูแล้วกรอกรหัสนี้ให้ (เปลี่ยนทุกวัน)">
+          🔑 รหัสไม่ใช้กล้องวันนี้ <b className="tabular-nums text-gray-800 tracking-widest">{nocamCode(serverToday())}</b>
+        </span>
+        <span className="text-xs font-bold text-gray-400">{open ? "ย่อ ▲" : "ขยาย ▼"}</span>
       </button>
       {open && (
         <div className="px-4 pb-4">

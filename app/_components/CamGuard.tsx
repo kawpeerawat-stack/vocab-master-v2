@@ -15,6 +15,8 @@
 //   ประมวลผลในเครื่องเท่านั้น · ไม่เก็บ ไม่ส่งภาพ · ไม่ใช้ไมโครโฟน · ปิดกล้องเมื่อเลิกใช้
 // ─────────────────────────────────────────────────────────────
 import { useCallback, useEffect, useRef, useState } from "react";
+import { nocamCode } from "../lib/nocamCode";
+import { serverToday } from "../lib/sync";
 
 export const COVER_FACE_MS = 500; // บังต่อเนื่องนานเท่านี้ (~5 ภาพ) = นับ 1 ครั้ง — กรองการกะพริบตา/ขยับหัว (8 พ.ย. ครูปรับจาก 0.3 เป็น 0.5 วินาที)
 export const UPPER_CORR_MIN = 0.3; // ความคล้ายของบริเวณตา–หน้าผากกับตอนเทียบหน้า ต่ำกว่านี้ = มีอะไรบัง
@@ -522,6 +524,7 @@ export function CamChooser({
   note,
   startLabel,
   onStart,
+  required = false,
 }: {
   cam: CamGuard;
   want: boolean;
@@ -531,8 +534,12 @@ export function CamChooser({
   note?: string;
   startLabel: string;
   onStart: (cm: "cam" | "nocam" | "camfail") => void;
+  required?: boolean; // 9 พ.ย.: ต้องใช้กล้องทุกคน — ไม่มีตัวเลือก "ไม่ใช้กล้อง" · กล้องใช้ไม่ได้จริงให้ครูกรอกรหัส
 }) {
   const st = cam.status;
+  const [code, setCode] = useState("");
+  const [codeBad, setCodeBad] = useState(false);
+  const camView = required || want;
   const card = (on: boolean, icon: string, title: string, rule: string) => (
     <button
       type="button"
@@ -550,15 +557,22 @@ export function CamChooser({
   );
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap gap-2">
-        {card(true, "📷", "ใช้กล้อง", camRule)}
-        {card(false, "🚫", "ไม่ใช้กล้อง", noCamRule)}
-      </div>
+      {required ? (
+        <div className="rounded-2xl border-2 border-[#003399] bg-[#003399]/5 p-3" data-cam-required="1">
+          <div className="font-black text-sm text-gray-900">📷 รอบนี้ต้องใช้กล้องทุกคน</div>
+          <div className="text-xs font-bold text-[#003399] mt-0.5">{camRule}</div>
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {card(true, "📷", "ใช้กล้อง", camRule)}
+          {card(false, "🚫", "ไม่ใช้กล้อง", noCamRule)}
+        </div>
+      )}
       {note && <p className="text-[11px] font-bold text-amber-800 bg-amber-50 rounded-xl px-3 py-2">{note}</p>}
       <p className="text-[11px] text-gray-500 leading-relaxed">
         🔒 กล้องใช้ดูว่า “ยังเห็นใบหน้า (จมูกขึ้นไป)” และ “มีมือถือเครื่องอื่นในภาพ” หรือไม่เท่านั้น — ประมวลผลในเครื่องนี้ <b>ไม่บันทึก ไม่ส่งภาพ ไม่ใช้ไมโครโฟน</b> · ครูเห็นแค่จำนวนครั้ง · ปิดกล้องทันทีเมื่อทำจบ
       </p>
-      {want ? (
+      {camView ? (
         <div className="space-y-2">
           {st !== "off" && st !== "denied" && st !== "error" && <CamBox cam={cam} />}
           {st === "off" && (
@@ -583,10 +597,46 @@ export function CamChooser({
                 {st === "denied" ? "ไม่ได้รับอนุญาตให้ใช้กล้อง (กดอนุญาตกล้องในเบราว์เซอร์แล้วลองใหม่ได้)" : "เปิดตัวตรวจจับใบหน้าไม่ได้ในเครื่องนี้ (ลองเบราว์เซอร์ Chrome / Safari)"}
                 {cam.errorDetail && <span className="block text-[11px] font-bold text-rose-500 mt-1" data-cam-error="1">สาเหตุ: {cam.errorDetail}</span>}
               </p>
+              {st === "denied" && required && (
+                <p className="text-xs font-bold text-gray-600 bg-gray-50 rounded-xl p-3 leading-relaxed">
+                  วิธีอนุญาตกล้อง: กดรูปกุญแจ 🔒 / “aA” ข้างช่องที่อยู่เว็บ → กล้อง (Camera) → อนุญาต → แล้วกด “ลองเปิดกล้องอีกครั้ง” · ถ้าเปิดจากในแอป LINE ให้กด ⋯ แล้วเลือกเปิดด้วย Safari / Chrome
+                </p>
+              )}
               <button type="button" onClick={() => void cam.start()} className="w-full py-3 bg-white border-2 border-[#003399] text-[#003399] font-black rounded-2xl">ลองเปิดกล้องอีกครั้ง</button>
-              <button type="button" onClick={() => onStart("camfail")} className="w-full py-3 bg-gray-100 text-gray-700 font-black rounded-2xl">
-                ทำแบบไม่ใช้กล้อง ({noCamRule}) · ครูจะเห็นว่ากล้องใช้ไม่ได้
-              </button>
+              {required ? (
+                <div className="rounded-xl border-2 border-gray-200 p-3 space-y-2" data-nocam-code="1">
+                  <p className="text-xs font-bold text-gray-700">เครื่องนี้เปิดกล้องไม่ได้จริง? <b>ยกมือเรียกครู</b> — ครูจะกรอกรหัสให้ (ทำแบบจับเวลา {noCamRule} · ครูเห็น 🚫)</p>
+                  <div className="flex gap-2">
+                    <input
+                      inputMode="numeric"
+                      maxLength={4}
+                      value={code}
+                      onChange={(e) => {
+                        setCode(e.target.value.replace(/\D/g, ""));
+                        setCodeBad(false);
+                      }}
+                      placeholder="รหัสครู 4 หลัก"
+                      aria-label="รหัสครู"
+                      className="flex-1 min-w-0 border-2 border-gray-200 rounded-xl px-3 py-2 font-black tracking-widest text-center"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (code === nocamCode(serverToday())) onStart("camfail");
+                        else setCodeBad(true);
+                      }}
+                      className="shrink-0 px-4 py-2 bg-gray-700 text-white font-black rounded-xl"
+                    >
+                      ยืนยัน
+                    </button>
+                  </div>
+                  {codeBad && <p className="text-xs font-bold text-rose-600">รหัสไม่ถูกต้อง</p>}
+                </div>
+              ) : (
+                <button type="button" onClick={() => onStart("camfail")} className="w-full py-3 bg-gray-100 text-gray-700 font-black rounded-2xl">
+                  ทำแบบไม่ใช้กล้อง ({noCamRule}) · ครูจะเห็นว่ากล้องใช้ไม่ได้
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -599,7 +649,7 @@ export function CamChooser({
   );
 }
 
-// แถบนับถอยหลัง (จับเวลาต่อข้อ · ไม่ใช้กล้อง)
+// แถบนับถอยหลัง (จับเวลาต่อข้อ · ทุกคน ตั้งแต่ 9 พ.ย.)
 export function TimerBar({ left, limit }: { left: number; limit: number }) {
   const pct = Math.max(0, Math.min(100, (left / limit) * 100));
   const s = Math.ceil(left / 1000);
