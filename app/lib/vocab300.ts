@@ -15,7 +15,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { db } from "./firebase";
-import { collection, doc, getDoc, getDocs, setDoc, serverTimestamp } from "firebase/firestore";
+import { collection, doc, FieldPath, getDoc, getDocs, setDoc, serverTimestamp } from "firebase/firestore";
 import { saveLocalUnlock, serial, verifiedWrite, type SyncIssue } from "./sync";
 
 // ── เนื้อหา ──
@@ -109,6 +109,7 @@ export interface VSetPass {
   gp?: number; // พบมือถือในกล้องกี่ครั้ง · gpf = มือถือไกล ๆ (ไม่ข้าม) · gpd = ตัวตรวจมือถือทำงานไหม
   gpf?: number;
   gpd?: "ready" | "slow" | "error" | "loading" | "off";
+  prev?: { day: string; score: number; at: number }; // ผลเดิมที่ทำล่วงหน้า (ไม่นับ) — รอบนี้คือรอบทำใหม่พร้อมกล้อง
 }
 export interface VProgress { cards: Record<string, VCard>; days: Record<string, VDay>; sets?: Record<string, VSetPass> }
 
@@ -269,7 +270,7 @@ function learnFirstTry(p: VProgress, ws: VWord[]): [number, number] {
   return [Math.max(0, n - w), n];
 }
 // บันทึกผ่านชุด k: ทุกคำในชุด "รู้แล้ว" · นัดทวนคาบหน้า (ไม่บังคับ)
-export function passSet(p: VProgress, words: VWord[], k: number, today: string, info: { score: number; legacy?: boolean; at?: number }): VProgress {
+export function passSet(p: VProgress, words: VWord[], k: number, today: string, info: { score: number; legacy?: boolean; at?: number; prev?: VSetPass["prev"] }): VProgress {
   const ws = setWords(words, k);
   const at = info.at ?? Date.now();
   const cards = { ...p.cards };
@@ -282,6 +283,7 @@ export function passSet(p: VProgress, words: VWord[], k: number, today: string, 
   }
   const rec: VSetPass = { at, day: today, score: Math.max(0, Math.min(10, Math.round(info.score))), learn: learnFirstTry(p, ws) };
   if (info.legacy) rec.legacy = 1;
+  if (info.prev) rec.prev = info.prev;
   return { ...p, cards, sets: { ...(p.sets || {}), [String(k)]: rec } };
 }
 // ชุดที่เรียนครบ 10 คำด้วยแอปแบบเดิม (ไม่มีคำไหนเรียนแบบใหม่) → นับว่าผ่าน · และทำให้คำในชุดที่ผ่านแล้วเป็น "รู้แล้ว" ครบ
@@ -368,7 +370,8 @@ export function mergeProgress(a: VProgress, b: VProgress): VProgress {
   const sets: Record<string, VSetPass> = { ...(a.sets || {}) };
   for (const [k, v] of Object.entries(b.sets || {})) {
     const x = sets[k];
-    sets[k] = !x ? v : x.legacy && !v.legacy ? v : !x.legacy && v.legacy ? x : x.at <= v.at ? x : v;
+    // รอบทำใหม่ (มี prev) ชนะผลเดิมที่ทำล่วงหน้าเสมอ
+    sets[k] = !x ? v : !!x.prev !== !!v.prev ? (x.prev ? x : v) : x.legacy && !v.legacy ? v : !x.legacy && v.legacy ? x : x.at <= v.at ? x : v;
   }
   return { cards, days, sets };
 }
@@ -500,20 +503,31 @@ export async function saveProgress(email: string, name: string, p: VProgress, on
     const { part, n } = diffOf(data, meta);
     if (n === 0) return { ok: true as const };
     const st = computeStats(data);
+    // ⚠️ 9 พ.ย.: ต้นเหตุที่หน้าครูขึ้น R ค้าง — เดิมส่ง v300: { cards, days, sets } แบบ merge
+    //   ถ้ากล่องไหนว่าง ({}) Firebase จะเขียนทับกล่องบนระบบให้ว่าง (ชุดที่ผ่านแล้วหาย)
+    //   แก้: ระบุ "ช่องที่เปลี่ยน" ทีละช่อง (mergeFields) → แตะเฉพาะการ์ด/วัน/ชุดที่เปลี่ยน · ช่องที่ส่งถูกแทนทั้งก้อน (ไม่มีค่าเก่าค้าง)
+    const v300: Partial<VProgress> = {};
+    const fields: (string | FieldPath)[] = ["name", "email", "v300Known", "v300Seen", "v300Sets", "v300At", "updatedAt"];
+    for (const key of ["cards", "days", "sets"] as const) {
+      const box = (part[key] || {}) as Record<string, unknown>;
+      if (!Object.keys(box).length) continue;
+      (v300 as Record<string, unknown>)[key] = box;
+      for (const id of Object.keys(box)) fields.push(new FieldPath("v300", key, id));
+    }
     const r = await verifiedWrite(() =>
       setDoc(
         doc(db, "students", emailToId(email)),
         {
           name,
           email: email.trim().toLowerCase(),
-          v300: part,
+          v300,
           v300Known: st.known,
           v300Seen: st.seen,
           v300Sets: passedCount(data),
           v300At: Date.now(),
           updatedAt: serverTimestamp(),
         },
-        { merge: true }
+        { mergeFields: fields }
       ),
       onSlow
     );

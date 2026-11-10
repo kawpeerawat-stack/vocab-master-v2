@@ -12,6 +12,8 @@
 import React, { useEffect, useState } from "react";
 import CourseRoom from "./_components/CourseRoom";
 import VocabRoom, { passedSetsLocal } from "./_components/VocabRoom";
+import { CamBox, CamChooser, CamSource, useSharedCamera } from "./_components/CamGuard";
+import { Q_TIME_MS } from "./lib/guard";
 import { CORE_NAME } from "./lib/vocab300";
 import {
   GRADES,
@@ -88,6 +90,11 @@ export default function Home() {
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const isM4 = gradeOf(profile?.room) === "4";
+  // 9 พ.ย.: เปิดกล้องและเทียบหน้าที่หน้าเลือกห้องก่อน จึงเข้าได้ทั้ง 2 แถบ (มาตรฐานเดียวกันก่อนทำ) · กล้องเปิดค้างจนออกจากระบบ
+  const { cam, bind } = useSharedCamera();
+  const [hubCam, setHubCam] = useState<null | "cam" | "camfail">(null);
+  const shared = { cam, bind, fallback: hubCam === "camfail" };
+  const camOk = hubCam === "camfail" || (hubCam === "cam" && cam.status !== "off");
 
   // ป้าย “ถึงกำหนดทวน” บนปุ่มคำศัพท์ (อ่านจากข้อมูลในเครื่องทุกครั้งที่กลับมาหน้าเมนู)
   const setsPassed = isLoggedIn && section === "HUB" && email && typeof window !== "undefined" ? passedSetsLocal(email) : 0;
@@ -158,6 +165,8 @@ export default function Home() {
   };
 
   const handleLogout = () => {
+    cam.stop();
+    setHubCam(null);
     setIsLoggedIn(false);
     setSection("HUB");
     setStudentName("");
@@ -259,6 +268,9 @@ export default function Home() {
           </form>
         )}
 
+        {/* ภาพต้นทางของกล้อง (ซ่อน · อยู่ตลอดตอนเข้าระบบ) — เปลี่ยนหน้า/ห้องแล้วการตรวจไม่สะดุด */}
+        {isLoggedIn && <CamSource cam={cam} />}
+
         {/* ── เมนูหลัก ── */}
         {isLoggedIn && section === "HUB" && (
           <div className="text-center animate-fadeIn mt-2">
@@ -274,7 +286,32 @@ export default function Home() {
               )}
             </div>
 
-            {isM4 ? (
+            {/* กล้องก่อนเข้าห้อง */}
+            {!camOk ? (
+              <div className="text-left mb-5 rounded-2xl border-2 border-[#003399]/15 p-4 bg-[#003399]/[0.02]" data-hub-cam="gate">
+                <p className="font-black text-[#003399] mb-1">📷 ขั้นแรก: เปิดกล้องก่อนเข้าห้องเรียน</p>
+                <p className="text-xs font-bold text-gray-600 mb-3">ทำครั้งเดียวที่หน้านี้ แล้วเข้าได้ทั้ง 2 แถบ · กล้องเปิดค้างระหว่างเรียน (นับเฉพาะตอนทำแบบฝึกที่เข้าสมุดคะแนน) · ตั้งมือถือให้เห็นหน้า เก็บมือถือเครื่องอื่นให้พ้นกล้อง</p>
+                <CamChooser
+                  cam={cam}
+                  want
+                  setWant={() => undefined}
+                  required
+                  camRule="ใช้กล้องทุกคน · ประมวลผลในเครื่อง ไม่บันทึกภาพ"
+                  noCamRule={`ข้อละ ${Q_TIME_MS / 1000} วินาที`}
+                  startLabel="เข้าห้องเรียน"
+                  onStart={(cm) => setHubCam(cm === "cam" ? "cam" : "camfail")}
+                />
+              </div>
+            ) : (
+              <div className="mb-4 flex items-center gap-3 rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-2 text-left" data-hub-cam="ok">
+                {hubCam === "cam" && <div className="w-20 shrink-0"><CamBox cam={cam} /></div>}
+                <p className="text-xs font-bold text-emerald-800">
+                  {hubCam === "cam" ? "✓ กล้องพร้อม — เลือกห้องได้เลย (กล้องเปิดค้างจนกดออกจากระบบ)" : "✓ ครูอนุญาตไม่ใช้กล้องแล้ว (เครื่องนี้) — ทำแบบจับเวลา"}
+                </p>
+              </div>
+            )}
+
+            {!camOk ? null : isM4 ? (
               /* ม.4 (อ31206) คาบเดี่ยว 45 นาที เรียนเฉพาะห้องถอดรหัสคำศัพท์ · ห้องคำศัพท์แกน 120 คำเป็นของ ม.6 (อ33102) */
               <div className="text-left mb-6">
                 <RoomCard
@@ -332,10 +369,10 @@ export default function Home() {
           </div>
         )}
 
-        {isLoggedIn && section === "VOCAB" && <VocabRoom email={email} name={studentName} onExit={() => setSection("HUB")} />}
+        {isLoggedIn && section === "VOCAB" && <VocabRoom email={email} name={studentName} onExit={() => setSection("HUB")} shared={shared} />}
 
         {isLoggedIn && section === "DECODER" && (
-          <CourseRoom key={isM4 ? "decoder4" : "decoder"} courseId={isM4 ? "decoder4" : "decoder"} email={email} name={studentName} onExit={() => setSection("HUB")} />
+          <CourseRoom key={isM4 ? "decoder4" : "decoder"} courseId={isM4 ? "decoder4" : "decoder"} email={email} name={studentName} onExit={() => setSection("HUB")} shared={shared} />
         )}
       </div>
       <p className="mt-8 text-[10px] text-gray-400 font-bold tracking-[0.3em] uppercase">© Anukoolnaree School | Vocabulary Essential M.6</p>

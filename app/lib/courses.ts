@@ -8,7 +8,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { db } from "./firebase";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, FieldPath, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { saveLocalUnlock, serial, verifiedWrite, type SyncIssue } from "./sync";
 import type { GuardStats } from "./guard";
 
@@ -105,6 +105,8 @@ export interface LessonProgress {
   gpf?: number;         // เห็นมือถือเล็ก ๆ ไกล ๆ กี่ครั้ง (ไม่ข้ามข้อ · ให้ครูดู)
   gpd?: "ready" | "slow" | "error" | "loading" | "off"; // ตัวตรวจมือถือทำงานไหม (slow = เครื่องช้า ปิดชั้นนี้)
   pm?: "cam" | "nocam" | "camfail"; // ผ่านบทนี้ด้วยรอบแบบไหน (ใช้กล้อง = เกณฑ์ 80% · ไม่ใช้กล้อง = ครบทุกข้อ)
+  // 9 พ.ย.: ผลเดิมที่ "ทำล่วงหน้า" (ก่อนวันเรียนของห้อง) — ไม่นับ เก็บไว้ให้ครูดู · บทนี้ต้องทำใหม่ทั้งรอบพร้อมกล้อง
+  early?: { first?: number; best: number; firstAt?: number; passedAt?: number; attempts: number };
 }
 // ฟิลด์ที่ติดไปกับคะแนนรอบแรก
 const FIRST_KEYS = ["first", "firstTotal", "firstAt", "firstMs", "gl", "ga", "gb", "gv", "gm", "fqt", "cm", "gc", "gca", "gt", "gp", "gpf", "gpd"] as const;
@@ -152,6 +154,11 @@ function saveLocalCourseProgress(courseId: string, email: string, p: CourseProgr
 export function mergeLesson(a?: LessonProgress, b?: LessonProgress): LessonProgress | undefined {
   if (!a) return b;
   if (!b) return a;
+  // ฝั่งที่ล้างผลทำล่วงหน้าแล้ว (มี early) ชนะผลเดิมที่ทำล่วงหน้า (อีกฝั่งยังเป็นข้อมูลเก่าก่อนล้าง)
+  if (!!a.early !== !!b.early) {
+    const r = a.early ? a : b, o = a.early ? b : a;
+    if ((o.firstAt ?? o.lastAt ?? 0) <= (r.early!.firstAt ?? Infinity) || (o.attempts ?? 0) <= (r.early!.attempts ?? 0)) return r;
+  }
   const newer = (b.lastAt ?? 0) >= (a.lastAt ?? 0) ? b : a;
   const passedAts = [a.passedAt, b.passedAt].filter((x): x is number => typeof x === "number");
   const missed: Record<string, number> = { ...(a.missed || {}) };
@@ -173,7 +180,32 @@ export function mergeLesson(a?: LessonProgress, b?: LessonProgress): LessonProgr
     attempts: Math.max(a.attempts ?? 0, b.attempts ?? 0),
     lastAt: Math.max(a.lastAt ?? 0, b.lastAt ?? 0),
     missed,
+    ...(a.early || b.early ? { early: (a.early ?? b.early)! } : {}),
   };
+}
+
+// ผลบทที่ "ทำล่วงหน้า" (ก่อนวันเรียนของห้อง) → มองเป็นยังไม่ได้ทำ (รอบใหม่ = รอบแรก พร้อมกล้อง) · ผลเดิมย้ายไปเก็บที่ early
+//   ใช้กับมุมมองในหน้านักเรียน / หน้าครู · ข้อมูลบนระบบเปลี่ยนเมื่อทำรอบใหม่เสร็จ (ครูเห็น ⏩ จนกว่าจะทำใหม่)
+export function earlyReset(x: LessonProgress): LessonProgress {
+  return {
+    passed: false,
+    best: 0,
+    last: 0,
+    total: x.total,
+    attempts: 0,
+    lastAt: x.lastAt,
+    missed: x.missed || {},
+    early: { ...(typeof x.first === "number" ? { first: x.first } : {}), best: x.best ?? 0, ...(x.firstAt ? { firstAt: x.firstAt } : {}), ...(x.passedAt ? { passedAt: x.passedAt } : {}), attempts: x.attempts },
+  };
+}
+export function applyEarly(p: CourseProgress, isEarly: (lessonId: string, x: LessonProgress) => boolean): CourseProgress {
+  let out: CourseProgress | null = null;
+  for (const [id, x] of Object.entries(p)) {
+    if (x.early || !(x.attempts > 0) || !isEarly(id, x)) continue;
+    out = out ?? { ...p };
+    out[id] = earlyReset(x);
+  }
+  return out ?? p;
 }
 export function mergeCourseProgress(a: CourseProgress, b: CourseProgress): CourseProgress {
   const out: CourseProgress = {};
@@ -227,9 +259,10 @@ export async function saveLessonAttempt(params: {
   guard?: GuardStats; // ระบบกัน AI (เฉพาะรอบที่เข้าสมุดคะแนน)
   qt?: number[];      // เวลาที่ใช้รายข้อ (วินาที)
   cam?: { mode: "cam" | "nocam" | "camfail"; covers: number; coverMs: number; timeouts?: number; phones?: number; phonesFar?: number; pd?: string }; // กล้องในรอบนี้ (รอบที่เข้าสมุดคะแนน)
+  early?: boolean;    // บทนี้เคยทำล่วงหน้า (ไม่นับ) → รอบนี้คือรอบแรกใหม่
   onSlow?: () => void;
 }): Promise<{ lesson: LessonProgress; cloudOk: boolean; issue?: SyncIssue }> {
-  const { courseId, lessonId, email, name, score, total, wrongIds, passMin, ms, guard, qt, cam, onSlow } = params;
+  const { courseId, lessonId, email, name, score, total, wrongIds, passMin, ms, guard, qt, cam, early, onSlow } = params;
   const now = Date.now();
   const allLocal = loadLocalCourseProgress(courseId, email);
   let base: LessonProgress | undefined = allLocal[lessonId];
@@ -248,6 +281,7 @@ export async function saveLessonAttempt(params: {
     }
   }
 
+  if (early && base && !base.early && base.attempts > 0) base = earlyReset(base);
   const passedNow = total > 0 && score >= Math.min(total, passMin ?? total);
   const missed: Record<string, number> = { ...(base?.missed || {}) };
   for (const id of wrongIds) missed[id] = (missed[id] ?? 0) + 1;
@@ -279,6 +313,7 @@ export async function saveLessonAttempt(params: {
     attempts: (base?.attempts ?? 0) + 1,
     lastAt: now,
     missed,
+    ...(base?.early ? { early: base.early } : {}),
   };
 
   saveLocalCourseProgress(courseId, email, { ...allLocal, [lessonId]: lesson });
@@ -326,6 +361,8 @@ async function writeLessons(
 ): Promise<{ ok: true } | { ok: false; issue: SyncIssue }> {
   if (!email || !db) return { ok: false, issue: "error" };
   const ids = Object.keys(lessons);
+  // 9 พ.ย.: ระบุช่องรายบท (mergeFields) → บทที่ส่งถูกแทนทั้งก้อนบนระบบ ไม่มีค่าเก่าค้าง (เช่น ผลที่ทำล่วงหน้า)
+  const fields: (string | FieldPath)[] = ["email", "courseActiveAt", "updatedAt", ...(name ? ["name"] : []), ...ids.map((id) => new FieldPath("courses", courseId, id))];
   return serial(emailToId(email), async () => {
     const r = await verifiedWrite(() =>
       setDoc(
@@ -337,7 +374,7 @@ async function writeLessons(
           courseActiveAt: Math.max(...Object.values(lessons).map((x) => x.lastAt ?? 0)),
           updatedAt: serverTimestamp(),
         },
-        { merge: true }
+        { mergeFields: fields }
       ),
       onSlow
     );

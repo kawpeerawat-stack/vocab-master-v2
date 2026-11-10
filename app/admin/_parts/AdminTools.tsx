@@ -243,3 +243,29 @@ export function SpotCheck({ title, picks, total }: { title: string; picks: SpotC
     </div>
   );
 }
+
+// ── 9 พ.ย.: แถบแยกรายสัปดาห์ (ดูทีละบท/ชุด · เช็คง่าย) ──
+export function WeekTabs({ items, sel, setSel, summary }: { items: { key: number; label: string; sub?: string }[]; sel: number; setSel: (k: number) => void; summary?: string }) {
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 p-3 mb-3" data-week-tabs>
+      <div className="flex gap-1.5 overflow-x-auto pb-1">
+        <button type="button" onClick={() => setSel(0)} className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-black border-2 ${sel === 0 ? "bg-[#003399] text-[#FFD700] border-[#003399]" : "bg-white text-gray-600 border-gray-200"}`}>
+          ทุกสัปดาห์
+        </button>
+        {items.map((it) => (
+          <button
+            key={`${it.key}-${it.label}`}
+            type="button"
+            onClick={() => setSel(it.key)}
+            title={it.sub}
+            data-week-tab={it.key}
+            className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-black border-2 whitespace-nowrap ${sel === it.key ? "bg-[#003399] text-[#FFD700] border-[#003399]" : "bg-white text-[#003399] border-[#003399]/15 hover:border-[#003399]/40"}`}
+          >
+            ส.{it.key} · {it.label}
+          </button>
+        ))}
+      </div>
+      {summary && <p className="text-xs font-bold text-gray-600 mt-2" data-week-summary>{summary}</p>}
+    </div>
+  );
+}

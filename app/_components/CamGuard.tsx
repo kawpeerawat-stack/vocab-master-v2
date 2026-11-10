@@ -16,7 +16,7 @@
 // ─────────────────────────────────────────────────────────────
 import { useCallback, useEffect, useRef, useState } from "react";
 import { nocamCode } from "../lib/nocamCode";
-import { serverToday } from "../lib/sync";
+import { serverToday, syncClock } from "../lib/sync";
 
 export const COVER_FACE_MS = 500; // บังต่อเนื่องนานเท่านี้ (~5 ภาพ) = นับ 1 ครั้ง — กรองการกะพริบตา/ขยับหัว (8 พ.ย. ครูปรับจาก 0.3 เป็น 0.5 วินาที)
 export const UPPER_CORR_MIN = 0.3; // ความคล้ายของบริเวณตา–หน้าผากกับตอนเทียบหน้า ต่ำกว่านี้ = มีอะไรบัง
@@ -177,7 +177,10 @@ export function useCameraGuard(onCover?: (ms: number, kind: CoverKind) => boolea
   const [visible, setVisible] = useState(false);
   const [missMs, setMissMs] = useState(0);
   const [calibrated, setCalibrated] = useState(false);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null); // กล่องภาพที่นักเรียนเห็น (เปลี่ยนตามหน้า)
+  // ภาพต้นทางสำหรับตรวจจับ (9 พ.ย.): วิดีโอซ่อนที่อยู่ตลอด (หน้าเลือกห้อง) — เปลี่ยนหน้าแล้วการตรวจไม่สะดุด
+  const sourceRef = useRef<HTMLVideoElement | null>(null);
+  const vid = () => sourceRef.current ?? videoRef.current;
   const streamRef = useRef<MediaStream | null>(null);
   const detRef = useRef<FaceDet | null>(null);
   const loopRef = useRef<number | null>(null);
@@ -188,6 +191,14 @@ export function useCameraGuard(onCover?: (ms: number, kind: CoverKind) => boolea
   const st = useRef({ armed: false, missStart: 0, fired: false, lastSeen: 0, covers: 0, coverMs: 0, gotResult: false, faceOk: true, phoneHits: 0, phoneMiss: 0, phones: 0, farHits: 0, farMiss: 0, farFired: false, phonesFar: 0, phoneState: "off" as PhoneState });
   const phoneRun = useRef(0); // รอบการทำงานของตัวตรวจมือถือ (เปลี่ยนเลข = หยุดรอบเก่า)
   // หน้าจอเปลี่ยน (กติกา → ทำข้อ) แล้วกล่องวิดีโอถูกสร้างใหม่ → ต่อภาพกล้องเข้าไปใหม่
+  const setSource = useCallback((el: HTMLVideoElement | null) => {
+    sourceRef.current = el;
+    if (el && streamRef.current && el.srcObject !== streamRef.current) {
+      el.muted = true;
+      el.srcObject = streamRef.current;
+      void el.play().catch(() => undefined);
+    }
+  }, []);
   const setVideo = useCallback((el: HTMLVideoElement | null) => {
     videoRef.current = el;
     if (el && streamRef.current && el.srcObject !== streamRef.current) {
@@ -211,6 +222,7 @@ export function useCameraGuard(onCover?: (ms: number, kind: CoverKind) => boolea
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
+    if (sourceRef.current) sourceRef.current.srcObject = null;
     void detRef.current?.close?.().catch(() => undefined);
     detRef.current = null;
     st.current.armed = false;
@@ -246,7 +258,7 @@ export function useCameraGuard(onCover?: (ms: number, kind: CoverKind) => boolea
     const ds = r.detections || [];
     const d = ds.slice().sort((a, b) => (b.boundingBox?.width ?? 0) * (b.boundingBox?.height ?? 0) - (a.boundingBox?.width ?? 0) * (a.boundingBox?.height ?? 0))[0];
     let ok = !!d;
-    const v = videoRef.current;
+    const v = vid();
     if (d && v) {
       if (!ctxRef.current) {
         const c = document.createElement("canvas");
@@ -312,7 +324,7 @@ export function useCameraGuard(onCover?: (ms: number, kind: CoverKind) => boolea
     set("ready");
     const times: number[] = [];
     while (run === phoneRun.current) {
-      const v = videoRef.current;
+      const v = vid();
       if (!v || v.readyState < 2 || !v.videoWidth) {
         await new Promise((r) => setTimeout(r, 200));
         continue;
@@ -326,6 +338,7 @@ export function useCameraGuard(onCover?: (ms: number, kind: CoverKind) => boolea
       }
       if (run !== phoneRun.current) return;
       times.push(now() - t0);
+      if (times.length > 4) times.shift();
       if (times.length === 4 && times.reduce((a, b) => a + b, 0) / 4 > PHONE_SLOW_MS) {
         set("slow"); // เครื่องช้าเกินไป → ใช้แค่ชั้น 1–2
         setPhone(false);
@@ -361,7 +374,8 @@ export function useCameraGuard(onCover?: (ms: number, kind: CoverKind) => boolea
       setPhone(s.phoneHits >= PHONE_FRAMES);
       setPhoneFar(s.farHits >= PHONE_FRAMES);
       judge(now());
-      await new Promise((r) => setTimeout(r, PHONE_GAP_MS));
+      // นอกรอบที่เข้าสมุดคะแนน (กล้องเปิดค้างจากหน้าเลือกห้อง) → ตรวจช้าลง ประหยัดแบตเตอรี่/ไม่ให้เครื่องร้อน
+      await new Promise((r) => setTimeout(r, s.armed ? PHONE_GAP_MS : 1000));
     }
   }, [judge]);
 
@@ -383,8 +397,15 @@ export function useCameraGuard(onCover?: (ms: number, kind: CoverKind) => boolea
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 320 }, height: { ideal: 240 } }, audio: false });
       streamRef.current = stream;
-      const v = videoRef.current;
+      const v = vid();
       if (!v) throw new Error("no video element");
+      // กล่องภาพที่นักเรียนเห็น (ถ้าแยกจากภาพต้นทาง)
+      const disp = videoRef.current;
+      if (disp && disp !== v) {
+        disp.muted = true;
+        disp.srcObject = stream;
+        void disp.play().catch(() => undefined);
+      }
       v.setAttribute("playsinline", "true");
       v.muted = true;
       v.srcObject = stream;
@@ -414,13 +435,15 @@ export function useCameraGuard(onCover?: (ms: number, kind: CoverKind) => boolea
       let det = create(false);
       try {
         if (det.initialize) await withTimeout(det.initialize(), 25000, "เริ่มตัวตรวจใบหน้า (SIMD)");
-        if (videoRef.current) await withTimeout(det.send({ image: videoRef.current }), 15000, "ทดสอบภาพแรก (SIMD)");
+        const v0 = vid();
+        if (v0) await withTimeout(det.send({ image: v0 }), 15000, "ทดสอบภาพแรก (SIMD)");
       } catch (e1) {
         console.warn("SIMD failed, retry without SIMD:", e1);
         void det.close?.().catch(() => undefined);
         det = create(true);
         if (det.initialize) await withTimeout(det.initialize(), 25000, "เริ่มตัวตรวจใบหน้า");
-        if (videoRef.current) await withTimeout(det.send({ image: videoRef.current }), 15000, "ทดสอบภาพแรก");
+        const v1 = vid();
+        if (v1) await withTimeout(det.send({ image: v1 }), 15000, "ทดสอบภาพแรก");
       }
       detRef.current = det;
       setStatus("calib");
@@ -428,8 +451,8 @@ export function useCameraGuard(onCover?: (ms: number, kind: CoverKind) => boolea
       const tick = () => {
         loopRef.current = requestAnimationFrame(tick);
         const t = now();
-        const vv = videoRef.current;
-        if (busy || t - lastSend < 100 || !vv || vv.readyState < 2) return; // ~10 ภาพ/วินาที (เครื่องช้าได้น้อยกว่านี้)
+        const vv = vid();
+        if (busy || t - lastSend < (st.current.armed ? 100 : 400) || !vv || vv.readyState < 2) return; // ~10 ภาพ/วินาที ระหว่างทำข้อ · นอกนั้น ~2.5 ภาพ/วินาที
         busy = true;
         lastSend = t;
         detRef.current?.send({ image: vv }).catch(() => undefined).finally(() => { busy = false; });
@@ -463,11 +486,52 @@ export function useCameraGuard(onCover?: (ms: number, kind: CoverKind) => boolea
     st.current.phones = 0;
     st.current.phonesFar = 0;
   }, []);
-  return { status, visible, missMs, calibrated, phone, phoneFar, phoneState, errorDetail, setVideo, start, stop, arm, counts, resetCounts };
+  return { status, visible, missMs, calibrated, phone, phoneFar, phoneState, errorDetail, setVideo, setSource, start, stop, arm, counts, resetCounts };
 }
 
 export type CamGuard = ReturnType<typeof useCameraGuard>;
 
+// ── 9 พ.ย.: กล้องชุดเดียวทั้งแอป — เปิดและเทียบหน้าที่หน้าเลือกห้อง แล้วใช้ต่อทั้ง 2 แถบ (มาตรฐานเดียวกันก่อนทำ) ──
+//   หน้าเลือกห้องถือกล้อง · ห้องที่กำลังเปิดลงทะเบียนตัวรับเหตุการณ์ (บังหน้า / มือถือ) · ห้องปิดกล้องเองไม่ได้ (ปิดเมื่อออกจากระบบ)
+type CamHandlers = { onCover?: (ms: number, kind: CoverKind) => boolean | void; onFar?: () => void };
+// กล้องมีชุดเดียวต่อหน้า → เก็บตัวรับเหตุการณ์ของห้องที่เปิดอยู่ไว้ระดับไฟล์
+let roomHandlers: CamHandlers = {};
+const bindRoom = (h: CamHandlers) => {
+  roomHandlers = h;
+  return () => {
+    if (roomHandlers === h) roomHandlers = {};
+  };
+};
+export function useSharedCamera() {
+  const cam = useCameraGuard(
+    (ms, kind) => roomHandlers.onCover?.(ms, kind),
+    () => roomHandlers.onFar?.()
+  );
+  return { cam, bind: bindRoom };
+}
+export type SharedCam = ReturnType<typeof useSharedCamera> & { fallback: boolean }; // fallback = ครูกรอกรหัสไม่ใช้กล้องแล้ว (เครื่องนี้)
+const noop = () => undefined;
+export function useRoomCamera(shared: SharedCam | undefined, onCover: (ms: number, kind: CoverKind) => boolean | void, onFar?: () => void): CamGuard {
+  const own = useCameraGuard(shared ? undefined : onCover, shared ? undefined : onFar);
+  const cb = useRef({ onCover, onFar });
+  useEffect(() => {
+    cb.current = { onCover, onFar };
+  });
+  const bind = shared?.bind;
+  useEffect(() => {
+    if (!bind) return;
+    return bind({ onCover: (ms, kind) => cb.current.onCover(ms, kind), onFar: () => cb.current.onFar?.() });
+  }, [bind]);
+  return shared ? { ...shared.cam, stop: noop } : own;
+}
+
+// ภาพต้นทางของกล้อง (ซ่อน · วางไว้ที่หน้าเลือกห้องตลอดเวลาที่เข้าระบบ) — เปลี่ยนหน้า/ห้องแล้วการตรวจไม่สะดุด
+export function CamSource({ cam }: { cam: CamGuard }) {
+  return <SourceVideo setSource={cam.setSource} />;
+}
+function SourceVideo({ setSource }: { setSource: (el: HTMLVideoElement | null) => void }) {
+  return <video ref={setSource} playsInline muted aria-hidden="true" className="fixed bottom-0 left-0 w-[2px] h-[2px] opacity-[0.01] pointer-events-none" />;
+}
 // กล่องภาพกล้อง (แสดงให้นักเรียนเห็นตัวเอง) — floating = มุมขวาล่างระหว่างทำข้อ
 export function CamBox({ cam, floating }: { cam: CamGuard; floating?: boolean }) {
   return <CamView status={cam.status} visible={cam.visible} missMs={cam.missMs} phone={cam.phone} phoneFar={cam.phoneFar} setVideo={cam.setVideo} floating={floating} />;
@@ -525,6 +589,7 @@ export function CamChooser({
   startLabel,
   onStart,
   required = false,
+  preApproved = false,
 }: {
   cam: CamGuard;
   want: boolean;
@@ -535,6 +600,7 @@ export function CamChooser({
   startLabel: string;
   onStart: (cm: "cam" | "nocam" | "camfail") => void;
   required?: boolean; // 9 พ.ย.: ต้องใช้กล้องทุกคน — ไม่มีตัวเลือก "ไม่ใช้กล้อง" · กล้องใช้ไม่ได้จริงให้ครูกรอกรหัส
+  preApproved?: boolean; // ครูกรอกรหัสไม่ใช้กล้องให้แล้วที่หน้าเลือกห้อง
 }) {
   const st = cam.status;
   const [code, setCode] = useState("");
@@ -575,8 +641,13 @@ export function CamChooser({
       {camView ? (
         <div className="space-y-2">
           {st !== "off" && st !== "denied" && st !== "error" && <CamBox cam={cam} />}
+          {st !== "ready" && st !== "loading" && st !== "calib" && preApproved && required && (
+            <button type="button" onClick={() => onStart("camfail")} className="w-full py-4 bg-gray-700 text-white font-black rounded-2xl shadow-xl text-lg" data-preapproved="1">
+              {startLabel} (ครูอนุญาตไม่ใช้กล้องแล้ว · จับเวลา {noCamRule}) →
+            </button>
+          )}
           {st === "off" && (
-            <button type="button" onClick={() => void cam.start()} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-xl text-lg">
+            <button type="button" onClick={() => void cam.start()} className={`w-full py-4 font-black rounded-2xl shadow-xl text-lg ${preApproved ? "bg-white border-2 border-[#003399] text-[#003399]" : "bg-[#003399] text-[#FFD700]"}`}>
               📷 เปิดกล้องและเทียบหน้า
             </button>
           )}
@@ -591,7 +662,7 @@ export function CamChooser({
               ✓ เทียบหน้าแล้ว · {startLabel} →
             </button>
           )}
-          {(st === "denied" || st === "error") && (
+          {(st === "denied" || st === "error") && !preApproved && (
             <div className="space-y-2">
               <p className="bg-rose-50 text-rose-700 font-bold rounded-xl p-3 text-sm">
                 {st === "denied" ? "ไม่ได้รับอนุญาตให้ใช้กล้อง (กดอนุญาตกล้องในเบราว์เซอร์แล้วลองใหม่ได้)" : "เปิดตัวตรวจจับใบหน้าไม่ได้ในเครื่องนี้ (ลองเบราว์เซอร์ Chrome / Safari)"}
@@ -621,7 +692,8 @@ export function CamChooser({
                     />
                     <button
                       type="button"
-                      onClick={() => {
+                      onClick={async () => {
+                        await syncClock(); // ใช้วันที่ของเซิร์ฟเวอร์ (นาฬิกามือถือผิดก็ไม่เป็นไร)
                         if (code === nocamCode(serverToday())) onStart("camfail");
                         else setCodeBad(true);
                       }}

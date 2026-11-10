@@ -27,13 +27,16 @@ import {
   loadCourse,
   mergeCourseProgress,
   isFastAttempt,
+  applyEarly,
 } from "../lib/courses";
+import { doneEarly, thaiDayOf } from "../lib/early";
+import { openDay } from "../lib/sync";
 import { GRADES, ROSTER, extractNo, fmtThaiTime, gradeOf, matchRoster, roomOf, rosterKey, typedMismatch } from "../lib/roster";
 import { CORE_NAME, CORE_PLAN, VCourse, VProgress, loadVocab300 } from "../lib/vocab300";
 import VocabAdmin from "./_vocab/VocabAdmin";
 import { LivePanel, type LiveEntry } from "./_parts/LivePanel";
 import type { LiveDoc } from "../lib/live";
-import { GuardMark, LegacyPanel, SpotCheck, UnlockButton, guardEvents, guardTip, isFlagged, pickSpot, type SpotCand } from "./_parts/AdminTools";
+import { GuardMark, LegacyPanel, SpotCheck, UnlockButton, WeekTabs, guardEvents, guardTip, isFlagged, pickSpot, type SpotCand } from "./_parts/AdminTools";
 
 // ── สิทธิ์เข้าหน้า /admin (เหมือนเดิม) ──
 const ADMIN_EMAIL = "kawpeerawat@gmail.com";
@@ -100,7 +103,9 @@ function listenStudents(onData: (list: StudentDoc[]) => void, onError: (e: unkno
 const fmtDur = (ms?: number) => (ms ? `${Math.floor(ms / 60000)}:${String(Math.round((ms % 60000) / 1000)).padStart(2, "0")}` : "");
 
 type Status = "passed" | "tried" | "none";
-const statusOf = (p?: LessonProgress): Status => (p?.passed ? "passed" : p ? "tried" : "none");
+// early = ทำล่วงหน้าก่อนวันเรียนของห้อง (ไม่นับ · ⏩ ต้องทำใหม่พร้อมกล้อง) → นับเป็นยังไม่ทำ
+const statusOf = (p?: LessonProgress): Status => (p?.passed ? "passed" : p && p.attempts > 0 ? "tried" : "none");
+const EarlyMark = () => <span data-early="1" className="inline-flex w-7 h-7 rounded-lg bg-orange-100 text-orange-700 font-black items-center justify-center text-[11px] ring-1 ring-orange-300">⏩</span>;
 
 export default function AdminDashboard() {
   const [authed, setAuthed] = useState(false);
@@ -111,6 +116,7 @@ export default function AdminDashboard() {
   const [v300, setV300] = useState<VCourse | null>(null);
   const [courseId, setCourseId] = useState(COURSE_REGISTRY[0]?.id ?? "decoder");
   const [course, setCourse] = useState<Course | null>(null);
+  const [weekSel, setWeekSel] = useState(0); // 0 = ทุกสัปดาห์
   const [students, setStudents] = useState<StudentDoc[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadedAt, setLoadedAt] = useState<number>(0);
@@ -223,13 +229,26 @@ export default function AdminDashboard() {
       }
     }
     const rosterRows = Object.values(byRoster).sort((a, b) => (a.room! < b.room! ? -1 : a.room! > b.room! ? 1 : (a.no ?? 0) - (b.no ?? 0)));
-    return [...rosterRows, ...extra];
-  }, [students, courseId]);
+    // 9 พ.ย.: บทที่ทำล่วงหน้า (ก่อนวันเรียนของห้อง · ครูไม่ได้เปิดให้) ไม่นับ → ⏩
+    const byId = new Map((course?.lessons ?? []).map((l) => [l.id, l] as const));
+    return [...rosterRows, ...extra].map((r) =>
+      course
+        ? {
+            ...r,
+            progress: applyEarly(r.progress, (id, x) => {
+              const l = byId.get(id);
+              return !!l && doneEarly(thaiDayOf(x.firstAt ?? x.passedAt ?? x.lastAt ?? 0), openDay(l.start, r.room, course.classDays), l.hour <= r.unlock);
+            }),
+          }
+        : r
+    );
+  }, [students, courseId, course]);
 
   const gradeInfo = GRADES.find((g) => g.grade === grade) ?? GRADES[0];
   const scopeLabel = roomFilter === "ALL" ? `${gradeInfo.label} ทุกห้อง` : `ม.${roomFilter}`;
   const lessons = course?.lessons ?? [];
   const L = course?.lessonWord ?? "บท"; // ฉบับ ม.4 เรียกว่า "คาบ"
+  const shownLessons = weekSel ? lessons.filter((l) => (l.week ?? l.hour) === weekSel) : lessons;
   const qn = lessons[0]?.questions.length ?? 0;
   const passText = course?.passMin && course.passMin < qn ? `ถูก ${course.passMin}/${qn} ข้อขึ้นไป` : `ตอบถูกครบทุกข้อ (${qn}/${qn})`;
   const inRoom = (r: Row) => (roomFilter === "ALL" ? inGrade(r.room, grade) : r.room === roomFilter);
@@ -566,6 +585,33 @@ export default function AdminDashboard() {
 
             {spot && <SpotCheck title={`ม.${roomFilter} · ${course.title ?? ""}`.trim()} picks={spot.picks} total={spot.total} />}
 
+            {/* 9 พ.ย.: แถบแยกรายสัปดาห์ — ดูทีละบท/สัปดาห์ เช็คง่าย */}
+            {(mode === "matrix" || mode === "grades") && (
+              <WeekTabs
+                items={lessons.map((l) => ({ key: l.week ?? l.hour, label: `${L} ${l.hour}`, sub: l.dateLabel ?? "" }))}
+                sel={weekSel}
+                setSel={setWeekSel}
+                summary={
+                  weekSel
+                    ? (() => {
+                        const ls = shownLessons;
+                        const rs = [...rosterRows, ...extraRows];
+                        const c = { pass: 0, tried: 0, early: 0, none: 0 };
+                        for (const r of rs)
+                          for (const l of ls) {
+                            const p = r.progress[l.id];
+                            if (p?.early && !(p.attempts > 0)) c.early++;
+                            else if (p?.passed) c.pass++;
+                            else if (p && p.attempts > 0) c.tried++;
+                            else c.none++;
+                          }
+                        return `${scopeLabel}: ✓ ผ่าน ${c.pass} · ทำแล้วยังไม่ผ่าน ${c.tried} · ⏩ ทำล่วงหน้า (ต้องทำใหม่) ${c.early} · ยังไม่ทำ ${c.none} (จาก ${rs.length} คน)`;
+                      })()
+                    : ""
+                }
+              />
+            )}
+
             {/* ── ตารางรายคน ── */}
             {mode === "matrix" && (
               <div className="bg-white rounded-2xl border border-gray-100 mb-5">
@@ -574,7 +620,7 @@ export default function AdminDashboard() {
                     <thead>
                       <tr className="bg-[#003399] text-white">
                         <th className="sticky left-0 z-10 bg-[#003399] text-left px-3 py-2 font-black min-w-[220px]">นักเรียน</th>
-                        {lessons.map((l) => (
+                        {shownLessons.map((l) => (
                           <th key={l.id} className="px-1 py-2 font-black text-[11px] min-w-[38px]" title={`${l.titleEn} — ${l.titleTh}`}>
                             {l.hour}
                           </th>
@@ -613,7 +659,7 @@ export default function AdminDashboard() {
                                 {!r.inRoster && <div className="text-[10px] text-gray-400 truncate max-w-[260px]">{r.emails.join(" / ")}</div>}
                                 <UnlockButton ids={r.ids} keyName={courseId} current={r.unlock} max={lessons.length} unit={L} />
                               </td>
-                              {lessons.map((l) => {
+                              {shownLessons.map((l) => {
                                 const p = r.progress[l.id];
                                 const st = statusOf(p);
                                 const fast = !!p && ((p.fast ?? 0) > 0 || isFastAttempt(p.firstMs, p.firstTotal));
@@ -624,7 +670,9 @@ export default function AdminDashboard() {
                                   <td key={l.id} className="text-center px-0.5 py-1 relative" title={tip}>
                                     {fast && <span className="absolute -top-0.5 right-0 text-[10px]" aria-label="ทำเร็วผิดปกติ">⚡</span>}
                                     <GuardMark g={p} />
-                                    {st === "passed" ? (
+                                    {p?.early && !(p.attempts > 0) ? (
+                                      <EarlyMark />
+                                    ) : st === "passed" ? (
                                       <span className="inline-flex w-7 h-7 rounded-lg bg-emerald-500 text-white font-black items-center justify-center text-xs">✓</span>
                                     ) : st === "tried" ? (
                                       <span className="inline-flex w-7 h-7 rounded-lg bg-amber-100 text-amber-800 font-black items-center justify-center text-[11px] tabular-nums">{p!.best}</span>
@@ -661,7 +709,7 @@ export default function AdminDashboard() {
                     <thead>
                       <tr className="bg-[#003399] text-white">
                         <th className="sticky left-0 z-10 bg-[#003399] text-left px-3 py-2 font-black min-w-[220px]">นักเรียน</th>
-                        {lessons.map((l) => (
+                        {shownLessons.map((l) => (
                           <th key={l.id} className="px-1 py-2 font-black text-[11px] min-w-[38px]" title={`${L} ${l.hour} · ${l.titleEn} (เต็ม ${l.questions.length})`}>
                             {l.hour}
                           </th>
@@ -685,7 +733,7 @@ export default function AdminDashboard() {
                                   {r.name}
                                 </div>
                               </td>
-                              {lessons.map((l) => {
+                              {shownLessons.map((l) => {
                                 const p = r.progress[l.id];
                                 const g = gradeCell(p, l.questions.length);
                                 return (
@@ -696,7 +744,9 @@ export default function AdminDashboard() {
                                   >
                                     {g?.fast && <span className="absolute -top-0.5 right-0 text-[10px]" aria-label="ทำเร็วผิดปกติ">⚡</span>}
                                     <GuardMark g={p} />
-                                    {p && g ? (
+                                    {p?.early && !(p.attempts > 0) ? (
+                                      <EarlyMark />
+                                    ) : p && g ? (
                                       <span className={`inline-flex min-w-7 h-7 px-0.5 rounded-lg font-black items-center justify-center text-[11px] tabular-nums ${p.passed ? "bg-emerald-500 text-white" : "bg-amber-100 text-amber-800"}`}>{g.score}{g.star ? "*" : ""}</span>
                                     ) : (
                                       <span className="inline-flex w-7 h-7 rounded-lg bg-gray-50 text-gray-300 items-center justify-center text-xs">·</span>

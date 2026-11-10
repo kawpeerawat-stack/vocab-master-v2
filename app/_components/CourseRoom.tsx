@@ -24,10 +24,12 @@ import {
   resendPendingLessons,
   saveLessonAttempt,
   shuffled,
+  applyEarly,
 } from "../lib/courses";
+import { doneEarly, thaiDayOf } from "../lib/early";
 import { isIssue, issueText, loadLocalUnlock, openDay, serverToday, syncClock, thaiShort, type SyncState } from "../lib/sync";
 import { camMode, GUARD_FLAG_AT, guardMode, noCopyProps, noticeText, passNeed, qTimeLimit, Q_TIME_MS, useLeaveGuard, useQuestionTimer, type CamMode } from "../lib/guard";
-import { CamBox, CamChooser, camSkipText, CoverShield, isCovered, loadCamChoice, saveCamChoice, TimerBar, useCameraGuard } from "./CamGuard";
+import { CamBox, CamChooser, camSkipText, CoverShield, isCovered, loadCamChoice, saveCamChoice, TimerBar, useRoomCamera, type SharedCam } from "./CamGuard";
 import { roomOf } from "../lib/names";
 import { liveEnd, liveEvent, liveLeaves, liveQuit, liveStart, liveStep } from "../lib/live";
 
@@ -80,15 +82,17 @@ export default function CourseRoom({
   email,
   name,
   onExit,
+  shared,
 }: {
   courseId: string;
   email: string;
   name: string;
   onExit: () => void;
+  shared?: SharedCam; // กล้องที่เปิดไว้แล้วที่หน้าเลือกห้อง (9 พ.ย.)
 }) {
   const [course, setCourse] = useState<Course | null>(null);
   const [loadError, setLoadError] = useState(false);
-  const [progress, setProgress] = useState<CourseProgress>({});
+  const [rawProgress, setProgress] = useState<CourseProgress>({});
   const [view, setView] = useState<View>("LIST");
   const [lesson, setLesson] = useState<CourseLesson | null>(null);
   const [items, setItems] = useState<QuizItem[]>([]);
@@ -116,6 +120,17 @@ export default function CourseRoom({
   const [triedNow, setTriedNow] = useState<Record<string, true>>({}); // บทที่ทำไปแล้วในรอบเปิดห้องนี้ (ก่อนผลบันทึกเสร็จ)
   const [revealed, setRevealed] = useState<Record<string, boolean>>({}); // คำศัพท์ประจำบทที่กดดูความหมายแล้ว
   const startedAt = useRef(0); // เวลาที่เริ่มทำแบบฝึกหัดรอบนี้ (ไว้คิดเวลาที่ใช้ให้ครูดู)
+
+  // 9 พ.ย.: บทที่ "ทำล่วงหน้า" (ก่อนวันเรียนของห้อง · ครูไม่ได้เปิดให้) ไม่นับ → มองเป็นยังไม่ได้ทำ ต้องทำใหม่พร้อมกล้อง
+  const progress = useMemo(() => {
+    if (!course) return rawProgress;
+    const byId = new Map(course.lessons.map((l) => [l.id, l] as const));
+    return applyEarly(rawProgress, (id, x) => {
+      const l = byId.get(id);
+      if (!l) return false;
+      return doneEarly(thaiDayOf(x.firstAt ?? x.passedAt ?? x.lastAt ?? 0), openDay(l.start, room, course.classDays), l.hour <= unlockN);
+    });
+  }, [course, rawProgress, room, unlockN]);
 
   // โหลดเนื้อหา + ความก้าวหน้า
   useEffect(() => {
@@ -172,7 +187,7 @@ export default function CourseRoom({
   const openOn = (l: CourseLesson) => openDay(l.start, room, course?.classDays);
   const isOpen = (l: CourseLesson) => {
     const d = openOn(l);
-    return !d || d <= today || l.hour <= unlockN || !!progress[l.id];
+    return !d || d <= today || l.hour <= unlockN || (progress[l.id]?.attempts ?? 0) > 0;
   };
   const needOf = (total: number) => Math.min(total, course?.passMin ?? total); // ถูกกี่ข้อจึงผ่าน
   const qn = lessons[0]?.questions.length ?? 0;
@@ -217,7 +232,7 @@ export default function CourseRoom({
   const guard = useLeaveGuard(view === "QUIZ" && guarded, view === "QUIZ" && current && !answered ? current.q.id : null, skipCurrent);
   // กล้อง: มีอะไรบังใบหน้า (จมูกขึ้นไป) นานเกิน 0.5 วินาที → ช่วงหักคะแนนข้ามข้อ · ช่วงทดลองเตือน+บันทึก
   //   พบมือถือในกล้อง 2 ภาพติดกัน (9 พ.ย.) → เหมือนกัน
-  const cam = useCameraGuard((_ms, kind) => {
+  const cam = useRoomCamera(shared, (_ms, kind) => {
     if (guarded) liveEvent(kind);
     const skipped = current ? skipCurrent(current.q.id, kind) : false;
     const what = kind === "phone" ? "📱 พบมือถือในกล้อง" : "📷 มีอะไรบังใบหน้า (จมูกขึ้นไป)";
@@ -327,6 +342,7 @@ export default function CourseRoom({
       wrongIds: all.filter((a) => !a.correct).map((a) => a.qid),
       passMin: passNeed(lesson.questions.length, { mode: cMode, guarded, cm: roundCam, passMin: course?.passMin }),
       ms,
+      early: !!progress[lesson.id]?.early && !rawProgress[lesson.id]?.early,
       ...(guarded
         ? {
             guard: guard.stats(all.filter((a) => a.voided).length, mode),
@@ -460,10 +476,12 @@ export default function CourseRoom({
                       </span>
                       <span className="shrink-0 text-right">
                         {!open ? (
-                          <span className="text-[11px] font-black text-gray-500 bg-gray-100 px-2 py-1 rounded-full whitespace-nowrap">🔒 {od ? thaiShort(od) : ""}</span>
+                          <span className="text-[11px] font-black text-gray-500 bg-gray-100 px-2 py-1 rounded-full whitespace-nowrap">🔒 {od ? thaiShort(od) : ""}{p?.early ? " · ทำใหม่" : ""}</span>
+                        ) : p?.early && !(p.attempts > 0) ? (
+                          <span className="text-[11px] font-black text-orange-700 bg-orange-100 px-2 py-1 rounded-full whitespace-nowrap" title="ทำไว้ก่อนวันเรียน ยังไม่ผ่านการเปิดกล้อง — ต้องทำใหม่">⏩ ทำใหม่พร้อมกล้อง</span>
                         ) : p?.passed ? (
                           <span className="text-[11px] font-black text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full">✓ ผ่าน</span>
-                        ) : p ? (
+                        ) : p && p.attempts > 0 ? (
                           <span className="text-[11px] font-black text-amber-700 bg-amber-100 px-2 py-1 rounded-full">
                             ดีสุด {p.best}/{p.total}
                           </span>
@@ -659,6 +677,7 @@ export default function CourseRoom({
             saveCamChoice(email, on);
           }}
           required
+          preApproved={!!shared?.fallback}
           camRule={`ผ่านเมื่อถูก ${camNeed}/${total} (ผิดได้ 20%) · จับเวลาข้อละ ${Q_TIME_MS / 1000} วินาที`}
           noCamRule={`ข้อละ ${Q_TIME_MS / 1000} วินาที`}
           note={cMode === "enforce" ? undefined : `ช่วงทดลองถึง 15 พ.ย.: ยังใช้เกณฑ์เดิม (${needOf(total) < total ? `ถูก ${needOf(total)}/${total}` : `ถูกครบ ${total}/${total}`}) · เกณฑ์ 80% เริ่ม 16 พ.ย.`}
