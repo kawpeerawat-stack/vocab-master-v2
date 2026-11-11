@@ -590,6 +590,7 @@ export function CamChooser({
   onStart,
   required = false,
   preApproved = false,
+  noCamMode = false,
 }: {
   cam: CamGuard;
   want: boolean;
@@ -601,6 +602,7 @@ export function CamChooser({
   onStart: (cm: "cam" | "nocam" | "camfail") => void;
   required?: boolean; // 9 พ.ย.: ต้องใช้กล้องทุกคน — ไม่มีตัวเลือก "ไม่ใช้กล้อง" · กล้องใช้ไม่ได้จริงให้ครูกรอกรหัส
   preApproved?: boolean; // ครูกรอกรหัสไม่ใช้กล้องให้แล้วที่หน้าเลือกห้อง
+  noCamMode?: boolean; // ห้องเรียนพิเศษ (/extraclass): ไม่ใช้กล้องเลย — เหลือปุ่มเริ่มปุ่มเดียว (จับเวลาเท่าเดิม)
 }) {
   const st = cam.status;
   const [code, setCode] = useState("");
@@ -621,6 +623,20 @@ export function CamChooser({
       <div className="text-xs font-bold text-[#003399] mt-0.5">{rule}</div>
     </button>
   );
+  if (noCamMode) {
+    return (
+      <div className="space-y-3" data-nocam-mode="1">
+        <div className="rounded-2xl border-2 border-gray-200 bg-gray-50 p-3">
+          <div className="font-black text-sm text-gray-900">🚫 ห้องเรียนพิเศษ ไม่ใช้กล้อง</div>
+          <div className="text-xs font-bold text-gray-600 mt-0.5">จับเวลา {noCamRule} · ทำเองคนเดียว ไม่เปิดแอปหรือเครื่องอื่นช่วย</div>
+        </div>
+        {note && <p className="text-[11px] font-bold text-amber-800 bg-amber-50 rounded-xl px-3 py-2">{note}</p>}
+        <button type="button" onClick={() => onStart("nocam")} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-xl text-lg" data-nocam-start="1">
+          {startLabel} →
+        </button>
+      </div>
+    );
+  }
   return (
     <div className="space-y-3">
       {required ? (

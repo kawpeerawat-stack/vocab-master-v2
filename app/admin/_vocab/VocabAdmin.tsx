@@ -13,7 +13,7 @@
 import React, { useMemo, useState } from "react";
 import { VCourse, VProgress, VSetPass, VWord, computeStats, emptyProgress, isKnown, mergeProgress, normalizeProgress, plannedWeekNo, setPassOf, setState, todayStr } from "../../lib/vocab300";
 import { ROOMS, ROSTER, extractNo, fmtThaiTime, gradeOf, matchRoster, roomOf, rosterKey, downloadCsv, typedMismatch } from "../../lib/roster";
-import { doneEarly } from "../../lib/early";
+import { doneEarly, doneGraced } from "../../lib/early";
 import { openDay } from "../../lib/sync";
 import { GuardMark, SpotCheck, UnlockButton, WeekTabs, guardEvents, guardTip, isFlagged, pickSpot, type SpotCand } from "../_parts/AdminTools";
 
@@ -189,7 +189,7 @@ export default function VocabAdmin({
     const headers = ["ห้อง", "เลขที่", "ชื่อ-สกุล", "ชื่อที่พิมพ์ในแอป", "อีเมล", "ผ่าน (ชุด)", "รู้แล้ว (คำ)", "กำลังเรียน", "เรียนแล้ว", "ทวนได้ (ไม่บังคับ)", "วันที่เข้าเรียน (7 วัน)", "เดาความหมายถูก %", "ผ่าคำถูก %", ...course.weeks.map((w) => `ชุด ${w.no}`), `ตามแผน${planRoom ? ` (ควรผ่านถึงชุดที่ ${planNo ?? "-"})` : " (คิดตามวันเรียนของแต่ละห้อง)"}`, "วันนี้ คำใหม่", "วันนี้ ทวน", "ทำล่าสุด"];
     const data = sorted.map((r) => {
       const m = metrics[r.key];
-      return [r.room ?? "", r.no ?? "", r.name, r.typedNames.join(" / "), r.emails.join(" / "), m.passed, m.known, m.learning, m.seen, m.due, m.active7, m.seen ? m.guessPct : "", m.partN ? m.partPct : "", ...m.sets.map((x) => (x.rec ? "ผ่าน" : x.rok ? "ผ่าน (R)" : x.early ? "ทำล่วงหน้า (ไม่นับ)" : x.seen ? `เรียน ${x.seen}/${x.n}` : "")), planText(planOf(r.room), behindOf(r)), m.todayN, m.todayR, m.lastAt ? new Date(m.lastAt).toLocaleString("th-TH") : ""];
+      return [r.room ?? "", r.no ?? "", r.name, r.typedNames.join(" / "), r.emails.join(" / "), m.passed, m.known, m.learning, m.seen, m.due, m.active7, m.seen ? m.guessPct : "", m.partN ? m.partPct : "", ...m.sets.map((x) => (x.rec ? (x.grace ? "ผ่าน (อนุโลม)" : "ผ่าน") : x.early ? "ทำล่วงหน้า (ไม่นับ)" : x.seen ? `เรียน ${x.seen}/${x.n}` : "")), planText(planOf(r.room), behindOf(r)), m.todayN, m.todayR, m.lastAt ? new Date(m.lastAt).toLocaleString("th-TH") : ""];
     });
     downloadCsv(`vocab300-${fileScope}-${today}.csv`, headers, data);
   };
@@ -201,7 +201,7 @@ export default function VocabAdmin({
       const legacy = m.sets.filter((x) => x.rec?.legacy).map((x) => x.no);
       return [
         r.room ?? "", r.no ?? "", r.name,
-        ...m.sets.map((x) => (x.rec ? x.rec.score : x.rok ? "ผ่าน (R)" : x.early ? "ทำล่วงหน้า" : "")),
+        ...m.sets.map((x) => (x.rec ? x.rec.score : x.early ? "ทำล่วงหน้า" : "")),
         m.passed, m.score,
         [
           legacy.length ? `ชุด ${legacy.join(", ")} ผ่านจากแอปแบบเดิม (คะแนนคิดจากขั้นที่ 4)` : "",
@@ -269,18 +269,17 @@ export default function VocabAdmin({
           summary={
             setSel
               ? (() => {
-                  const c = { pass: 0, rok: 0, early: 0, ready: 0, part: 0, none: 0 };
+                  const c = { pass: 0, grace: 0, early: 0, ready: 0, part: 0, none: 0 };
                   for (const r of visible) {
                     const x = metrics[r.key]?.sets[setSel - 1];
                     if (!x) continue;
-                    if (x.rec) c.pass++;
-                    else if (x.rok) c.rok++;
+                    if (x.rec) { c.pass++; if (x.grace) c.grace++; }
                     else if (x.early) c.early++;
                     else if (x.state === "ready") c.ready++;
                     else if (x.seen) c.part++;
                     else c.none++;
                   }
-                  return `ชุด ${setSel}: ✓ ผ่าน ${c.pass} · ✓R ${c.rok} · ⏩ ทำล่วงหน้า ${c.early} · เรียนครบรอรอบทบทวน ${c.ready} · กำลังเรียน ${c.part} · ยังไม่เรียน ${c.none} (จาก ${visible.length} คน)`;
+                  return `ชุด ${setSel}: ✓ ผ่าน ${c.pass}${c.grace ? ` (อนุโลม ${c.grace})` : ""} · ⏩ ทำล่วงหน้า ${c.early} · เรียนครบรอรอบทบทวน ${c.ready} · กำลังเรียน ${c.part} · ยังไม่เรียน ${c.none} (จาก ${visible.length} คน)`;
                 })()
               : ""
           }
@@ -376,7 +375,7 @@ export default function VocabAdmin({
             รู้แล้ว = คำในชุดที่ผ่านแล้ว · ทวนได้ = คำของชุดก่อน ๆ ที่ถึงนัดทวน (ไม่บังคับ ไม่มีผลกับการผ่าน) ·
             ตามแผน = ผ่านครบถึงชุดของสัปดาห์นี้ของห้องนั้นหรือยัง{planRoom && planNo ? ` (ม.${planRoom} วันนี้ควรผ่านถึงชุดที่ ${planNo})` : ""} · วันนี้ = คำใหม่ · ข้อทวน ที่ทำวันนี้ (✓ ผ่าน = ผ่านชุดในวันนี้) ·
             เดาถูก = สัดส่วนที่ขั้น “เดาก่อนรู้” เดาความหมายถูก · หน้านี้อัปเดตเองทันทีที่นักเรียนส่งผล
-            <br /><span className="text-emerald-700 font-black">✓<sup>R</sup></span> = เรียนครบ 10 คำ ชุดถึงวันเรียนแล้ว นับว่าผ่าน (ผลรอบทบทวนจะกลับมาพร้อมคะแนนเมื่อนักเรียนเปิดห้อง 📚) · <span className="text-orange-700 font-black">⏩</span> = ทำล่วงหน้าก่อนวันเรียนของห้อง ไม่นับ ต้องทำรอบทบทวนใหม่พร้อมกล้อง
+            <br /><span className="text-orange-700 font-black">⏩</span> = ทำล่วงหน้าก่อนวันเรียนของห้อง ไม่นับ ต้องทำรอบทบทวนใหม่พร้อมกล้อง · <span className="text-emerald-700 font-black">✓<sup>อ</sup></span> = ทำล่วงหน้าแต่ได้รับอนุโลม (ชุด 1–2 นับผ่านตามคะแนนที่ทำ)
           </p>
         </div>
       )}
@@ -413,12 +412,11 @@ export default function VocabAdmin({
                         {m.sets.filter((x) => !setSel || x.no === setSel).map((x) => (
                           <td key={x.no} className="text-center px-0.5 py-1 relative" title={setTip(x)}>
                             <GuardMark g={x.rec} />
+                            {x.grace && <span data-grace="1" className="absolute -top-0.5 left-0 text-[9px] leading-none font-black text-sky-800 bg-sky-100 rounded px-0.5" aria-label="อนุโลม">อ</span>}
                             {x.rec ? (
                               <span className="inline-flex w-8 h-6 rounded-md bg-emerald-500 text-white font-black items-center justify-center text-[11px] tabular-nums">
                                 {x.rec.score}{x.rec.legacy ? "*" : ""}
                               </span>
-                            ) : x.rok ? (
-                              <span className="inline-flex w-8 h-6 rounded-md bg-emerald-500 text-white font-black items-center justify-center text-[11px]">✓<sup className="text-[8px] ml-px opacity-80">R</sup></span>
                             ) : x.early ? (
                               <span className="inline-flex w-8 h-6 rounded-md bg-orange-100 text-orange-700 font-black items-center justify-center text-[11px] ring-1 ring-orange-300">⏩</span>
                             ) : (
@@ -485,8 +483,9 @@ export default function VocabAdmin({
 
 // 9 พ.ย. (ครูสั่ง):
 //   early = ผ่านชุดนี้ก่อนวันเรียนของห้อง (ยังไม่ผ่านการเปิดกล้องในคาบ) → ไม่นับ ⏩ · ต้องทำรอบทบทวนใหม่พร้อมกล้อง
-//   rok   = เรียนครบ 10 คำแล้ว (R) และชุดนี้ถึงวันเรียนแล้ว → นับว่าผ่าน (สีเขียว · ผลรอบทบทวนหายจากบั๊กส่งข้อมูล 6–9 พ.ย. จะกลับมาเมื่อนักเรียนเปิดห้อง 📚)
-type SetInfo = { no: number; n: number; seen: number; state: ReturnType<typeof setState>; rec?: VSetPass; early?: VSetPass; rok?: boolean };
+//   grace = สัปดาห์ 1–2 ทำล่วงหน้า → อนุโลมนับผ่าน (11 พ.ย.) · ป้าย "อ"
+//   R (เรียนครบ 10 คำ ยังไม่ทำรอบทบทวน) = สีเหลือง ไม่นับผ่าน (กลับมาเป็นแบบเดิมตั้งแต่ 11 พ.ย.)
+type SetInfo = { no: number; n: number; seen: number; state: ReturnType<typeof setState>; rec?: VSetPass; early?: VSetPass; grace?: boolean };
 function rowMetrics(p: VProgress, words: VWord[], today: string, ctx?: { course: VCourse; room: string | null; unlock: number }) {
   const st = computeStats(p, today);
   const nWeeks = words.reduce((m, w) => Math.max(m, w.week), 0);
@@ -511,21 +510,21 @@ function rowMetrics(p: VProgress, words: VWord[], today: string, ctx?: { course:
     const unlocked = !!ctx && no <= ctx.unlock;
     let rec = setPassOf(p, no);
     let early: VSetPass | undefined;
-    if (rec && !rec.prev && !rec.legacy && doneEarly(rec.day, od, unlocked)) {
+    if (rec && !rec.prev && !rec.legacy && doneEarly(rec.day, od, unlocked, no)) {
       early = rec;
       rec = undefined;
     }
+    const grace = !!rec && !rec.prev && !rec.legacy && doneGraced(rec.day, od, unlocked, no);
     const state = setState(p, words, no);
-    const rok = !rec && !early && state === "ready" && (!od || od <= today || unlocked);
-    return { no, n: words.filter((w) => w.week === no).length, seen: weekSeen[i], state: rec ? state : early ? "ready" : state, rec, early, rok };
+    return { no, n: words.filter((w) => w.week === no).length, seen: weekSeen[i], state: rec ? state : early ? "ready" : state, rec, early, grace };
   });
   const done = sets.filter((x) => x.rec);
   for (const x of done) lastAt = Math.max(lastAt, x.rec!.at || 0);
   return {
     sets,
-    passed: done.length + sets.filter((x) => x.rok).length,
+    passed: done.length,
     passedToday: done.filter((x) => x.rec!.day === today).length,
-    ready: sets.filter((x) => x.state === "ready" && !x.rec && !x.rok).length,
+    ready: sets.filter((x) => x.state === "ready" && !x.rec).length,
     score: done.reduce((s, x) => s + x.rec!.score, 0),
     todayN: td?.n ?? 0,
     todayR: td?.r ?? 0,
@@ -614,16 +613,14 @@ function PlanCell({ plan, behind }: { plan: number | null; behind: number }) {
 function setTip(x: SetInfo): string {
   if (x.rec) {
     const when = new Date(x.rec.at).toLocaleString("th-TH", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-    return `ชุด ${x.no}: ✓ ผ่านเมื่อ ${when} · คะแนน ${x.rec.score}/10${x.rec.legacy ? " (แอปแบบเดิม คิดจากขั้นที่ 4)" : " (รอบทบทวน ถูกตั้งแต่ครั้งแรก)"}${guardTip(x.rec)}`;
+    return `ชุด ${x.no}:${x.grace ? " (อนุโลม · ทำล่วงหน้าก่อนวันเรียน สัปดาห์ 1–2 นับผ่าน)" : ""} ✓ ผ่านเมื่อ ${when} · คะแนน ${x.rec.score}/10${x.rec.legacy ? " (แอปแบบเดิม คิดจากขั้นที่ 4)" : " (รอบทบทวน ถูกตั้งแต่ครั้งแรก)"}${guardTip(x.rec)}`;
   }
   if (x.early) return `ชุด ${x.no}: ⏩ ทำล่วงหน้า (ผ่านเมื่อ ${x.early.day} ก่อนวันเรียนของห้อง · คะแนน ${x.early.score}/10) — ไม่นับ ต้องทำรอบทบทวนใหม่พร้อมกล้อง`;
-  if (x.rok) return `ชุด ${x.no}: ✓ เรียนครบ ${x.n} คำ (R) — นับว่าผ่าน · ผลรอบทบทวนจะกลับมาพร้อมคะแนนเมื่อนักเรียนเปิดห้อง 📚 ในเครื่องเดิม`;
   if (x.state === "ready") return `ชุด ${x.no}: เรียนครบ ${x.n} คำแล้ว — ยังไม่ได้ทำรอบทบทวน`;
   return x.seen ? `ชุด ${x.no}: เรียนแล้ว ${x.seen}/${x.n} คำ` : `ชุด ${x.no}: ยังไม่เรียน`;
 }
 function SetCell({ x }: { x: SetInfo }) {
-  if (x.rec) return <span className="inline-flex w-7 h-6 rounded-md bg-emerald-500 text-white font-black items-center justify-center text-[11px]">✓</span>;
-  if (x.rok) return <span data-rok="1" className="inline-flex w-7 h-6 rounded-md bg-emerald-500 text-white font-black items-center justify-center text-[11px]">✓<sup className="text-[8px] ml-px opacity-80">R</sup></span>;
+  if (x.rec) return <span {...(x.grace ? { "data-grace": "1" } : {})} className="inline-flex w-7 h-6 rounded-md bg-emerald-500 text-white font-black items-center justify-center text-[11px]">✓{x.grace && <sup className="text-[8px] ml-px opacity-90">อ</sup>}</span>;
   if (x.early) return <span data-early="1" className="inline-flex w-7 h-6 rounded-md bg-orange-100 text-orange-700 font-black items-center justify-center text-[11px] ring-1 ring-orange-300">⏩</span>;
   if (x.state === "ready") return <span className="inline-flex w-7 h-6 rounded-md bg-[#FFD700] text-[#003399] font-black items-center justify-center text-[11px] ring-2 ring-amber-400">R</span>;
   if (x.seen) return <span className="inline-flex w-7 h-6 rounded-md bg-amber-50 text-amber-700 font-black items-center justify-center text-[11px] tabular-nums">{x.seen}</span>;

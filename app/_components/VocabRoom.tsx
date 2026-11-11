@@ -45,7 +45,9 @@ import {
   todayStr,
   type VSetPass,
 } from "../lib/vocab300";
-import { doneEarly } from "../lib/early";
+import { doneEarly, doneGraced } from "../lib/early";
+import { hoursNow, useSchoolHours } from "../lib/hours";
+import { HoursNote } from "./HoursNote";
 import { displayName, roomOf } from "../lib/names";
 import { isIssue, issueText, loadLocalUnlock, openDay, serverToday, syncClock, thaiDate, thaiShort, type SyncState } from "../lib/sync";
 import { camMode, GUARD_FLAG_AT, guardMode, noCopyProps, noticeText, Q_TIME_MS, qTimeLimit, useLeaveGuard, useQuestionTimer, type CamMode } from "../lib/guard";
@@ -316,7 +318,8 @@ interface Summary {
   cloudOk: boolean | null;
 }
 
-export default function VocabRoom({ email, name, onExit, shared }: { email: string; name: string; onExit: () => void; shared?: SharedCam }) {
+// extra = ห้องเรียนพิเศษ (/extraclass · 11 พ.ย.): ไม่ล็อกตามวันเรียน · ไม่นับล่วงหน้า · ไม่ใช้กล้อง · ไม่ปิดเวลา 16.30 · อันดับแยกจากนักเรียนโรงเรียน
+export default function VocabRoom({ email, name, onExit, shared, extra = false }: { email: string; name: string; onExit: () => void; shared?: SharedCam; extra?: boolean }) {
   const [course, setCourse] = useState<VCourse | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [rawProg, setProg] = useState<VProgress>(() => (typeof window !== "undefined" ? loadLocal(email) : emptyProgress()));
@@ -405,17 +408,17 @@ export default function VocabRoom({ email, name, onExit, shared }: { email: stri
   const words = useMemo(() => course?.words ?? [], [course]);
   const byId = useMemo(() => Object.fromEntries(words.map((w) => [w.id, w])), [words]);
   // 9 พ.ย.: ชุดที่ "ทำล่วงหน้า" (ผ่านก่อนวันเรียนของห้อง · ครูไม่ได้เปิดให้) ไม่นับ → ต้องทำรอบทบทวนใหม่พร้อมกล้องเมื่อถึงวัน
-  const roomForEarly = roomOf(name);
+  const roomForEarly = extra ? null : roomOf(name);
   const earlySets = useMemo(() => {
     const out: Record<string, VSetPass> = {};
-    if (!course) return out;
+    if (!course || extra) return out;
     for (const [k, rec] of Object.entries(rawProg.sets || {})) {
       const n = Number(k);
       if (rec.prev || rec.legacy) continue;
-      if (doneEarly(rec.day, openDay(course.weeks[n - 1]?.start, roomForEarly, course.classDays), n <= unlockN)) out[k] = rec;
+      if (doneEarly(rec.day, openDay(course.weeks[n - 1]?.start, roomForEarly, course.classDays), n <= unlockN, n)) out[k] = rec;
     }
     return out;
-  }, [course, rawProg, roomForEarly, unlockN]);
+  }, [course, rawProg, roomForEarly, unlockN, extra]);
   const prog = useMemo<VProgress>(() => {
     if (!Object.keys(earlySets).length) return rawProg;
     const sets = { ...(rawProg.sets || {}) };
@@ -431,12 +434,13 @@ export default function VocabRoom({ email, name, onExit, shared }: { email: stri
     [words, prog, today]
   );
   const myRoom = roomOf(name);
-  const newCap = useMemo(() => newCapToday(course, prog, today, myRoom), [course, prog, today, myRoom]);
+  const planCourse = extra ? null : course; // ห้องเรียนพิเศษไม่มีแผนตามห้อง/ตามวัน
+  const newCap = useMemo(() => newCapToday(planCourse, prog, today, myRoom), [planCourse, prog, today, myRoom]);
   const newLeftToday = Math.max(0, newCap - stats.newToday);
-  const planNo = plannedWeekNo(course, today, myRoom);
+  const planNo = plannedWeekNo(planCourse, today, myRoom);
   const planWk = planNo ? course?.weeks[planNo - 1] : undefined;
   // สัปดาห์ทวน = สัปดาห์ในแผนที่ไม่มีชุดใหม่ (สัปดาห์ที่ 6 และ 14 ของภาค) — ใช้ทวนคำค้างและตามชุดที่ขาด
-  const reviewWeek = isReviewWeek(course, today, myRoom);
+  const reviewWeek = isReviewWeek(planCourse, today, myRoom);
   const activeDays = Object.values(prog.days).filter((d) => d.n + d.r > 0).length;
   // ชุดที่กำลังเรียน = ชุดแรกที่ยังไม่ผ่าน (ต้องผ่านชุดนี้ก่อนจึงเปิดชุดถัดไป)
   const nSets = course?.weeks.length ?? 0;
@@ -477,7 +481,7 @@ export default function VocabRoom({ email, name, onExit, shared }: { email: stri
   }, [needRetry]);
 
   // ── ล็อกชุดตามวันเรียนของห้อง (เวลาเซิร์ฟเวอร์) · ชุดที่ถึงวันเรียนแล้วเปิดค้างไว้ · ครูเปิดล่วงหน้ารายคนได้ ──
-  const openPlan = plannedWeekNo(course, sToday, myRoom);
+  const openPlan = plannedWeekNo(planCourse, sToday, myRoom);
   const openUpTo = openPlan === null ? Infinity : Math.max(openPlan, unlockN);
   // 9 พ.ย.: ล็อกตามวันเรียนแม้เรียนครบแล้ว (กันทำรอบทบทวนล่วงหน้า)
   const curLocked = curSet > 0 && curSet > openUpTo;
@@ -546,6 +550,14 @@ export default function VocabRoom({ email, name, onExit, shared }: { email: stri
   useEffect(() => {
     if (mode !== "CHECK") liveQuit();
   }, [mode]);
+  // 11 พ.ย.: หลัง 16.30 น. ปิดรอบที่เข้าสมุดคะแนน + กล้อง (PDPA) · รอบที่ทำค้างอยู่ถูกยกเลิก (ไม่บันทึกคะแนน)
+  const hours = useSchoolHours(!extra, () => {
+    if (mode !== "CHECK") return;
+    cam.stop();
+    setCheckGate(false);
+    setConfirmExit(false);
+    setMode("HOME");
+  });
 
   // ── เริ่มชุดเรียนใหม่ ──
   const startWord = (i: number) => {
@@ -581,7 +593,7 @@ export default function VocabRoom({ email, name, onExit, shared }: { email: stri
 
   // ── รอบทบทวนชุด: ครบ 10 คำแล้วทำอีก 1 รอบ (คำละ 1 ข้อ) · ผิดข้อไหนวนเฉพาะข้อนั้นจนถูกครบ → ผ่านชุด ──
   const startCheck = () => {
-    if (!curReady || curLocked) return;
+    if (!curReady || curLocked || (!extra && !hoursNow().open)) return;
     checkFirst.current = {};
     voidedRef.current = 0;
     guard.reset();
@@ -763,7 +775,7 @@ export default function VocabRoom({ email, name, onExit, shared }: { email: stri
     if (nx && rank === null) {
       // บันทึกของตัวเองก่อน เพื่อให้อันดับเป็นข้อมูลล่าสุด
       await saveProgress(email, name, progRef.current);
-      setRank(await loadRanking());
+      setRank(await loadRanking(extra));
     }
   };
 
@@ -885,7 +897,8 @@ export default function VocabRoom({ email, name, onExit, shared }: { email: stri
               {curReady && !curLocked ? (
                 <>
                   {earlySets[String(curSet)] && <p className="text-xs font-bold text-orange-800 bg-orange-50 rounded-xl px-3 py-2 mb-2">⏩ ชุดนี้เคยทำไว้ก่อนวันเรียน (ยังไม่ผ่านการเปิดกล้อง) — ทำรอบทบทวนใหม่พร้อมกล้อง เพื่อให้นับผ่าน</p>}
-                  <button onClick={startCheck} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg hover:bg-[#002266] text-lg">
+                  <HoursNote hours={hours} compact />
+                  <button onClick={startCheck} disabled={!hours.open} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg hover:bg-[#002266] text-lg disabled:opacity-40 disabled:cursor-not-allowed">
                     รอบทบทวนชุดที่ {curSet} ({curWords.length} ข้อ) →
                   </button>
                   <p className="text-xs text-gray-500 mt-2 text-center">ทำอีก 1 รอบทั้ง {curWords.length} คำ · ข้อที่ผิดจะวนกลับมาจนถูกครบ · ครบแล้วผ่านชุดทันที</p>
@@ -953,6 +966,8 @@ export default function VocabRoom({ email, name, onExit, shared }: { email: stri
             const locked = !rec && wk.no > openUpTo;
             const od = locked ? openDay(wk.start, myRoom, course.classDays) : null;
             const early = earlySets[String(wk.no)];
+            // 11 พ.ย.: ชุด 1–2 ที่ทำไว้ก่อนวันเรียน → นับผ่านแบบอนุโลม (ชุด 3 ขึ้นไปยังต้องทำใหม่พร้อมกล้อง)
+            const grace = !!rec && !rec.prev && !rec.legacy && !extra && doneGraced(rec.day, openDay(wk.start, myRoom, course.classDays), wk.no <= unlockN, wk.no);
             return (
               <button
                 key={wk.no}
@@ -981,7 +996,7 @@ export default function VocabRoom({ email, name, onExit, shared }: { email: stri
                   </span>
                 </span>
                 {rec ? (
-                  <span className="shrink-0 text-[10px] font-black bg-emerald-500 text-white px-2 py-1 rounded-full">✓ ผ่าน</span>
+                  <span className="shrink-0 text-[10px] font-black bg-emerald-500 text-white px-2 py-1 rounded-full whitespace-nowrap" title={grace ? "ทำไว้ก่อนวันเรียน — สัปดาห์ที่ 1–2 อนุโลมให้นับผ่าน" : undefined}>✓ ผ่าน{grace ? " · อนุโลม" : ""}</span>
                 ) : locked ? (
                   <span className="shrink-0 text-[10px] font-black bg-gray-100 text-gray-500 px-2 py-1 rounded-full whitespace-nowrap">🔒 {od ? thaiShort(od) : "ยังไม่เปิด"}{early ? " · ทำใหม่" : ""}</span>
                 ) : early ? (
@@ -1068,7 +1083,10 @@ export default function VocabRoom({ email, name, onExit, shared }: { email: stri
               ) : curLocked ? (
                 <p className="text-sm font-bold text-gray-600 bg-gray-50 rounded-xl px-3 py-2">🔒 ชุดนี้เปิด{curOpenDay ? thaiDate(curOpenDay) : "ในคาบถัดไป"}{earlySets[String(weekNo)] ? " · ทำไว้ก่อนวันเรียน ต้องทำรอบทบทวนใหม่พร้อมกล้อง" : ""}</p>
               ) : curReady ? (
-                <button onClick={startCheck} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg text-lg">รอบทบทวนชุดที่ {curSet} ({curWords.length} ข้อ) →</button>
+                <>
+                  <HoursNote hours={hours} compact />
+                  <button onClick={startCheck} disabled={!hours.open} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg text-lg disabled:opacity-40 disabled:cursor-not-allowed">รอบทบทวนชุดที่ {curSet} ({curWords.length} ข้อ) →</button>
+                </>
               ) : newLeftToday > 0 && nextNew.length > 0 ? (
                 <button onClick={startLearn} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg text-lg">เรียนคำใหม่ชุดที่ {curSet} ({Math.min(BATCH_SIZE, newLeftToday, nextNew.length)} คำ) →</button>
               ) : (
@@ -1177,9 +1195,12 @@ export default function VocabRoom({ email, name, onExit, shared }: { email: stri
         })()}
         <div className="space-y-2">
           {summary.kind !== "practice" && curReady && !curLocked && (
-            <button onClick={startCheck} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg text-lg">
-              รอบทบทวนชุดที่ {curSet} ({curWords.length} ข้อ) →
-            </button>
+            <>
+              <HoursNote hours={hours} compact />
+              <button onClick={startCheck} disabled={!hours.open} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg text-lg disabled:opacity-40 disabled:cursor-not-allowed">
+                รอบทบทวนชุดที่ {curSet} ({curWords.length} ข้อ) →
+              </button>
+            </>
           )}
           {summary.kind !== "practice" && canLearn && (
             <button onClick={startLearn} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg text-lg">
@@ -1214,7 +1235,9 @@ export default function VocabRoom({ email, name, onExit, shared }: { email: stri
             <li>เปิด <b>โหมดห้ามรบกวน</b> ก่อน (กันแจ้งเตือนเด้งทับ)</li>
             <li><b>อยู่ในหน้านี้ตลอด</b> จนผ่านชุด — ห้ามสลับแอป สลับแท็บ กลับหน้าโฮม หรือเรียก Gemini / วงกลมค้นหา · คลุมหรือคัดลอกโจทย์ไม่ได้</li>
             <li>
-              {cMode === "enforce"
+              {extra
+                ? <>ห้องนี้ไม่ใช้กล้อง ไม่เก็บภาพ · หมดเวลาคำละ {Q_TIME_MS / 1000} วินาที — ระบบ<b className="text-rose-600">ข้ามคำนั้นทันที ไม่ได้คะแนน</b> (คำนั้นวนกลับมาท้ายรอบ ยังต้องตอบให้ถูกเพื่อผ่านชุด){gMode === "enforce" ? <> · ออกจากหน้า หรือหน้าต่างอื่นบังนานเกิน 3 วินาที ก็ข้ามคำเช่นกัน</> : <> · ออกจากหน้า / หน้าต่างอื่นบัง: ระบบบันทึกให้ครูเห็น</>}</>
+                : cMode === "enforce"
                 ? <>มีอะไรบังใบหน้าตั้งแต่จมูกขึ้นไป · มีมือถือเครื่องอื่นในภาพ · หรือหมดเวลาคำละ {Q_TIME_MS / 1000} วินาที — ระหว่างคำไหน <b className="text-rose-600">ระบบข้ามคำนั้นทันที ไม่ได้คะแนน</b> (คำนั้นวนกลับมาท้ายรอบ ยังต้องตอบให้ถูกเพื่อผ่านชุด){gMode === "enforce" ? <> · ออกจากหน้า หรือหน้าต่างอื่นบังนานเกิน 3 วินาที ก็ข้ามคำเช่นกัน</> : <> · ออกจากหน้า / หน้าต่างอื่นบัง: ถึง 15 พ.ย. บันทึกให้ครูเห็น เริ่มข้ามคำ 16 พ.ย.</>}</>
                 : <>ช่วงทดลอง: ระบบ <b>บันทึก</b> การออกจากหน้าและการบังใบหน้าให้ครูเห็น (ยังไม่หักคะแนน)</>}
             </li>
@@ -1230,6 +1253,7 @@ export default function VocabRoom({ email, name, onExit, shared }: { email: stri
           }}
           required
           preApproved={!!shared?.fallback}
+          noCamMode={extra}
           camRule={`ใช้กล้องยืนยันว่าทำเอง · จับเวลาคำละ ${Q_TIME_MS / 1000} วินาที`}
           noCamRule={`คำละ ${Q_TIME_MS / 1000} วินาที`}
           note={cMode === "enforce" ? undefined : "ช่วงทดลอง: บันทึกให้ครูเห็นอย่างเดียว"}
@@ -1263,6 +1287,7 @@ export default function VocabRoom({ email, name, onExit, shared }: { email: stri
     return (
       <div className="animate-fadeIn mt-2">
         <SessionBar label={label} warn={warn} confirmExit={confirmExit} setConfirmExit={setConfirmExit} onExit={exitSession} />
+        {mode === "CHECK" && <HoursNote hours={hours} compact />}
         {(mode === "LEARN" || mode === "CHECK") && <Steps active={mode === "LEARN" ? 4 : 5} />}
         {mode === "CHECK" && camNotice && (
           <div className={`rounded-xl p-3 mb-3 text-sm font-bold flex items-start gap-2 ${cMode === "enforce" ? "bg-orange-100 text-orange-900 border-2 border-orange-300" : "bg-amber-50 text-amber-900 border-2 border-amber-200"}`}>

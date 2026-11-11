@@ -13,6 +13,8 @@ import React, { useEffect, useState } from "react";
 import CourseRoom from "./_components/CourseRoom";
 import VocabRoom, { passedSetsLocal } from "./_components/VocabRoom";
 import { CamBox, CamChooser, CamSource, useSharedCamera } from "./_components/CamGuard";
+import { HoursNote } from "./_components/HoursNote";
+import { useSchoolHours } from "./lib/hours";
 import { Q_TIME_MS } from "./lib/guard";
 import { CORE_NAME } from "./lib/vocab300";
 import {
@@ -94,7 +96,13 @@ export default function Home() {
   const { cam, bind } = useSharedCamera();
   const [hubCam, setHubCam] = useState<null | "cam" | "camfail">(null);
   const shared = { cam, bind, fallback: hubCam === "camfail" };
-  const camOk = hubCam === "camfail" || (hubCam === "cam" && cam.status !== "off");
+  // 11 พ.ย.: นอกเวลา 06.00–16.30 น. ไม่เปิดกล้อง (PDPA) · เข้าห้องเพื่อฝึกอิสระที่ไม่ใช้กล้องได้ · รอบที่เข้าสมุดคะแนนทำไม่ได้
+  const hours = useSchoolHours(isLoggedIn);
+  const camOk = !hours.open || hubCam === "camfail" || (hubCam === "cam" && cam.status !== "off");
+  const camStopHub = cam.stop;
+  useEffect(() => {
+    if (!hours.open) camStopHub(); // 16.30 น. → กล้องดับทันที (สถานะกล้องเป็น off จึงต้องเทียบหน้าใหม่ตอน 06.00 น.)
+  }, [hours.open, camStopHub]);
 
   // ป้าย “ถึงกำหนดทวน” บนปุ่มคำศัพท์ (อ่านจากข้อมูลในเครื่องทุกครั้งที่กลับมาหน้าเมนู)
   const setsPassed = isLoggedIn && section === "HUB" && email && typeof window !== "undefined" ? passedSetsLocal(email) : 0;
@@ -287,7 +295,8 @@ export default function Home() {
             </div>
 
             {/* กล้องก่อนเข้าห้อง */}
-            {!camOk ? (
+            <HoursNote hours={hours} />
+            {!hours.open ? null : !camOk ? (
               <div className="text-left mb-5 rounded-2xl border-2 border-[#003399]/15 p-4 bg-[#003399]/[0.02]" data-hub-cam="gate">
                 <p className="font-black text-[#003399] mb-1">📷 ขั้นแรก: เปิดกล้องก่อนเข้าห้องเรียน</p>
                 <p className="text-xs font-bold text-gray-600 mb-3">ทำครั้งเดียวที่หน้านี้ แล้วเข้าได้ทั้ง 2 แถบ · กล้องเปิดค้างระหว่างเรียน (นับเฉพาะตอนทำแบบฝึกที่เข้าสมุดคะแนน) · ตั้งมือถือให้เห็นหน้า เก็บมือถือเครื่องอื่นให้พ้นกล้อง</p>

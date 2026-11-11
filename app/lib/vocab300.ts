@@ -545,7 +545,13 @@ export interface RankEntry { email: string; name: string; known: number; seen: n
 // เก็บผลอันดับไว้ใช้ซ้ำ 10 นาที (อ่านข้อมูลทั้งห้องครั้งเดียว — ประหยัดโควตาฟรีของ Firebase)
 let rankCache: { at: number; list: RankEntry[] } | null = null;
 const RANK_TTL = 10 * 60 * 1000;
-export async function loadRanking(): Promise<RankEntry[]> {
+// ห้องเรียนพิเศษ (รหัส ex:…) แยกอันดับจากนักเรียนโรงเรียน — ไม่ปนกันทั้งสองทาง
+const isExtraKey = (k: string) => k.startsWith("ex:");
+export async function loadRanking(extra = false): Promise<RankEntry[]> {
+  const all = await loadRankingAll();
+  return all.filter((e) => isExtraKey(e.email) === extra);
+}
+async function loadRankingAll(): Promise<RankEntry[]> {
   if (!db) return [];
   if (rankCache && Date.now() - rankCache.at < RANK_TTL) return rankCache.list;
   try {
@@ -564,8 +570,8 @@ export async function loadRanking(): Promise<RankEntry[]> {
     const snap = await withTimeout(getDocs(collection(db, "students")), 12000);
     const out: RankEntry[] = [];
     snap.forEach((d) => {
-      const v = d.data() as { email?: string; name?: string; v300Known?: number; v300Seen?: number; v300At?: number };
-      if (!v.v300Seen) return;
+      const v = d.data() as { email?: string; name?: string; v300Known?: number; v300Seen?: number; v300At?: number; hidden?: boolean };
+      if (!v.v300Seen || v.hidden || d.id.startsWith("cfg:")) return;
       out.push({ email: (v.email || d.id).toLowerCase(), name: v.name || "(ไม่มีชื่อ)", known: v.v300Known ?? 0, seen: v.v300Seen ?? 0, at: v.v300At ?? 0 });
     });
     out.sort((a, b) => b.known - a.known || b.seen - a.seen || a.at - b.at);

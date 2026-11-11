@@ -25,8 +25,11 @@ import {
   saveLessonAttempt,
   shuffled,
   applyEarly,
+  type LessonProgress,
 } from "../lib/courses";
-import { doneEarly, thaiDayOf } from "../lib/early";
+import { doneEarly, doneGraced, thaiDayOf } from "../lib/early";
+import { hoursNow, useSchoolHours } from "../lib/hours";
+import { HoursNote } from "./HoursNote";
 import { isIssue, issueText, loadLocalUnlock, openDay, serverToday, syncClock, thaiShort, type SyncState } from "../lib/sync";
 import { camMode, GUARD_FLAG_AT, guardMode, noCopyProps, noticeText, passNeed, qTimeLimit, Q_TIME_MS, useLeaveGuard, useQuestionTimer, type CamMode } from "../lib/guard";
 import { CamBox, CamChooser, camSkipText, CoverShield, isCovered, loadCamChoice, saveCamChoice, TimerBar, useRoomCamera, type SharedCam } from "./CamGuard";
@@ -83,12 +86,14 @@ export default function CourseRoom({
   name,
   onExit,
   shared,
+  extra = false,
 }: {
   courseId: string;
   email: string;
   name: string;
   onExit: () => void;
   shared?: SharedCam; // กล้องที่เปิดไว้แล้วที่หน้าเลือกห้อง (9 พ.ย.)
+  extra?: boolean; // ห้องเรียนพิเศษ (/extraclass · 11 พ.ย.): ไม่ล็อกตามวันเรียน · ไม่นับล่วงหน้า · ไม่ใช้กล้อง · ไม่ปิดเวลา 16.30
 }) {
   const [course, setCourse] = useState<Course | null>(null);
   const [loadError, setLoadError] = useState(false);
@@ -106,7 +111,7 @@ export default function CourseRoom({
   const [pending, setPending] = useState(() => hasPendingLessons(courseId, email)); // มีผลในเครื่องที่ยังไม่ขึ้นระบบ
   const [today, setToday] = useState(() => serverToday());
   const [unlockN, setUnlockN] = useState(() => loadLocalUnlock(email)[courseId] || 0); // ครูเปิดให้ล่วงหน้าถึงบทที่ … (รายคน)
-  const room = roomOf(name);
+  const room = extra ? null : roomOf(name);
   // ระบบกัน AI: เฝ้าดูเฉพาะรอบที่เข้าสมุดคะแนน (รอบแรกของบท)
   const [guarded, setGuarded] = useState(false);
   const mode = guardMode(today); // ออกจากหน้าแอป / หน้าต่างบัง
@@ -123,14 +128,14 @@ export default function CourseRoom({
 
   // 9 พ.ย.: บทที่ "ทำล่วงหน้า" (ก่อนวันเรียนของห้อง · ครูไม่ได้เปิดให้) ไม่นับ → มองเป็นยังไม่ได้ทำ ต้องทำใหม่พร้อมกล้อง
   const progress = useMemo(() => {
-    if (!course) return rawProgress;
+    if (!course || extra) return rawProgress;
     const byId = new Map(course.lessons.map((l) => [l.id, l] as const));
     return applyEarly(rawProgress, (id, x) => {
       const l = byId.get(id);
       if (!l) return false;
-      return doneEarly(thaiDayOf(x.firstAt ?? x.passedAt ?? x.lastAt ?? 0), openDay(l.start, room, course.classDays), l.hour <= unlockN);
+      return doneEarly(thaiDayOf(x.firstAt ?? x.passedAt ?? x.lastAt ?? 0), openDay(l.start, room, course.classDays), l.hour <= unlockN, l.hour);
     });
-  }, [course, rawProgress, room, unlockN]);
+  }, [course, rawProgress, room, unlockN, extra]);
 
   // โหลดเนื้อหา + ความก้าวหน้า
   useEffect(() => {
@@ -184,7 +189,10 @@ export default function CourseRoom({
   const lessons = course?.lessons ?? [];
   const L = course?.lessonWord ?? "บท"; // ฉบับ ม.4 เรียกว่า "คาบ"
   // บทเปิดเมื่อถึงวันเรียนของห้องในสัปดาห์นั้น · บทที่ผ่านวันเรียนแล้วเปิดค้างไว้ (ทำย้อนหลังได้) · ครูเปิดล่วงหน้ารายคนได้
-  const openOn = (l: CourseLesson) => openDay(l.start, room, course?.classDays);
+  const openOn = (l: CourseLesson) => (extra ? null : openDay(l.start, room, course?.classDays));
+  // 11 พ.ย.: บท 1–2 ที่ทำไว้ก่อนวันเรียน → ผ่านแบบอนุโลม (ป้ายบนการ์ด)
+  const graceOf = (l: CourseLesson, p?: LessonProgress) =>
+    !extra && !!p?.passed && doneGraced(thaiDayOf(p.firstAt ?? p.passedAt ?? p.lastAt ?? 0), openOn(l), l.hour <= unlockN, l.hour);
   const isOpen = (l: CourseLesson) => {
     const d = openOn(l);
     return !d || d <= today || l.hour <= unlockN || (progress[l.id]?.attempts ?? 0) > 0;
@@ -272,12 +280,21 @@ export default function CourseRoom({
   useEffect(() => {
     if (view !== "QUIZ" && view !== "RESULT") liveQuit();
   }, [view]);
+  // 11 พ.ย.: หลัง 16.30 น. ปิดรอบที่เข้าสมุดคะแนน + กล้อง (PDPA) · รอบที่ทำค้างอยู่ถูกยกเลิก (ไม่บันทึกคะแนน) · ฝึกบทที่ผ่านแล้วยังทำได้
+  const hours = useSchoolHours(!extra, () => {
+    if (view === "GATE" || (view === "QUIZ" && guarded)) {
+      cam.stop();
+      setConfirmExit(false);
+      setView("LESSON");
+    }
+  });
 
   // รอบแรกของบท (เข้าสมุดคะแนน) → หน้ากติกาก่อน
   const beginQuiz = () => {
     if (!lesson) return;
     // บทที่ยังไม่ผ่าน = ทุกรอบผ่านหน้ากติกา (เลือกใช้กล้อง/ไม่ใช้) · ผ่านแล้ว = ฝึกได้อิสระ
     if (!progress[lesson.id]?.passed) {
+      if (!extra && !hoursNow().open) return;
       setView("GATE");
       scrollTop();
       return;
@@ -435,7 +452,7 @@ export default function CourseRoom({
           </div>
         ) : null}
 
-        <p className="text-[11px] font-bold text-gray-500 mb-3">🔒 {L}ใหม่เปิดในวันที่ห้อง {room || "ของคุณ"} เรียน{L}นั้น · {L}ที่ผ่านวันเรียนแล้วเปิดไว้ให้ทำย้อนหลังได้เสมอ (เช่น วันที่ลาเรียน)</p>
+        {!extra && <p className="text-[11px] font-bold text-gray-500 mb-3">🔒 {L}ใหม่เปิดในวันที่ห้อง {room || "ของคุณ"} เรียน{L}นั้น · {L}ที่ผ่านวันเรียนแล้วเปิดไว้ให้ทำย้อนหลังได้เสมอ (เช่น วันที่ลาเรียน)</p>}
         <div className="space-y-5">
           {unitsWithLessons.map((u) => (
             <div key={u.no}>
@@ -480,7 +497,7 @@ export default function CourseRoom({
                         ) : p?.early && !(p.attempts > 0) ? (
                           <span className="text-[11px] font-black text-orange-700 bg-orange-100 px-2 py-1 rounded-full whitespace-nowrap" title="ทำไว้ก่อนวันเรียน ยังไม่ผ่านการเปิดกล้อง — ต้องทำใหม่">⏩ ทำใหม่พร้อมกล้อง</span>
                         ) : p?.passed ? (
-                          <span className="text-[11px] font-black text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full">✓ ผ่าน</span>
+                          <span className="text-[11px] font-black text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full whitespace-nowrap" title={graceOf(l, p) ? "ทำไว้ก่อนวันเรียน — สัปดาห์ที่ 1–2 อนุโลมให้นับผ่าน" : undefined}>✓ ผ่าน{graceOf(l, p) ? " · อนุโลม" : ""}</span>
                         ) : p && p.attempts > 0 ? (
                           <span className="text-[11px] font-black text-amber-700 bg-amber-100 px-2 py-1 rounded-full">
                             ดีสุด {p.best}/{p.total}
@@ -622,10 +639,12 @@ export default function CourseRoom({
           </div>
         )}
 
+        {!progress[lesson.id]?.passed && <HoursNote hours={hours} compact />}
         <button
           type="button"
           onClick={beginQuiz}
-          className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-xl hover:bg-[#002266] transition-all text-lg"
+          disabled={!hours.open && !progress[lesson.id]?.passed}
+          className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-xl hover:bg-[#002266] transition-all text-lg disabled:opacity-40 disabled:cursor-not-allowed"
         >
           เริ่มทำแบบฝึกหัด {lesson.questions.length} ข้อ →
         </button>
@@ -661,11 +680,13 @@ export default function CourseRoom({
             <li>เปิด <b>โหมดห้ามรบกวน</b> ก่อน (กันแจ้งเตือนเด้งทับ) · ใช้มือถือเครื่องเดียว</li>
             <li><b>อยู่ในหน้านี้ตลอด</b> จนทำครบ {total} ข้อ — ห้ามสลับแอป สลับแท็บ กลับหน้าโฮม หรือเรียก Gemini / วงกลมค้นหา · คลุมหรือคัดลอกโจทย์ไม่ได้</li>
             <li>
-              {cMode === "enforce"
+              {extra
+                ? <>หมดเวลาข้อละ {Q_TIME_MS / 1000} วินาที — ระบบ<b className="text-rose-600">ข้ามข้อนั้นทันที ไม่ได้คะแนน</b>{mode === "enforce" ? <> · ออกจากหน้า หรือหน้าต่างอื่นบังนานเกิน 3 วินาที ก็ข้ามข้อเช่นกัน</> : <> · ออกจากหน้า / หน้าต่างอื่นบัง: ระบบบันทึกให้ครูเห็น</>}</>
+                : cMode === "enforce"
                 ? <>มีอะไรบังใบหน้าตั้งแต่จมูกขึ้นไป · มีมือถือเครื่องอื่นในภาพ · หรือหมดเวลาข้อละ {Q_TIME_MS / 1000} วินาที — ระหว่างข้อไหน <b className="text-rose-600">ระบบข้ามข้อนั้นทันที ไม่ได้คะแนน</b>{mode === "enforce" ? <> · ออกจากหน้า หรือหน้าต่างอื่นบังนานเกิน 3 วินาที ก็ข้ามข้อเช่นกัน</> : <> · ออกจากหน้า / หน้าต่างอื่นบัง: ถึง 15 พ.ย. บันทึกให้ครูเห็น เริ่มข้ามข้อ 16 พ.ย.</>}</>
                 : <>ช่วงทดลอง: ระบบ <b>บันทึก</b> การออกจากหน้า การบังใบหน้า และการหมดเวลาให้ครูเห็น (ยังไม่หักคะแนน)</>}
             </li>
-            <li><b>ใช้กล้องทุกคน</b> · <b>ห้ามเอามือหรือสิ่งของขึ้นใกล้หน้า</b> (เกาจมูก ขยี้ตา หาว ก็นับ) · <b>เก็บมือถือเครื่องอื่นให้พ้นกล้อง</b> (เห็นแวบเดียวก็นับ) · ตั้งมือถือให้กล้องเห็นหน้า ไม่วางราบ · จับเวลาข้อละ {Q_TIME_MS / 1000} วินาที</li>
+            {extra ? <li><b>ห้องนี้ไม่ใช้กล้อง ไม่เก็บภาพ</b> · ทำเองคนเดียว ไม่ใช้แอปหรือเครื่องอื่นช่วย · จับเวลาข้อละ {Q_TIME_MS / 1000} วินาที</li> : <li><b>ใช้กล้องทุกคน</b> · <b>ห้ามเอามือหรือสิ่งของขึ้นใกล้หน้า</b> (เกาจมูก ขยี้ตา หาว ก็นับ) · <b>เก็บมือถือเครื่องอื่นให้พ้นกล้อง</b> (เห็นแวบเดียวก็นับ) · ตั้งมือถือให้กล้องเห็นหน้า ไม่วางราบ · จับเวลาข้อละ {Q_TIME_MS / 1000} วินาที</li>}
             <li>ออกจากหน้าครบ {GUARD_FLAG_AT} ครั้ง ครูจะเห็นเครื่องหมาย 🚩 และอาจให้ทำต่อหน้าครู</li>
           </ol>
         </div>
@@ -678,6 +699,7 @@ export default function CourseRoom({
           }}
           required
           preApproved={!!shared?.fallback}
+          noCamMode={extra}
           camRule={`ผ่านเมื่อถูก ${camNeed}/${total} (ผิดได้ 20%) · จับเวลาข้อละ ${Q_TIME_MS / 1000} วินาที`}
           noCamRule={`ข้อละ ${Q_TIME_MS / 1000} วินาที`}
           note={cMode === "enforce" ? undefined : `ช่วงทดลองถึง 15 พ.ย.: ยังใช้เกณฑ์เดิม (${needOf(total) < total ? `ถูก ${needOf(total)}/${total}` : `ถูกครบ ${total}/${total}`}) · เกณฑ์ 80% เริ่ม 16 พ.ย.`}
@@ -710,6 +732,7 @@ export default function CourseRoom({
           )}
           <span className="text-xs font-black text-gray-500">{L} {lesson.hour} · {lesson.titleEn}</span>
         </div>
+        {guarded && <HoursNote hours={hours} compact />}
 
         <div className="flex items-center gap-3 mb-1">
           <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">

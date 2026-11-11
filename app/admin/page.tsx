@@ -29,13 +29,15 @@ import {
   isFastAttempt,
   applyEarly,
 } from "../lib/courses";
-import { doneEarly, thaiDayOf } from "../lib/early";
+import { doneEarly, doneGraced, thaiDayOf } from "../lib/early";
 import { openDay } from "../lib/sync";
 import { GRADES, ROSTER, extractNo, fmtThaiTime, gradeOf, matchRoster, roomOf, rosterKey, typedMismatch } from "../lib/roster";
 import { CORE_NAME, CORE_PLAN, VCourse, VProgress, loadVocab300 } from "../lib/vocab300";
 import VocabAdmin from "./_vocab/VocabAdmin";
 import { LivePanel, type LiveEntry } from "./_parts/LivePanel";
 import type { LiveDoc } from "../lib/live";
+import { StudentManager } from "./_parts/StudentManager";
+import { isConfigId, isExtraId } from "../lib/extra";
 import { GuardMark, LegacyPanel, SpotCheck, UnlockButton, WeekTabs, guardEvents, guardTip, isFlagged, pickSpot, type SpotCand } from "./_parts/AdminTools";
 
 // ── สิทธิ์เข้าหน้า /admin (เหมือนเดิม) ──
@@ -62,6 +64,7 @@ type StudentDoc = {
   v300At?: number;
   unlock?: Record<string, number>; // ครูเปิดบท/ชุดล่วงหน้า (รายคน)
   live?: LiveDoc; // กำลังทำรอบเข้าสมุดคะแนนอยู่ตอนนี้ (หน้าติดตามสด)
+  hidden?: boolean; // ครูซ่อนจากแดชบอร์ด (11 พ.ย.)
 } & Record<string, unknown>;
 
 type Row = {
@@ -105,6 +108,9 @@ const fmtDur = (ms?: number) => (ms ? `${Math.floor(ms / 60000)}:${String(Math.r
 type Status = "passed" | "tried" | "none";
 // early = ทำล่วงหน้าก่อนวันเรียนของห้อง (ไม่นับ · ⏩ ต้องทำใหม่พร้อมกล้อง) → นับเป็นยังไม่ทำ
 const statusOf = (p?: LessonProgress): Status => (p?.passed ? "passed" : p && p.attempts > 0 ? "tried" : "none");
+const GraceMark = () => (
+  <span data-grace="1" className="absolute -top-0.5 left-0 text-[9px] leading-none font-black text-sky-800 bg-sky-100 rounded px-0.5" aria-label="อนุโลม">อ</span>
+);
 const EarlyMark = () => <span data-early="1" className="inline-flex w-7 h-7 rounded-lg bg-orange-100 text-orange-700 font-black items-center justify-center text-[11px] ring-1 ring-orange-300">⏩</span>;
 
 export default function AdminDashboard() {
@@ -117,7 +123,8 @@ export default function AdminDashboard() {
   const [courseId, setCourseId] = useState(COURSE_REGISTRY[0]?.id ?? "decoder");
   const [course, setCourse] = useState<Course | null>(null);
   const [weekSel, setWeekSel] = useState(0); // 0 = ทุกสัปดาห์
-  const [students, setStudents] = useState<StudentDoc[]>([]);
+  const [allStudents, setAllStudents] = useState<StudentDoc[]>([]); // นักเรียนโรงเรียนทั้งหมด (รวมที่ซ่อน) — ไม่รวมห้องเรียนพิเศษ (ex:) และเอกสารตั้งค่า (cfg:)
+  const students = useMemo(() => allStudents.filter((s) => !s.hidden), [allStudents]);
   const [loading, setLoading] = useState(true);
   const [loadedAt, setLoadedAt] = useState<number>(0);
   const [live, setLive] = useState(false);
@@ -163,7 +170,7 @@ export default function AdminDashboard() {
     if (!authed) return;
     const stop = listenStudents(
       (data) => {
-        setStudents(data);
+        setAllStudents(data.filter((s) => !isExtraId(s.id) && !isConfigId(s.id)));
         setLoadedAt(Date.now());
         setLive(true);
         setLoading(false);
@@ -237,7 +244,7 @@ export default function AdminDashboard() {
             ...r,
             progress: applyEarly(r.progress, (id, x) => {
               const l = byId.get(id);
-              return !!l && doneEarly(thaiDayOf(x.firstAt ?? x.passedAt ?? x.lastAt ?? 0), openDay(l.start, r.room, course.classDays), l.hour <= r.unlock);
+              return !!l && doneEarly(thaiDayOf(x.firstAt ?? x.passedAt ?? x.lastAt ?? 0), openDay(l.start, r.room, course.classDays), l.hour <= r.unlock, l.hour);
             }),
           }
         : r
@@ -248,6 +255,9 @@ export default function AdminDashboard() {
   const scopeLabel = roomFilter === "ALL" ? `${gradeInfo.label} ทุกห้อง` : `ม.${roomFilter}`;
   const lessons = course?.lessons ?? [];
   const L = course?.lessonWord ?? "บท"; // ฉบับ ม.4 เรียกว่า "คาบ"
+  // สัปดาห์ 1–2 ทำล่วงหน้า → อนุโลมนับผ่าน (ป้าย "อ")
+  const gracedCell = (r: { room: string | null; unlock: number }, l: { start?: string; hour: number }, p?: LessonProgress) =>
+    !!course && !!p && p.attempts > 0 && doneGraced(thaiDayOf(p.firstAt ?? p.passedAt ?? p.lastAt ?? 0), openDay(l.start, r.room, course.classDays), l.hour <= r.unlock, l.hour);
   const shownLessons = weekSel ? lessons.filter((l) => (l.week ?? l.hour) === weekSel) : lessons;
   const qn = lessons[0]?.questions.length ?? 0;
   const passText = course?.passMin && course.passMin < qn ? `ถูก ${course.passMin}/${qn} ข้อขึ้นไป` : `ตอบถูกครบทุกข้อ (${qn}/${qn})`;
@@ -445,6 +455,7 @@ export default function AdminDashboard() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <a href="/admin/extraclass" data-extra-link className="px-3 py-2 rounded-xl bg-white border-2 border-[#003399]/15 text-[#003399] font-bold text-sm hover:border-[#003399]/40" title="รหัสเข้าชั้นและความก้าวหน้าของนักเรียนเรียนพิเศษ">🎓 ห้องเรียนพิเศษ</a>
             <a href="/demo/camera" target="_blank" rel="noreferrer" className="px-3 py-2 rounded-xl bg-white border-2 border-[#003399]/15 text-[#003399] font-bold text-sm hover:border-[#003399]/40" title="หน้าทดลองสำหรับผู้บริหาร (ยังไม่ใช้กับนักเรียน)">🧪 ทดลองกล้องซ้อน</a>
             <button onClick={reconnect} disabled={loading} className="px-4 py-2 bg-white border-2 border-[#003399]/20 text-[#003399] font-bold rounded-xl disabled:opacity-50">
               {loading ? "⏳ กำลังเชื่อมต่อ..." : "🔄 เชื่อมต่อใหม่"}
@@ -526,6 +537,7 @@ export default function AdminDashboard() {
 
         {error && <p className="bg-rose-50 text-rose-700 font-bold rounded-xl p-3 mb-4">{error}</p>}
         <LivePanel entries={liveEntries} />
+        <StudentManager docs={allStudents} />
         <LegacyPanel students={students} />
         {(area === "vocab300" ? !v300 : !course) && <p className="text-center text-[#003399] font-bold animate-pulse py-10">กำลังโหลดข้อมูล...</p>}
 
@@ -670,6 +682,7 @@ export default function AdminDashboard() {
                                   <td key={l.id} className="text-center px-0.5 py-1 relative" title={tip}>
                                     {fast && <span className="absolute -top-0.5 right-0 text-[10px]" aria-label="ทำเร็วผิดปกติ">⚡</span>}
                                     <GuardMark g={p} />
+                                    {gracedCell(r, l, p) && <GraceMark />}
                                     {p?.early && !(p.attempts > 0) ? (
                                       <EarlyMark />
                                     ) : st === "passed" ? (
@@ -696,7 +709,7 @@ export default function AdminDashboard() {
                   </table>
                 </div>
                 <p className="text-[11px] text-gray-500 px-4 py-3">
-                  ✓ = ผ่าน ({passText}) · ตัวเลข = คะแนนดีที่สุดที่ยังไม่ผ่าน · ⚡ = ทำเร็วผิดปกติ (เฉลี่ยไม่ถึง 5 วินาทีต่อข้อ){fastRows > 0 ? ` — ${fastRows} คนในมุมมองนี้` : ""} · ↗n = ออกจากหน้า n ครั้ง · 📷n = มีอะไรบังใบหน้า n ครั้ง · 🚫 = ไม่ใช้กล้อง · 🚩 = รวม 3 ครั้งขึ้นไป (ควรเรียกมาถาม) · 🔓 = เปิด{L}ล่วงหน้าให้รายคน · ชี้ที่ช่องเพื่อดูคะแนนรอบแรก เวลาที่ใช้ จำนวนรอบ และวันที่ผ่าน · หัวคอลัมน์ = {L}ที่
+                  ✓ = ผ่าน ({passText}) · ตัวเลข = คะแนนดีที่สุดที่ยังไม่ผ่าน · ⚡ = ทำเร็วผิดปกติ (เฉลี่ยไม่ถึง 5 วินาทีต่อข้อ){fastRows > 0 ? ` — ${fastRows} คนในมุมมองนี้` : ""} · ↗n = ออกจากหน้า n ครั้ง · 📷n = มีอะไรบังใบหน้า n ครั้ง · 🚫 = ไม่ใช้กล้อง · 🚩 = รวม 3 ครั้งขึ้นไป (ควรเรียกมาถาม) · 🔓 = เปิด{L}ล่วงหน้าให้รายคน · <b className="text-sky-800">อ</b> = ทำล่วงหน้าแต่ได้รับอนุโลม (สัปดาห์ 1–2 นับผ่าน) · ชี้ที่ช่องเพื่อดูคะแนนรอบแรก เวลาที่ใช้ จำนวนรอบ และวันที่ผ่าน · หัวคอลัมน์ = {L}ที่
                 </p>
               </div>
             )}
@@ -744,6 +757,7 @@ export default function AdminDashboard() {
                                   >
                                     {g?.fast && <span className="absolute -top-0.5 right-0 text-[10px]" aria-label="ทำเร็วผิดปกติ">⚡</span>}
                                     <GuardMark g={p} />
+                                    {gracedCell(r, l, p) && <GraceMark />}
                                     {p?.early && !(p.attempts > 0) ? (
                                       <EarlyMark />
                                     ) : p && g ? (
