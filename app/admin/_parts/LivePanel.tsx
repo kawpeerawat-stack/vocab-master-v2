@@ -8,8 +8,7 @@
 // ─────────────────────────────────────────────────────────────
 import React, { useEffect, useMemo, useState } from "react";
 import type { LiveDoc } from "../../lib/live";
-import { serverNow, serverToday, syncClock } from "../../lib/sync";
-import { nocamCode } from "../../lib/nocamCode";
+import { serverNow, syncClock } from "../../lib/sync";
 
 export type LiveEntry = { id: string; name: string; no: number | null; room: string | null; live: LiveDoc };
 
@@ -19,8 +18,8 @@ const QUIET_MS = 2 * 60000; // ไม่มีความเคลื่อน�
 const FLASH_MS = 15000;
 
 const CM_LABEL: Record<string, string> = { cam: "📷 กล้อง", nocam: "🚫 ไม่ใช้กล้อง", camfail: "🚫 กล้องใช้ไม่ได้" };
-const EV_LABEL: Record<string, string> = { leave: "↗ ออกจากหน้า", face: "📷 บังหน้า", time: "⏱ หมดเวลา", phone: "📱 พบมือถือ", far: "📱 มือถือไกล ๆ (ไม่ข้ามข้อ · ดูว่าใครถือ)" };
-const events = (d: LiveDoc) => (d.lv || 0) + (d.cv || 0) + (d.to || 0) + (d.ph || 0);
+const EV_LABEL: Record<string, string> = { leave: "↗ ออกจากหน้า", face: "📷 บังหน้า", time: "⏱ หมดเวลา", phone: "📱 พบมือถือ", far: "📱 มือถือไกล ๆ (ไม่ข้ามข้อ · ดูว่าใครถือ)", split: "📐 แบ่งจอ / หน้าต่างไม่เต็มจอ" };
+const events = (d: LiveDoc) => (d.lv || 0) + (d.cv || 0) + (d.to || 0) + (d.ph || 0); // lv รวมแบ่งจอแล้ว
 const ago = (ms: number) => (ms < 60000 ? `${Math.max(0, Math.round(ms / 1000))} วิ` : `${Math.floor(ms / 60000)} นาที`);
 
 export function LivePanel({ entries }: { entries: LiveEntry[] }) {
@@ -57,9 +56,7 @@ export function LivePanel({ entries }: { entries: LiveEntry[] }) {
         <span className="text-sm font-bold text-gray-700 tabular-nums">{active.length} คน</span>
         {alerts > 0 && <span className="text-sm font-black text-rose-700 tabular-nums">มีเหตุการณ์ {alerts} คน</span>}
         {noCam > 0 && <span className="text-sm font-bold text-gray-600 tabular-nums">ไม่ใช้กล้อง {noCam} คน</span>}
-        <span className="ml-auto text-xs font-bold text-gray-500" data-nocam-today title="กล้องเครื่องนักเรียนเปิดไม่ได้จริง → ครูเดินไปดูแล้วกรอกรหัสนี้ให้ (เปลี่ยนทุกวัน)">
-          🔑 รหัสไม่ใช้กล้องวันนี้ <b className="tabular-nums text-gray-800 tracking-widest">{nocamCode(serverToday())}</b>
-        </span>
+        <span className="ml-auto text-xs font-bold text-gray-500" data-nocam-today title="รหัสกล้องใช้ไม่ได้เป็นรายคนแล้ว (v8.5) — ดูที่กล่อง 🔑 ออกรหัสให้นักเรียนรายคน ด้านล่าง">🔑 รหัสครู: ดูที่กล่องด้านล่าง</span>
         <span className="text-xs font-bold text-gray-400">{open ? "ย่อ ▲" : "ขยาย ▼"}</span>
       </button>
       {open && (
@@ -100,6 +97,8 @@ export function LivePanel({ entries }: { entries: LiveEntry[] }) {
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-2 text-xs font-bold">
                       <span className={d.cm === "cam" ? "text-gray-600" : "text-amber-700"}>{CM_LABEL[d.cm] ?? d.cm}</span>
                       {d.lv > 0 && <span className="text-rose-700 tabular-nums">↗{d.lv}</span>}
+                      {(d.sp || 0) > 0 && <span className="text-rose-700 tabular-nums" title="หน้าต่างแอปไม่เต็มจอ (แบ่งจอ / หน้าต่างลอย)">📐{d.sp}</span>}
+                      {(d.ab || 0) > 0 && <span className="text-amber-700 tabular-nums" title="วันนี้ยกเลิกรอบมาแล้วกี่ครั้ง (ออกกลางรอบ / รีเฟรช / แบ่งจอ)">ยกเลิกวันนี้ {d.ab}</span>}
                       {(d.ph || 0) > 0 && <span className="text-rose-700 tabular-nums">📱{d.ph}</span>}
                       {(d.pf || 0) > 0 && <span className="text-amber-700 tabular-nums" title="มือถือเล็ก ๆ ไกล ๆ ในกล้อง (ไม่ข้ามข้อ)">📱ไกล{d.pf}</span>}
                       {d.cv > 0 && <span className="text-rose-700 tabular-nums">📷{d.cv}</span>}

@@ -14,10 +14,11 @@ import { GUARD_FLAG_AT, fmtAway } from "../../lib/guard";
 // ── ระบบกัน AI + กล้องกันกล้องซ้อน ──
 //   gl = ออกจากหน้า/หน้าต่างบัง · gc = มีอะไรบังใบหน้า (กล้อง) · gp = พบมือถือในกล้อง · gpd = ตัวตรวจมือถือทำงานไหม · cm = ใช้กล้องหรือไม่ · pm = ผ่านด้วยรอบแบบไหน
 export interface GuardInfo {
-  gl?: number; ga?: number; gb?: number; gv?: number; gm?: "log" | "enforce";
+  gl?: number; ga?: number; gb?: number; gv?: number; gm?: "log" | "enforce"; gsp?: number; gfm?: number; gfe?: number;
   cm?: "cam" | "nocam" | "camfail"; gc?: number; gca?: number; gt?: number; gp?: number; gpf?: number; gpd?: string; pm?: "cam" | "nocam" | "camfail";
 }
 export const CM_TH: Record<string, string> = { cam: "📷 ใช้กล้อง", nocam: "🚫 ไม่ใช้กล้อง", camfail: "⚠️ เลือกกล้องแต่กล้องใช้ไม่ได้" };
+// gl รวมครั้งที่แบ่งจอไว้แล้ว (แบ่งจอนับเป็นการออกจากหน้า 1 ครั้ง) · gfm (เสียโฟกัสสะสม) บันทึกอย่างเดียว ไม่นับเป็นเหตุการณ์
 export const guardEvents = (g?: GuardInfo | null) => (g?.gl ?? 0) + (g?.gc ?? 0) + (g?.gp ?? 0);
 export const isFlagged = (g?: GuardInfo | null) => !!g && guardEvents(g) >= GUARD_FLAG_AT;
 export function guardTip(g?: GuardInfo | null): string {
@@ -28,6 +29,8 @@ export function guardTip(g?: GuardInfo | null): string {
   if (g.cm === "cam" && g.gpd !== undefined) parts.push(g.gpd === "ready" ? `พบมือถือในกล้อง ${g.gp ?? 0} ครั้ง${g.gpf ? ` · มือถือไกล ๆ ${g.gpf} ครั้ง (ไม่ข้ามข้อ)` : ""}` : `ตรวจมือถือไม่ได้ (${g.gpd === "slow" ? "เครื่องช้า" : g.gpd === "loading" ? "ยังโหลดไม่เสร็จ" : "เครื่องไม่รองรับ"})`);
   if (g.cm && g.cm !== "cam") parts.push(`หมดเวลา ${g.gt ?? 0} ข้อ`);
   if (g.gb) parts.push(`เสียโฟกัสสั้น ๆ ${g.gb} ครั้ง`);
+  if (g.gsp) parts.push(`📐 แบ่งจอ/หน้าต่างไม่เต็มจอ ${g.gsp} ครั้ง`);
+  if (g.gfm) parts.push(`หน้าแอปไม่ใช่หน้าที่ใช้งานรวม ${fmtAway(g.gfm * 1000)} (${g.gfe ?? 0} ช่วง · บันทึกอย่างเดียว)`);
   if (g.gm === "enforce") parts.push(`ถูกข้าม/ไม่นับ ${g.gv ?? 0} ข้อ`);
   else if (g.gm) parts.push("ช่วงทดลอง ไม่หักคะแนน");
   return `\n${isFlagged(g) ? "🚩 " : ""}รอบแรก: ${parts.join(" · ")}${g.pm ? `\nผ่านด้วยรอบ: ${CM_TH[g.pm]}` : ""}`;
@@ -42,6 +45,7 @@ export function GuardMark({ g }: { g?: GuardInfo | null }) {
     ) : null;
   }
   if (isFlagged(g)) return <span className="absolute -top-0.5 left-0 text-[10px]" aria-label="ออกจากหน้า/บังหน้าบ่อย">🚩</span>;
+  if ((g.gsp ?? 0) > 0) return <span className="absolute -top-1 left-0 text-[9px] font-black text-rose-600" aria-label={`แบ่งจอ ${g.gsp} ครั้ง`}>📐{g.gsp}</span>;
   if ((g.gp ?? 0) > 0) return <span className="absolute -top-1 left-0 text-[9px] font-black text-rose-600" aria-label={`พบมือถือ ${g.gp} ครั้ง`}>📱{g.gp}</span>;
   return (g.gc ?? 0) > 0 ? (
     <span className="absolute -top-1 left-0 text-[9px] font-black text-rose-600" aria-label={`บังใบหน้า ${g.gc} ครั้ง`}>📷{g.gc}</span>

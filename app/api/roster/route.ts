@@ -12,6 +12,7 @@
 // ─────────────────────────────────────────────────────────────
 import { NextRequest, NextResponse } from "next/server";
 import { ROSTER, normName } from "../../lib/roster";
+import { fromOurSite } from "../../lib/sameOrigin";
 
 const PREFIX_RE = /^(นางสาว|เด็กชาย|เด็กหญิง|นาย|นาง|ด\.ช\.|ด\.ญ\.|น\.ส\.)\s*/;
 function splitRosterName(full: string): { first: string; last: string } {
@@ -20,9 +21,7 @@ function splitRosterName(full: string): { first: string; last: string } {
 }
 
 export async function GET(request: NextRequest) {
-  const referer = request.headers.get("referer") || "";
-  const host = request.headers.get("host") || "";
-  if (host && !referer.includes(host)) {
+  if (!fromOurSite(request.headers)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
   const sp = request.nextUrl.searchParams;

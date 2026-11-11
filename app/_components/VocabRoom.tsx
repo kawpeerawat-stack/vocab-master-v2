@@ -51,8 +51,9 @@ import { HoursNote } from "./HoursNote";
 import { displayName, roomOf } from "../lib/names";
 import { isIssue, issueText, loadLocalUnlock, openDay, serverToday, syncClock, thaiDate, thaiShort, type SyncState } from "../lib/sync";
 import { camMode, GUARD_FLAG_AT, guardMode, noCopyProps, noticeText, Q_TIME_MS, qTimeLimit, useLeaveGuard, useQuestionTimer, type CamMode } from "../lib/guard";
-import { CamBox, CamChooser, CoverShield, isCovered, loadCamChoice, saveCamChoice, TimerBar, useRoomCamera, type SharedCam } from "./CamGuard";
-import { liveEnd, liveEvent, liveLeaves, liveQuit, liveStart, liveStep } from "../lib/live";
+import { CamBox, CamChooser, CoverShield, isCovered, loadCamChoice, RoundCapPanel, saveCamChoice, SplitShield, TimerBar, useRoomCamera, type SharedCam } from "./CamGuard";
+import { capReached, readDay, ROUND_CAP, roundAbandon, roundBegin, roundEnd, roundSweep, roundsSync, type DayRounds } from "../lib/rounds";
+import { liveEnd, liveEvent, liveLeaves, liveQuit, liveSplit, liveStart, liveStep } from "../lib/live";
 
 // ───────── ตัวช่วยแสดงผล ─────────
 function Rich({ text, className = "" }: { text: string; className?: string }) {
@@ -364,6 +365,8 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
   const [showRank, setShowRank] = useState(false);
   const [rank, setRank] = useState<RankEntry[] | null>(null);
   const [showHow, setShowHow] = useState(false);
+  const [dayR, setDayR] = useState<DayRounds>({ a: 0, l: false, w: [] }); // v8.5: รอบที่ยกเลิกวันนี้
+  const [stopMsg, setStopMsg] = useState("");
 
   // ── โหลด ──
   useEffect(() => {
@@ -377,7 +380,15 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
         setProg((cur) => normalizeProgress(cur, c.words));
       })
       .catch(() => alive && setLoadError(true));
-    syncClock().then(() => alive && setSToday(serverToday()));
+    syncClock().then(async () => {
+      if (!alive) return;
+      setSToday(serverToday());
+      if (!extra) {
+        roundSweep(email); // รอบที่ปิด/รีเฟรชไปกลางคัน → นับเป็นรอบที่ยกเลิก
+        const d = await roundsSync(email);
+        if (alive) setDayR(d);
+      }
+    });
     Promise.all([coursePromise.catch(() => null), loadProgress(email)]).then(([c, { p, needSync }]) => {
       if (!alive) return;
       setUnlockN(loadLocalUnlock(email).v300 || 0);
@@ -397,7 +408,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
     return () => {
       alive = false;
     };
-  }, [email, name]);
+  }, [email, name, extra]);
 
   // วันเปลี่ยน (เปิดค้างข้ามเที่ยงคืน)
   useEffect(() => {
@@ -505,7 +516,18 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
     setPicked(null);
     return true;
   };
-  const guard = useLeaveGuard(mode === "CHECK" && !checkGate, mode === "CHECK" && !checkGate && curItem && picked === null && curItem.retry === 0 ? curItem.wid : null, (k) => skipCheckItem(k, "leave"));
+  const guard = useLeaveGuard(mode === "CHECK" && !checkGate, mode === "CHECK" && !checkGate && curItem && picked === null && curItem.retry === 0 ? curItem.wid : null, (k) => skipCheckItem(k, "leave"), {
+    onSplit: (n) => liveSplit(n),
+    // v8.5: หน้าต่างไม่เต็มจอ (แบ่งจอ) เกินเวลา หรือครั้งที่ 2 → หยุดรอบ (ยกเลิก ไม่ได้คะแนน · นับในโควตายกเลิกต่อวัน)
+    onStop: () => {
+      cam.stop();
+      if (!extra) setDayR(roundAbandon(email, "split"));
+      setStopMsg("📐 รอบทบทวนถูกหยุด เพราะหน้าต่างแอปไม่เต็มจอ (แบ่งจอ / หน้าต่างลอย) — ไม่ได้คะแนน ต้องเริ่มรอบใหม่ · ทำให้เต็มจอเสมอระหว่างทำรอบที่เข้าสมุดคะแนน");
+      setConfirmExit(false);
+      setMode("HOME");
+      scrollTop();
+    },
+  });
   // กล้อง: มีอะไรบังใบหน้า (จมูกขึ้นไป) นานเกิน 0.5 วินาที → ช่วงหักคะแนนข้ามคำ · ช่วงทดลองเตือน+บันทึก
   //   พบมือถือในกล้อง 2 ภาพติดกัน (9 พ.ย.) → เหมือนกัน
   const cam = useRoomCamera(shared, (_ms, kind) => {
@@ -547,6 +569,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
   useEffect(() => {
     if (mode === "CHECK" && guard.leaves > 0) liveLeaves(guard.leaves);
   }, [mode, guard.leaves]);
+
   useEffect(() => {
     if (mode !== "CHECK") liveQuit();
   }, [mode]);
@@ -554,6 +577,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
   const hours = useSchoolHours(!extra, () => {
     if (mode !== "CHECK") return;
     cam.stop();
+    if (!extra) roundEnd(email); // ปิดระบบเอง: ไม่นับว่ายกเลิก
     setCheckGate(false);
     setConfirmExit(false);
     setMode("HOME");
@@ -594,6 +618,8 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
   // ── รอบทบทวนชุด: ครบ 10 คำแล้วทำอีก 1 รอบ (คำละ 1 ข้อ) · ผิดข้อไหนวนเฉพาะข้อนั้นจนถูกครบ → ผ่านชุด ──
   const startCheck = () => {
     if (!curReady || curLocked || (!extra && !hoursNow().open)) return;
+    if (!extra && capReached(dayR)) return; // ยกเลิกรอบครบกำหนดของวันนี้ (แผงปลดล็อกแสดงอยู่ที่หน้าแรก)
+    setStopMsg("");
     checkFirst.current = {};
     voidedRef.current = 0;
     guard.reset();
@@ -725,6 +751,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
       const first = checkFirst.current;
       const score = Object.values(first).filter(Boolean).length;
       liveEnd(score);
+      if (!extra) roundEnd(email);
       const old = earlySets[String(k)];
       let p = passSet(progRef.current, words, k, today, { score, ...(old ? { prev: { day: old.day, score: old.score, at: old.at } } : {}) });
       // แนบผลการเฝ้าดู (ออกจากหน้า / เวลาที่หายไป) ไว้กับชุดที่ผ่าน ให้ครูเห็น
@@ -735,7 +762,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
         ...p,
         sets: {
           ...p.sets,
-          [String(k)]: { ...p.sets![String(k)], gl: g.leaves, ga: g.awayMs, gb: g.blurs, gv: g.voided, gm: g.mode, cm: roundCam, gc: cc.covers, gca: cc.coverMs, gt: timeoutsRef.current, ...(roundCam === "cam" ? { gp: cc.phones, gpf: cc.phonesFar, gpd: cc.phoneState } : {}) },
+          [String(k)]: { ...p.sets![String(k)], gl: g.leaves, ga: g.awayMs, gb: g.blurs, gv: g.voided, gm: g.mode, ...(g.splits ? { gsp: g.splits } : {}), ...(g.fm ? { gfm: Math.round(g.fm / 1000), gfe: g.fe ?? 0 } : {}), cm: roundCam, gc: cc.covers, gca: cc.coverMs, gt: timeoutsRef.current, ...(roundCam === "cam" ? { gp: cc.phones, gpf: cc.phonesFar, gpd: cc.phoneState } : {}) },
         },
       };
       p = addDay(p, today, { c: score, x: Object.keys(first).length - score });
@@ -764,6 +791,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
 
   const exitSession = async () => {
     setConfirmExit(false);
+    if (mode === "CHECK" && !extra) setDayR(roundAbandon(email, "quit")); // ออกกลางรอบที่เข้าสมุดคะแนน = ยกเลิก 1 ครั้ง
     if (mode === "REVIEW") await doSave(progRef.current);
     setMode("HOME");
     scrollTop();
@@ -804,6 +832,13 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
     return (
       <div className="animate-fadeIn mt-2">
         <button type="button" onClick={onExit} className="mb-4 text-sm font-bold text-[#003399] hover:underline">← เมนูหลัก</button>
+        {stopMsg && (
+          <div className="rounded-xl p-3 mb-3 text-sm font-bold flex items-start gap-2 bg-orange-100 text-orange-900 border-2 border-orange-300" data-round-stopped="1">
+            <span className="flex-1">{stopMsg}</span>
+            <button onClick={() => setStopMsg("")} className="shrink-0 text-xs underline">รับทราบ</button>
+          </div>
+        )}
+        {!extra && capReached(dayR) && <RoundCapPanel email={email} onLifted={() => setDayR(readDay(email))} />}
         <div className="text-center mb-5">
           <div className="text-4xl mb-1">📚</div>
           <h1 className="text-2xl font-black text-gray-900">{course.titleTh}</h1>
@@ -1245,6 +1280,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
           </ol>
         </div>
         <CamChooser
+          email={email}
           cam={cam}
           want={camWant}
           setWant={(on) => {
@@ -1266,7 +1302,8 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
             setCamNotice(null);
             guard.reset();
             setCheckGate(false);
-            liveStart(email, { room: myRoom, a: "v300", c: "v300", l: String(checkSetNo), t: `📚 ชุดที่ ${checkSetNo}`, tot: queue.length, cm, pd: cm === "cam" ? cam.phoneState : undefined });
+            if (!extra) roundBegin(email);
+            liveStart(email, { room: myRoom, a: "v300", c: "v300", l: String(checkSetNo), t: `📚 ชุดที่ ${checkSetNo}`, tot: queue.length, cm, pd: cm === "cam" ? cam.phoneState : undefined, ab: dayR.a });
             scrollTop();
           }}
         />
@@ -1282,7 +1319,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
     const label =
       mode === "LEARN" ? "ขั้นที่ 4 · ดึงจากความจำ" : mode === "CHECK" ? `ขั้นที่ 5 · รอบทบทวนชุดที่ ${checkSetNo}` : mode === "REVIEW" ? "ทวนคำชุดก่อน ๆ (ไม่บังคับ)" : "ฝึกเพิ่ม (ไม่นับคะแนน)";
     const warn =
-      mode === "LEARN" ? "ออกตอนนี้ คำ 5 คำนี้จะยังไม่ถูกบันทึก" : mode === "CHECK" ? "ออกตอนนี้ รอบทบทวนต้องเริ่มใหม่ (ชุดยังไม่ผ่าน)" : "ออกได้ ข้อที่ตอบแล้วบันทึกไว้แล้ว";
+      mode === "LEARN" ? "ออกตอนนี้ คำ 5 คำนี้จะยังไม่ถูกบันทึก" : mode === "CHECK" ? `ออกตอนนี้ รอบทบทวนต้องเริ่มใหม่ และนับเป็นยกเลิกรอบ (วันนี้ยกเลิกแล้ว ${dayR.a}/${ROUND_CAP} ครั้ง — ครบแล้วเริ่มรอบนับคะแนนอีกไม่ได้ทั้งวัน)` : "ออกได้ ข้อที่ตอบแล้วบันทึกไว้แล้ว";
     const left = mode === "LEARN" || mode === "CHECK" ? queue.length - qi - (picked !== null ? 1 : 0) : 0;
     return (
       <div className="animate-fadeIn mt-2">
@@ -1318,8 +1355,9 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
           <span className="text-[11px] font-black bg-[#FFD700] text-[#003399] px-2 py-1 rounded-full">{KIND_LABEL[it.kind]}</span>
           {it.retry > 0 && <span className="text-[11px] font-black bg-rose-100 text-rose-700 px-2 py-1 rounded-full">🔁 วนกลับมาถามอีกครั้ง</span>}
         </div>
+        {mode === "CHECK" && picked === null && guard.split && <SplitShield leftMs={guard.splitLeft} />}
         {mode === "CHECK" && roundCam === "cam" && picked === null && isCovered(cam) && <CoverShield phone={cam.phone} />}
-        <div className="bg-gray-50 rounded-2xl p-4 mb-4" hidden={mode === "CHECK" && roundCam === "cam" && picked === null && isCovered(cam)} {...(mode === "CHECK" ? noCopyProps : {})}>
+        <div className="bg-gray-50 rounded-2xl p-4 mb-4" hidden={mode === "CHECK" && picked === null && (guard.split || (roundCam === "cam" && isCovered(cam)))} {...(mode === "CHECK" ? noCopyProps : {})}>
           {it.kind === "en2th" && (
             <p className="text-center">
               <span className="text-3xl font-black font-serif text-[#003399]">{w.w}</span> <span className="text-gray-400 font-bold">{w.pos}</span>
@@ -1357,7 +1395,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
             </>
           )}
         </div>
-        <div className="space-y-2 mb-4" hidden={mode === "CHECK" && roundCam === "cam" && picked === null && isCovered(cam)} {...(mode === "CHECK" ? noCopyProps : {})}>
+        <div className="space-y-2 mb-4" hidden={mode === "CHECK" && picked === null && (guard.split || (roundCam === "cam" && isCovered(cam)))} {...(mode === "CHECK" ? noCopyProps : {})}>
           {it.options.map((o, i) => (
             <Opt
               key={i}

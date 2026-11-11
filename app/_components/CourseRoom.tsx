@@ -32,14 +32,15 @@ import { hoursNow, useSchoolHours } from "../lib/hours";
 import { HoursNote } from "./HoursNote";
 import { isIssue, issueText, loadLocalUnlock, openDay, serverToday, syncClock, thaiShort, type SyncState } from "../lib/sync";
 import { camMode, GUARD_FLAG_AT, guardMode, noCopyProps, noticeText, passNeed, qTimeLimit, Q_TIME_MS, useLeaveGuard, useQuestionTimer, type CamMode } from "../lib/guard";
-import { CamBox, CamChooser, camSkipText, CoverShield, isCovered, loadCamChoice, saveCamChoice, TimerBar, useRoomCamera, type SharedCam } from "./CamGuard";
+import { CamBox, CamChooser, camSkipText, CoverShield, isCovered, loadCamChoice, RoundCapPanel, saveCamChoice, SplitShield, TimerBar, useRoomCamera, type SharedCam } from "./CamGuard";
+import { capReached, readDay, ROUND_CAP, roundAbandon, roundBegin, roundEnd, roundSweep, roundsSync, type DayRounds } from "../lib/rounds";
 import { roomOf } from "../lib/names";
-import { liveEnd, liveEvent, liveLeaves, liveQuit, liveStart, liveStep } from "../lib/live";
+import { liveEnd, liveEvent, liveLeaves, liveQuit, liveSplit, liveStart, liveStep } from "../lib/live";
 
 type View = "LIST" | "LESSON" | "GATE" | "QUIZ" | "RESULT";
 type QuizItem = { q: CourseQuestion; order: number[] }; // order[i] = index ตัวเลือกเดิมที่แสดงในช่อง i
 // chosen = index เดิม (ก่อนสลับ) · voided = ออกจากหน้าระหว่างข้อนี้ในรอบที่เข้าสมุดคะแนน (ช่วงหักคะแนน) → ไม่นับ
-type Answer = { qid: string; chosen: number; correct: boolean; voided?: boolean; skipped?: boolean; why?: "leave" | "cover" | "face" | "time" | "phone" }; // skipped = ระบบข้ามข้อนี้ทันทีเพราะออกจากหน้า (chosen = -1)
+type Answer = { qid: string; chosen: number; correct: boolean; voided?: boolean; skipped?: boolean; why?: "leave" | "cover" | "split" | "face" | "time" | "phone" }; // skipped = ระบบข้ามข้อนี้ทันทีเพราะออกจากหน้า (chosen = -1)
 const nowMs = () => Date.now(); // เวลาปัจจุบัน (เรียกเฉพาะตอนกดปุ่ม ไม่ได้เรียกระหว่างวาดหน้าจอ)
 const scoreOf = (all: Answer[]) => all.filter((a) => a.correct && !a.voided).length;
 
@@ -106,6 +107,8 @@ export default function CourseRoom({
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [showHint, setShowHint] = useState(false);
   const [confirmExit, setConfirmExit] = useState(false);
+  const [dayR, setDayR] = useState<DayRounds>({ a: 0, l: false, w: [] }); // v8.5: รอบที่ยกเลิกวันนี้
+  const [stopMsg, setStopMsg] = useState("");
   const [saveState, setSaveState] = useState<SyncState>("idle");
   const saving = saveState === "saving" || saveState === "slow";
   const [pending, setPending] = useState(() => hasPendingLessons(courseId, email)); // มีผลในเครื่องที่ยังไม่ขึ้นระบบ
@@ -150,7 +153,15 @@ export default function CourseRoom({
       setUnlockN(loadLocalUnlock(email)[courseId] || 0);
       setPending(hasPendingLessons(courseId, email));
     });
-    syncClock().then(() => alive && setToday(serverToday()));
+    syncClock().then(async () => {
+      if (!alive) return;
+      setToday(serverToday());
+      if (!extra) {
+        roundSweep(email); // รอบที่ปิด/รีเฟรชไปกลางคัน → นับเป็นรอบที่ยกเลิก
+        const d = await roundsSync(email);
+        if (alive) setDayR(d);
+      }
+    });
     return () => {
       alive = false;
     };
@@ -221,8 +232,8 @@ export default function CourseRoom({
   const answered = selected !== null;
   // ช่วงหักคะแนน: ตรวจพบว่าออกจากหน้า/ถูกบังนานระหว่างข้อไหน → ข้ามข้อนั้นทันที (ไม่ได้คะแนน)
   const finishRef = useRef<(all: Answer[]) => void>(() => undefined);
-  const skipCurrent = (key: string, why: "leave" | "cover" | "face" | "time" | "phone" = "leave") => {
-    if (!guarded || (why === "leave" || why === "cover" ? mode : cMode) !== "enforce" || !current || current.q.id !== key || selected !== null) return false;
+  const skipCurrent = (key: string, why: "leave" | "cover" | "split" | "face" | "time" | "phone" = "leave") => {
+    if (!guarded || (why === "leave" || why === "cover" || why === "split" ? mode : cMode) !== "enforce" || !current || current.q.id !== key || selected !== null) return false;
     qTimes.current.push(Math.round((nowMs() - qStart.current) / 1000));
     const all: Answer[] = [...answers, { qid: key, chosen: -1, correct: false, voided: true, skipped: true, why }];
     setAnswers(all);
@@ -237,7 +248,18 @@ export default function CourseRoom({
     }
     return true;
   };
-  const guard = useLeaveGuard(view === "QUIZ" && guarded, view === "QUIZ" && current && !answered ? current.q.id : null, skipCurrent);
+  const guard = useLeaveGuard(view === "QUIZ" && guarded, view === "QUIZ" && current && !answered ? current.q.id : null, skipCurrent, {
+    onSplit: (n) => liveSplit(n),
+    // v8.5: หน้าต่างไม่เต็มจอ (แบ่งจอ) เกินเวลา หรือครั้งที่ 2 → หยุดรอบ (ยกเลิก ไม่ได้คะแนน · นับในโควตายกเลิกต่อวัน)
+    onStop: () => {
+      cam.stop();
+      if (!extra) setDayR(roundAbandon(email, "split"));
+      setStopMsg("📐 รอบนี้ถูกหยุด เพราะหน้าต่างแอปไม่เต็มจอ (แบ่งจอ / หน้าต่างลอย) — ไม่ได้คะแนน ต้องเริ่มรอบใหม่ · ทำให้เต็มจอเสมอระหว่างทำรอบที่เข้าสมุดคะแนน");
+      setConfirmExit(false);
+      setView("LESSON");
+      scrollTop();
+    },
+  });
   // กล้อง: มีอะไรบังใบหน้า (จมูกขึ้นไป) นานเกิน 0.5 วินาที → ช่วงหักคะแนนข้ามข้อ · ช่วงทดลองเตือน+บันทึก
   //   พบมือถือในกล้อง 2 ภาพติดกัน (9 พ.ย.) → เหมือนกัน
   const cam = useRoomCamera(shared, (_ms, kind) => {
@@ -284,6 +306,7 @@ export default function CourseRoom({
   const hours = useSchoolHours(!extra, () => {
     if (view === "GATE" || (view === "QUIZ" && guarded)) {
       cam.stop();
+      if (!extra) roundEnd(email); // ปิดระบบเอง: ไม่นับว่ายกเลิก
       setConfirmExit(false);
       setView("LESSON");
     }
@@ -295,6 +318,8 @@ export default function CourseRoom({
     // บทที่ยังไม่ผ่าน = ทุกรอบผ่านหน้ากติกา (เลือกใช้กล้อง/ไม่ใช้) · ผ่านแล้ว = ฝึกได้อิสระ
     if (!progress[lesson.id]?.passed) {
       if (!extra && !hoursNow().open) return;
+      if (!extra && capReached(dayR)) return; // ยกเลิกรอบครบกำหนดของวันนี้ (แผงปลดล็อกแสดงอยู่เหนือปุ่ม)
+      setStopMsg("");
       setView("GATE");
       scrollTop();
       return;
@@ -324,7 +349,8 @@ export default function CourseRoom({
     startedAt.current = nowMs();
     if (g) {
       const n = lessons.findIndex((x) => x.id === lesson.id) + 1;
-      liveStart(email, { room, a: "course", c: courseId, l: lesson.id, t: `${L}ที่ ${lesson.hour || n}`, tot: qs.length, cm, pd: cm === "cam" ? cam.phoneState : undefined });
+      if (!extra) roundBegin(email);
+      liveStart(email, { room, a: "course", c: courseId, l: lesson.id, t: `${L}ที่ ${lesson.hour || n}`, tot: qs.length, cm, pd: cm === "cam" ? cam.phoneState : undefined, ab: dayR.a });
     }
     scrollTop();
   };
@@ -348,6 +374,7 @@ export default function CourseRoom({
     setSaveState("saving");
     const score = scoreOf(all);
     if (guarded) liveEnd(score);
+    if (guarded && !extra) roundEnd(email);
     const ms = startedAt.current ? nowMs() - startedAt.current : undefined;
     const { lesson: lp, cloudOk, issue } = await saveLessonAttempt({
       courseId,
@@ -640,6 +667,13 @@ export default function CourseRoom({
         )}
 
         {!progress[lesson.id]?.passed && <HoursNote hours={hours} compact />}
+        {stopMsg && (
+          <div className="rounded-xl p-3 mb-3 text-sm font-bold flex items-start gap-2 bg-orange-100 text-orange-900 border-2 border-orange-300" data-round-stopped="1">
+            <span className="flex-1">{stopMsg}</span>
+            <button onClick={() => setStopMsg("")} className="shrink-0 text-xs underline">รับทราบ</button>
+          </div>
+        )}
+        {!extra && !progress[lesson.id]?.passed && capReached(dayR) && <RoundCapPanel email={email} onLifted={() => setDayR(readDay(email))} />}
         <button
           type="button"
           onClick={beginQuiz}
@@ -691,6 +725,7 @@ export default function CourseRoom({
           </ol>
         </div>
         <CamChooser
+          email={email}
           cam={cam}
           want={camWant}
           setWant={(on) => {
@@ -714,6 +749,7 @@ export default function CourseRoom({
   if (view === "QUIZ" && current) {
     const correctSoFar = scoreOf(answers);
     const shield = guarded && roundCam === "cam" && !answered && isCovered(cam);
+    const splitHide = guarded && !answered && guard.split;
     const wrongSoFar = answers.length - correctSoFar;
     const lastAnswer = answered ? answers[answers.length - 1] : null;
     return (
@@ -721,8 +757,8 @@ export default function CourseRoom({
         <div className="flex items-center justify-between mb-3">
           {confirmExit ? (
             <span className="flex items-center gap-2 text-xs font-bold">
-              <span className="text-rose-600">ออกแล้วรอบนี้จะไม่ถูกบันทึก</span>
-              <button onClick={() => { setView("LESSON"); setConfirmExit(false); }} className="px-2 py-1 bg-rose-600 text-white rounded-lg">ออก</button>
+              <span className="text-rose-600">ออกแล้วรอบนี้จะไม่ถูกบันทึก{guarded && !extra ? ` และนับเป็นยกเลิกรอบ (วันนี้ ${dayR.a}/${ROUND_CAP} ครั้ง — ครบแล้วเริ่มรอบนับคะแนนอีกไม่ได้ทั้งวัน)` : ""}</span>
+              <button onClick={() => { if (guarded && !extra) setDayR(roundAbandon(email, "quit")); setView("LESSON"); setConfirmExit(false); }} className="px-2 py-1 bg-rose-600 text-white rounded-lg">ออก</button>
               <button onClick={() => setConfirmExit(false)} className="px-2 py-1 bg-gray-100 text-gray-600 rounded-lg">ทำต่อ</button>
             </span>
           ) : (
@@ -766,14 +802,15 @@ export default function CourseRoom({
           {wrongSoFar > 0 && <span className="text-gray-400">รอบนี้ยังไม่ผ่าน แต่ทำให้จบเพื่อดูเฉลยแล้วลองใหม่</span>}
         </div>
 
+        {splitHide && <SplitShield leftMs={guard.splitLeft} />}
         {shield && <CoverShield phone={cam.phone} />}
-        <div className="bg-gray-50 rounded-2xl p-4 mb-4" hidden={shield} {...noCopyProps}>
+        <div className="bg-gray-50 rounded-2xl p-4 mb-4" hidden={shield || splitHide} {...noCopyProps}>
           <p className="text-base md:text-lg font-bold text-gray-900 leading-relaxed">
             <Rich text={current.q.q} />
           </p>
         </div>
 
-        <div className="space-y-2 mb-4" hidden={shield} {...noCopyProps}>
+        <div className="space-y-2 mb-4" hidden={shield || splitHide} {...noCopyProps}>
           {current.order.map((orig, slot) => {
             const isCorrect = orig === current.q.answer;
             const isPicked = selected === slot;
@@ -879,7 +916,7 @@ export default function CourseRoom({
                   <div key={a.qid} className="border-2 border-rose-100 rounded-2xl p-3">
                     <p className="text-sm font-bold text-gray-900 mb-1"><Rich text={q.q} /></p>
                     {a.skipped ? (
-                      <p className="text-xs text-orange-700 font-bold">⏭ ถูกข้าม เพราะ{a.why === "face" ? "มีอะไรบังใบหน้า (จมูกขึ้นไป)" : a.why === "phone" ? "พบมือถือในกล้อง" : a.why === "cover" ? "มีหน้าต่างอื่นบังหน้าแอป" : a.why === "time" ? "หมดเวลา" : "ออกจากหน้าแอป"}ระหว่างทำ</p>
+                      <p className="text-xs text-orange-700 font-bold">⏭ ถูกข้าม เพราะ{a.why === "face" ? "มีอะไรบังใบหน้า (จมูกขึ้นไป)" : a.why === "phone" ? "พบมือถือในกล้อง" : a.why === "split" ? "หน้าต่างแอปไม่เต็มจอ (แบ่งจอ)" : a.why === "cover" ? "มีหน้าต่างอื่นบังหน้าแอป" : a.why === "time" ? "หมดเวลา" : "ออกจากหน้าแอป"}ระหว่างทำ</p>
                     ) : (
                       <p className="text-xs text-rose-600">✗ ตอบ: <Rich text={q.options[a.chosen]} /></p>
                     )}

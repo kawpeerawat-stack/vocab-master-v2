@@ -11,7 +11,7 @@ import { db } from "./firebase";
 import { serverNow } from "./sync";
 import type { CamMode } from "./guard";
 
-export type LiveEv = "leave" | "face" | "time" | "phone" | "far";
+export type LiveEv = "leave" | "face" | "time" | "phone" | "far" | "split";
 export interface LiveDoc {
   room: string | null;
   a: "course" | "v300"; // ห้อง 🧩 หรือ 📚
@@ -21,7 +21,9 @@ export interface LiveDoc {
   q: number;            // ทำไปแล้วกี่ข้อ
   tot: number;          // ทั้งหมดกี่ข้อ
   cm: CamMode;          // ใช้กล้อง / ไม่ใช้ / กล้องใช้ไม่ได้
-  lv: number;           // ออกจากหน้า (รวมหน้าต่างอื่นบังนานเกิน 3 วินาที)
+  lv: number;           // ออกจากหน้า (รวมหน้าต่างอื่นบังนานเกิน 3 วินาที และแบ่งจอ)
+  sp?: number;          // หน้าต่างแอปไม่เต็มจอ (แบ่งจอ / หน้าต่างลอย) กี่ครั้ง (v8.5)
+  ab?: number;          // วันนี้ยกเลิกรอบมาแล้วกี่ครั้ง (ตอนเริ่มรอบนี้)
   cv: number;           // มีอะไรบังใบหน้า
   to: number;           // หมดเวลา
   ph: number;           // พบมือถือในกล้อง (ใกล้ / แตะขอบ → ข้ามข้อ)
@@ -52,7 +54,7 @@ function push() {
   }
 }
 
-export function liveStart(email: string, info: Pick<LiveDoc, "room" | "a" | "c" | "l" | "t" | "tot" | "cm" | "pd">) {
+export function liveStart(email: string, info: Pick<LiveDoc, "room" | "a" | "c" | "l" | "t" | "tot" | "cm" | "pd"> & { ab?: number }) {
   if (!email) return;
   const now = serverNow();
   cur = { id: idOf(email), d: { ...info, q: 0, lv: 0, cv: 0, to: 0, ph: 0, pf: 0, ev: null, evAt: 0, st: now, at: now, done: false, quit: false, sc: null } };
@@ -75,6 +77,14 @@ export function liveLeaves(n: number) {
   if (!cur || cur.d.done || n <= cur.d.lv) return;
   cur.d.lv = n;
   cur.d.ev = "leave";
+  cur.d.evAt = serverNow();
+  push();
+}
+// แบ่งจอ / หน้าต่างแอปไม่เต็มจอ n ครั้ง (v8.5)
+export function liveSplit(n: number) {
+  if (!cur || cur.d.done || n <= (cur.d.sp || 0)) return;
+  cur.d.sp = n;
+  cur.d.ev = "split";
   cur.d.evAt = serverNow();
   push();
 }

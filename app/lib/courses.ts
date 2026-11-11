@@ -8,6 +8,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { db } from "./firebase";
+import { fetchJsonRetry } from "./fetchRetry";
 import { doc, FieldPath, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { isPurgeRec, markPurgeSeen, purgeCourse, purgeSeenAt } from "./purge";
 import { saveLocalUnlock, serial, verifiedWrite, type SyncIssue } from "./sync";
@@ -67,9 +68,7 @@ export interface Course {
 const courseCache: Record<string, Course> = {};
 export async function loadCourse(courseId: string): Promise<Course> {
   if (courseCache[courseId]) return courseCache[courseId];
-  const res = await fetch(`/api/course?id=${encodeURIComponent(courseId)}`);
-  if (!res.ok) throw new Error(`load course failed: ${res.status}`);
-  const c = (await res.json()) as Course;
+  const c = await fetchJsonRetry<Course>(`/api/course?id=${encodeURIComponent(courseId)}`);
   courseCache[courseId] = c;
   return c;
 }
@@ -95,6 +94,9 @@ export interface LessonProgress {
   ga?: number;
   gb?: number;
   gv?: number;
+  gsp?: number; // v8.5: หน้าต่างไม่เต็มจอ (แบ่งจอ) กี่ครั้ง · gfm = วินาทีที่เสียโฟกัสสะสม · gfe = จำนวนช่วงที่เสียโฟกัส
+  gfm?: number;
+  gfe?: number;
   gm?: "log" | "enforce";
   fqt?: number[];       // เวลาที่ใช้รายข้อของรอบแรก (วินาที ตามลำดับที่ทำ)
   // กล้องกันกล้องซ้อน (รอบแรก): cm = cam ใช้กล้อง · nocam ไม่ใช้กล้อง · camfail เลือกกล้องแต่ใช้ไม่ได้ · gc = ถูกบังหน้ากี่ครั้ง · gca = เวลารวม (ms)
@@ -110,7 +112,7 @@ export interface LessonProgress {
   early?: { first?: number; best: number; firstAt?: number; passedAt?: number; attempts: number };
 }
 // ฟิลด์ที่ติดไปกับคะแนนรอบแรก
-const FIRST_KEYS = ["first", "firstTotal", "firstAt", "firstMs", "gl", "ga", "gb", "gv", "gm", "fqt", "cm", "gc", "gca", "gt", "gp", "gpf", "gpd"] as const;
+const FIRST_KEYS = ["first", "firstTotal", "firstAt", "firstMs", "gl", "ga", "gb", "gv", "gm", "gsp", "gfm", "gfe", "fqt", "cm", "gc", "gca", "gt", "gp", "gpf", "gpd"] as const;
 function pickFirst(x: LessonProgress): Partial<LessonProgress> {
   const out: Record<string, unknown> = {};
   for (const k of FIRST_KEYS) if (x[k] !== undefined && x[k] !== null) out[k] = x[k];
@@ -306,7 +308,7 @@ export async function saveLessonAttempt(params: {
           firstTotal: total,
           firstAt: now,
           ...(ms ? { firstMs: ms } : {}),
-          ...(guard ? { gl: guard.leaves, ga: guard.awayMs, gb: guard.blurs, gv: guard.voided, gm: guard.mode } : {}),
+          ...(guard ? { gl: guard.leaves, ga: guard.awayMs, gb: guard.blurs, gv: guard.voided, gm: guard.mode, ...(guard.splits ? { gsp: guard.splits } : {}), ...(guard.fm ? { gfm: Math.round(guard.fm / 1000), gfe: guard.fe ?? 0 } : {}) } : {}),
           ...(qt && qt.length ? { fqt: qt } : {}),
           ...(cam ? { cm: cam.mode, gc: cam.covers, gca: cam.coverMs, gt: cam.timeouts ?? 0, ...(cam.mode === "cam" ? { gp: cam.phones ?? 0, gpf: cam.phonesFar ?? 0, gpd: (cam.pd ?? "off") as LessonProgress["gpd"] } : {}) } : {}),
         }

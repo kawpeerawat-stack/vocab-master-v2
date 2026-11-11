@@ -14,6 +14,7 @@
 // การทวนคำของชุดก่อน ๆ ตามนัด (คาบหน้า → 2 → 4 → 8 → 12 สัปดาห์) ยังมีให้ทำ แต่ไม่บังคับและไม่มีผลต่อการผ่านชุด
 // ─────────────────────────────────────────────────────────────
 
+import { fetchJsonRetry } from "./fetchRetry";
 import { db } from "./firebase";
 import { collection, doc, FieldPath, getDoc, getDocs, setDoc, serverTimestamp } from "firebase/firestore";
 import { saveLocalUnlock, serial, verifiedWrite, type SyncIssue } from "./sync";
@@ -66,9 +67,7 @@ export interface VCourse {
 let courseCache: VCourse | null = null;
 export async function loadVocab300(): Promise<VCourse> {
   if (courseCache) return courseCache;
-  const res = await fetch("/api/course?id=vocab300");
-  if (!res.ok) throw new Error(`load vocab300 failed: ${res.status}`);
-  courseCache = (await res.json()) as VCourse;
+  courseCache = await fetchJsonRetry<VCourse>("/api/course?id=vocab300");
   return courseCache;
 }
 
@@ -102,6 +101,9 @@ export interface VSetPass {
   ga?: number;
   gb?: number;
   gv?: number;
+  gsp?: number; // v8.5: หน้าต่างไม่เต็มจอ (แบ่งจอ) กี่ครั้ง · gfm = วินาทีที่เสียโฟกัสสะสม · gfe = จำนวนช่วงที่เสียโฟกัส
+  gfm?: number;
+  gfe?: number;
   gm?: "log" | "enforce";
   cm?: "cam" | "nocam" | "camfail"; // ใช้กล้องในรอบทบทวนหรือไม่ · gc = ถูกบังใบหน้ากี่ครั้ง · gca = เวลารวม (ms)
   gc?: number;

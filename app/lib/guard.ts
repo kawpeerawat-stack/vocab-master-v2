@@ -5,6 +5,9 @@
 //   - หน้าเสียโฟกัสแต่ยังแสดงอยู่ (เช่น วงกลมค้นหา / หน้าต่างลอย) → บันทึกให้ครูเห็นเท่านั้น ไม่หักคะแนน
 //   - ออกครบ GUARD_FLAG_AT ครั้ง → หน้าครูขึ้น 🚩 ให้ครูตัดสินเอง
 //   - ช่วงทดลอง (ก่อน GUARD_ENFORCE_FROM): บันทึกอย่างเดียว ยังไม่หักคะแนน
+//   - v8.5: หน้าต่างแอปไม่เต็มจอ (แบ่งจอ / หน้าต่างลอย บนมือถือ-แท็บเล็ต) → ซ่อนโจทย์ทันที ให้เวลา 10 วินาทีขยายคืน
+//           เกินเวลา หรือเกิดครั้งที่ 2 ในรอบเดียว = หยุดรอบ (ยกเลิก ไม่ได้คะแนน · นับในโควตายกเลิกรอบต่อวัน)
+//   - v8.5: ตรวจโฟกัสทุกวินาที (document.hasFocus) สะสมเวลาที่หน้าแอปไม่ได้เป็นหน้าที่ใช้งาน → บันทึกให้ครูอย่างเดียว ไม่หักคะแนน
 // ─────────────────────────────────────────────────────────────
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { serverToday } from "./sync";
@@ -25,31 +28,63 @@ export interface GuardStats {
   blurs: number;    // หน้าเสียโฟกัสแต่ยังแสดงอยู่กี่ครั้ง
   voided: number;   // ข้อที่ไม่นับคะแนน (ช่วงหักคะแนน)
   mode: GuardMode;
+  splits?: number;  // v8.5: หน้าต่างไม่เต็มจอกี่ครั้ง
+  splitMs?: number; //       รวมกี่ ms
+  fm?: number;      //       เวลาที่หน้าแอปไม่ได้เป็นหน้าที่ใช้งาน (สะสม ms · บันทึกอย่างเดียว)
+  fe?: number;      //       จำนวนช่วงที่เสียโฟกัส (นับรวมช่วงสั้น ๆ)
+}
+
+// ── หน้าต่างไม่เต็มจอ (แบ่งจอ / หน้าต่างลอย) ──
+import { SPLIT_RATIO, SPLIT_HOLD_MS, SPLIT_GRACE_MS, SPLIT_STOP_AT, isSplitWindow, type WinMetrics } from "./splitWindow";
+export { SPLIT_RATIO, SPLIT_HOLD_MS, SPLIT_GRACE_MS, SPLIT_STOP_AT, isSplitWindow };
+export type { WinMetrics };
+function readMetrics(): WinMetrics {
+  const a = document.activeElement as HTMLElement | null;
+  const typing = !!a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA" || a.isContentEditable);
+  let coarse = false;
+  try {
+    coarse = window.matchMedia("(pointer: coarse)").matches;
+  } catch {
+    /* ไม่เป็นไร */
+  }
+  return { iw: window.innerWidth, ih: window.innerHeight, sw: window.screen?.width ?? 0, sh: window.screen?.height ?? 0, coarse, typing };
 }
 
 export const COVER_MS = 3000; // หน้าเสียโฟกัสแต่ยังแสดงอยู่ (หน้าต่าง Gemini / วงกลมค้นหาบัง) นานเกินนี้ = นับเหมือนออกจากหน้า
-export type LeaveKind = "leave" | "cover"; // leave = สลับแอป/แท็บ/หน้าโฮม · cover = มีหน้าต่างอื่นบังนานเกิน 3 วินาที
+export type LeaveKind = "leave" | "cover" | "split"; // leave = สลับแอป/แท็บ/หน้าโฮม · cover = มีหน้าต่างอื่นบังนานเกิน 3 วินาที · split = หน้าต่างแอปไม่เต็มจอ
 export interface GuardNotice { n: number; key: string; kind: LeaveKind; skipped: boolean }
 
 // ใช้ในหน้าทำข้อสอบ: active = กำลังทำรอบที่เข้าสมุดคะแนน · qKey = ข้อที่กำลังทำอยู่
 // onLeft(key) = เรียกเมื่อตรวจพบ (จากเหตุการณ์ ไม่ใช่ระหว่างวาดหน้าจอ) → คืน true ถ้าหน้าจอข้ามข้อนั้นไปแล้ว
-export function useLeaveGuard(active: boolean, qKey: string | null, onLeft?: (key: string, kind: LeaveKind) => boolean) {
+export interface GuardOpts {
+  onSplit?: (n: number) => void;       // หน้าต่างไม่เต็มจอ ครั้งที่ n (เรียกจากตัวจับเวลา ไม่ใช่ระหว่างวาดหน้าจอ)
+  onStop?: (why: "split") => void;     // ระบบสั่งหยุดรอบ (เรียกครั้งเดียวต่อรอบ)
+}
+export function useLeaveGuard(active: boolean, qKey: string | null, onLeft?: (key: string, kind: LeaveKind) => boolean, opts?: GuardOpts) {
   const [leaves, setLeaves] = useState(0);
   const [notice, setNotice] = useState<GuardNotice | null>(null);
-  const st = useRef({ leaves: 0, awayMs: 0, blurs: 0, hiddenAt: 0, blurAt: 0, blurKey: "" as string, covered: false });
+  const [split, setSplit] = useState(false); // ตอนนี้หน้าต่างไม่เต็มจอ (ซ่อนโจทย์)
+  const [splitLeft, setSplitLeft] = useState(SPLIT_GRACE_MS);
+  const [stop, setStop] = useState<null | "split">(null); // ระบบสั่งหยุดรอบ
+  const st = useRef(freshState());
   const leftKeys = useRef<Set<string>>(new Set());
   const keyRef = useRef<string | null>(qKey);
   const onLeftRef = useRef(onLeft);
+  const optsRef = useRef(opts);
   useEffect(() => {
     keyRef.current = qKey;
     onLeftRef.current = onLeft;
+    optsRef.current = opts;
   });
 
   const reset = useCallback(() => {
-    st.current = { leaves: 0, awayMs: 0, blurs: 0, hiddenAt: 0, blurAt: 0, blurKey: "", covered: false };
+    st.current = freshState();
     leftKeys.current = new Set();
     setLeaves(0);
     setNotice(null);
+    setSplit(false);
+    setSplitLeft(SPLIT_GRACE_MS);
+    setStop(null);
   }, []);
 
   useEffect(() => {
@@ -103,14 +138,64 @@ export function useLeaveGuard(active: boolean, qKey: string | null, onLeft?: (ke
       }
       s.covered = false;
     };
+    const fireStop = () => {
+      if (st.current.stopped) return;
+      st.current.stopped = true;
+      setStop("split");
+      optsRef.current?.onStop?.("split");
+    };
+    // v8.5: ตรวจทุก 0.5 วินาที — (1) หน้าต่างไม่เต็มจอ (2) โฟกัสหาย (นับสะสม · บันทึกอย่างเดียว)
+    const tick = () => {
+      const s = st.current;
+      const t = Date.now();
+      if (isSplitWindow(readMetrics())) {
+        if (!s.smallSince) s.smallSince = t;
+        if (!s.splitAt && t - s.smallSince >= SPLIT_HOLD_MS) {
+          s.splitAt = t;
+          s.splits++;
+          record(keyRef.current || "", "split"); // ข้อนี้ไม่นับ (ช่วงหักคะแนน) + นับเป็นการออกจากหน้า 1 ครั้ง
+          setSplit(true);
+          optsRef.current?.onSplit?.(s.splits);
+          if (s.splits >= SPLIT_STOP_AT) fireStop();
+        }
+        if (s.splitAt) {
+          const left = SPLIT_GRACE_MS - (t - s.splitAt);
+          setSplitLeft(Math.max(0, left));
+          if (left <= 0) fireStop();
+        }
+      } else {
+        s.smallSince = 0;
+        if (s.splitAt) {
+          s.splitMs += t - s.splitAt;
+          s.splitAt = 0;
+          setSplit(false);
+          setSplitLeft(SPLIT_GRACE_MS);
+        }
+      }
+      if (document.visibilityState === "visible" && !document.hasFocus()) {
+        if (!s.fAt) {
+          s.fAt = t;
+          s.fe++;
+        }
+      } else if (s.fAt) {
+        s.fm += t - s.fAt;
+        s.fAt = 0;
+      }
+    };
+    const iv = setInterval(tick, 500);
     document.addEventListener("visibilitychange", onVis);
     window.addEventListener("blur", onBlur);
     window.addEventListener("focus", onFocus);
+    window.addEventListener("resize", tick);
+    window.addEventListener("orientationchange", tick);
     return () => {
       if (coverT) clearTimeout(coverT);
+      clearInterval(iv);
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("blur", onBlur);
       window.removeEventListener("focus", onFocus);
+      window.removeEventListener("resize", tick);
+      window.removeEventListener("orientationchange", tick);
     };
   }, [active]);
 
@@ -118,14 +203,28 @@ export function useLeaveGuard(active: boolean, qKey: string | null, onLeft?: (ke
   const wasLeft = useCallback((key: string) => leftKeys.current.has(key), []);
   const stats = useCallback((voided: number, mode: GuardMode): GuardStats => {
     const s = st.current;
-    return { leaves: s.leaves, awayMs: s.awayMs, blurs: s.blurs, voided, mode };
+    const t = Date.now();
+    return {
+      leaves: s.leaves,
+      awayMs: s.awayMs,
+      blurs: s.blurs,
+      voided,
+      mode,
+      splits: s.splits,
+      splitMs: Math.round(s.splitMs + (s.splitAt ? t - s.splitAt : 0)),
+      fm: Math.round(s.fm + (s.fAt ? t - s.fAt : 0)),
+      fe: s.fe,
+    };
   }, []);
-  return { leaves, notice, clearNotice: () => setNotice(null), wasLeft, stats, reset };
+  return { leaves, notice, clearNotice: () => setNotice(null), wasLeft, stats, reset, split, splitLeft, stop };
+}
+function freshState() {
+  return { leaves: 0, awayMs: 0, blurs: 0, hiddenAt: 0, blurAt: 0, blurKey: "" as string, covered: false, smallSince: 0, splitAt: 0, splits: 0, splitMs: 0, fAt: 0, fm: 0, fe: 0, stopped: false };
 }
 
 // ข้อความเตือนเมื่อกลับมา
 export function noticeText(nt: GuardNotice, mode: GuardMode, unit = "ข้อ"): string {
-  const what = nt.kind === "cover" ? "มีหน้าต่างอื่นบังหน้าแอปนานเกิน 3 วินาที" : "ออกจากหน้าแอป";
+  const what = nt.kind === "split" ? "หน้าต่างแอปไม่เต็มจอ (แบ่งจอ / หน้าต่างลอย)" : nt.kind === "cover" ? "มีหน้าต่างอื่นบังหน้าแอปนานเกิน 3 วินาที" : "ออกจากหน้าแอป";
   const tail = mode === "enforce"
     ? (nt.skipped ? ` — ${unit}นี้ถูกข้าม (ไม่ได้คะแนน)` : ` — ${unit}นี้ไม่นับคะแนน`)
     : " — ช่วงทดลอง ระบบบันทึกให้ครูเห็น (ยังไม่หักคะแนน)";

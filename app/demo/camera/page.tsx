@@ -13,7 +13,7 @@ import { CamBox, CamChooser, camSkipText, CoverShield, COVER_FACE_MS, isCovered,
 
 type Q = { id: string; q: string; options: string[]; answer: number };
 type Phase = "INTRO" | "QUIZ" | "DONE";
-type Reason = "face" | "leave" | "cover" | "phone";
+type Reason = "face" | "leave" | "cover" | "phone" | "split";
 type Ev = { t: number; q: number; reason: Reason };
 
 const strip = (s: string) => s.replace(/\*\*/g, "").replace(/<[^>]+>/g, "");
@@ -22,6 +22,7 @@ const REASON_TH: Record<Reason, string> = {
   phone: "📱 พบมือถือในกล้อง",
   leave: "↗ ออกจากหน้าแอป",
   cover: "🪟 หน้าต่างอื่นบังหน้าแอป",
+  split: "📐 หน้าต่างแอปไม่เต็มจอ (แบ่งจอ)",
 };
 const nowMs = () => Date.now();
 const FALLBACK: Q[] = [

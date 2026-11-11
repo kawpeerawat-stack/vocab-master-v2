@@ -15,8 +15,9 @@
 //   ประมวลผลในเครื่องเท่านั้น · ไม่เก็บ ไม่ส่งภาพ · ไม่ใช้ไมโครโฟน · ปิดกล้องเมื่อเลิกใช้
 // ─────────────────────────────────────────────────────────────
 import { useCallback, useEffect, useRef, useState } from "react";
-import { nocamCode } from "../lib/nocamCode";
-import { serverToday, syncClock } from "../lib/sync";
+import { redeemCode } from "../lib/teacherCode";
+import { codeCloud, liftCap, ROUND_CAP } from "../lib/rounds";
+import { serverNow, syncClock } from "../lib/sync";
 
 export const COVER_FACE_MS = 500; // บังต่อเนื่องนานเท่านี้ (~5 ภาพ) = นับ 1 ครั้ง — กรองการกะพริบตา/ขยับหัว (8 พ.ย. ครูปรับจาก 0.3 เป็น 0.5 วินาที)
 export const UPPER_CORR_MIN = 0.3; // ความคล้ายของบริเวณตา–หน้าผากกับตอนเทียบหน้า ต่ำกว่านี้ = มีอะไรบัง
@@ -591,8 +592,10 @@ export function CamChooser({
   required = false,
   preApproved = false,
   noCamMode = false,
+  email = "",
 }: {
   cam: CamGuard;
+  email?: string; // v8.5: รหัสครูผูกกับอีเมลนักเรียนคนนี้ (ใช้ครั้งเดียว)
   want: boolean;
   setWant: (on: boolean) => void;
   camRule: string;
@@ -606,7 +609,8 @@ export function CamChooser({
 }) {
   const st = cam.status;
   const [code, setCode] = useState("");
-  const [codeBad, setCodeBad] = useState(false);
+  const [codeMsg, setCodeMsg] = useState("");
+  const [codeBusy, setCodeBusy] = useState(false);
   const camView = required || want;
   const card = (on: boolean, icon: string, title: string, rule: string) => (
     <button
@@ -692,33 +696,37 @@ export function CamChooser({
               <button type="button" onClick={() => void cam.start()} className="w-full py-3 bg-white border-2 border-[#003399] text-[#003399] font-black rounded-2xl">ลองเปิดกล้องอีกครั้ง</button>
               {required ? (
                 <div className="rounded-xl border-2 border-gray-200 p-3 space-y-2" data-nocam-code="1">
-                  <p className="text-xs font-bold text-gray-700">เครื่องนี้เปิดกล้องไม่ได้จริง? <b>ยกมือเรียกครู</b> — ครูจะกรอกรหัสให้ (ทำแบบจับเวลา {noCamRule} · ครูเห็น 🚫)</p>
+                  <p className="text-xs font-bold text-gray-700">เครื่องนี้เปิดกล้องไม่ได้จริง? <b>ยกมือเรียกครู</b> — ครูจะออกรหัสเฉพาะเครื่องนี้ให้ (ใช้ได้ครั้งเดียว หมดอายุใน 10–20 นาที) (ทำแบบจับเวลา {noCamRule} · ครูเห็น 🚫)</p>
                   <div className="flex gap-2">
                     <input
                       inputMode="numeric"
-                      maxLength={4}
+                      maxLength={6}
                       value={code}
                       onChange={(e) => {
                         setCode(e.target.value.replace(/\D/g, ""));
-                        setCodeBad(false);
+                        setCodeMsg("");
                       }}
-                      placeholder="รหัสครู 4 หลัก"
+                      placeholder="รหัสครู 6 หลัก"
                       aria-label="รหัสครู"
                       className="flex-1 min-w-0 border-2 border-gray-200 rounded-xl px-3 py-2 font-black tracking-widest text-center"
                     />
                     <button
                       type="button"
+                      disabled={codeBusy}
                       onClick={async () => {
-                        await syncClock(); // ใช้วันที่ของเซิร์ฟเวอร์ (นาฬิกามือถือผิดก็ไม่เป็นไร)
-                        if (code === nocamCode(serverToday())) onStart("camfail");
-                        else setCodeBad(true);
+                        setCodeBusy(true);
+                        await syncClock(); // ใช้เวลาของเซิร์ฟเวอร์ (นาฬิกามือถือผิดก็ไม่เป็นไร)
+                        const r = await redeemCode("nocam", email, code, serverNow(), codeCloud("nocam", email));
+                        setCodeBusy(false);
+                        if (r.result === "ok") onStart("camfail");
+                        else setCodeMsg(r.result === "used" ? "รหัสนี้ถูกใช้ไปแล้ว — ขอรหัสใหม่จากครู" : r.result === "locked" ? `กรอกผิดหลายครั้ง ล็อกไว้ ${Math.ceil((r.lockMs ?? 0) / 60000)} นาที` : `รหัสไม่ถูกต้องหรือหมดอายุ (เหลือ ${r.left ?? 0} ครั้งก่อนล็อก)`);
                       }}
-                      className="shrink-0 px-4 py-2 bg-gray-700 text-white font-black rounded-xl"
+                      className="shrink-0 px-4 py-2 bg-gray-700 text-white font-black rounded-xl disabled:opacity-50"
                     >
                       ยืนยัน
                     </button>
                   </div>
-                  {codeBad && <p className="text-xs font-bold text-rose-600">รหัสไม่ถูกต้อง</p>}
+                  {codeMsg && <p className="text-xs font-bold text-rose-600" data-code-msg="1">{codeMsg}</p>}
                 </div>
               ) : (
                 <button type="button" onClick={() => onStart("camfail")} className="w-full py-3 bg-gray-100 text-gray-700 font-black rounded-2xl">
@@ -765,6 +773,65 @@ export function CoverShield({ phone }: { phone?: boolean }) {
       <div className="text-4xl mb-1">{phone ? "📱" : "📷"}</div>
       <p className="font-black text-rose-800">{phone ? "พบมือถือในกล้อง" : "มีอะไรบังใบหน้าอยู่"}</p>
       <p className="text-sm font-bold text-rose-700 mt-1">{phone ? "เก็บมือถือเครื่องอื่นให้พ้นกล้อง" : "เอามือ/สิ่งของออก แล้วมองหน้าจอ"} — โจทย์จะกลับมาเอง</p>
+    </div>
+  );
+}
+// ยกเลิกรอบครบกำหนดของวันนี้ → เริ่มรอบเข้าสมุดคะแนนไม่ได้ · ครูปลดล็อกรายคนด้วยรหัส (ใช้ครั้งเดียว)
+export function RoundCapPanel({ email, onLifted }: { email: string; onLifted: () => void }) {
+  const [code, setCode] = useState("");
+  const [msg, setMsg] = useState("");
+  const [busy, setBusy] = useState(false);
+  return (
+    <div className="rounded-2xl border-2 border-rose-300 bg-rose-50 p-4 mb-4 text-left" data-round-cap="1">
+      <p className="font-black text-rose-800">⛔ วันนี้ยกเลิกรอบครบ {ROUND_CAP} ครั้งแล้ว</p>
+      <p className="text-xs font-bold text-rose-700 mt-1 leading-relaxed">
+        (ออกกลางรอบ / รีเฟรชหรือปิดหน้าระหว่างรอบ / แบ่งจอ) จึงเริ่มรอบที่เข้าสมุดคะแนนอีกไม่ได้ในวันนี้ — พรุ่งนี้เริ่มใหม่ได้ · ฝึกเพิ่มและเรียนบทได้ตามปกติ
+        <br />
+        เหตุผลจำเป็น (เช่น เครื่องดับ เน็ตหลุด) <b>ยกมือเรียกครู</b> — ครูจะออกรหัสปลดล็อกเฉพาะเครื่องนี้ให้
+      </p>
+      <div className="flex gap-2 mt-2">
+        <input
+          inputMode="numeric"
+          maxLength={6}
+          value={code}
+          onChange={(e) => {
+            setCode(e.target.value.replace(/\D/g, ""));
+            setMsg("");
+          }}
+          placeholder="รหัสปลดล็อกจากครู 6 หลัก"
+          aria-label="รหัสปลดล็อก"
+          className="flex-1 min-w-0 border-2 border-rose-200 bg-white rounded-xl px-3 py-2 font-black tracking-widest text-center"
+        />
+        <button
+          type="button"
+          disabled={busy}
+          onClick={async () => {
+            setBusy(true);
+            await syncClock();
+            const r = await liftCap(email, code);
+            setBusy(false);
+            if (r.result === "ok") onLifted();
+            else setMsg(r.result === "used" ? "รหัสนี้ถูกใช้ไปแล้ว — ขอรหัสใหม่จากครู" : r.result === "locked" ? `กรอกผิดหลายครั้ง ล็อกไว้ ${Math.ceil((r.lockMs ?? 0) / 60000)} นาที` : `รหัสไม่ถูกต้องหรือหมดอายุ (เหลือ ${r.left ?? 0} ครั้งก่อนล็อก)`);
+          }}
+          className="shrink-0 px-4 py-2 bg-rose-700 text-white font-black rounded-xl disabled:opacity-50"
+        >
+          ปลดล็อก
+        </button>
+      </div>
+      {msg && <p className="text-xs font-bold text-rose-700 mt-1" data-lift-msg="1">{msg}</p>}
+    </div>
+  );
+}
+// หน้าต่างแอปไม่เต็มจอ (แบ่งจอ / หน้าต่างลอย): ซ่อนโจทย์ ให้เวลาขยายคืน ไม่เช่นนั้นหยุดรอบ
+export function SplitShield({ leftMs }: { leftMs: number }) {
+  const sec = Math.ceil(leftMs / 1000);
+  return (
+    <div className="rounded-2xl border-2 border-rose-300 bg-rose-50 p-6 mb-4 text-center" data-shield="split">
+      <div className="text-4xl mb-1">📐</div>
+      <p className="font-black text-rose-800">หน้าต่างแอปไม่เต็มจอ (แบ่งจอ / หน้าต่างลอย)</p>
+      <p className="text-sm font-bold text-rose-700 mt-1">
+        ปิดหน้าต่างอื่นแล้วขยายแอปให้เต็มจอ ภายใน <b className="tabular-nums" data-split-left={sec}>{sec}</b> วินาที — ไม่เช่นนั้นรอบนี้จะถูกหยุด (ไม่ได้คะแนน)
+      </p>
     </div>
   );
 }

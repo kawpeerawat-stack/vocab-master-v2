@@ -2,11 +2,12 @@
 // ─────────────────────────────────────────────────────────────
 // ส่งเนื้อหาคอร์สบทเรียน (เช่น Root Words Decoder) ให้หน้านักเรียนและหน้าครู
 //   เรียกแบบ /api/course?id=decoder หรือ /api/course?id=vocab300 (คำศัพท์แกน 120 คำ)
-//   ตรวจ referer เพื่อกันการเรียกจากนอกเว็บแบบหลวม ๆ
+//   กันการเรียกจากเว็บอื่นแบบหลวม ๆ (sameOrigin.ts) — ไม่ส่ง Referer ก็ยังเข้าได้
 // ─────────────────────────────────────────────────────────────
 import { NextRequest, NextResponse } from "next/server";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { fromOurSite } from "../../lib/sameOrigin";
 
 // อ่านไฟล์ด้วย path ตายตัวต่อคอร์ส (ให้ Vercel แนบไฟล์ข้อมูลไปกับ deployment แน่นอน)
 function readCourseFile(id: string): string | null {
@@ -27,9 +28,7 @@ function readCourseFile(id: string): string | null {
 }
 
 export async function GET(request: NextRequest) {
-  const referer = request.headers.get("referer") || "";
-  const host = request.headers.get("host") || "";
-  if (host && !referer.includes(host)) {
+  if (!fromOurSite(request.headers)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
