@@ -414,7 +414,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
     if (!course || extra) return out;
     for (const [k, rec] of Object.entries(rawProg.sets || {})) {
       const n = Number(k);
-      if (rec.prev || rec.legacy) continue;
+      if (rec.prev) continue; // 11 พ.ย.: legacy ที่เรียนล่วงหน้า (สัปดาห์ 3+) ก็ไม่นับเช่นกัน
       if (doneEarly(rec.day, openDay(course.weeks[n - 1]?.start, roomForEarly, course.classDays), n <= unlockN, n)) out[k] = rec;
     }
     return out;

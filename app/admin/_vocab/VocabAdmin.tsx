@@ -510,7 +510,8 @@ function rowMetrics(p: VProgress, words: VWord[], today: string, ctx?: { course:
     const unlocked = !!ctx && no <= ctx.unlock;
     let rec = setPassOf(p, no);
     let early: VSetPass | undefined;
-    if (rec && !rec.prev && !rec.legacy && doneEarly(rec.day, od, unlocked, no)) {
+    // 11 พ.ย.: ชุดแบบเดิม (legacy = เรียนครบ 10 คำก่อนมีรอบทบทวน) ที่เรียนก่อนวันเรียน สัปดาห์ 3+ ก็ไม่นับเช่นกัน
+    if (rec && !rec.prev && doneEarly(rec.day, od, unlocked, no)) {
       early = rec;
       rec = undefined;
     }

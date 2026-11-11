@@ -58,7 +58,7 @@ export function scanEarly(docs: ScanDoc[], vocab: VCourse, courses: Record<strin
         const od = openDay(vocab.weeks[k - 1]?.start, room, vocab.classDays);
         if (!od || unlock >= k) continue;
         const rec = p.sets?.[String(k)];
-        const early = !!rec && !rec.legacy && !rec.prev && doneEarly(rec.day, od, false, k);
+        const early = !!rec && !rec.prev && doneEarly(rec.day, od, false, k); // รวมชุด legacy (เรียนครบ 10 คำแบบเดิม) ด้วย
         if (early) sets.push(k);
         else if (rec?.prev) prev.push(k);
         const validRedo = !!rec && !early;
