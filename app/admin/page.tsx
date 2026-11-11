@@ -31,7 +31,7 @@ import {
 } from "../lib/courses";
 import { doneEarly, doneGraced, thaiDayOf } from "../lib/early";
 import { openDay } from "../lib/sync";
-import { GRADES, ROSTER, extractNo, fmtThaiTime, gradeOf, matchRoster, roomOf, rosterKey, typedMismatch } from "../lib/roster";
+import { EXCUSED, GRADES, ROSTER, displayName, extractNo, fmtThaiTime, gradeOf, matchRoster, roomOf, rosterKey, typedMismatch } from "../lib/roster";
 import { CORE_NAME, CORE_PLAN, VCourse, VProgress, loadVocab300 } from "../lib/vocab300";
 import VocabAdmin from "./_vocab/VocabAdmin";
 import { LivePanel, type LiveEntry } from "./_parts/LivePanel";
@@ -598,6 +598,51 @@ export default function AdminDashboard() {
             </div>
 
             {spot && <SpotCheck title={`ม.${roomFilter} · ${course.title ?? ""}`.trim()} picks={spot.picks} total={spot.total} />}
+
+            {/* 11 พ.ย.: ✅ ตรวจรายสัปดาห์ (ค่าเริ่มต้น สัปดาห์ 1–2 · เลือกแถบสัปดาห์แล้วแสดงสัปดาห์นั้น) — ใครทำครบ ใครยังไม่ทำ (นับเฉพาะรายชื่อทางการของห้อง/ชั้นที่เลือก) */}
+            {(mode === "matrix" || mode === "grades") && (weekSel ? [weekSel] : [1, 2]).map((wk) => {
+              const w1 = lessons.filter((l) => (l.week ?? l.hour) === wk);
+              if (!w1.length) return null;
+              const list = rows.filter((r) => r.inRoster && inRoom(r));
+              const done: Row[] = [], part: Row[] = [], none: Row[] = [], excused: Row[] = [];
+              for (const r of list) {
+                const n = w1.filter((l) => r.progress[l.id]?.passed).length;
+                const tried = w1.some((l) => (r.progress[l.id]?.attempts ?? 0) > 0);
+                if (n === w1.length) done.push(r);
+                else if (EXCUSED[`${r.room}|${r.no}`]) excused.push(r);
+                else if (n > 0 || tried) part.push(r);
+                else none.push(r);
+              }
+              const lab = (r: Row) => `${r.room && roomFilter === "ALL" ? r.room + " " : ""}เลขที่ ${r.no} ${displayName(r.name)}`;
+              const lost = rows.filter((r) => !r.inRoster && inRoom(r));
+              return (
+                <details key={wk} data-week1={wk} open className="bg-white rounded-2xl border border-gray-100 mb-5 px-4 py-3 text-sm">
+                  <summary className="cursor-pointer font-black text-gray-900">
+                    ✅ ตรวจสัปดาห์ {wk} ({L} {w1.map((l) => l.hour).join(", ")}) · {scopeLabel}:{" "}
+                    <span className="text-emerald-700">ครบ {done.length}/{list.length} คน</span>
+                    {part.length > 0 && <span className="text-amber-700"> · ทำไม่ครบ {part.length}</span>}
+                    {none.length > 0 && <span className="text-rose-600"> · ยังไม่ได้ทำ {none.length}</span>}
+                    {excused.length > 0 && <span className="text-gray-500"> · ลา/ขาด {excused.length}</span>}
+                  </summary>
+                  <div className="mt-2 flex flex-col gap-1.5 text-xs text-gray-700 leading-relaxed">
+                    {none.length > 0 && (
+                      <p data-week1-none><b className="text-rose-600">ยังไม่ได้ทำ / ไม่พบผล:</b> {none.map((r) => `${lab(r)}${r.ids.length ? "" : " (ยังไม่มีบัญชีที่ตรงชื่อ)"}`).join(" · ")}</p>
+                    )}
+                    {part.length > 0 && (
+                      <p data-week1-part><b className="text-amber-700">ทำแล้วแต่ยังไม่ครบ/ไม่ผ่าน:</b> {part.map(lab).join(" · ")}</p>
+                    )}
+                    {excused.length > 0 && (
+                      <p data-week1-excused><b className="text-gray-600">ลา/ขาดเรียน (ไม่นับว่าค้าง):</b> {excused.map((r) => `${lab(r)} — ${EXCUSED[`${r.room}|${r.no}`]}`).join(" · ")}</p>
+                    )}
+                    {lost.length > 0 && (
+                      <p data-week1-lost><b className="text-gray-600">บัญชีที่มีผลแต่จับคู่รายชื่อไม่ได้ ({lost.length}):</b> {lost.map((r) => displayName(r.name)).join(" · ")}</p>
+                    )}
+                    {none.length + part.length + lost.length + excused.length === 0 && <p className="text-emerald-700 font-bold">ทุกคนในรายชื่อทำครบแล้ว</p>}
+                    <p className="text-gray-400">นับ “ครบ” = ผ่านทุก{L}ของสัปดาห์ {wk} (รวมที่ทำล่วงหน้าแล้วได้รับอนุโลม) · ผลจับคู่ตามชื่อ ถ้าพิมพ์เลขที่เดิมหรือสะกดคลาดเคลื่อนเล็กน้อยระบบจับคู่ให้</p>
+                  </div>
+                </details>
+              );
+            })}
 
             {/* 9 พ.ย.: แถบแยกรายสัปดาห์ — ดูทีละบท/สัปดาห์ เช็คง่าย */}
             {(mode === "matrix" || mode === "grades") && (

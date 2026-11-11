@@ -13,25 +13,72 @@ export const ROOMS = Array.from(new Set(ROSTER.map((r) => r.room))).sort();
 
 export function normName(s?: string): string {
   return (s || "")
-    .replace(/(นางสาว|เด็กชาย|เด็กหญิง|นาย|นาง|ด\.ช\.|ด\.ญ\.|น\.ส\.)/g, "")
+    .replace(/(นางสาว|เด็กชาย|เด็กหญิง|นาย|นาง|ด\.ช\.|ด\.ญ\.|น\.ส\.|น\.ส(?=\s)|ด\.ช(?=\s)|ด\.ญ(?=\s))/g, "")
     .replace(/no\.?\s*\d+|เลขที่\s*\d+|m\.?\s*[46]\s*\/\s*[1-9]|ม\.?\s*[46]\s*\/\s*[1-9]|[46]\s*\/\s*[1-9]/gi, "")
     .replace(/[^ก-๙a-zA-Z]/g, "")
+    // 11 พ.ย.: พิมพ์คลาดเคลื่อนเล็กน้อยก็ยังจับคู่ได้ — ตัดวรรณยุกต์/ทัณฑฆาต และให้ ำ = า ("คำวัน" = "ค่าวัน")
+    .replace(/[\u0E48-\u0E4C]/g, "")
+    .replace(/\u0E33/g, "\u0E32")
     .toLowerCase();
 }
 const rosterIndex: Record<string, RosterEntry[]> = {};
 for (const r of ROSTER) (rosterIndex[normName(r.name)] ||= []).push(r);
 
+// ชื่อที่นักเรียนพิมพ์เป็นภาษาอังกฤษ (จับคู่จากข้อความไม่ได้) — ครูยืนยันแล้ว: ชื่อที่ normName แล้ว → "ห้อง|เลขที่"
+const ALIASES: Record<string, string> = {
+  kannatchakorthong: "4/2|30", // กัญญ์ณัชชา กองทอง
+};
+
+// นักเรียนที่ลา/ขาดเรียน (ครูแจ้ง) — กล่อง ✅ ตรวจรายสัปดาห์ จะแยกไว้ ไม่นับเป็น "ยังไม่ได้ทำ" · คีย์ = "ห้อง|เลขที่"
+export const EXCUSED: Record<string, string> = {
+  "4/2|30": "ลาป่วย", // กัญญ์ณัชชา กองทอง (ครูแจ้ง 11 พ.ย.)
+};
+
+function lev(a: string, b: string, max: number): number {
+  if (Math.abs(a.length - b.length) > max) return max + 1;
+  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    const cur = [i];
+    let best = i;
+    for (let j = 1; j <= b.length; j++) {
+      const v = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      cur.push(v);
+      if (v < best) best = v;
+    }
+    if (best > max) return max + 1;
+    prev = cur;
+  }
+  return prev[b.length];
+}
+
 export function matchRoster(name?: string): RosterEntry | null {
   const n = normName(name);
   if (n && rosterIndex[n]) return rosterIndex[n][0]; // 1) ชื่อไทยตรง
   const room = roomOf(name);
+  if (n && ALIASES[n]) {
+    const [ar, an] = ALIASES[n].split("|");
+    const hit = ROSTER.find((r) => r.room === ar && r.no === Number(an));
+    if (hit) return hit;
+  }
+  if (n.length >= 6 && /[ก-๙]/.test(n)) {
+    // 2) ชื่อใกล้เคียง (พิมพ์ผิด 1–2 ตัวอักษร) — ต้องมีคนเดียวที่ใกล้ที่สุด · ชนะเลขที่ที่อาจเป็นเลขเก่าก่อนเพิ่มนักเรียน
+    const maxD = n.length >= 12 ? 2 : 1;
+    let best = maxD + 1, second = maxD + 1, bestR: RosterEntry | null = null;
+    for (const r of ROSTER) {
+      if (room && r.room !== room) continue;
+      const d = lev(n, normName(r.name), maxD);
+      if (d < best) { second = best; best = d; bestR = r; }
+      else if (d < second) second = d;
+    }
+    if (bestR && best <= maxD && second > best) return bestR;
+  }
   const no = extractNo(name);
   if (room && no != null) {
-    const hit = ROSTER.find((r) => r.room === room && r.no === no); // 2) ห้อง + เลขที่
+    const hit = ROSTER.find((r) => r.room === room && r.no === no); // 3) ห้อง + เลขที่
     if (hit) return hit;
   }
   if (!n) return null;
-  const cand: RosterEntry[] = []; // 3) ชื่อบางส่วน (เฉพาะเมื่อไม่กำกวม)
+  const cand: RosterEntry[] = []; // 4) ชื่อบางส่วน (เฉพาะเมื่อไม่กำกวม)
   for (const k in rosterIndex) if (k.startsWith(n) || n.startsWith(k)) cand.push(...rosterIndex[k]);
   return cand.length === 1 ? cand[0] : null;
 }
