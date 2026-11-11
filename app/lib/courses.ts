@@ -9,6 +9,7 @@
 
 import { db } from "./firebase";
 import { doc, FieldPath, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { isPurgeRec, markPurgeSeen, purgeCourse, purgeSeenAt } from "./purge";
 import { saveLocalUnlock, serial, verifiedWrite, type SyncIssue } from "./sync";
 import type { GuardStats } from "./guard";
 
@@ -227,7 +228,14 @@ export async function loadCourseProgress(courseId: string, email: string, name?:
     const data = snap.exists() ? snap.data() : undefined;
     saveLocalUnlock(email, data?.unlock ?? {});
     const cloud = (data?.courses?.[courseId] as CourseProgress | undefined) || {};
-    const merged = mergeCourseProgress(local, cloud);
+    // 11 พ.ย.: ครูสั่งล้างผลที่ทำล่วงหน้า → ลบของเดิมในเครื่องนี้ด้วย (ครั้งเดียวต่อคำสั่ง)
+    const purge = data?.purge;
+    let base = local;
+    if (isPurgeRec(purge) && purge.at > purgeSeenAt(`course:${courseId}`, emailToId(email))) {
+      base = purgeCourse(local, courseId, purge);
+      markPurgeSeen(`course:${courseId}`, emailToId(email), purge.at);
+    }
+    const merged = mergeCourseProgress(base, cloud);
     saveLocalCourseProgress(courseId, email, merged);
     // หาบทที่ในเครื่อง "ใหม่กว่า" คลาวด์
     const behind: CourseProgress = {};

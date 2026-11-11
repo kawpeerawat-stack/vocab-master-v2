@@ -17,6 +17,7 @@
 import { db } from "./firebase";
 import { collection, doc, FieldPath, getDoc, getDocs, setDoc, serverTimestamp } from "firebase/firestore";
 import { saveLocalUnlock, serial, verifiedWrite, type SyncIssue } from "./sync";
+import { isPurgeRec, markPurgeSeen, purgeSeenAt, purgeV300 } from "./purge";
 
 // ── เนื้อหา ──
 export type PosKey = "n" | "v" | "adj" | "adv" | "prep" | "conj";
@@ -481,8 +482,15 @@ export async function loadProgress(email: string): Promise<{ p: VProgress; needS
     saveLocalUnlock(email, data?.unlock ?? {});
     const cloud = (data?.v300 as VProgress | undefined) ?? emptyProgress();
     const cloudP: VProgress = { cards: cloud.cards || {}, days: cloud.days || {}, sets: cloud.sets || {} };
+    // 11 พ.ย.: ครูสั่งล้างผลที่ทำล่วงหน้า → ลบของเดิมในเครื่องนี้ด้วย (ครั้งเดียวต่อคำสั่ง) ไม่งั้นเครื่องจะส่งผลเก่าขึ้นระบบกลับมา
+    const purge = data?.purge;
+    let base = local;
+    if (isPurgeRec(purge) && purge.at > purgeSeenAt("v300", emailToId(email))) {
+      base = purgeV300(local, purge);
+      markPurgeSeen("v300", emailToId(email), purge.at);
+    }
     saveMeta(email, metaOf(cloudP)); // สิ่งที่อยู่บนระบบตอนนี้
-    const merged = mergeProgress(local, cloudP);
+    const merged = mergeProgress(base, cloudP);
     saveLocal(email, merged);
     return { p: merged, needSync: diffOf(merged, metaOf(cloudP)).n > 0, cloudSets: Object.keys(cloudP.sets || {}) };
   } catch (e) {
