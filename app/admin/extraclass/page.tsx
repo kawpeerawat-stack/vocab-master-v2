@@ -122,15 +122,22 @@ export default function ExtraAdminPage() {
     }
     setSavingCode(true);
     setCodeMsg(null);
-    const ok = await saveExtraCode(c);
+    const err = await saveExtraCode(c);
     setSavingCode(false);
-    if (ok) {
+    if (err === null) {
       try { localStorage.setItem(CODE_HINT_KEY, c); } catch { /* ไม่เป็นไร */ }
       setHint(c);
       setCode("");
       setCodeMsg({ ok: true, text: "บันทึกรหัสใหม่แล้ว — นักเรียนที่เข้าอยู่แล้วไม่ถูกเตะออก ใช้รหัสใหม่เฉพาะตอนเข้าระบบครั้งถัดไป" });
     } else {
-      setCodeMsg({ ok: false, text: "บันทึกไม่สำเร็จ — ตรวจอินเทอร์เน็ต หรือ Firebase Rules อาจไม่อนุญาตเขียนเอกสารนี้" });
+      const why = /permission/i.test(err)
+        ? "Firebase Rules ไม่อนุญาตให้เขียนเอกสารนี้ (permission-denied)"
+        : /timeout|unavailable|offline/i.test(err)
+          ? "เชื่อมต่อ Firebase ไม่ทัน — ตรวจอินเทอร์เน็ตแล้วลองใหม่"
+          : /app-check|appcheck/i.test(err)
+            ? "App Check ไม่ผ่าน — รีเฟรชหน้าแล้วลองใหม่"
+            : "ไม่ทราบสาเหตุ";
+      setCodeMsg({ ok: false, text: `บันทึกไม่สำเร็จ — ${why} · รหัสข้อผิดพลาด: ${err}` });
     }
   };
 

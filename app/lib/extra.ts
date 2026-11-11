@@ -10,7 +10,9 @@ import { doc, getDoc, setDoc, writeBatch } from "firebase/firestore";
 import { db } from "./firebase";
 
 export const EXTRA_PREFIX = "ex:";
-export const CONFIG_ID = "cfg:extra";
+// รหัสเอกสารตั้งค่า: ทำให้ "หน้าตาเหมือนอีเมล" (มี @) เพราะ Firebase Rules ของโรงเรียนอาจรับเฉพาะรหัสเอกสารที่เป็นอีเมล
+//   (11 พ.ย.: รหัสเดิม cfg:extra ถูกปฏิเสธตอนบันทึก) · ยังขึ้นต้น cfg: เพื่อให้ถูกซ่อนจากตาราง/อันดับเหมือนเดิม
+export const CONFIG_ID = "cfg:extra@extraclass.local";
 export const isExtraId = (id: string) => id.startsWith(EXTRA_PREFIX);
 export const isConfigId = (id: string) => id.startsWith("cfg:");
 export const extraIdentity = (email: string) => EXTRA_PREFIX + email.trim().toLowerCase();
@@ -70,14 +72,19 @@ export async function checkExtraCode(code: string): Promise<CodeCheck> {
     return "error";
   }
 }
-export async function saveExtraCode(code: string): Promise<boolean> {
-  if (!db) return false;
+// คืน null = สำเร็จ · ไม่เช่นนั้นคืนข้อความสาเหตุ (รหัสข้อผิดพลาดของ Firebase) เพื่อให้ครูเห็นว่าติดอะไร
+export async function saveExtraCode(code: string): Promise<string | null> {
+  if (!db) return "ยังเชื่อมต่อ Firebase ไม่ได้ (db ว่าง)";
   try {
-    await setDoc(doc(db, "students", CONFIG_ID), { codeHash: await hashCode(code), updatedAt: Date.now() }, { merge: true });
-    return true;
+    await Promise.race([
+      setDoc(doc(db, "students", CONFIG_ID), { codeHash: await hashCode(code), updatedAt: Date.now() }, { merge: true }),
+      new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error("timeout"), { code: "timeout" })), 15000)),
+    ]);
+    return null;
   } catch (e) {
     console.error("saveExtraCode:", e);
-    return false;
+    const c = (e as { code?: string })?.code || (e as Error)?.message || "unknown";
+    return String(c);
   }
 }
 
