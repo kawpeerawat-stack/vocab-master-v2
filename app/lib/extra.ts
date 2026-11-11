@@ -9,13 +9,10 @@
 import { doc, getDoc, setDoc, writeBatch } from "firebase/firestore";
 import { db } from "./firebase";
 
-export const EXTRA_PREFIX = "ex:";
-// รหัสเอกสารตั้งค่า: ทำให้ "หน้าตาเหมือนอีเมล" (มี @) เพราะ Firebase Rules ของโรงเรียนอาจรับเฉพาะรหัสเอกสารที่เป็นอีเมล
-//   (11 พ.ย.: รหัสเดิม cfg:extra ถูกปฏิเสธตอนบันทึก) · ยังขึ้นต้น cfg: เพื่อให้ถูกซ่อนจากตาราง/อันดับเหมือนเดิม
-export const CONFIG_ID = "cfg:extra@extraclass.local";
+import { EXTRA_PREFIX, CONFIG_ID, codeDocData, profileDocData, extraIdentity, extraName } from "./extraDocs";
+export { EXTRA_PREFIX, CONFIG_ID, extraIdentity, extraName };
 export const isExtraId = (id: string) => id.startsWith(EXTRA_PREFIX);
 export const isConfigId = (id: string) => id.startsWith("cfg:");
-export const extraIdentity = (email: string) => EXTRA_PREFIX + email.trim().toLowerCase();
 export const realEmail = (id: string) => (isExtraId(id) ? id.slice(EXTRA_PREFIX.length) : id);
 
 export type ExtraLevel = "4" | "6";
@@ -31,10 +28,9 @@ export interface ExtraProfile {
   level: ExtraLevel;
   email: string; // อีเมลจริง (ไม่มี ex:)
 }
-export const extraName = (p: Pick<ExtraProfile, "first" | "last" | "level">) => `${p.first} ${p.last} (เรียนพิเศษ ม.${p.level})`;
 
 const clean = (s: string) => s.replace(/\s+/g, " ").trim();
-export const cleanPart = (s: string) => clean(s).slice(0, 40);
+export const cleanPart = (s: string) => clean(s).slice(0, 35);
 
 export function validateExtra(f: { first: string; last: string; level: string; email: string; code: string }) {
   const e: Partial<Record<"first" | "last" | "level" | "email" | "code", string>> = {};
@@ -77,7 +73,7 @@ export async function saveExtraCode(code: string): Promise<string | null> {
   if (!db) return "ยังเชื่อมต่อ Firebase ไม่ได้ (db ว่าง)";
   try {
     await Promise.race([
-      setDoc(doc(db, "students", CONFIG_ID), { codeHash: await hashCode(code), updatedAt: Date.now() }, { merge: true }),
+      setDoc(doc(db, "students", CONFIG_ID), codeDocData(await hashCode(code), Date.now()), { merge: true }),
       new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error("timeout"), { code: "timeout" })), 15000)),
     ]);
     return null;
@@ -91,13 +87,10 @@ export async function saveExtraCode(code: string): Promise<string | null> {
 // บันทึกข้อมูลนักเรียนห้องเรียนพิเศษ (ตอนเข้าระบบ) — ไม่สำเร็จก็ไม่เป็นไร ชื่อยังถูกบันทึกพร้อมผลการเรียน
 export async function saveExtraProfile(p: ExtraProfile): Promise<boolean> {
   if (!db) return false;
+  const prof = profileDocData(p, Date.now());
   try {
     await Promise.race([
-      setDoc(
-        doc(db, "students", extraIdentity(p.email)),
-        { name: extraName(p), email: extraIdentity(p.email), profile: { first: p.first, last: p.last, level: p.level }, group: "extra", updatedAt: Date.now() },
-        { merge: true }
-      ),
+      setDoc(doc(db, "students", prof.id), prof.data, { merge: true }),
       new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 8000)),
     ]);
     return true;
