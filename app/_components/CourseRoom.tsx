@@ -35,6 +35,7 @@ import { camMode, GUARD_FLAG_AT, guardMode, noCopyProps, noticeText, passNeed, q
 import { CamBox, CamChooser, camSkipText, CoverShield, isCovered, loadCamChoice, RoundCapPanel, saveCamChoice, SplitShield, TimerBar, useRoomCamera, type SharedCam } from "./CamGuard";
 import { capReached, readDay, ROUND_CAP, roundAbandon, roundBegin, roundEnd, roundSweep, roundsSync, type DayRounds } from "../lib/rounds";
 import { roomOf } from "../lib/names";
+import { drawRound, questionMap } from "../lib/pool";
 import { liveEnd, liveEvent, liveLeaves, liveQuit, liveSplit, liveStart, liveStep } from "../lib/live";
 
 type View = "LIST" | "LESSON" | "GATE" | "QUIZ" | "RESULT";
@@ -260,7 +261,7 @@ export default function CourseRoom({
       scrollTop();
     },
   });
-  // กล้อง: มีอะไรบังใบหน้า (จมูกขึ้นไป) นานเกิน 0.5 วินาที → ช่วงหักคะแนนข้ามข้อ · ช่วงทดลองเตือน+บันทึก
+  // กล้อง: มีอะไรบังใบหน้า (จมูกขึ้นไป) นานเกิน 1.5 วินาที → ช่วงหักคะแนนข้ามข้อ · ช่วงทดลองเตือน+บันทึก
   //   พบมือถือในกล้อง 2 ภาพติดกัน (9 พ.ย.) → เหมือนกัน
   const cam = useRoomCamera(shared, (_ms, kind) => {
     if (guarded) liveEvent(kind);
@@ -337,7 +338,7 @@ export default function CourseRoom({
     guard.reset();
     qTimes.current = [];
     qStart.current = nowMs();
-    const qs = shuffled(lesson.questions).map((q) => ({ q, order: shuffled(q.options.map((_, i) => i)) }));
+    const qs = drawRound(lesson, email).map((q) => ({ q, order: shuffled(q.options.map((_, i) => i)) }));
     setItems(qs);
     setIdx(0);
     setSelected(null);
@@ -673,7 +674,7 @@ export default function CourseRoom({
             <button onClick={() => setStopMsg("")} className="shrink-0 text-xs underline">รับทราบ</button>
           </div>
         )}
-        {!extra && !progress[lesson.id]?.passed && capReached(dayR) && <RoundCapPanel email={email} onLifted={() => setDayR(readDay(email))} />}
+        {!extra && !progress[lesson.id]?.passed && capReached(dayR) && <RoundCapPanel email={email} room={roomOf(name)} onLifted={() => setDayR(readDay(email))} />}
         <button
           type="button"
           onClick={beginQuiz}
@@ -725,7 +726,7 @@ export default function CourseRoom({
           </ol>
         </div>
         <CamChooser
-          email={email}
+          room={roomOf(name)}
           cam={cam}
           want={camWant}
           setWant={(on) => {
@@ -883,7 +884,7 @@ export default function CourseRoom({
     const need = passNeed(total, { mode: cMode, guarded, cm: roundCam, passMin: course?.passMin });
     const passed = score >= need && total > 0;
     const wrong = answers.filter((a) => !a.correct);
-    const qById = Object.fromEntries(lesson.questions.map((q) => [q.id, q]));
+    const qById = questionMap(lesson);
     return (
       <div className="animate-fadeIn mt-2">
         <div className={`rounded-3xl p-6 text-center mb-5 ${passed ? "bg-emerald-50" : "bg-amber-50"}`}>

@@ -31,6 +31,7 @@ import {
 } from "../lib/courses";
 import { doneEarly, doneGraced, thaiDayOf } from "../lib/early";
 import { openDay } from "../lib/sync";
+import { questionMap } from "../lib/pool";
 import { EXCUSED, GRADES, ROSTER, displayName, extractNo, fmtThaiTime, gradeOf, matchRoster, roomOf, rosterKey, typedMismatch } from "../lib/roster";
 import { CORE_NAME, CORE_PLAN, VCourse, VProgress, loadVocab300 } from "../lib/vocab300";
 import VocabAdmin from "./_vocab/VocabAdmin";
@@ -539,7 +540,7 @@ export default function AdminDashboard() {
 
         {error && <p className="bg-rose-50 text-rose-700 font-bold rounded-xl p-3 mb-4">{error}</p>}
         <LivePanel entries={liveEntries} />
-        <CodeIssuer docs={allStudents} />
+        <CodeIssuer />
         <StudentManager docs={allStudents} />
         <PurgeEarly docs={allStudents} />
         <LegacyPanel students={students} />
@@ -884,7 +885,7 @@ function LessonPanel({
       missedAgg[qid].people += 1;
     }
   }
-  const qById = Object.fromEntries(lesson.questions.map((q) => [q.id, q]));
+  const qById = questionMap(lesson);
   const topMissed = Object.entries(missedAgg)
     .filter(([id]) => qById[id])
     .sort((a, b) => b[1].people - a[1].people || b[1].times - a[1].times)

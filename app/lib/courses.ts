@@ -47,6 +47,8 @@ export interface CourseLesson {
   dateLabel?: string;
   pairNote?: string; // ฉบับคาบคู่ ม.6: คาบที่ 2 ของสัปดาห์นี้เรียนอะไรในห้อง 📚 เช่น "คาบที่ 2 → 📚 ชุดที่ 1"
   questions: CourseQuestion[];
+  // คลังโจทย์ใหม่ (v8.7) — คำศัพท์เดิม ประโยคใหม่ · ทุกรอบสุ่ม questions.length ข้อ
+  pool?: CourseQuestion[];
 }
 export interface Course {
   id: string;
