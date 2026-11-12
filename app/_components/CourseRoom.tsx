@@ -804,7 +804,7 @@ export default function CourseRoom({
         </div>
 
         {splitHide && <SplitShield leftMs={guard.splitLeft} />}
-        {shield && <CoverShield phone={cam.phone} />}
+        {shield && <CoverShield phone={cam.phone} reason={cam.faceReason} />}
         <div className="bg-gray-50 rounded-2xl p-4 mb-4" hidden={shield || splitHide} {...noCopyProps}>
           <p className="text-base md:text-lg font-bold text-gray-900 leading-relaxed">
             <Rich text={current.q.q} />

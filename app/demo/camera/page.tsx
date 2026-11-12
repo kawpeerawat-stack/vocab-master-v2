@@ -2,7 +2,7 @@
 // app/demo/camera/page.tsx
 // ─────────────────────────────────────────────────────────────
 // หน้าทดลองสำหรับผู้บริหาร/ครู: ระบบเดียวกับที่นักเรียนใช้ในรอบที่เข้าสมุดคะแนน (ใช้ app/_components/CamGuard.tsx ตัวเดียวกัน)
-//   - มีอะไรบังใบหน้าตั้งแต่จมูกขึ้นไป (มือถืออีกเครื่อง / สมุด / มือ) นานเกิน 0.5 วินาที → ข้ามข้อนั้นทันที
+//   - มีอะไรบังใบหน้าตั้งแต่จมูกขึ้นไป (มือถืออีกเครื่อง / สมุด / มือ) นานเกิน 1.5 วินาที → ข้ามข้อนั้นทันที
 //   - เห็นมือถือเครื่องอื่นในภาพกล้อง 2 ภาพติดกัน (ใกล้กล้อง หรือแตะขอบภาพ · แม้ไม่บังหน้า) → ข้ามข้อนั้นทันที
 //   - ออกจากหน้าแอป / หน้าต่าง Gemini หรือวงกลมค้นหาบังนานเกิน 3 วินาที → ข้ามข้อ
 //   - ประมวลผลในเครื่องเท่านั้น · ไม่บันทึก ไม่ส่งภาพ · ไม่ใช้ไมโครโฟน · หน้านี้ไม่บันทึกผลลงระบบ
@@ -166,7 +166,7 @@ export default function CameraDemo() {
                 <button onClick={() => { setCamNotice(null); guard.clearNotice(); }} className="text-xs underline shrink-0">รับทราบ</button>
               </div>
             )}
-            {useCam && picked === null && isCovered(cam) && <CoverShield phone={cam.phone} />}
+            {useCam && picked === null && isCovered(cam) && <CoverShield phone={cam.phone} reason={cam.faceReason} />}
             <div className="bg-gray-50 rounded-2xl p-4 mb-4" hidden={useCam && picked === null && isCovered(cam)} {...noCopyProps}>
               <p className="text-base font-bold text-gray-900">{strip(cur.q)}</p>
             </div>

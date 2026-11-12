@@ -528,7 +528,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
       scrollTop();
     },
   });
-  // กล้อง: มีอะไรบังใบหน้า (จมูกขึ้นไป) นานเกิน 0.5 วินาที → ช่วงหักคะแนนข้ามคำ · ช่วงทดลองเตือน+บันทึก
+  // กล้อง: มีอะไรบังใบหน้า (จมูกขึ้นไป) นานเกิน 1.5 วินาที → ช่วงหักคะแนนข้ามคำ · ช่วงทดลองเตือน+บันทึก
   //   พบมือถือในกล้อง 2 ภาพติดกัน (9 พ.ย.) → เหมือนกัน
   const cam = useRoomCamera(shared, (_ms, kind) => {
     liveEvent(kind);
@@ -838,7 +838,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
             <button onClick={() => setStopMsg("")} className="shrink-0 text-xs underline">รับทราบ</button>
           </div>
         )}
-        {!extra && capReached(dayR) && <RoundCapPanel email={email} onLifted={() => setDayR(readDay(email))} />}
+        {!extra && capReached(dayR) && <RoundCapPanel email={email} room={roomOf(name)} onLifted={() => setDayR(readDay(email))} />}
         <div className="text-center mb-5">
           <div className="text-4xl mb-1">📚</div>
           <h1 className="text-2xl font-black text-gray-900">{course.titleTh}</h1>
@@ -1280,7 +1280,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
           </ol>
         </div>
         <CamChooser
-          email={email}
+          room={roomOf(name)}
           cam={cam}
           want={camWant}
           setWant={(on) => {
@@ -1356,7 +1356,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
           {it.retry > 0 && <span className="text-[11px] font-black bg-rose-100 text-rose-700 px-2 py-1 rounded-full">🔁 วนกลับมาถามอีกครั้ง</span>}
         </div>
         {mode === "CHECK" && picked === null && guard.split && <SplitShield leftMs={guard.splitLeft} />}
-        {mode === "CHECK" && roundCam === "cam" && picked === null && isCovered(cam) && <CoverShield phone={cam.phone} />}
+        {mode === "CHECK" && roundCam === "cam" && picked === null && isCovered(cam) && <CoverShield phone={cam.phone} reason={cam.faceReason} />}
         <div className="bg-gray-50 rounded-2xl p-4 mb-4" hidden={mode === "CHECK" && picked === null && (guard.split || (roundCam === "cam" && isCovered(cam)))} {...(mode === "CHECK" ? noCopyProps : {})}>
           {it.kind === "en2th" && (
             <p className="text-center">

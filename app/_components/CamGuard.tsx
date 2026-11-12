@@ -16,11 +16,18 @@
 // ─────────────────────────────────────────────────────────────
 import { useCallback, useEffect, useRef, useState } from "react";
 import { redeemCode } from "../lib/teacherCode";
-import { codeCloud, liftCap, ROUND_CAP } from "../lib/rounds";
+import { liftCap, ROUND_CAP } from "../lib/rounds";
 import { serverNow, syncClock } from "../lib/sync";
 
-export const COVER_FACE_MS = 500; // บังต่อเนื่องนานเท่านี้ (~5 ภาพ) = นับ 1 ครั้ง — กรองการกะพริบตา/ขยับหัว (8 พ.ย. ครูปรับจาก 0.3 เป็น 0.5 วินาที)
-export const UPPER_CORR_MIN = 0.3; // ความคล้ายของบริเวณตา–หน้าผากกับตอนเทียบหน้า ต่ำกว่านี้ = มีอะไรบัง
+export const COVER_FACE_MS = 1500; // บังต่อเนื่องนานเท่านี้ = นับ 1 ครั้ง — กรองการกะพริบตา/ส่ายหน้า/ปรับท่านั่ง (8 พ.ย. ครูปรับ 0.3→0.5 · 12 พ.ย. ครูปรับเป็น 1.5 วินาที เพราะนักเรียนส่ายหน้า/ปรับท่านั่งไม่ทัน)
+export const UPPER_CORR_MIN = 0.3; // ความคล้ายของบริเวณตา–หน้าผากกับภาพอ้างอิง (ตอนเทียบหน้า + ภาพที่ปรับตามท่านั่ง) ต่ำกว่านี้ = มีอะไรบัง
+// 12 พ.ย. (ครูแจ้ง: ทักว่าบังหน้าทั้งที่ไม่มีอะไรบัง · ขยับกล้องแล้วทักผิด) — ชั้น 2 ปรับให้ตามท่านั่ง/มุมกล้องได้
+export const MOVE_GRACE_MS = 4000;    // ขยับกล้อง/ท่านั่งเปลี่ยนมาก แต่ยังเห็นหน้า → ผ่อนผันไม่เกินนี้ ระหว่างรอให้นิ่งแล้วเทียบหน้าใหม่เอง
+const ANCHOR_STEADY_MS = 600;         // ตำแหน่งหน้านิ่งนานเท่านี้ (และ ≥ ANCHOR_FRAMES ภาพ) = เทียบหน้าใหม่
+const ANCHOR_FRAMES = 4;
+const ADAPT_MIN_CORR = 0.45;          // ภาพยังคล้ายภาพอ้างอิง (แสง/ท่านั่งค่อย ๆ เปลี่ยน) → เก็บเป็นภาพอ้างอิงเพิ่มทุก ADAPT_EVERY_MS
+const ADAPT_EVERY_MS = 3000;
+const MAX_REFS = 5;                   // ภาพอ้างอิงสูงสุด (ภาพแรกตอนเทียบหน้าคงไว้เสมอ)
 const BASE = "/mediapipe/face_detection";
 // ── ชั้น 3: ตรวจหามือถือ ──
 export const PHONE_FRAMES = 2;        // เห็นมือถือกี่ภาพติดกันจึงนับ (ครูเลือก 9 พ.ย.)
@@ -37,6 +44,12 @@ type PhoneSeen = "near" | "far" | null;
 const TW = 24, TH = 12; // ขนาดภาพย่อบริเวณตา–หน้าผาก (ใช้เทียบเท่านั้น ไม่เก็บ)
 
 export type CamStatus = "off" | "loading" | "calib" | "ready" | "denied" | "error";
+// เหตุที่ "ไม่ผ่าน": ไม่พบใบหน้า · เห็นหน้าแต่ตา–หน้าผากถูกบัง · กล้อง/ท่านั่งขยับไม่นิ่ง (ผ่อนผันหมดเวลาแล้ว)
+export type FaceReason = "noface" | "covered" | "moving" | null;
+// คำแนะนำก่อนเริ่ม (แสดงตอนเทียบหน้า): ไม่พบหน้า · มืด · แสงจ้า · ไกล · ใกล้ · ไม่อยู่กลางภาพ · กล้องเอียง
+export type CamTip = "noface" | "dark" | "bright" | "far" | "near" | "offcenter" | "tilt";
+type Geo = { cx: number; cy: number; size: number; roll: number }; // ตำแหน่ง/ขนาด/การเอียงของใบหน้าในภาพ (สัดส่วนของภาพ · องศา)
+type Thumb = Float32Array & { sd?: number; mean?: number };
 type Rect = { xCenter: number; yCenter: number; width: number; height: number };
 type Det = { boundingBox?: Rect; landmarks?: { x: number; y: number }[] };
 type FaceDet = {
@@ -77,20 +90,38 @@ function loadScript(src: string, loaded: () => boolean = () => !!window.FaceDete
 }
 const now = () => Date.now();
 
-// ภาพย่อบริเวณจมูกขึ้นไป (ตา–หน้าผาก) แบบปรับค่าเฉลี่ย/ความต่างแสงแล้ว
-// คืน null ถ้าหาบริเวณไม่ได้ · ภาพที่คืนมามี .sd = ความต่างแสงเดิม (ภาพเรียบมาก เช่น หลังมือถือ = sd ต่ำ)
-function upperThumb(video: HTMLVideoElement, ctx: CanvasRenderingContext2D, d: Det): (Float32Array & { sd?: number }) | null {
-  const b = d.boundingBox, lm = d.landmarks;
-  if (!b || !lm || lm.length < 3) return null;
+// ภาพย่อบริเวณตา–หน้าผาก แบบปรับค่าเฉลี่ย/ความต่างแสงแล้ว
+// 12 พ.ย.: ตัดภาพตาม "ตำแหน่งตาสองข้าง" (หมุนให้แนวตาอยู่ระดับเดียวกัน · ขนาดตามระยะห่างตา) แทนกรอบหน้า
+//   → หน้าเอียง/ขยับ/ใกล้-ไกลเล็กน้อย ภาพยังตรงกับที่เทียบไว้ (กรอบหน้าของตัวตรวจสั่นได้ ทำให้ภาพเพี้ยนจนทักผิด)
+// คืน null ถ้าหาบริเวณไม่ได้ หรือบริเวณนั้นล้นขอบภาพ · .sd = ความต่างแสงเดิม (พื้นเรียบ เช่น หลังมือถือ = sd ต่ำ) · .mean = ความสว่างเฉลี่ย
+function upperThumb(video: HTMLVideoElement, ctx: CanvasRenderingContext2D, d: Det): Thumb | null {
+  const lm = d.landmarks;
+  if (!lm || lm.length < 2) return null;
   const vw = video.videoWidth, vh = video.videoHeight;
   if (!vw || !vh) return null;
-  const x0 = Math.max(0, (b.xCenter - b.width / 2) * vw);
-  const w = Math.min(vw - x0, b.width * vw);
-  const y0 = Math.max(0, (b.yCenter - b.height / 2 - b.height * 0.1) * vh);
-  const y1 = Math.min(vh, lm[2].y * vh); // ปลายจมูก
-  const h = y1 - y0;
-  if (w < 8 || h < 6) return null;
-  ctx.drawImage(video, x0, y0, w, h, 0, 0, TW, TH);
+  let a = { x: lm[0].x * vw, y: lm[0].y * vh };
+  let c = { x: lm[1].x * vw, y: lm[1].y * vh };
+  if (c.x < a.x) [a, c] = [c, a];
+  const iod = Math.hypot(c.x - a.x, c.y - a.y);
+  if (iod < 8) return null;
+  const mx = (a.x + c.x) / 2, my = (a.y + c.y) / 2;
+  const roll = Math.atan2(c.y - a.y, c.x - a.x);
+  const W = 2.6 * iod, UP = 0.95 * iod, DOWN = 0.55 * iod, H = UP + DOWN; // ซ้าย-ขวาข้างละ 1.3 ระยะตา · เหนือแนวตา 0.95 · ลงมาถึงสันจมูก 0.55
+  const cs = Math.cos(roll), sn = Math.sin(roll);
+  for (const [u, w] of [[-W / 2, -UP], [W / 2, -UP], [-W / 2, DOWN], [W / 2, DOWN]]) {
+    const x = mx + u * cs - w * sn, y = my + u * sn + w * cs;
+    if (x < -2 || y < -2 || x > vw + 2 || y > vh + 2) return null; // ล้นขอบภาพ → มีแถบดำปนเข้ามา ไม่ใช้เทียบ
+  }
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, TW, TH);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+  ctx.scale(TW / W, TH / H);
+  ctx.translate(W / 2, UP);
+  ctx.rotate(-roll);
+  ctx.translate(-mx, -my);
+  ctx.drawImage(video, 0, 0);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
   const px = ctx.getImageData(0, 0, TW, TH).data;
   const g = new Float32Array(TW * TH);
   let m = 0;
@@ -107,13 +138,40 @@ function upperThumb(video: HTMLVideoElement, ctx: CanvasRenderingContext2D, d: D
   const sd0 = Math.sqrt(v / g.length);
   const sd = sd0 || 1;
   for (let i = 0; i < g.length; i++) g[i] /= sd;
-  return Object.assign(g, { sd: sd0 });
+  return Object.assign(g, { sd: sd0, mean: m });
+}
+// ตำแหน่ง/ขนาด/การเอียงของใบหน้า
+function geoOf(d: Det, vw: number, vh: number): Geo | null {
+  const b = d.boundingBox, lm = d.landmarks;
+  if (!b) return null;
+  let roll = 0;
+  if (lm && lm.length >= 2 && vw && vh) {
+    let a = lm[0], c = lm[1];
+    if (c.x < a.x) [a, c] = [c, a];
+    roll = (Math.atan2((c.y - a.y) * vh, (c.x - a.x) * vw) * 180) / Math.PI;
+  }
+  return { cx: b.xCenter, cy: b.yCenter, size: b.width, roll };
+}
+// ใบหน้าเปลี่ยนตำแหน่ง/ขนาด/มุมมาก (ขยับกล้อง หรือนั่งเปลี่ยนท่า) เมื่อเทียบกับตอนที่ภาพยังตรงกับภาพอ้างอิง
+const geoMoved = (a: Geo, b: Geo) => Math.hypot(a.cx - b.cx, a.cy - b.cy) > 0.07 || b.size / (a.size || 1) > 1.2 || b.size / (a.size || 1) < 0.83 || Math.abs(a.roll - b.roll) > 10;
+// นิ่งแล้ว (ใช้ตัดสินว่าขยับกล้องเสร็จแล้ว)
+const geoSteady = (a: Geo, b: Geo) => Math.hypot(a.cx - b.cx, a.cy - b.cy) < 0.03 && Math.abs(b.size / (a.size || 1) - 1) < 0.12 && Math.abs(a.roll - b.roll) < 6;
+// เฉลี่ยภาพย่อหลายภาพ → ปรับให้ความต่างแสงเป็น 1 (ไม่ให้ค่าเทียบต่ำลงเพราะการเฉลี่ย)
+function averageThumbs(xs: Float32Array[]): Float32Array {
+  const avg = new Float32Array(xs[0].length);
+  for (const x of xs) for (let i = 0; i < avg.length; i++) avg[i] += x[i] / xs.length;
+  let v = 0;
+  for (let i = 0; i < avg.length; i++) v += avg[i] * avg[i];
+  const sd = Math.sqrt(v / avg.length) || 1;
+  for (let i = 0; i < avg.length; i++) avg[i] /= sd;
+  return avg;
 }
 const corr = (a: Float32Array, b: Float32Array) => {
   let s = 0;
   for (let i = 0; i < a.length; i++) s += a[i] * b[i];
   return s / a.length;
 };
+const bestCorr = (a: Float32Array, refs: Float32Array[]) => refs.reduce((m, r) => Math.max(m, corr(a, r)), -1);
 
 // กันค้าง: งานที่ใช้เวลานานเกินกำหนด → ถือว่าล้มเหลว (iPhone/iPad บางรุ่นค้างเงียบ · ยกมาจากแอป Grammar)
 function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
@@ -178,6 +236,9 @@ export function useCameraGuard(onCover?: (ms: number, kind: CoverKind) => boolea
   const [visible, setVisible] = useState(false);
   const [missMs, setMissMs] = useState(0);
   const [calibrated, setCalibrated] = useState(false);
+  const [faceReason, setFaceReason] = useState<FaceReason>(null); // เหตุที่ไม่ผ่านตอนนี้ (ใช้เลือกข้อความ)
+  const [adjusting, setAdjusting] = useState(false); // ขยับกล้อง/ท่านั่งเปลี่ยน แต่ยังเห็นหน้า → กำลังเทียบหน้าใหม่ (ยังไม่นับบัง)
+  const [tips, setTips] = useState<CamTip[]>([]); // คำแนะนำก่อนเริ่ม (อัปเดตเฉพาะตอนยังไม่เริ่มทำข้อ)
   const videoRef = useRef<HTMLVideoElement | null>(null); // กล่องภาพที่นักเรียนเห็น (เปลี่ยนตามหน้า)
   // ภาพต้นทางสำหรับตรวจจับ (9 พ.ย.): วิดีโอซ่อนที่อยู่ตลอด (หน้าเลือกห้อง) — เปลี่ยนหน้าแล้วการตรวจไม่สะดุด
   const sourceRef = useRef<HTMLVideoElement | null>(null);
@@ -186,9 +247,11 @@ export function useCameraGuard(onCover?: (ms: number, kind: CoverKind) => boolea
   const detRef = useRef<FaceDet | null>(null);
   const loopRef = useRef<number | null>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
-  const baseRef = useRef<Float32Array | null>(null);
   const baseFlat = useRef(false); // ตอนเทียบหน้าภาพเรียบเกินไป (มืด/แสงจ้า) → ไม่ใช้ชั้นที่ 2
-  const calibBuf = useRef<Float32Array[]>([]);
+  const calibBuf = useRef<Thumb[]>([]);
+  const calibGeo = useRef<Geo[]>([]);
+  // ภาพอ้างอิงของตา–หน้าผาก: refs[0] = ตอนเทียบหน้า (หรือเทียบใหม่หลังขยับกล้อง) · ที่เหลือ = ภาพล่าสุดที่ยังคล้ายกัน (ตามแสง/ท่านั่งที่ค่อย ๆ เปลี่ยน)
+  const ap = useRef({ refs: [] as Float32Array[], baseSd: 0, good: null as Geo | null, goodSince: 0, lastAdd: 0, mv: null as null | { since: number; anchor: Geo; stableSince: number; buf: Thumb[] } });
   const st = useRef({ armed: false, missStart: 0, fired: false, lastSeen: 0, covers: 0, coverMs: 0, gotResult: false, faceOk: true, phoneHits: 0, phoneMiss: 0, phones: 0, farHits: 0, farMiss: 0, farFired: false, phonesFar: 0, phoneState: "off" as PhoneState });
   const phoneRun = useRef(0); // รอบการทำงานของตัวตรวจมือถือ (เปลี่ยนเลข = หยุดรอบเก่า)
   // หน้าจอเปลี่ยน (กติกา → ทำข้อ) แล้วกล่องวิดีโอถูกสร้างใหม่ → ต่อภาพกล้องเข้าไปใหม่
@@ -259,6 +322,10 @@ export function useCameraGuard(onCover?: (ms: number, kind: CoverKind) => boolea
     const ds = r.detections || [];
     const d = ds.slice().sort((a, b) => (b.boundingBox?.width ?? 0) * (b.boundingBox?.height ?? 0) - (a.boundingBox?.width ?? 0) * (a.boundingBox?.height ?? 0))[0];
     let ok = !!d;
+    let reason: FaceReason = d ? null : "noface";
+    let adj = false;
+    let geo: Geo | null = null;
+    let th: Thumb | null = null;
     const v = vid();
     if (d && v) {
       if (!ctxRef.current) {
@@ -267,22 +334,73 @@ export function useCameraGuard(onCover?: (ms: number, kind: CoverKind) => boolea
         c.height = TH;
         ctxRef.current = c.getContext("2d", { willReadFrequently: true });
       }
-      const th = ctxRef.current ? upperThumb(v, ctxRef.current, d) : null;
-      if (th) {
-        if (!baseRef.current) {
+      geo = geoOf(d, v.videoWidth, v.videoHeight);
+      th = ctxRef.current ? upperThumb(v, ctxRef.current, d) : null;
+      const A = ap.current;
+      if (th && geo) {
+        if (A.refs.length === 0) {
           // เทียบหน้า: เก็บค่าเฉลี่ย 6 ภาพแรกที่เห็นใบหน้า (อยู่ในหน่วยความจำเท่านั้น)
           calibBuf.current.push(th);
+          calibGeo.current.push(geo);
           if (calibBuf.current.length >= 6) {
-            const avg = new Float32Array(th.length);
-            for (const x of calibBuf.current) for (let i = 0; i < avg.length; i++) avg[i] += x[i] / calibBuf.current.length;
-            baseRef.current = avg;
-            baseFlat.current = calibBuf.current.reduce((m, x) => m + ((x as { sd?: number }).sd ?? 0), 0) / calibBuf.current.length < 4;
+            const n = calibGeo.current.length;
+            A.refs = [averageThumbs(calibBuf.current)];
+            A.baseSd = calibBuf.current.reduce((m, x) => m + (x.sd ?? 0), 0) / calibBuf.current.length;
+            A.good = { cx: calibGeo.current.reduce((m, g) => m + g.cx, 0) / n, cy: calibGeo.current.reduce((m, g) => m + g.cy, 0) / n, size: calibGeo.current.reduce((m, g) => m + g.size, 0) / n, roll: calibGeo.current.reduce((m, g) => m + g.roll, 0) / n };
+            baseFlat.current = A.baseSd < 4;
             calibBuf.current = [];
+            calibGeo.current = [];
             setCalibrated(true);
             setStatus("ready");
           }
-        } else if (!baseFlat.current && ((th.sd ?? 99) < 3 || corr(th, baseRef.current) < UPPER_CORR_MIN)) {
-          ok = false; // ตา–หน้าผากถูกบัง (ภาพเปลี่ยนไปมาก หรือกลายเป็นพื้นเรียบ เช่น หลังมือถือ)
+        } else if (!baseFlat.current) {
+          const c = bestCorr(th, A.refs);
+          const flat = (th.sd ?? 99) < Math.max(2, 0.2 * A.baseSd); // พื้นเรียบมากเมื่อเทียบกับตอนเทียบหน้า (เช่น หลังมือถือ / มือ)
+          if (!flat && c >= UPPER_CORR_MIN) {
+            A.mv = null;
+            if (c >= ADAPT_MIN_CORR) {
+              A.good = geo;
+              if (!A.goodSince) A.goodSince = t;
+              if (t - A.goodSince >= ADAPT_EVERY_MS && t - A.lastAdd >= ADAPT_EVERY_MS) {
+                A.refs = [A.refs[0], ...[...A.refs.slice(1), th].slice(-(MAX_REFS - 1))];
+                A.lastAdd = t;
+              }
+            } else A.goodSince = 0;
+          } else {
+            A.goodSince = 0;
+            const moved = !flat && !!A.good && geoMoved(A.good, geo);
+            if (moved) {
+              // ขยับกล้อง/นั่งเปลี่ยนท่า แต่ยังเห็นหน้าชัด → ไม่ใช่การบัง: รอให้นิ่ง แล้วเทียบหน้าใหม่เอง (ผ่อนผันไม่เกิน MOVE_GRACE_MS)
+              if (!A.mv) A.mv = { since: t, anchor: geo, stableSince: t, buf: [] };
+              const m = A.mv;
+              if (t - m.since <= MOVE_GRACE_MS) {
+                if (geoSteady(m.anchor, geo)) {
+                  m.buf.push(th);
+                  if (m.buf.length > 8) m.buf.shift();
+                  if (m.buf.length >= ANCHOR_FRAMES && t - m.stableSince >= ANCHOR_STEADY_MS) {
+                    A.refs = [averageThumbs(m.buf)];
+                    A.baseSd = m.buf.reduce((x, y) => x + (y.sd ?? 0), 0) / m.buf.length;
+                    baseFlat.current = A.baseSd < 4;
+                    A.good = geo;
+                    A.lastAdd = t;
+                    A.mv = null;
+                  } else adj = true;
+                } else {
+                  m.anchor = geo;
+                  m.stableSince = t;
+                  m.buf = [th];
+                  adj = true;
+                }
+              } else {
+                ok = false; // ขยับไม่นิ่งเกินเวลาผ่อนผัน
+                reason = "moving";
+              }
+            } else {
+              A.mv = null;
+              ok = false; // ตา–หน้าผากถูกบัง (ภาพเปลี่ยนไปมากโดยตำแหน่งหน้าไม่ขยับ หรือกลายเป็นพื้นเรียบ เช่น หลังมือถือ)
+              reason = "covered";
+            }
+          }
         }
       }
     }
@@ -296,6 +414,26 @@ export function useCameraGuard(onCover?: (ms: number, kind: CoverKind) => boolea
     s.faceOk = ok;
     setVisible(ok);
     setMissMs(ok ? 0 : t - s.missStart);
+    setFaceReason(ok ? null : reason);
+    setAdjusting(adj);
+    // คำแนะนำก่อนเริ่มทำข้อ (ระหว่างทำข้อไม่ต้องคำนวณ)
+    if (!s.armed) {
+      const tp: CamTip[] = [];
+      if (!d) tp.push("noface");
+      else {
+        if (geo) {
+          if (geo.size < 0.16) tp.push("far");
+          else if (geo.size > 0.55) tp.push("near");
+          if (Math.abs(geo.cx - 0.5) > 0.22 || geo.cy < 0.28 || geo.cy > 0.68) tp.push("offcenter");
+          if (Math.abs(geo.roll) > 15) tp.push("tilt");
+        }
+        if (th && th.mean !== undefined) {
+          if (th.mean < 55) tp.push("dark");
+          else if (th.mean > 215) tp.push("bright");
+        }
+      }
+      setTips((prev) => (prev.join() === tp.join() ? prev : tp));
+    }
     judge(t);
   }, [judge]);
 
@@ -386,9 +524,13 @@ export function useCameraGuard(onCover?: (ms: number, kind: CoverKind) => boolea
     setStatus("loading");
     setErrorDetail("");
     setCalibrated(false);
-    baseRef.current = null;
+    ap.current = { refs: [], baseSd: 0, good: null, goodSince: 0, lastAdd: 0, mv: null };
     baseFlat.current = false;
     calibBuf.current = [];
+    calibGeo.current = [];
+    setFaceReason(null);
+    setAdjusting(false);
+    setTips([]);
     st.current = { armed: false, missStart: 0, fired: false, lastSeen: 0, covers: 0, coverMs: 0, gotResult: false, faceOk: true, phoneHits: 0, phoneMiss: PHONE_CLEAR, phones: 0, farHits: 0, farMiss: PHONE_CLEAR, farFired: false, phonesFar: 0, phoneState: "off" };
     if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
       setErrorDetail("เบราว์เซอร์นี้ไม่รองรับกล้อง — ถ้าเปิดจากในแอป LINE / Facebook ให้กด ⋯ แล้วเลือกเปิดด้วย Safari หรือ Chrome");
@@ -427,7 +569,7 @@ export function useCameraGuard(onCover?: (ms: number, kind: CoverKind) => boolea
     // สร้างตัวตรวจใบหน้า · noSimd = ไฟล์รุ่นธรรมดา (สำรองเมื่อรุ่น SIMD ใช้กับเครื่องนี้ไม่ได้ · ยกมาจากแอป Grammar)
     const create = (noSimd: boolean): FaceDet => {
       const det = new window.FaceDetection!({ locateFile: (f) => `${BASE}/${noSimd ? f.replace("_simd_wasm_bin", "_wasm_bin") : f}` });
-      det.setOptions({ model: "short", minDetectionConfidence: 0.6 });
+      det.setOptions({ model: "short", minDetectionConfidence: 0.5 });
       det.onResults(onResults);
       return det;
     };
@@ -487,7 +629,7 @@ export function useCameraGuard(onCover?: (ms: number, kind: CoverKind) => boolea
     st.current.phones = 0;
     st.current.phonesFar = 0;
   }, []);
-  return { status, visible, missMs, calibrated, phone, phoneFar, phoneState, errorDetail, setVideo, setSource, start, stop, arm, counts, resetCounts };
+  return { status, visible, missMs, calibrated, faceReason, adjusting, tips, phone, phoneFar, phoneState, errorDetail, setVideo, setSource, start, stop, arm, counts, resetCounts };
 }
 
 export type CamGuard = ReturnType<typeof useCameraGuard>;
@@ -535,9 +677,9 @@ function SourceVideo({ setSource }: { setSource: (el: HTMLVideoElement | null) =
 }
 // กล่องภาพกล้อง (แสดงให้นักเรียนเห็นตัวเอง) — floating = มุมขวาล่างระหว่างทำข้อ
 export function CamBox({ cam, floating }: { cam: CamGuard; floating?: boolean }) {
-  return <CamView status={cam.status} visible={cam.visible} missMs={cam.missMs} phone={cam.phone} phoneFar={cam.phoneFar} setVideo={cam.setVideo} floating={floating} />;
+  return <CamView status={cam.status} visible={cam.visible} missMs={cam.missMs} phone={cam.phone} phoneFar={cam.phoneFar} reason={cam.faceReason} adjusting={cam.adjusting} setVideo={cam.setVideo} floating={floating} />;
 }
-function CamView({ status, visible, missMs, phone, phoneFar, setVideo, floating }: { status: CamStatus; visible: boolean; missMs: number; phone: boolean; phoneFar?: boolean; setVideo: (el: HTMLVideoElement | null) => void; floating?: boolean }) {
+function CamView({ status, visible, missMs, phone, phoneFar, reason, adjusting, setVideo, floating }: { status: CamStatus; visible: boolean; missMs: number; phone: boolean; phoneFar?: boolean; reason?: FaceReason; adjusting?: boolean; setVideo: (el: HTMLVideoElement | null) => void; floating?: boolean }) {
   const ready = status === "ready" || status === "calib";
   const color = !ready ? "#9ca3af" : visible && !phone ? "#10b981" : "#f43f5e";
   return (
@@ -551,7 +693,11 @@ function CamView({ status, visible, missMs, phone, phoneFar, setVideo, floating 
         ) : !ready ? null : phone ? (
           <span className="text-rose-600">● พบมือถือในกล้อง</span>
         ) : visible ? (
-          <span className="text-emerald-700">● เห็นใบหน้า{phoneFar ? <span className="text-amber-600"> · 📱ไกล</span> : null}</span>
+          <span className="text-emerald-700">● เห็นใบหน้า{adjusting ? <span className="text-amber-600" data-cam-adjusting="1"> · กำลังปรับ…</span> : null}{phoneFar ? <span className="text-amber-600"> · 📱ไกล</span> : null}</span>
+        ) : reason === "noface" ? (
+          <span className="text-rose-600">● ไม่พบใบหน้า {(missMs / 1000).toFixed(1)} วิ</span>
+        ) : reason === "moving" ? (
+          <span className="text-rose-600">● กล้องขยับ {(missMs / 1000).toFixed(1)} วิ</span>
         ) : (
           <span className="text-rose-600">● มีอะไรบังหน้า {(missMs / 1000).toFixed(1)} วิ</span>
         )}
@@ -578,6 +724,54 @@ export function saveCamChoice(email: string, on: boolean) {
   }
 }
 
+// ── 12 พ.ย.: คำแนะนำก่อนเริ่ม (ตั้งกล้องให้ตรวจแม่น ไม่ทักผิด) + ตรวจตำแหน่ง/แสงสด ๆ ระหว่างเทียบหน้า ──
+const TIP_TH: Record<CamTip, string> = {
+  noface: "ยังไม่เห็นใบหน้า — ขยับให้หน้าอยู่กลางภาพ แล้วมองตรงที่กล้อง",
+  dark: "แสงน้อยไป — หันหน้าเข้าหาแสง หรือเปิดไฟห้อง",
+  bright: "แสงจ้า/ย้อนแสง — อย่านั่งหันหลังให้หน้าต่างหรือหลอดไฟ",
+  far: "ไกลไป — ขยับเข้าใกล้กล้องอีกนิด",
+  near: "ใกล้ไป — ถอยออกจากกล้องเล็กน้อย",
+  offcenter: "หน้าไม่อยู่กลางภาพ — ขยับเครื่องหรือตัวให้เห็นหน้าอยู่ตรงกลาง",
+  tilt: "ภาพเอียง — ตั้งเครื่องให้ตรง อย่าถือเอียง",
+};
+function CamCoach({ cam }: { cam: CamGuard }) {
+  const live = cam.status === "calib" || cam.status === "ready";
+  return (
+    <div className="rounded-2xl border-2 border-[#003399]/20 bg-white p-3 space-y-2" data-cam-coach="1">
+      {live && (
+        <div data-cam-tips={cam.tips.join(",") || "ok"}>
+          {cam.tips.length === 0 ? (
+            cam.status === "ready" ? (
+              <p className="text-xs font-black text-emerald-700">✅ ตำแหน่งและแสงดีแล้ว — พร้อมเริ่ม</p>
+            ) : (
+              <p className="text-xs font-black text-[#003399]">กำลังเทียบหน้า… นั่งนิ่ง ๆ สักครู่</p>
+            )
+          ) : (
+            <ul className="space-y-0.5">
+              {cam.tips.map((t) => (
+                <li key={t} className="text-xs font-black text-amber-700" data-cam-tip={t}>⚠️ {TIP_TH[t]}</li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+      <details open={!live}>
+        <summary className="text-xs font-black text-[#003399] cursor-pointer">📋 ก่อนเริ่ม ตั้งกล้องให้ถูก 5 อย่าง (ระบบจะไม่ทักผิด)</summary>
+        <ol className="mt-1.5 space-y-1 text-[11px] font-bold text-gray-600 leading-relaxed list-decimal pl-4">
+          <li><b>วางเครื่องให้นิ่ง</b> พิงหนังสือหรือใช้ขาตั้ง อย่าถือ — กล้องขยับระหว่างทำจะทำให้ภาพเปลี่ยน</li>
+          <li><b>ให้เห็นหน้าเต็ม</b> ตา–จมูก–ปากชัด อยู่กลางภาพ กล้องระดับสายตา ไม่เอียง</li>
+          <li><b>แสงมาจากด้านหน้า</b> เปิดไฟห้อง ไม่นั่งหันหลังให้หน้าต่างหรือหลอดไฟ</li>
+          <li><b>ตาและหน้าผากไม่ถูกบัง</b> เก็บผมที่ปรกตา ถอดหมวก/หน้ากาก · แว่นสะท้อนแสงให้เอียงหน้าจอลงเล็กน้อย</li>
+          <li><b>เก็บมือถือเครื่องอื่น</b> ให้พ้นภาพกล้อง</li>
+        </ol>
+        <p className="mt-1.5 text-[11px] font-bold text-[#003399] bg-[#003399]/5 rounded-lg px-2 py-1.5 leading-relaxed">
+          ระหว่างทำข้อ ถ้าต้องขยับกล้อง ให้ขยับช้า ๆ ให้หน้ายังอยู่ในภาพ แล้วนิ่งสัก 1–2 วินาที ระบบจะเทียบหน้าใหม่เอง (ไม่นับว่าบัง) · ถ้าหน้าหลุดจากภาพเกิน 1.5 วินาที ข้อนั้นจะถูกข้าม
+        </p>
+      </details>
+    </div>
+  );
+}
+
 // ── หน้ากติกา: เลือกใช้กล้อง / ไม่ใช้กล้อง แล้วเริ่ม ──
 //   camRule / noCamRule = ข้อความเกณฑ์ของแต่ละแบบ · onStart(cm) เริ่มทำข้อ
 export function CamChooser({
@@ -592,10 +786,10 @@ export function CamChooser({
   required = false,
   preApproved = false,
   noCamMode = false,
-  email = "",
+  room = null,
 }: {
   cam: CamGuard;
-  email?: string; // v8.5: รหัสครูผูกกับอีเมลนักเรียนคนนี้ (ใช้ครั้งเดียว)
+  room?: string | null; // v8.6: รหัสครูเป็นรหัสของ "ห้อง" (เช่น 6/5) · ไม่รู้ห้อง = ใช้รหัสไม่ได้
   want: boolean;
   setWant: (on: boolean) => void;
   camRule: string;
@@ -660,6 +854,7 @@ export function CamChooser({
       </p>
       {camView ? (
         <div className="space-y-2">
+          {st !== "denied" && st !== "error" && <CamCoach cam={cam} />}
           {st !== "off" && st !== "denied" && st !== "error" && <CamBox cam={cam} />}
           {st !== "ready" && st !== "loading" && st !== "calib" && preApproved && required && (
             <button type="button" onClick={() => onStart("camfail")} className="w-full py-4 bg-gray-700 text-white font-black rounded-2xl shadow-xl text-lg" data-preapproved="1">
@@ -696,7 +891,7 @@ export function CamChooser({
               <button type="button" onClick={() => void cam.start()} className="w-full py-3 bg-white border-2 border-[#003399] text-[#003399] font-black rounded-2xl">ลองเปิดกล้องอีกครั้ง</button>
               {required ? (
                 <div className="rounded-xl border-2 border-gray-200 p-3 space-y-2" data-nocam-code="1">
-                  <p className="text-xs font-bold text-gray-700">เครื่องนี้เปิดกล้องไม่ได้จริง? <b>ยกมือเรียกครู</b> — ครูจะออกรหัสเฉพาะเครื่องนี้ให้ (ใช้ได้ครั้งเดียว หมดอายุใน 10–20 นาที) (ทำแบบจับเวลา {noCamRule} · ครูเห็น 🚫)</p>
+                  <p className="text-xs font-bold text-gray-700">เครื่องนี้เปิดกล้องไม่ได้จริง? <b>ยกมือเรียกครู</b> — ครูจะมาตรวจเครื่องและบอกรหัสของห้อง (ใช้ได้ภายในคาบ) (ทำแบบจับเวลา {noCamRule} · ครูเห็น 🚫)</p>
                   <div className="flex gap-2">
                     <input
                       inputMode="numeric"
@@ -716,10 +911,10 @@ export function CamChooser({
                       onClick={async () => {
                         setCodeBusy(true);
                         await syncClock(); // ใช้เวลาของเซิร์ฟเวอร์ (นาฬิกามือถือผิดก็ไม่เป็นไร)
-                        const r = await redeemCode("nocam", email, code, serverNow(), codeCloud("nocam", email));
+                        const r = redeemCode("nocam", room, code, serverNow());
                         setCodeBusy(false);
                         if (r.result === "ok") onStart("camfail");
-                        else setCodeMsg(r.result === "used" ? "รหัสนี้ถูกใช้ไปแล้ว — ขอรหัสใหม่จากครู" : r.result === "locked" ? `กรอกผิดหลายครั้ง ล็อกไว้ ${Math.ceil((r.lockMs ?? 0) / 60000)} นาที` : `รหัสไม่ถูกต้องหรือหมดอายุ (เหลือ ${r.left ?? 0} ครั้งก่อนล็อก)`);
+                        else setCodeMsg(r.result === "noroom" ? "ไม่พบห้องของคุณ — ออกจากระบบแล้วกรอกชั้นเรียนใหม่ หรือแจ้งครู" : r.result === "locked" ? `กรอกผิดหลายครั้ง ล็อกไว้ ${Math.ceil((r.lockMs ?? 0) / 60000)} นาที` : `รหัสไม่ถูกต้องหรือหมดอายุ (เหลือ ${r.left ?? 0} ครั้งก่อนล็อก)`);
                       }}
                       className="shrink-0 px-4 py-2 bg-gray-700 text-white font-black rounded-xl disabled:opacity-50"
                     >
@@ -767,17 +962,23 @@ export function TimerBar({ left, limit }: { left: number; limit: number }) {
 // และระหว่างที่เห็นมือถือในกล้อง
 export const isCovered = (cam: { status: CamStatus; visible: boolean; missMs: number; phone?: boolean }) =>
   cam.status === "ready" && (!!cam.phone || (!cam.visible && cam.missMs >= COVER_FACE_MS));
-export function CoverShield({ phone }: { phone?: boolean }) {
+const SHIELD_FACE: Record<"noface" | "covered" | "moving", [string, string]> = {
+  noface: ["ไม่พบใบหน้าในกล้อง", "ขยับให้เห็นหน้า (ตา–จมูก–ปาก) อยู่กลางภาพ แล้วมองหน้าจอ · ถ้าขยับกล้อง ให้วางให้นิ่ง"],
+  covered: ["มีอะไรบังใบหน้า (ตา–หน้าผาก)", "เอามือ/สิ่งของ/ผมที่ปรกตาออก แล้วมองหน้าจอ"],
+  moving: ["กล้องขยับอยู่", "วางเครื่องให้นิ่ง ให้เห็นหน้าอยู่กลางภาพ นิ่งสัก 1–2 วินาที ระบบจะเทียบหน้าใหม่เอง"],
+};
+export function CoverShield({ phone, reason }: { phone?: boolean; reason?: FaceReason }) {
+  const [head, hint] = SHIELD_FACE[reason ?? "covered"];
   return (
-    <div className="rounded-2xl border-2 border-rose-300 bg-rose-50 p-6 mb-4 text-center" data-shield={phone ? "phone" : "face"}>
+    <div className="rounded-2xl border-2 border-rose-300 bg-rose-50 p-6 mb-4 text-center" data-shield={phone ? "phone" : "face"} data-shield-reason={phone ? "phone" : reason ?? "covered"}>
       <div className="text-4xl mb-1">{phone ? "📱" : "📷"}</div>
-      <p className="font-black text-rose-800">{phone ? "พบมือถือในกล้อง" : "มีอะไรบังใบหน้าอยู่"}</p>
-      <p className="text-sm font-bold text-rose-700 mt-1">{phone ? "เก็บมือถือเครื่องอื่นให้พ้นกล้อง" : "เอามือ/สิ่งของออก แล้วมองหน้าจอ"} — โจทย์จะกลับมาเอง</p>
+      <p className="font-black text-rose-800">{phone ? "พบมือถือในกล้อง" : head}</p>
+      <p className="text-sm font-bold text-rose-700 mt-1">{phone ? "เก็บมือถือเครื่องอื่นให้พ้นกล้อง" : hint} — โจทย์จะกลับมาเอง</p>
     </div>
   );
 }
-// ยกเลิกรอบครบกำหนดของวันนี้ → เริ่มรอบเข้าสมุดคะแนนไม่ได้ · ครูปลดล็อกรายคนด้วยรหัส (ใช้ครั้งเดียว)
-export function RoundCapPanel({ email, onLifted }: { email: string; onLifted: () => void }) {
+// ยกเลิกรอบครบกำหนดของวันนี้ → เริ่มรอบเข้าสมุดคะแนนไม่ได้ · ครูปลดล็อกด้วยรหัสห้อง
+export function RoundCapPanel({ email, room, onLifted }: { email: string; room: string | null; onLifted: () => void }) {
   const [code, setCode] = useState("");
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
@@ -787,7 +988,7 @@ export function RoundCapPanel({ email, onLifted }: { email: string; onLifted: ()
       <p className="text-xs font-bold text-rose-700 mt-1 leading-relaxed">
         (ออกกลางรอบ / รีเฟรชหรือปิดหน้าระหว่างรอบ / แบ่งจอ) จึงเริ่มรอบที่เข้าสมุดคะแนนอีกไม่ได้ในวันนี้ — พรุ่งนี้เริ่มใหม่ได้ · ฝึกเพิ่มและเรียนบทได้ตามปกติ
         <br />
-        เหตุผลจำเป็น (เช่น เครื่องดับ เน็ตหลุด) <b>ยกมือเรียกครู</b> — ครูจะออกรหัสปลดล็อกเฉพาะเครื่องนี้ให้
+        เหตุผลจำเป็น (เช่น เครื่องดับ เน็ตหลุด) <b>ยกมือเรียกครู</b> — ครูจะมาตรวจเครื่องและบอกรหัสปลดล็อกของห้อง
       </p>
       <div className="flex gap-2 mt-2">
         <input
@@ -808,10 +1009,10 @@ export function RoundCapPanel({ email, onLifted }: { email: string; onLifted: ()
           onClick={async () => {
             setBusy(true);
             await syncClock();
-            const r = await liftCap(email, code);
+            const r = liftCap(email, room, code);
             setBusy(false);
             if (r.result === "ok") onLifted();
-            else setMsg(r.result === "used" ? "รหัสนี้ถูกใช้ไปแล้ว — ขอรหัสใหม่จากครู" : r.result === "locked" ? `กรอกผิดหลายครั้ง ล็อกไว้ ${Math.ceil((r.lockMs ?? 0) / 60000)} นาที` : `รหัสไม่ถูกต้องหรือหมดอายุ (เหลือ ${r.left ?? 0} ครั้งก่อนล็อก)`);
+            else setMsg(r.result === "noroom" ? "ไม่พบห้องของคุณ — ออกจากระบบแล้วกรอกชั้นเรียนใหม่ หรือแจ้งครู" : r.result === "locked" ? `กรอกผิดหลายครั้ง ล็อกไว้ ${Math.ceil((r.lockMs ?? 0) / 60000)} นาที` : `รหัสไม่ถูกต้องหรือหมดอายุ (เหลือ ${r.left ?? 0} ครั้งก่อนล็อก)`);
           }}
           className="shrink-0 px-4 py-2 bg-rose-700 text-white font-black rounded-xl disabled:opacity-50"
         >
@@ -837,4 +1038,4 @@ export function SplitShield({ leftMs }: { leftMs: number }) {
 }
 // ข้อความแจ้งหลังถูกข้ามเพราะกล้อง
 export const camSkipText = (kind: CoverKind, unit = "ข้อ") =>
-  kind === "phone" ? `📱 พบมือถือในกล้อง — ${unit}ที่แล้วถูกข้าม (ไม่ได้คะแนน)` : `📷 มีอะไรบังใบหน้า (จมูกขึ้นไป) — ${unit}ที่แล้วถูกข้าม (ไม่ได้คะแนน)`;
+  kind === "phone" ? `📱 พบมือถือในกล้อง — ${unit}ที่แล้วถูกข้าม (ไม่ได้คะแนน)` : `📷 ไม่เห็นใบหน้า หรือมีอะไรบังใบหน้า (จมูกขึ้นไป) — ${unit}ที่แล้วถูกข้าม (ไม่ได้คะแนน)`;
