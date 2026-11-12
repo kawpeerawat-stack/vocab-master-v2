@@ -56,7 +56,7 @@ export function LivePanel({ entries }: { entries: LiveEntry[] }) {
         <span className="text-sm font-bold text-gray-700 tabular-nums">{active.length} คน</span>
         {alerts > 0 && <span className="text-sm font-black text-rose-700 tabular-nums">มีเหตุการณ์ {alerts} คน</span>}
         {noCam > 0 && <span className="text-sm font-bold text-gray-600 tabular-nums">ไม่ใช้กล้อง {noCam} คน</span>}
-        <span className="ml-auto text-xs font-bold text-gray-500" data-nocam-today title="รหัสกล้องใช้ไม่ได้เป็นรายคนแล้ว (v8.5) — ดูที่กล่อง 🔑 ออกรหัสให้นักเรียนรายคน ด้านล่าง">🔑 รหัสครู: ดูที่กล่องด้านล่าง</span>
+        <span className="ml-auto text-xs font-bold text-gray-500" data-nocam-today title="รหัสกล้องใช้ไม่ได้เป็นรหัสของห้อง (v8.6) — ดูที่กล่อง 🔑 รหัสครูของห้อง ด้านล่าง">🔑 รหัสครู: ดูที่กล่องด้านล่าง</span>
         <span className="text-xs font-bold text-gray-400">{open ? "ย่อ ▲" : "ขยาย ▼"}</span>
       </button>
       {open && (

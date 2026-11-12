@@ -14,6 +14,11 @@ export default function AppError({ error, unstable_retry }: { error: Error & { d
         <p className="text-2xl mb-2">⚠️</p>
         <h1 className="text-lg font-black text-[#003399] mb-2">หน้านี้เปิดไม่สำเร็จ</h1>
         <p className="text-sm text-gray-600 mb-4">ผลที่ทำไว้ไม่หาย กดลองใหม่ได้เลย ถ้ายังไม่ได้ ให้ปิดแท็บแล้วเปิดลิงก์ใหม่ (ไม่ต้องเปิดจากในแอปไลน์)</p>
+        {error.name === "NotFoundError" && (
+          <p className="text-xs font-bold text-amber-800 bg-amber-50 rounded-xl px-3 py-2 mb-4" data-translate-hint>
+            ถ้าเบราว์เซอร์ขึ้นแถบ “แปลหน้านี้” ให้กด “เลิกทำ / แสดงต้นฉบับ” หรือปิดการแปลของเว็บนี้ แล้วกด “โหลดหน้าใหม่”
+          </p>
+        )}
         <div className="flex gap-2 justify-center mb-4">
           <button onClick={() => unstable_retry()} className="px-4 py-2 bg-[#003399] text-white rounded-xl font-bold text-sm">ลองใหม่</button>
           <button onClick={() => window.location.reload()} className="px-4 py-2 bg-white border-2 border-[#003399]/30 text-[#003399] rounded-xl font-bold text-sm">โหลดหน้าใหม่</button>

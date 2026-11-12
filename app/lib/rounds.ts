@@ -3,14 +3,16 @@
 // นับ "รอบที่เข้าสมุดคะแนนที่ถูกยกเลิก" ต่อวัน (v8.5) — กันดูโจทย์แล้วออก/รีเฟรชเพื่อให้รอบเป็นโมฆะ ค้นคำตอบ แล้วทำใหม่
 //   นับเมื่อ: กดออกกลางรอบ · ระบบหยุดรอบเพราะแบ่งจอ · ปิดแท็บ/รีเฟรช/กลับหน้าก่อนจบรอบ (ตรวจจากป้ายค้างในเครื่อง)
 //   ไม่นับ: ปิดระบบหลัง 16.30 น. (ไม่ใช่ความผิดนักเรียน) · ข้ามข้อ/หมดเวลา (ยังเป็นรอบที่ทำจบ)
-//   ครบ ROUND_CAP ครั้งต่อวัน → วันนี้เริ่มรอบเข้าสมุดคะแนนไม่ได้ (ครูปลดล็อกรายคนด้วยรหัส "lift" ได้) · พรุ่งนี้เริ่มใหม่
+//   ครบ ROUND_CAP ครั้งต่อวัน → วันนี้เริ่มรอบเข้าสมุดคะแนนไม่ได้ (ครูปลดล็อกด้วยรหัสห้อง "lift" ได้) · พรุ่งนี้เริ่มใหม่
 //   เก็บในเครื่อง + สำเนาบนระบบ students/{id}.rounds.{วัน} = { a: ยกเลิกกี่รอบ, l: ครูปลดล็อกแล้ว } (เล็กมาก)
 //   เครื่องที่ล้างข้อมูลเพื่อรีเซ็ตตัวนับ → ใช้ค่าบนระบบ (ค่ามากสุดของสองฝั่ง)
 // ─────────────────────────────────────────────────────────────
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "./firebase";
 import { serverNow, serverToday } from "./sync";
-import { redeemCode, CLOUD_WAIT_MS, type CodeKind } from "./teacherCode";
+import { redeemCode } from "./teacherCode";
+
+const CLOUD_WAIT_MS = 3000; // รอระบบไม่เกินนี้ — เน็ตหลุดก็ใช้ค่าในเครื่อง ไม่ค้างหน้า
 
 export const ROUND_CAP = 3;
 export type AbandonWhy = "quit" | "split" | "reload";
@@ -99,7 +101,7 @@ export async function roundsSync(email: string, day = serverToday()): Promise<Da
   try {
     const snap = await Promise.race([
       getDoc(doc(db, "students", idOf(email))),
-      new Promise<never>((_, rej) => setTimeout(() => rej(new Error("timeout")), CLOUD_WAIT_MS * 2)),
+      new Promise<never>((_, rej) => setTimeout(() => rej(new Error("timeout")), CLOUD_WAIT_MS)),
     ]);
     const r = (snap.data() as { rounds?: Record<string, { a?: number; l?: boolean }> } | undefined)?.rounds?.[day];
     if (!r) return local;
@@ -112,24 +114,9 @@ export async function roundsSync(email: string, day = serverToday()): Promise<Da
 }
 export const capReached = (d: DayRounds) => d.a >= ROUND_CAP && !d.l;
 
-// ปลดล็อกวันนี้ด้วยรหัสครู (kind "lift") → ใช้ได้ครั้งเดียว
-export async function liftCap(email: string, code: string) {
-  const out = await redeemCode("lift", email, code, serverNow(), codeCloud("lift", email));
+// ปลดล็อกวันนี้ด้วยรหัสครู (kind "lift" · รหัสของห้องนักเรียนคนนี้)
+export function liftCap(email: string, room: string | null, code: string) {
+  const out = redeemCode("lift", room, code, serverNow());
   if (out.result === "ok") writeDay(email, serverToday(), { ...readDay(email), l: true });
   return out;
-}
-
-// ── ป้ายใช้รหัสแล้วบนระบบ ──
-export function codeCloud(kind: CodeKind, email: string) {
-  return {
-    isUsed: async (win: number) => {
-      if (!db) return false;
-      const snap = await getDoc(doc(db, "students", idOf(email)));
-      return !!(snap.data() as { codeUsed?: Record<string, boolean> } | undefined)?.codeUsed?.[`${kind}${win}`];
-    },
-    markUsed: async (win: number) => {
-      if (!db) return;
-      await setDoc(doc(db, "students", idOf(email)), { codeUsed: { [`${kind}${win}`]: true } }, { merge: true });
-    },
-  };
 }

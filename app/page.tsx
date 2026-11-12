@@ -27,6 +27,7 @@ import {
   cleanNamePart,
   composeName,
   profileFromLegacyName,
+  roomOf,
   saveProfile,
   validateProfile,
   type ProfileField,
@@ -301,7 +302,7 @@ export default function Home() {
                 <p className="font-black text-[#003399] mb-1">📷 ขั้นแรก: เปิดกล้องก่อนเข้าห้องเรียน</p>
                 <p className="text-xs font-bold text-gray-600 mb-3">ทำครั้งเดียวที่หน้านี้ แล้วเข้าได้ทั้ง 2 แถบ · กล้องเปิดค้างระหว่างเรียน (นับเฉพาะตอนทำแบบฝึกที่เข้าสมุดคะแนน) · ตั้งมือถือให้เห็นหน้า เก็บมือถือเครื่องอื่นให้พ้นกล้อง</p>
                 <CamChooser
-                  email={email}
+                  room={profile?.room ?? roomOf(studentName)}
                   cam={cam}
                   want
                   setWant={() => undefined}
