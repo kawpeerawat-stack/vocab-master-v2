@@ -37,6 +37,7 @@ import { CORE_NAME, CORE_PLAN, VCourse, VProgress, loadVocab300 } from "../lib/v
 import VocabAdmin from "./_vocab/VocabAdmin";
 import { LivePanel, type LiveEntry } from "./_parts/LivePanel";
 import { CodeIssuer } from "./_parts/CodeIssuer";
+import { CamSettings } from "./_parts/CamSettings";
 import type { LiveDoc } from "../lib/live";
 import { PurgeEarly } from "./_parts/PurgeEarly";
 import { StudentManager } from "./_parts/StudentManager";
@@ -541,6 +542,7 @@ export default function AdminDashboard() {
         {error && <p className="bg-rose-50 text-rose-700 font-bold rounded-xl p-3 mb-4">{error}</p>}
         <LivePanel entries={liveEntries} />
         <CodeIssuer />
+        <CamSettings />
         <StudentManager docs={allStudents} />
         <PurgeEarly docs={allStudents} />
         <LegacyPanel students={students} />

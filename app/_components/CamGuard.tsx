@@ -5,7 +5,7 @@
 //   ชั้น 1: หาใบหน้าไม่เจอ (MediaPipe Face Detection · ไฟล์อยู่ในเว็บเรา /mediapipe)
 //   ชั้น 2: บริเวณ "จมูกขึ้นไป" (ตา–หน้าผาก) ต่างจากตอนเทียบหน้าก่อนเริ่มมาก
 //           → จับกรณีเอียงมือถือบังช่วงตา ทั้งที่กล้องยังเห็นปาก/คาง
-//   บังต่อเนื่อง COVER_FACE_MS → นับ 1 ครั้ง (onCover) — หน้าทำข้อสอบเป็นคนตัดสินว่าจะข้ามข้อหรือไม่
+//   บังต่อเนื่อง getCoverMs() (ครูปรับที่ /admin) → นับ 1 ครั้ง (onCover) — หน้าทำข้อสอบเป็นคนตัดสินว่าจะข้ามข้อหรือไม่
 //   ชั้น 3 (9 พ.ย.): ตรวจหา "มือถือ" ในภาพกล้อง — ตัวตรวจเดียวกับแอป Grammar Master
 //           (MediaPipe Object Detector · EfficientDet-Lite0 · ไฟล์อยู่ในเว็บเรา /mediapipe/tasks)
 //           ครูเลือก "ทางสายกลาง": เห็นมือถือ PHONE_FRAMES ภาพติดกัน
@@ -18,8 +18,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { redeemCode } from "../lib/teacherCode";
 import { liftCap, ROUND_CAP } from "../lib/rounds";
 import { serverNow, syncClock } from "../lib/sync";
+import { getCoverMs, refreshCamSettings } from "../lib/camSettings";
 
-export const COVER_FACE_MS = 1500; // บังต่อเนื่องนานเท่านี้ = นับ 1 ครั้ง — กรองการกะพริบตา/ส่ายหน้า/ปรับท่านั่ง (8 พ.ย. ครูปรับ 0.3→0.5 · 12 พ.ย. ครูปรับเป็น 1.5 วินาที เพราะนักเรียนส่ายหน้า/ปรับท่านั่งไม่ทัน)
+// เวลาบังหน้าต่อเนื่องก่อนนับ 1 ครั้ง = getCoverMs() (ค่าเริ่มต้น 1.5 วินาที · ครูปรับ 1.0–3.0 ได้ที่หน้า /admin → app/lib/camSettings.ts) — กรองการกะพริบตา/ส่ายหน้า/ปรับท่านั่ง (8 พ.ย. ครูปรับ 0.3→0.5 · 12 พ.ย. ปรับเป็น 1.5 วินาที)
 export const UPPER_CORR_MIN = 0.3; // ความคล้ายของบริเวณตา–หน้าผากกับภาพอ้างอิง (ตอนเทียบหน้า + ภาพที่ปรับตามท่านั่ง) ต่ำกว่านี้ = มีอะไรบัง
 // 12 พ.ย. (ครูแจ้ง: ทักว่าบังหน้าทั้งที่ไม่มีอะไรบัง · ขยับกล้องแล้วทักผิด) — ชั้น 2 ปรับให้ตามท่านั่ง/มุมกล้องได้
 export const MOVE_GRACE_MS = 4000;    // ขยับกล้อง/ท่านั่งเปลี่ยนมาก แต่ยังเห็นหน้า → ผ่อนผันไม่เกินนี้ ระหว่างรอให้นิ่งแล้วเทียบหน้าใหม่เอง
@@ -305,7 +306,7 @@ export function useCameraGuard(onCover?: (ms: number, kind: CoverKind) => boolea
       return;
     }
     if (!s.armed || s.fired) return;
-    const kind: CoverKind | null = phoneNow ? "phone" : faceMiss >= COVER_FACE_MS ? "face" : null;
+    const kind: CoverKind | null = phoneNow ? "phone" : faceMiss >= getCoverMs() ? "face" : null;
     if (!kind) return;
     s.fired = true;
     if (kind === "phone") s.phones++;
@@ -521,6 +522,7 @@ export function useCameraGuard(onCover?: (ms: number, kind: CoverKind) => boolea
   // เปิดกล้อง + ตัวตรวจจับ → คืน false ถ้าใช้ไม่ได้ (ไม่อนุญาต / เครื่องไม่รองรับ)
   const start = useCallback(async (): Promise<boolean> => {
     if (streamRef.current && detRef.current) return true;
+    void refreshCamSettings(); // อ่านเวลาบังหน้าที่ครูตั้ง (ไม่รอ — ใช้ค่าที่จำไว้ก่อน)
     setStatus("loading");
     setErrorDetail("");
     setCalibrated(false);
@@ -961,7 +963,7 @@ export function TimerBar({ left, limit }: { left: number; limit: number }) {
 // ระหว่างที่มีอะไรบังใบหน้า (ใช้กล้อง) → ซ่อนโจทย์และตัวเลือก จนกว่าจะเห็นหน้าอีกครั้ง
 // และระหว่างที่เห็นมือถือในกล้อง
 export const isCovered = (cam: { status: CamStatus; visible: boolean; missMs: number; phone?: boolean }) =>
-  cam.status === "ready" && (!!cam.phone || (!cam.visible && cam.missMs >= COVER_FACE_MS));
+  cam.status === "ready" && (!!cam.phone || (!cam.visible && cam.missMs >= getCoverMs()));
 const SHIELD_FACE: Record<"noface" | "covered" | "moving", [string, string]> = {
   noface: ["ไม่พบใบหน้าในกล้อง", "ขยับให้เห็นหน้า (ตา–จมูก–ปาก) อยู่กลางภาพ แล้วมองหน้าจอ · ถ้าขยับกล้อง ให้วางให้นิ่ง"],
   covered: ["มีอะไรบังใบหน้า (ตา–หน้าผาก)", "เอามือ/สิ่งของ/ผมที่ปรกตาออก แล้วมองหน้าจอ"],

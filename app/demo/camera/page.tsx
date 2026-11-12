@@ -9,7 +9,8 @@
 // ─────────────────────────────────────────────────────────────
 import { useEffect, useRef, useState } from "react";
 import { noCopyProps, noticeText, useLeaveGuard } from "../../lib/guard";
-import { CamBox, CamChooser, camSkipText, CoverShield, COVER_FACE_MS, isCovered, useCameraGuard } from "../../_components/CamGuard";
+import { getCoverMs } from "../../lib/camSettings";
+import { CamBox, CamChooser, camSkipText, CoverShield, isCovered, useCameraGuard } from "../../_components/CamGuard";
 
 type Q = { id: string; q: string; options: string[]; answer: number };
 type Phase = "INTRO" | "QUIZ" | "DONE";
@@ -128,7 +129,7 @@ export default function CameraDemo() {
               <h2 className="font-black text-[#003399] mb-2">ลองทำแบบนี้</h2>
               <ul className="list-disc pl-5 space-y-1">
                 <li>ยกมือถืออีกเครื่องขึ้นมาในภาพกล้อง (ถือต่ำระดับอก ไม่บังหน้าก็ได้ · แค่โผล่เข้ามาที่ขอบภาพก็นับ) → เห็น 2 ภาพติดกันก็ข้ามข้อ · ตัวตรวจเดียวกับแอป Grammar</li>
-                <li>ยกมือถืออีกเครื่อง / สมุด / มือ ขึ้นบังตั้งแต่จมูกขึ้นไป (รวมเอียงมือถือบังแค่ช่วงตา) → นับทันที (~{COVER_FACE_MS / 1000} วินาที) และข้ามข้อ</li>
+                <li>ยกมือถืออีกเครื่อง / สมุด / มือ ขึ้นบังตั้งแต่จมูกขึ้นไป (รวมเอียงมือถือบังแค่ช่วงตา) → นับทันที (~<span suppressHydrationWarning>{getCoverMs() / 1000}</span> วินาที) และข้ามข้อ</li>
                 <li>สลับไปแอปอื่น หรือเรียก Gemini / วงกลมค้นหานานเกิน 3 วินาที → ข้ามข้อ</li>
                 <li>ลองคลุมข้อความโจทย์ → คัดลอกไม่ได้</li>
               </ul>
