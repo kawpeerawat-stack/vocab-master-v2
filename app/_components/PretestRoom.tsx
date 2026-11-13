@@ -1,11 +1,12 @@
 "use client";
 // app/_components/PretestRoom.tsx — 📝 Pre-test ม.4 (ม.4 เท่านั้น · 13 พ.ย. 2569)
-//   ส่วนที่ 1: ข้อสอบหลัก 40 ข้อ 50 นาที (8 ทักษะตามข้อสอบจริง) · ส่วนที่ 2: วัดระดับคำศัพท์ 20 ข้อ 10 นาที
+//   ส่วนที่ 1: ข้อสอบหลัก 30 ข้อ 30 นาที (8 ทักษะตามข้อสอบจริง) · ส่วนที่ 2: วัดระดับคำศัพท์ 16 ข้อ 6 นาที (ทำต่อเลย หรือทำคาบหน้าก็ได้)
+//   ลำดับข้อสลับรายคน (ตามอีเมล) — คำตอบ/เวลา/ช่องที่กด เก็บตามดัชนีข้อ ไม่ขึ้นกับลำดับที่เห็น
 //   ไม่นับคะแนนเก็บ · ไม่เฉลยรายข้อ · นักเรียนเห็นเฉพาะกลุ่มของตัวเอง · ทำได้ครั้งเดียว (ครูกดให้ทำใหม่ได้)
 //   จับเวลารวมทั้งชุด (ย้อนกลับไปแก้คำตอบได้เหมือนสอบจริง) · หมดเวลา = ส่งอัตโนมัติ
 //   กล้อง: ใช้กล้องชุดเดียวกับหน้าเลือกห้อง · มีอะไรบังหน้า/เห็นมือถือ = ซ่อนโจทย์ + บันทึกให้ครูเห็น (ไม่ข้ามข้อ)
 //   ออกจากหน้าแอป = บันทึกจำนวนครั้งให้ครูเห็น · ผลเก็บในเครื่องก่อน แล้วส่งขึ้นระบบ (ส่งไม่ได้ = ลองใหม่เอง)
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   BANK,
   MAIN_MS,
@@ -14,21 +15,30 @@ import {
   VOCAB_MS,
   bandOf,
   decodePicks,
+  emptyTrk,
   encodePicks,
+  encodeSeq,
+  encodeSecs,
+  encodeSlots,
   fmtClock,
   gradeMain,
   gradeVocab,
+  itemSeq,
   leftMs,
   loadPreLocal,
+  loadTrk,
+  minSecFor,
   mergePre,
   optionOrder,
   savePreLocal,
+  saveTrk,
   stageOf,
   tierStartText,
   type Ctx,
   type Picks,
   type PreLocal,
   type PreRec,
+  type Trk,
 } from "../lib/pretest";
 import { readCloudPre, writeCloudPre } from "../lib/pretestCloud";
 import { noCopyProps, useLeaveGuard } from "../lib/guard";
@@ -62,7 +72,7 @@ function Rich({ text }: { text: string }) {
 }
 
 // ช่องว่าง (n) ______ ของข้อที่กำลังทำ → ไฮไลต์
-function Blanks({ text, n }: { text: string; n: number }) {
+function Blanks({ text, n, lab }: { text: string; n: number; lab: Record<number, number> }) {
   return (
     <>
       {text.split(/(\(\d+\) ______)/g).map((seg, i) => {
@@ -71,7 +81,7 @@ function Blanks({ text, n }: { text: string; n: number }) {
         const on = Number(m[1]) === n;
         return (
           <span key={i} className={on ? "font-black text-white bg-[#003399] rounded px-1" : "font-bold text-gray-400"} data-blank={m[1]} data-blank-on={on ? "1" : "0"}>
-            ({m[1]}) ______
+            ({lab[Number(m[1])] ?? m[1]}) ______
           </span>
         );
       })}
@@ -79,7 +89,7 @@ function Blanks({ text, n }: { text: string; n: number }) {
   );
 }
 
-function CtxBox({ c, n }: { c: Ctx; n: number }) {
+function CtxBox({ c, n, lab }: { c: Ctx; n: number; lab: Record<number, number> }) {
   const title = c.title ? <p className="font-black text-[#003399] text-sm mb-1.5">{c.title}</p> : null;
   let body: ReactNode = null;
   if (c.kind === "dialogue") {
@@ -87,14 +97,14 @@ function CtxBox({ c, n }: { c: Ctx; n: number }) {
       const [sp, tx] = Array.isArray(ln) ? ln : ["", ln];
       return (
         <p key={i} className="mb-1">
-          <b className="text-gray-900">{sp}:</b> <Blanks text={tx} n={n} />
+          <b className="text-gray-900">{sp}:</b> <Blanks text={tx} n={n} lab={lab} />
         </p>
       );
     });
   } else if (c.kind === "text") {
     body = (c.paras ?? []).map((p, i) => (
       <p key={i} className="mb-2 last:mb-0">
-        <Blanks text={p} n={n} />
+        <Blanks text={p} n={n} lab={lab} />
       </p>
     ));
   } else if (c.kind === "sign") {
@@ -169,14 +179,14 @@ function EdSentence({ q, parts }: { q: string; parts: string[] }) {
 }
 
 const SK_INTRO: Record<string, string> = {
-  QR: "ตอนที่ 1 · เลือกคำตอบที่เหมาะสมที่สุด",
-  SC: "ตอนที่ 2 · เติมบทสนทนาสั้น",
-  LC: "ตอนที่ 3 · บทสนทนายาว",
-  TC: "ตอนที่ 4 · เติมคำในบทความ",
-  ED: "ตอนที่ 5 · หาส่วนที่ผิด (เลือกส่วนที่ขีดเส้นใต้ที่ผิด)",
-  RC: "ตอนที่ 6 · การอ่าน",
-  PO: "ตอนที่ 7 · เรียงประโยคเป็นย่อหน้า",
-  IG: "ตอนที่ 8 · อ่านตาราง",
+  QR: "Question–Response · เลือกคำตอบที่เหมาะสมที่สุด",
+  SC: "Short conversation · เติมบทสนทนาสั้น",
+  LC: "Long conversation · เลือกข้อความเติมช่องว่างในบทสนทนา",
+  TC: "Text completion · เติมคำในบทความ",
+  ED: "Error detection · เลือกส่วนที่ขีดเส้นใต้ซึ่งผิด",
+  RC: "Reading comprehension · อ่านแล้วตอบคำถาม",
+  PO: "Paragraph organization · เรียงประโยคเป็นย่อหน้า",
+  IG: "Infographic · อ่านตารางแล้วตอบคำถาม",
 };
 
 export function PretestRoom({ email, onExit, shared }: { email: string; onExit: () => void; shared?: SharedCam }) {
@@ -192,12 +202,48 @@ export function PretestRoom({ email, onExit, shared }: { email: string; onExit: 
   const [sent, setSent] = useState<PreLocal["sent"]>("none");
   const [camNote, setCamNote] = useState<string | null>(null);
   const camCount = useRef({ cv: 0, ph: 0 });
+  const [nudge, setNudge] = useState(false);
+  // ตรวจความตั้งใจ: เวลาต่อข้อ + ช่องที่กด (เก็บในเครื่อง ใส่ใน rec ตอนส่ง)
+  const trk = useRef<Trk>(emptyTrk());
+  const lastT = useRef(0);
+  const quick = useRef(0); // จำนวนข้อล่าสุดที่ตอบเร็วเกินอ่านทัน ติดกัน
+  const sr = useRef({ testing: false, vocab: false, cur: 0 });
+  // ลำดับข้อของคนนี้ (สลับรายคน) · cur = ตำแหน่งที่เห็น · ixc = ดัชนีข้อจริงในคลัง
+  const seqM = useMemo(() => itemSeq(email, false), [email]);
+  const seqV = useMemo(() => itemSeq(email, true), [email]);
   const camOn = !!shared && !shared.fallback && shared.cam.status !== "off";
 
   const testing = view === "main" || view === "vocab";
   const vocabMode = view === "vocab";
   const items = vocabMode ? PRE_VOCAB : PRE_ITEMS;
-  const curId = testing ? items[cur]?.id ?? null : null;
+  const seq = vocabMode ? seqV : seqM;
+  const ixc = seq[cur] ?? 0;
+  const curId = testing ? items[ixc]?.id ?? null : null;
+  useEffect(() => {
+    sr.current = { testing, vocab: vocabMode, cur: ixc };
+  });
+  // เก็บเวลาที่เปิดข้อปัจจุบันไว้ (นับเฉพาะตอนหน้าแอปอยู่หน้าจอ)
+  const tick = useCallback((force?: boolean) => {
+    const t = performance.now();
+    const s = sr.current;
+    if (lastT.current && s.testing && (force || document.visibilityState === "visible")) {
+      const arr = s.vocab ? trk.current.vts : trk.current.ts;
+      arr[s.cur] = Math.min(600, (arr[s.cur] || 0) + Math.min(300, (t - lastT.current) / 1000));
+    }
+    lastT.current = t;
+  }, []);
+  useEffect(() => {
+    lastT.current = testing ? performance.now() : 0;
+  }, [testing, vocabMode]);
+  useEffect(() => {
+    if (!testing) return;
+    const vis = () => {
+      if (document.visibilityState === "hidden") tick(true);
+      else lastT.current = performance.now();
+    };
+    document.addEventListener("visibilitychange", vis);
+    return () => document.removeEventListener("visibilitychange", vis);
+  }, [testing, tick]);
 
   // ออกจากหน้าแอป / แบ่งจอ: บันทึกอย่างเดียว (Pre-test ไม่ข้ามข้อ)
   const guard = useLeaveGuard(testing, curId, () => false);
@@ -253,6 +299,8 @@ export function PretestRoom({ email, onExit, shared }: { email: string; onExit: 
       const r = m.rec;
       const p = m.useLocal && local ? local.picks : r?.a ? decodePicks(r.a, PRE_ITEMS.length) : emptyPicks(PRE_ITEMS.length);
       const vp = m.useLocal && local ? local.vpicks : r?.v ? decodePicks(r.v, PRE_VOCAB.length) : emptyPicks(PRE_VOCAB.length);
+      trk.current = r ? loadTrk(email) : emptyTrk();
+      if (!r) saveTrk(email, null);
       setRec(r);
       setPicks(p);
       setVpicks(vp);
@@ -287,16 +335,18 @@ export function PretestRoom({ email, onExit, shared }: { email: string; onExit: 
 
   const guardRec = () => {
     const g = guard.stats(0, "log");
-    return { lv: g.leaves, aw: g.awayMs, sp: g.splits, cv: camCount.current.cv, ph: camCount.current.ph, cm: camOn ? "cam" : shared?.fallback ? "camfail" : "nocam" };
+    return { lv: g.leaves, aw: g.awayMs, sp: g.splits, cv: camCount.current.cv, ph: camCount.current.ph, cm: camOn ? "cam" : shared?.fallback ? "camfail" : "nocam", nd: trk.current.nd };
   };
 
   // ── ส่งส่วนที่ 1 ──
   const submitMain = useCallback(
     (timeout: boolean) => {
       if (!rec || typeof rec.a === "string") return;
+      tick(true);
+      saveTrk(email, trk.current);
       const res = gradeMain(picks);
       const t = serverNow();
-      const r: PreRec = { ...rec, a: encodePicks(picks), at: t, ms: Math.min(MAIN_MS, t - rec.at0), sc: res.score, ex: res.ex, bd: res.band.id, g: guardRec(), ...(timeout ? { to: 1 as const } : {}) };
+      const r: PreRec = { ...rec, a: encodePicks(picks), ts: encodeSecs(trk.current.ts), sl: encodeSlots(trk.current.sl), at: t, ms: Math.min(MAIN_MS, t - rec.at0), sc: res.score, ex: res.ex, bd: res.band.id, g: guardRec(), ...(timeout ? { to: 1 as const } : {}) };
       setRec(r);
       setConfirm(false);
       setGrid(false);
@@ -316,10 +366,12 @@ export function PretestRoom({ email, onExit, shared }: { email: string; onExit: 
   const submitVocab = useCallback(
     (timeout: boolean) => {
       if (!rec || typeof rec.v === "string") return;
+      tick(true);
+      saveTrk(email, trk.current);
       const res = gradeVocab(vpicks);
-      const r: PreRec = { ...rec, v: encodePicks(vpicks), vat: serverNow(), vs: res.score, ...(timeout ? { vto: 1 as const } : {}) };
+      const r: PreRec = { ...rec, v: encodePicks(vpicks), vts: encodeSecs(trk.current.vts), vsl: encodeSlots(trk.current.vsl), vat: serverNow(), vs: res.score, ...(timeout ? { vto: 1 as const } : {}) };
       const g = guardRec();
-      r.g = { ...(rec.g ?? {}), lv: (rec.g?.lv ?? 0) + g.lv, aw: (rec.g?.aw ?? 0) + g.aw, sp: (rec.g?.sp ?? 0) + (g.sp ?? 0), cv: g.cv, ph: g.ph };
+      r.g = { ...(rec.g ?? {}), lv: (rec.g?.lv ?? 0) + g.lv, aw: (rec.g?.aw ?? 0) + g.aw, sp: (rec.g?.sp ?? 0) + (g.sp ?? 0), cv: g.cv, ph: g.ph, cm: rec.g?.cm ?? g.cm, nd: g.nd };
       setRec(r);
       setConfirm(false);
       setGrid(false);
@@ -374,10 +426,13 @@ export function PretestRoom({ email, onExit, shared }: { email: string; onExit: 
       return;
     }
     if (!hoursNow().open) return;
-    const r: PreRec = { f: BANK.form, at0: serverNow() };
+    const r: PreRec = { f: BANK.form, at0: serverNow(), sq: encodeSeq(seqM) };
     setRec(r);
     setCur(0);
     guard.reset();
+    trk.current = emptyTrk();
+    quick.current = 0;
+    saveTrk(email, trk.current);
     camCount.current = { cv: 0, ph: 0 };
     cam.resetCounts();
     persist(r, picks, vpicks, "none");
@@ -400,19 +455,37 @@ export function PretestRoom({ email, onExit, shared }: { email: string; onExit: 
   }
 
   function pick(orig: number) {
+    tick();
+    const it0 = items[ixc];
+    const slot = optionOrder(email, it0.id, it0.o.length, "fixed" in it0 ? it0.fixed : false).indexOf(orig);
+    const sarr = vocabMode ? trk.current.vsl : trk.current.sl;
+    const first = (vocabMode ? vpicks : picks)[ixc] === null;
+    sarr[ixc] = slot;
+    if (first) {
+      const spent = (vocabMode ? trk.current.vts : trk.current.ts)[ixc] || 0;
+      quick.current = spent < minSecFor(it0) ? quick.current + 1 : 0;
+      if (quick.current >= 4) {
+        quick.current = 0;
+        trk.current.nd++;
+        setNudge(true);
+      }
+    }
+    saveTrk(email, trk.current);
     if (vocabMode) {
       const v = [...vpicks];
-      v[cur] = orig;
+      v[ixc] = orig;
       setVpicks(v);
       persist(rec, picks, v, sent, cur);
     } else {
       const p = [...picks];
-      p[cur] = orig;
+      p[ixc] = orig;
       setPicks(p);
       persist(rec, p, vpicks, sent, cur);
     }
   }
   function go(i: number) {
+    tick();
+    saveTrk(email, trk.current);
     setCur(Math.max(0, Math.min(items.length - 1, i)));
     setGrid(false);
     setConfirm(false);
@@ -473,7 +546,7 @@ export function PretestRoom({ email, onExit, shared }: { email: string; onExit: 
             <li>
               <b className="text-emerald-700">ไม่นับคะแนนเก็บ</b> — ใช้ดูว่าแต่ละคนควรเริ่มเสริมเรื่องไหน ทำตามความรู้จริงของตัวเอง
             </li>
-            <li>ส่วนที่ 1: 40 ข้อ {BANK.minutes} นาที · ส่วนที่ 2: คำศัพท์ 20 ข้อ {BANK.vocabMinutes} นาที</li>
+            <li>ส่วนที่ 1: {PRE_ITEMS.length} ข้อ {BANK.minutes} นาที · ส่วนที่ 2: คำศัพท์ {PRE_VOCAB.length} ข้อ {BANK.vocabMinutes} นาที (ทำต่อกันเลย รวมประมาณ {BANK.minutes + BANK.vocabMinutes} นาที) · ลำดับข้อของแต่ละคนไม่เหมือนกัน</li>
             <li>ข้อสอบมีทั้งง่ายและยาก (บางข้อยากเท่าข้อสอบเข้ามหาวิทยาลัย) ตอบไม่ได้ไม่เป็นไร เดาได้ ไม่มีหักคะแนน</li>
             <li>ย้อนกลับไปแก้คำตอบได้จนกดส่ง · หมดเวลาระบบส่งให้เอง</li>
             <li>ทำได้ครั้งเดียว · เปิดกล้องไว้ อยู่ในหน้านี้จนส่ง ห้ามใช้ AI/แปลภาษา — ระบบบันทึกให้ครูเห็น</li>
@@ -499,7 +572,11 @@ export function PretestRoom({ email, onExit, shared }: { email: string; onExit: 
       <div className="animate-fadeIn mt-2 space-y-4" data-pre-view="vintro">
         <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-4">
           <p className="font-black text-emerald-800">✓ ส่งส่วนที่ 1 แล้ว{rec?.to ? " (หมดเวลา ระบบส่งให้)" : ""}</p>
-          <p className="text-sm font-bold text-emerald-900 mt-1">เหลืออีกส่วนเดียว: วัดระดับคำศัพท์ 20 ข้อ {BANK.vocabMinutes} นาที — อ่านคำตัวหนาในประโยค แล้วเลือกความหมายภาษาไทย</p>
+          <p className="text-sm font-bold text-emerald-900 mt-1">เหลืออีกส่วนเดียว: วัดระดับคำศัพท์ {PRE_VOCAB.length} ข้อ {BANK.vocabMinutes} นาที — อ่านคำตัวหนาในประโยค แล้วเลือกความหมายภาษาไทย</p>
+          <p className="text-xs font-bold text-emerald-800 mt-1" data-pre-vnote>ถ้าคาบนี้เวลาไม่พอ กลับออกไปได้เลย แล้วเปิด Pre-test เพื่อทำส่วนที่ 2 ต่อในคาบหน้า (ส่วนที่ 1 ส่งแล้ว ไม่ต้องทำใหม่ · นาฬิกาส่วนที่ 2 เริ่มนับเมื่อกด “เริ่ม”)</p>
+          <button type="button" onClick={onExit} className="mt-2 text-xs font-black text-emerald-800 underline" data-pre-vlater>
+            ไว้ทำส่วนที่ 2 คาบหน้า (กลับหน้าเลือกห้อง)
+          </button>
         </div>
         <button type="button" onClick={startVocab} data-pre-vstart className="w-full py-4 rounded-2xl bg-[#003399] text-white text-lg font-black active:scale-[0.99]">
           {resume ? `ทำต่อ (เหลือ ${fmtClock(vocabLeft)})` : "เริ่มส่วนที่ 2: คำศัพท์"}
@@ -544,16 +621,21 @@ export function PretestRoom({ email, onExit, shared }: { email: string; onExit: 
   }
 
   // ── ทำข้อสอบ ──
-  const it = items[cur];
+  const it = items[ixc];
   const order = optionOrder(email, it.id, it.o.length, "fixed" in it ? it.fixed : false);
-  const chosen = (vocabMode ? vpicks : picks)[cur];
+  const chosen = (vocabMode ? vpicks : picks)[ixc];
   const done = (vocabMode ? vpicks : picks).filter((x) => x !== null).length;
   const left = vocabMode ? vocabLeft : mainLeft;
+  // เลขช่องว่างในบทอ่าน → เลขข้อที่นักเรียนเห็น (ลำดับสลับรายคน)
+  const lab: Record<number, number> = {};
+  seqM.forEach((x, pos) => {
+    lab[PRE_ITEMS[x].n] = pos + 1;
+  });
   const shield = camOn && isCovered(cam);
   const hide = shield || guard.split;
-  const main = !vocabMode ? PRE_ITEMS[cur] : null;
+  const main = !vocabMode ? PRE_ITEMS[ixc] : null;
   const ctx = main?.ctx ? BANK.ctx[main.ctx] : null;
-  const newSection = main && (cur === 0 || PRE_ITEMS[cur - 1].sk !== main.sk);
+  const qText = main?.ctx ? it.q.replace(/\((\d+)\)/g, (_m, d: string) => `(${lab[Number(d)] ?? d})`) : it.q;
   const unanswered = items.length - done;
 
   return (
@@ -561,7 +643,7 @@ export function PretestRoom({ email, onExit, shared }: { email: string; onExit: 
       <div className="sticky top-[env(safe-area-inset-top,0px)] z-20 bg-white/95 backdrop-blur py-2 mb-2 border-b border-gray-100">
         <div className="flex items-center gap-3">
           <span className="text-xs font-black text-gray-500">{vocabMode ? "ส่วนที่ 2 · คำศัพท์" : "ส่วนที่ 1"}</span>
-          <span className={`ml-auto font-black tabular-nums text-lg ${left < 5 * 60000 ? "text-rose-600" : "text-[#003399]"}`} data-pre-clock>
+          <span className={`ml-auto font-black tabular-nums text-lg ${left < (vocabMode ? 2 : 5) * 60000 ? "text-rose-600" : "text-[#003399]"}`} data-pre-clock>
             ⏱ {fmtClock(left)}
           </span>
         </div>
@@ -576,7 +658,7 @@ export function PretestRoom({ email, onExit, shared }: { email: string; onExit: 
         {grid && (
           <div className="grid grid-cols-8 sm:grid-cols-10 gap-1.5 mt-2" data-pre-grid>
             {items.map((x, i) => {
-              const a = (vocabMode ? vpicks : picks)[i] !== null;
+              const a = (vocabMode ? vpicks : picks)[seq[i]] !== null;
               return (
                 <button
                   key={x.id}
@@ -610,17 +692,25 @@ export function PretestRoom({ email, onExit, shared }: { email: string; onExit: 
           </button>
         </div>
       )}
+      {nudge && (
+        <div className="rounded-xl p-3 mb-3 text-sm font-bold flex items-start gap-2 bg-sky-50 text-sky-900 border-2 border-sky-200" data-pre-nudge>
+          <span className="flex-1">⏱ ตอบเร็วมากหลายข้อติดกัน — ลองอ่านโจทย์ให้ครบอีกนิด ผลนี้ครูใช้เลือกแบบฝึกให้ตรงกับเรา ตอบตามที่เข้าใจจริงดีที่สุด</span>
+          <button onClick={() => setNudge(false)} className="shrink-0 text-xs underline">
+            รับทราบ
+          </button>
+        </div>
+      )}
       {camOn && <CamBox cam={cam} floating />}
       {guard.split && <SplitShield leftMs={guard.splitLeft} />}
       {shield && <CoverShield phone={cam.phone} reason={cam.faceReason} />}
 
       <div hidden={hide} {...noCopyProps}>
-        {newSection && main && <p className="text-xs font-black text-[#003399] bg-[#003399]/5 rounded-lg px-3 py-1.5 mb-3">{SK_INTRO[main.sk]}</p>}
-        {ctx && <CtxBox c={ctx} n={main!.n} />}
+        {main && <p className="text-xs font-black text-[#003399] bg-[#003399]/5 rounded-lg px-3 py-1.5 mb-3" data-pre-sk={main.sk}>{SK_INTRO[main.sk]}</p>}
+        {ctx && <CtxBox c={ctx} n={main!.n} lab={lab} />}
         <div className="bg-gray-50 rounded-2xl p-4 mb-3">
           <p className="text-xs font-black text-gray-400 mb-1">ข้อ {cur + 1}</p>
           <div className="text-base md:text-lg font-bold text-gray-900 leading-relaxed" data-pre-q>
-            {main?.sk === "ED" ? <EdSentence q={main.q} parts={main.o} /> : <Rich text={it.q} />}
+            {main?.sk === "ED" ? <EdSentence q={main.q} parts={main.o} /> : <Rich text={qText} />}
           </div>
         </div>
         <div className="space-y-2 mb-4">

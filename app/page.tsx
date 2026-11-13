@@ -349,13 +349,13 @@ export default function Home() {
                 <div className="mt-3" data-hub-pretest>
                   <RoomCard
                     top="ข้อ"
-                    big="40"
-                    bottom="+ 20 คำ"
+                    big="30"
+                    bottom="+ 16 คำ"
                     icon="📝"
                     title="Pre-test ม.4"
-                    sub="วัดพื้นฐานภาษาอังกฤษเพื่อการสอบ TGAT · A-Level · NETSAT · 60 นาที"
+                    sub="วัดพื้นฐานภาษาอังกฤษเพื่อการสอบ TGAT · A-Level · NETSAT · 36 นาที"
                     hint="ไม่นับคะแนนเก็บ · ทำครั้งเดียวในคาบ · ใช้แบ่งกลุ่มเสริมตามจุดอ่อน"
-                    badge={preStage === "done" ? "ทำแล้ว ✓" : preStage === "new" ? undefined : "ทำค้างอยู่"}
+                    badge={preStage === "done" ? "ทำแล้ว ✓" : preStage === "new" ? undefined : preStage === "vocab" ? "เหลือส่วนคำศัพท์" : "ทำค้างอยู่"}
                     onClick={() => setSection("PRETEST")}
                   />
                 </div>

@@ -1,6 +1,7 @@
-// app/lib/pretest.ts — 📝 Pre-test ม.4 (ฉบับ A · 13 พ.ย. 2569)
-//   ข้อสอบหลัก 40 ข้อ 50 นาที (8 ทักษะตามข้อสอบจริง · ระดับ A2/B1/ข้อสอบจริง · ติดป้ายหัวข้อย่อยเพื่อหาจุดอ่อน)
-//   + ชุดวัดระดับคำศัพท์ 20 ข้อ 10 นาที (4 ระดับ × 5) · ไม่นับคะแนนเก็บ · ทำได้ครั้งเดียว (ครูกดให้ทำใหม่ได้)
+// app/lib/pretest.ts — 📝 Pre-test ม.4 (ฉบับ B · v9.5 · 13 พ.ย. 2569)
+//   ส่วนที่ 1: ข้อสอบหลัก 30 ข้อ 30 นาที (8 ทักษะตามข้อสอบจริง · ระดับ A2/B1/ข้อสอบจริง · ติดป้ายหัวข้อย่อยเพื่อหาจุดอ่อน)
+//   ส่วนที่ 2: ชุดวัดระดับคำศัพท์ 16 ข้อ 6 นาที (4 ระดับ × 4) · เป็นอิสระจากส่วนที่ 1 (ทำต่อเลย หรือทำคาบหน้าก็ได้)
+//   ไม่นับคะแนนเก็บ · ทำได้ครั้งเดียว (ครูกดให้ทำใหม่ได้) · ลำดับข้อสลับรายคน (ตามอีเมล) กันการถามกัน
 //   เก็บคำตอบเป็นสายอักขระ (ตำแหน่งตัวเลือกเดิม 0–3 · "-" = ไม่ได้ตอบ) → หน้าครูคิดคะแนนใหม่จากเฉลยปัจจุบันเสมอ
 //   (ถ้าครูแก้เฉลยภายหลัง ผลทุกคนปรับตามเอง)
 import BANK_JSON from "../../data/pretest4.json";
@@ -8,7 +9,7 @@ import { emailId, fnv1a, mulberry32 } from "./booklet";
 
 export type Level = "A2" | "B1" | "EX";
 export type AreaId = "conv" | "gram" | "read";
-export interface PItem { n: number; id: string; sk: string; sub: string; lv: Level; q: string; o: string[]; a: number; why: string; ctx?: string; fixed?: boolean }
+export interface PItem { n: number; id: string; sk: string; sub: string; lv: Level; q: string; o: string[]; a: number; why: string; ctx?: string; fixed?: boolean; vc?: boolean }
 export interface VItem { n: number; id: string; t: number; q: string; o: string[]; a: number }
 export interface Ctx { kind: "dialogue" | "text" | "sign" | "notice" | "message" | "list" | "table"; title?: string; lines?: (string | string[])[]; paras?: string[]; head?: string[]; rows?: string[][] }
 export interface Sub { area: AreaId; th: string; en: string; tip: string }
@@ -32,7 +33,7 @@ export const PRE_ITEMS = BANK.items;
 export const PRE_VOCAB = BANK.vocab;
 export const MAIN_MS = BANK.minutes * 60000;
 export const VOCAB_MS = BANK.vocabMinutes * 60000;
-export const TIER_PASS = 4; // ระดับละ 5 ข้อ ถูก 4 ขึ้นไป = ระดับนั้นผ่าน
+export const TIER_PASS = 3; // ระดับละ 4 ข้อ ถูก 3 ขึ้นไป = ระดับนั้นผ่าน
 export const SKILL_ORDER = ["QR", "SC", "LC", "TC", "ED", "RC", "PO", "IG"];
 
 // ── ลำดับตัวเลือกต่อคน (สุ่มตามอีเมล · ข้อ Error detection ไม่สลับ) ──
@@ -45,6 +46,39 @@ export function optionOrder(email: string, id: string, n: number, fixed?: boolea
     [idx[i], idx[j]] = [idx[j], idx[i]];
   }
   return idx;
+}
+
+// ── ลำดับข้อต่อคน (สุ่มตามอีเมล) ──
+// ข้อที่ใช้บทอ่าน/บทสนทนาเดียวกันอยู่ติดกัน (อ่านบทครั้งเดียว) · สลับลำดับ "ชุดข้อ" และสลับข้อภายในชุดด้วย
+// คืนค่า: ตำแหน่งที่แสดง → ดัชนีข้อ (ในคลัง) · คำตอบ/เวลา/ช่องที่กด เก็บตามดัชนีข้อเสมอ ไม่ขึ้นกับลำดับที่เห็น
+export function itemSeq(email: string, vocab: boolean): number[] {
+  const rnd = mulberry32(fnv1a(`anr-pre4-seq|${BANK.form}|${vocab ? "v" : "m"}|${emailId(email)}`));
+  const shuffle = <T,>(a: T[]): T[] => {
+    const x = [...a];
+    for (let i = x.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      [x[i], x[j]] = [x[j], x[i]];
+    }
+    return x;
+  };
+  if (vocab) return shuffle(PRE_VOCAB.map((_, i) => i));
+  const units: number[][] = [];
+  const byCtx: Record<string, number[]> = {};
+  PRE_ITEMS.forEach((it, i) => {
+    if (!it.ctx) units.push([i]);
+    else if (byCtx[it.ctx]) byCtx[it.ctx].push(i);
+    else {
+      byCtx[it.ctx] = [i];
+      units.push(byCtx[it.ctx]);
+    }
+  });
+  return shuffle(units).flatMap((u) => shuffle(u));
+}
+export const encodeSeq = (s: number[]) => s.map((i) => i.toString(36)).join("");
+export function decodeSeq(s: unknown, n: number): number[] | null {
+  if (typeof s !== "string" || s.length !== n) return null;
+  const a = Array.from(s, (c) => parseInt(c, 36));
+  return a.every((x) => x >= 0 && x < n) && new Set(a).size === n ? a : null;
 }
 
 // ── คำตอบ ↔ สายอักขระ ──
@@ -70,6 +104,7 @@ export interface MainResult {
   bySk: Record<string, Tally>;
   bySub: Record<string, Tally>;
   byArea: Record<AreaId, Tally>;
+  vc: Tally; // คำศัพท์ในบริบท (ข้อที่ติดป้าย vc)
 }
 const add = (m: Record<string, Tally>, k: string, ok: boolean) => {
   const x = m[k] ?? (m[k] = { c: 0, t: 0 });
@@ -82,6 +117,7 @@ export function gradeMain(p: Picks): MainResult {
   const bySk: Record<string, Tally> = {};
   const bySub: Record<string, Tally> = {};
   const byArea = {} as Record<AreaId, Tally>;
+  const vc: Tally = { c: 0, t: 0 };
   let score = 0;
   let ex = 0;
   let answered = 0;
@@ -94,8 +130,12 @@ export function gradeMain(p: Picks): MainResult {
     add(bySk, it.sk, ok);
     add(bySub, it.sub, ok);
     add(byArea, BANK.subs[it.sub].area, ok);
+    if (it.vc) {
+      vc.t++;
+      if (ok) vc.c++;
+    }
   });
-  return { score, ex, exTotal: PRE_ITEMS.filter((i) => i.lv === "EX").length, answered, band: bandOf(score), byLv, bySk, bySub, byArea };
+  return { score, ex, exTotal: PRE_ITEMS.filter((i) => i.lv === "EX").length, answered, band: bandOf(score), byLv, bySk, bySub, byArea, vc };
 }
 export interface VocabResult { score: number; tiers: number[]; start: number } // start = ระดับแรกที่ยังไม่ผ่าน (5 = ผ่านครบ)
 export function gradeVocab(p: Picks): VocabResult {
@@ -114,11 +154,16 @@ export const tierStartText = (start: number) =>
   start >= 5 ? "ผ่านครบทั้ง 4 ระดับ — เริ่มคำศัพท์ขั้นสูง/คำเฉพาะข้อสอบได้เลย" : `เริ่มชุดคำศัพท์จากระดับ ${start} · ${BANK.tiers[String(start)].th}`;
 
 // ── บันทึก ──
-export interface GuardRec { lv?: number; aw?: number; cv?: number; ph?: number; sp?: number; cm?: string }
+export interface GuardRec { lv?: number; aw?: number; cv?: number; ph?: number; sp?: number; cm?: string; nd?: number }
 export interface PreRec {
   f: string; // ฉบับ
   at0: number; // เริ่มข้อสอบหลัก (เวลาเซิร์ฟเวอร์)
-  a?: string; // คำตอบข้อสอบหลัก 40 ตัว
+  sq?: string; // ลำดับข้อที่นักเรียนคนนี้เห็น (ดัชนีข้อฐาน 36 ตัวอักษรละข้อ) — ไว้ตรวจรูปแบบการเลือกช่องตามลำดับจริง
+  a?: string; // คำตอบข้อสอบหลัก 30 ตัว (ตามดัชนีข้อ)
+  ts?: string; // วินาทีที่ใช้ต่อข้อ (30 ค่า คั่นด้วย ,) — ใช้ตรวจความตั้งใจ
+  sl?: string; // ตำแหน่งช่องที่กด (0–3 · - = ไม่ตอบ) 30 ตัว — ใช้ตรวจรูปแบบคำตอบ
+  vts?: string;
+  vsl?: string;
   at?: number; // ส่งข้อสอบหลัก
   ms?: number;
   to?: 1; // ส่งเพราะหมดเวลา
@@ -144,10 +189,12 @@ export function parsePreRec(d: unknown): PreRec | null {
   const x = (d as { pretest4?: unknown } | null)?.pretest4;
   if (!x || typeof x !== "object") return null;
   const r = x as Record<string, unknown>;
+  if (typeof r.f === "string" && r.f !== BANK.form) return null; // ผลจากข้อสอบฉบับเก่า (เช่น 40 ข้อ) ใช้ไม่ได้ → ถือว่ายังไม่ทำ
   const num = (k: string) => (typeof r[k] === "number" && isFinite(r[k] as number) ? (r[k] as number) : undefined);
   const out: PreRec = { f: typeof r.f === "string" ? r.f : BANK.form, at0: num("at0") ?? 0 };
   if (typeof r.a === "string") out.a = r.a;
   if (typeof r.v === "string") out.v = r.v;
+  for (const k of ["ts", "sl", "vts", "vsl", "sq"] as const) if (typeof r[k] === "string") out[k] = r[k] as string;
   for (const k of ["at", "ms", "sc", "ex", "vt0", "vat", "vs", "r"] as const) {
     const v = num(k);
     if (v !== undefined) out[k] = v;
@@ -206,8 +253,9 @@ export const fmtClock = (ms: number) => {
 export interface ItemStat { n: number; id: string; p: number; d: number | null; dist: number[]; blank: number; top: number }
 export interface ClassStats {
   n: number; // จำนวนคนที่ส่งส่วนที่ 1
-  avg: number; // คะแนนเฉลี่ย /40
+  avg: number; // คะแนนเฉลี่ย (เต็ม = จำนวนข้อ)
   exAvg: number;
+  vc: number; // % ถูกของคำศัพท์ในบริบท
   bands: Record<string, number>;
   byLv: Record<string, number>; // % ถูก
   bySk: Record<string, number>;
@@ -257,6 +305,7 @@ export function classStats(list: Picks[]): ClassStats {
     n,
     avg: n ? Math.round((res.reduce((s, x) => s + x.r.score, 0) / n) * 10) / 10 : 0,
     exAvg: n ? Math.round((res.reduce((s, x) => s + x.r.ex, 0) / n) * 10) / 10 : 0,
+    vc: pct(res.reduce((s, x) => s + x.r.vc.c, 0), res.reduce((s, x) => s + x.r.vc.t, 0)),
     bands,
     byLv: toPct(sum((r) => r.byLv as Record<string, Tally>)),
     bySk: toPct(sum((r) => r.bySk)),
@@ -276,14 +325,29 @@ export function vocabStats(list: Picks[]): { n: number; tierPass: number[]; star
   return { n: list.length, tierPass: tierPass.map((c) => pct(c, list.length)), start };
 }
 // ข้อความไลน์: รายชื่อตามกลุ่ม / คนที่ยังไม่ทำ
-export interface PreLineRow { no: number; name: string; band?: string | null; stage: PreStage }
-export function preLineText(room: string, rows: PreLineRow[], mode: "groups" | "missing", withNames: boolean): string {
+export interface PreLineRow { no: number; name: string; band?: string | null; stage: PreStage; eff?: EffortLevel }
+export function preLineText(room: string, rows: PreLineRow[], mode: "groups" | "missing" | "recheck", withNames: boolean): string {
   const who = (r: PreLineRow) => (withNames ? `${r.no} ${r.name}` : `${r.no}`);
   const join = (rs: PreLineRow[]) => (withNames ? rs.map(who).join("\n") : rs.map(who).join(", "));
+  if (mode === "recheck") {
+    const low = rows.filter((r) => r.eff === "low");
+    const chk = rows.filter((r) => r.eff === "check");
+    const head = `📝 Pre-test ม.${room} — ผลที่ควรให้ทำซ้ำ/คุยด้วย`;
+    if (!low.length && !chk.length) return `${head}\n✅ ไม่มีผลที่น่าสงสัย`;
+    const out = [head];
+    if (low.length) out.push(`\nตั้งใจต่ำ (ให้ทำซ้ำ) ${low.length} คน\n${withNames ? "" : "เลขที่ "}${join(low)}`);
+    if (chk.length) out.push(`\nควรตรวจ/คุยด้วย ${chk.length} คน\n${withNames ? "" : "เลขที่ "}${join(chk)}`);
+    return out.join("\n");
+  }
   if (mode === "missing") {
-    const miss = rows.filter((r) => r.stage !== "done");
+    const m1 = rows.filter((r) => r.stage === "new" || r.stage === "main");
+    const m2 = rows.filter((r) => r.stage === "vocab");
     const head = `📝 Pre-test ม.${room} — ยังทำไม่ครบ`;
-    return miss.length ? `${head}\n${withNames ? "" : "เลขที่ "}${join(miss)}` : `${head}\n✅ ทำครบทุกคนแล้ว`;
+    if (!m1.length && !m2.length) return `${head}\n✅ ทำครบทุกคนแล้ว`;
+    const out = [head];
+    if (m1.length) out.push(`\nส่วนที่ 1 (ข้อสอบหลัก) ยังไม่ส่ง ${m1.length} คน\n${withNames ? "" : "เลขที่ "}${join(m1)}`);
+    if (m2.length) out.push(`\nส่วนที่ 2 (คำศัพท์) ยังไม่ได้ทำ ${m2.length} คน\n${withNames ? "" : "เลขที่ "}${join(m2)}`);
+    return out.join("\n");
   }
   const out = [`📝 Pre-test ม.${room} — แบ่งกลุ่มเสริม`];
   for (const b of [...BANK.bands].reverse()) {
@@ -294,4 +358,105 @@ export function preLineText(room: string, rows: PreLineRow[], mode: "groups" | "
   const miss = rows.filter((r) => !r.band);
   if (miss.length) out.push(`\nยังไม่ได้ทำ ${miss.length} คน: ${miss.map((r) => r.no).join(", ")}`);
   return out.join("\n");
+}
+
+// ── ตรวจความตั้งใจ (คิดใหม่จากข้อมูลที่เก็บไว้ทุกครั้ง → ปรับเกณฑ์ภายหลังได้ ไม่ต้องให้นักเรียนสอบใหม่) ──
+// เก็บระหว่างทำ: เวลาต่อข้อ (วินาที) + ตำแหน่งช่องที่กด · เก็บในเครื่องแยกจากคำตอบ แล้วใส่ใน rec ตอนส่ง
+export interface Trk { ts: number[]; vts: number[]; sl: number[]; vsl: number[]; nd: number }
+export const emptyTrk = (): Trk => ({ ts: Array(PRE_ITEMS.length).fill(0), vts: Array(PRE_VOCAB.length).fill(0), sl: Array(PRE_ITEMS.length).fill(-1), vsl: Array(PRE_VOCAB.length).fill(-1), nd: 0 });
+const TKEY = (email: string) => `pre4t:${emailId(email)}`;
+export function loadTrk(email: string): Trk {
+  try {
+    const raw = typeof localStorage !== "undefined" ? localStorage.getItem(TKEY(email)) : null;
+    const j = raw ? (JSON.parse(raw) as Partial<Trk>) : null;
+    const e = emptyTrk();
+    const fit = (a: unknown, base: number[]) => base.map((d, i) => (Array.isArray(a) && typeof a[i] === "number" && isFinite(a[i]) ? (a[i] as number) : d));
+    return j ? { ts: fit(j.ts, e.ts), vts: fit(j.vts, e.vts), sl: fit(j.sl, e.sl), vsl: fit(j.vsl, e.vsl), nd: typeof j.nd === "number" ? j.nd : 0 } : e;
+  } catch {
+    return emptyTrk();
+  }
+}
+export function saveTrk(email: string, t: Trk | null) {
+  try {
+    if (t) localStorage.setItem(TKEY(email), JSON.stringify(t));
+    else localStorage.removeItem(TKEY(email));
+  } catch {
+    /* ไม่เป็นไร */
+  }
+}
+export const encodeSecs = (a: number[]) => a.map((x) => Math.max(0, Math.min(600, Math.round(x)))).join(",");
+export const decodeSecs = (s: unknown, n: number): number[] | null => {
+  if (typeof s !== "string" || !s) return null;
+  const p = s.split(",").map(Number);
+  return p.length === n && p.every((x) => isFinite(x) && x >= 0) ? p : null;
+};
+export const encodeSlots = (a: number[]) => a.map((x) => (x >= 0 && x <= 9 ? String(x) : "-")).join("");
+
+// เวลาขั้นต่ำที่ "พอจะอ่านโจทย์+ตัวเลือกได้จริง" (วินาที): 1.5 + จำนวนคำ/7 · ต่ำสุด 2 สูงสุด 8 · คำศัพท์ 2 วินาที
+export function minSecFor(it: PItem | VItem): number {
+  if (!("sk" in it)) return 2;
+  const words = [it.q, ...it.o].join(" ").replace(/\{\d\}/g, " ").split(/\s+/).filter(Boolean).length;
+  return Math.max(2, Math.min(8, Math.round((1.5 + words / 7) * 10) / 10));
+}
+export type EffortLevel = "na" | "ok" | "check" | "low";
+export interface Effort { level: EffortLevel; reasons: string[]; rapid: number; answered: number; rapidPct: number; totalSec: number; run: number; blank: number }
+export const EFFORT_TH: Record<EffortLevel, string> = { na: "ยังไม่ส่ง", ok: "ปกติ", check: "ควรตรวจ", low: "ตั้งใจต่ำ" };
+export function effortOf(r: PreRec | null | undefined): Effort {
+  const out: Effort = { level: "na", reasons: [], rapid: 0, answered: 0, rapidPct: 0, totalSec: 0, run: 0, blank: 0 };
+  if (!r || typeof r.a !== "string") return out;
+  const N = PRE_ITEMS.length;
+  const picks = decodePicks(r.a, N);
+  const secs = decodeSecs(r.ts, N);
+  const seq = decodeSeq(r.sq, N) ?? Array.from({ length: N }, (_, i) => i);
+  const slots = decodePicks(r.sl, N);
+  out.answered = picks.filter((x) => x !== null).length;
+  out.blank = N - out.answered;
+  let lv = 0; // 0 ปกติ · 1 ควรตรวจ · 2 ต่ำ
+  const flag = (l: number, why: string) => {
+    lv = Math.max(lv, l);
+    out.reasons.push(why);
+  };
+  if (out.blank >= Math.ceil(N * 0.5)) flag(2, `ไม่ตอบ ${out.blank} ข้อ`);
+  else if (out.blank >= Math.ceil(N * 0.25)) flag(1, `ไม่ตอบ ${out.blank} ข้อ`);
+  if (secs) {
+    out.totalSec = Math.round(secs.reduce((a, b) => a + b, 0));
+    PRE_ITEMS.forEach((it, i) => {
+      if (picks[i] !== null && secs[i] < minSecFor(it)) out.rapid++;
+    });
+    out.rapidPct = out.answered ? Math.round((out.rapid / out.answered) * 100) : 0;
+    if (out.answered >= 8) {
+      if (out.rapidPct >= 40) flag(2, `ตอบเร็วเกินอ่านทัน ${out.rapid}/${out.answered} ข้อ`);
+      else if (out.rapidPct >= 25) flag(1, `ตอบเร็วเกินอ่านทัน ${out.rapid}/${out.answered} ข้อ`);
+    }
+    if (out.answered >= Math.ceil(N * 0.75) && out.totalSec < MAIN_MS / 1000 / 5) flag(1, `ใช้เวลารวมแค่ ${Math.round(out.totalSec / 60)} นาที`);
+  }
+  if (r.sl) {
+    let run = 0;
+    let prev = -1;
+    const share = [0, 0, 0, 0];
+    seq.map((ix) => slots[ix]).forEach((x) => {
+      if (x === null) {
+        prev = -1;
+        run = 0;
+        return;
+      }
+      run = x === prev ? run + 1 : 1;
+      prev = x;
+      out.run = Math.max(out.run, run);
+      if (x >= 0 && x < 4) share[x]++;
+    });
+    const sa = slots.filter((x) => x !== null).length;
+    if (out.run >= 9) flag(2, `เลือกช่องเดิมติดกัน ${out.run} ข้อ`);
+    else if (out.run >= 7) flag(1, `เลือกช่องเดิมติดกัน ${out.run} ข้อ`);
+    if (sa >= 16 && Math.max(...share) / sa >= 0.55) flag(1, `เลือกช่อง ${"ABCD"[share.indexOf(Math.max(...share))]} ${Math.round((Math.max(...share) / sa) * 100)}% ของข้อที่ตอบ`);
+  }
+  const vsecs = decodeSecs(r.vts, PRE_VOCAB.length);
+  if (vsecs && typeof r.v === "string") {
+    const vp = decodePicks(r.v, PRE_VOCAB.length);
+    const va = vp.filter((x) => x !== null).length;
+    const vr = vp.filter((x, i) => x !== null && vsecs[i] < 2).length;
+    if (va >= 8 && vr / va >= 0.5) flag(1, `คำศัพท์ตอบเร็วเกินอ่านทัน ${vr}/${va} ข้อ`);
+  }
+  out.level = lv >= 2 ? "low" : lv === 1 ? "check" : "ok";
+  return out;
 }
