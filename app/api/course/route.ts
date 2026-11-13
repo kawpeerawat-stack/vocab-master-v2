@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { fromOurSite } from "../../lib/sameOrigin";
+import { buildSchedule } from "../../lib/schedule";
 
 // อ่านไฟล์ด้วย path ตายตัวต่อคอร์ส (ให้ Vercel แนบไฟล์ข้อมูลไปกับ deployment แน่นอน)
 function readCourseFile(id: string): string | null {
@@ -33,6 +34,16 @@ export async function GET(request: NextRequest) {
   }
 
   const id = request.nextUrl.searchParams.get("id") || "";
+  // ตารางเรียนแบบเบา (วันเปิดบท/ชุด) สำหรับระบบเตือนงานค้าง — ไม่มีโจทย์/เฉลย
+  if (id === "schedule") {
+    try {
+      const a = readCourseFile("decoder"), b = readCourseFile("decoder4"), c = readCourseFile("vocab300");
+      if (!a || !b || !c) return NextResponse.json({ error: "Course not found" }, { status: 404 });
+      return NextResponse.json(buildSchedule(JSON.parse(a), JSON.parse(b), JSON.parse(c)));
+    } catch {
+      return NextResponse.json({ error: "Schedule error" }, { status: 500 });
+    }
+  }
   const raw = readCourseFile(id);
   if (!raw) return NextResponse.json({ error: "Course not found" }, { status: 404 });
   return new NextResponse(raw, {

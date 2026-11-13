@@ -14,6 +14,7 @@ import CourseRoom from "./_components/CourseRoom";
 import VocabRoom, { passedSetsLocal } from "./_components/VocabRoom";
 import { CamBox, CamChooser, CamSource, useSharedCamera } from "./_components/CamGuard";
 import { HoursNote } from "./_components/HoursNote";
+import { PendingBanner } from "./_components/PendingBanner";
 import { useSchoolHours } from "./lib/hours";
 import { Q_TIME_MS } from "./lib/guard";
 import { CORE_NAME } from "./lib/vocab300";
@@ -321,6 +322,9 @@ export default function Home() {
                 </p>
               </div>
             )}
+
+            {/* 13 พ.ย.: 📌 งานค้างของฉัน — เตือนบท/ชุดที่เลยวันเรียนของห้องแล้วแต่ยังไม่ผ่าน (เห็นเฉพาะของอีเมลนี้) */}
+            {camOk && email && <PendingBanner email={email} room={profile?.room ?? roomOf(studentName)} onGo={(t) => setSection(t === "v300" ? "VOCAB" : "DECODER")} />}
 
             {!camOk ? null : isM4 ? (
               /* ม.4 (อ31206) คาบเดี่ยว 45 นาที เรียนเฉพาะห้องถอดรหัสคำศัพท์ · ห้องคำศัพท์แกน 120 คำเป็นของ ม.6 (อ33102) */
