@@ -554,7 +554,7 @@ export function PretestRoom({ email, onExit, shared }: { email: string; onExit: 
         </div>
         {!open && !resume ? (
           <p className="rounded-xl bg-amber-50 border-2 border-amber-200 p-3 text-sm font-bold text-amber-900" data-pre-closed>
-            ⏰ เริ่ม Pre-test ได้เฉพาะเวลา 06.00–16.30 น. (ทำในคาบเรียนพร้อมครู)
+            ⏰ เริ่ม Pre-test ได้เฉพาะวันเรียน เวลา 06.00–16.30 น. (ไม่รวมเสาร์-อาทิตย์/วันหยุดราชการ) — ทำในคาบเรียนพร้อมครู
           </p>
         ) : (
           <button type="button" onClick={startMain} data-pre-start className="w-full py-4 rounded-2xl bg-[#003399] text-white text-lg font-black active:scale-[0.99]">

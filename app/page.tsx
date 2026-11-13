@@ -303,7 +303,7 @@ export default function Home() {
             </div>
 
             {/* กล้องก่อนเข้าห้อง */}
-            <HoursNote hours={hours} />
+            <HoursNote hours={hours} booklet={!isM4} />
             {!hours.open ? null : !camOk ? (
               <div className="text-left mb-5 rounded-2xl border-2 border-[#003399]/15 p-4 bg-[#003399]/[0.02]" data-hub-cam="gate">
                 <p className="font-black text-[#003399] mb-1">📷 ขั้นแรก: เปิดกล้องก่อนเข้าห้องเรียน</p>

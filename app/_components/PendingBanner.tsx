@@ -39,7 +39,7 @@ export function PendingBanner({ email, room, onGo }: { email: string; room: stri
   return (
     <div className="mb-4 rounded-2xl border-2 border-orange-300 bg-orange-50 p-4 text-left" data-pending="late" data-pending-count={late.length}>
       <p className="font-black text-orange-900">📌 งานค้างของคุณ {late.length} รายการ</p>
-      <p className="text-xs font-bold text-orange-800 mt-0.5 mb-3">กลับมาทำให้เสร็จ จะได้ไม่ตกหล่น · รอบที่นับคะแนนทำได้ในเวลา 06.00–16.30 น.</p>
+      <p className="text-xs font-bold text-orange-800 mt-0.5 mb-3">กลับมาทำให้เสร็จ จะได้ไม่ตกหล่น · รอบที่นับคะแนนทำได้เฉพาะวันเรียน เวลา 06.00–16.30 น. (ไม่รวมเสาร์-อาทิตย์/วันหยุดราชการ)</p>
       <div className="space-y-3">
         {groupByTrack(late).map((g) => (
           <div key={g.track} className="rounded-xl bg-white/80 border border-orange-200 p-3" data-pending-track={g.track}>
