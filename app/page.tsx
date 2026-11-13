@@ -16,6 +16,8 @@ import { CamBox, CamChooser, CamSource, useSharedCamera } from "./_components/Ca
 import { HoursNote } from "./_components/HoursNote";
 import { PendingBanner } from "./_components/PendingBanner";
 import { BookletRoom } from "./_components/BookletRoom";
+import { PretestRoom } from "./_components/PretestRoom";
+import { loadPreLocal, stageOf } from "./lib/pretest";
 import { PARTS as BOOK_PARTS, passedPartsLocal as bookPassedLocal } from "./lib/booklet";
 import { useSchoolHours } from "./lib/hours";
 import { Q_TIME_MS } from "./lib/guard";
@@ -50,7 +52,7 @@ const CHECK_MSG: Record<Exclude<RosterCheck, "ok" | "unknown">, (f: Form) => str
   notfound: (f) => `ไม่พบเลขที่ ${f.no} ในรายชื่อ ม.${f.room} — ตรวจเลขที่อีกครั้ง`,
 };
 
-type Section = "HUB" | "VOCAB" | "DECODER" | "BOOKLET";
+type Section = "HUB" | "VOCAB" | "DECODER" | "BOOKLET" | "PRETEST";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -111,6 +113,7 @@ export default function Home() {
   // ป้าย “ถึงกำหนดทวน” บนปุ่มคำศัพท์ (อ่านจากข้อมูลในเครื่องทุกครั้งที่กลับมาหน้าเมนู)
   const setsPassed = isLoggedIn && section === "HUB" && email && typeof window !== "undefined" ? passedSetsLocal(email) : 0;
   const bookPassed = isLoggedIn && section === "HUB" && email && typeof window !== "undefined" ? bookPassedLocal(email) : 0;
+  const preStage = isLoggedIn && section === "HUB" && email && typeof window !== "undefined" ? stageOf(loadPreLocal(email)?.rec) : "new";
 
   const unlockSpeech = () => {
     // เบราว์เซอร์มือถือจะเล่นเสียงได้ก็ต่อเมื่อผู้ใช้กดปุ่มจริงก่อน 1 ครั้ง
@@ -342,6 +345,20 @@ export default function Home() {
                   hint="เรียนตามแบบเรียน → ตั๋วออกคาบละ 10 ข้อ ถูก 8 ข้อขึ้นไปผ่าน"
                   onClick={() => setSection("DECODER")}
                 />
+                {/* 13 พ.ย.: 📝 Pre-test ม.4 — วัดพื้นฐานทุกทักษะข้อสอบเข้ามหาวิทยาลัย (ไม่นับคะแนน · ทำครั้งเดียว · ใช้กล้อง) */}
+                <div className="mt-3" data-hub-pretest>
+                  <RoomCard
+                    top="ข้อ"
+                    big="40"
+                    bottom="+ 20 คำ"
+                    icon="📝"
+                    title="Pre-test ม.4"
+                    sub="วัดพื้นฐานภาษาอังกฤษเพื่อการสอบ TGAT · A-Level · NETSAT · 60 นาที"
+                    hint="ไม่นับคะแนนเก็บ · ทำครั้งเดียวในคาบ · ใช้แบ่งกลุ่มเสริมตามจุดอ่อน"
+                    badge={preStage === "done" ? "ทำแล้ว ✓" : preStage === "new" ? undefined : "ทำค้างอยู่"}
+                    onClick={() => setSection("PRETEST")}
+                  />
+                </div>
               </div>
             ) : (
               /* ม.6 คาบคู่ อ33102: เรียงตามลำดับที่เรียนจริง → คาบที่ 1 🧩 · พัก 5 นาที · คาบที่ 2 📚 */
@@ -405,6 +422,8 @@ export default function Home() {
         )}
 
         {isLoggedIn && section === "BOOKLET" && !isM4 && <BookletRoom email={email} onExit={() => setSection("HUB")} />}
+
+        {isLoggedIn && section === "PRETEST" && isM4 && <PretestRoom email={email} onExit={() => setSection("HUB")} shared={shared} />}
 
         {isLoggedIn && section === "VOCAB" && <VocabRoom email={email} name={studentName} onExit={() => setSection("HUB")} shared={shared} />}
 

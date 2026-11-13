@@ -1,0 +1,1239 @@
+{
+ "form": "A",
+ "title": "Pre-test ม.4 · ภาษาอังกฤษเพื่อการสอบ (ฉบับ A)",
+ "minutes": 50,
+ "vocabMinutes": 10,
+ "bands": [
+  {
+   "id": "S",
+   "min": 0,
+   "th": "กลุ่มเสริมเข้ม",
+   "en": "Foundation",
+   "rule": "ต่ำกว่า 30%"
+  },
+  {
+   "id": "M",
+   "min": 12,
+   "th": "กลุ่มเสริม",
+   "en": "Developing",
+   "rule": "30–50%"
+  },
+  {
+   "id": "H",
+   "min": 21,
+   "th": "กลุ่มต่อยอด",
+   "en": "Advanced",
+   "rule": "สูงกว่า 50%"
+  }
+ ],
+ "areas": {
+  "conv": "บทสนทนา (Speaking)",
+  "gram": "ไวยากรณ์ (Grammar)",
+  "read": "การอ่าน (Reading)"
+ },
+ "skills": {
+  "QR": "Question–Response",
+  "SC": "Short conversation",
+  "LC": "Long conversation",
+  "TC": "Text completion",
+  "ED": "Error detection",
+  "RC": "Reading comprehension",
+  "PO": "Paragraph organization",
+  "IG": "Infographic"
+ },
+ "subs": {
+  "c_func": {
+   "area": "conv",
+   "th": "ตอบรับ–ปฏิเสธคำเสนอ/คำขอ/คำเชิญ",
+   "en": "Offers, requests, permission & invitations",
+   "tip": "ฝึกคู่ถาม–ตอบมาตรฐาน: Would you like…? / Do you mind if…? (ตอบ Not at all = ได้) / Why don't we…? / Are you coming…? เน้นว่า Yes/No ต้องตรงกับความหมาย"
+  },
+  "c_idiom": {
+   "area": "conv",
+   "th": "สำนวนพูดที่ความหมายไม่ตรงตัว",
+   "en": "Idiomatic responses",
+   "tip": "สอนสำนวนบทสนทนาที่ออกสอบบ่อยทีละ 5 สำนวน/สัปดาห์ (Tell me about it, Count me in, I wouldn't miss it…) ให้แปลตามสถานการณ์ ไม่แปลตรงตัว"
+  },
+  "c_situ": {
+   "area": "conv",
+   "th": "บทสนทนาตามสถานการณ์ (ซื้อของ ถามทาง สุขภาพ ร้องเรียน)",
+   "en": "Situational dialogues",
+   "tip": "ใช้บทสนทนาสั้น 4 บรรทัดตามสถานการณ์ แล้วให้หาคำใบ้จากบรรทัดก่อน/หลังช่องว่าง (เช่น ตอบ Medium = ถามไซซ์)"
+  },
+  "c_flow": {
+   "area": "conv",
+   "th": "ตามเรื่องในบทสนทนายาว (ใช้บรรทัดถัดไปเป็นใบ้)",
+   "en": "Following a longer dialogue",
+   "tip": "ฝึกกลยุทธ์ 'อ่านบรรทัดหลังช่องว่างก่อน' และตัดตัวเลือกที่ขัดกับเนื้อเรื่อง (เช่น ตอบว่ายุ่งแต่บอกว่าจะไป)"
+  },
+  "g_sva": {
+   "area": "gram",
+   "th": "ประธาน–กริยาสอดคล้อง และ much/many",
+   "en": "Subject–verb agreement & quantifiers",
+   "tip": "ทบทวน A and B → กริยาพหูพจน์ / Each of + นามพหูพจน์ → กริยาเอกพจน์ / much + นามนับไม่ได้ (information, advice, homework)"
+  },
+  "g_tense": {
+   "area": "gram",
+   "th": "Tense ในบริบท และ If ประโยคแบบที่ 1",
+   "en": "Tenses in context & first conditional",
+   "tip": "ไม่ต้องสอน Tense ใหม่ ให้ฝึกเลือก Tense จากคำบอกเวลาในบริบท (already/when/by the time) และ If + ปัจจุบัน, will…"
+  },
+  "g_passive": {
+   "area": "gram",
+   "th": "Passive voice",
+   "en": "Passive voice",
+   "tip": "สอนหลัก 'ประธานทำเองหรือถูกกระทำ' + รูป be + V3 ในทุก Tense (has been found, was opened) และกริยาที่ไม่ทำ passive (want, happen)"
+  },
+  "g_verbform": {
+   "area": "gram",
+   "th": "Gerund / Infinitive และโครงสร้างคู่ขนาน",
+   "en": "Gerund/infinitive & parallel structure",
+   "tip": "ให้จำกริยาที่ตามด้วย V-ing (enjoy, finish, mind, avoid) กับ to V (want, decide, hope) และหลักคู่ขนาน A, B, and C ต้องรูปเดียวกัน"
+  },
+  "g_relative": {
+   "area": "gram",
+   "th": "Relative clause (who/which/where/whom)",
+   "en": "Relative clauses",
+   "tip": "ฝึกเลือก who/which ตามคำนามข้างหน้า และ whom ใช้เฉพาะตำแหน่งกรรม (ถ้าตามด้วยกริยา ต้องเป็น who)"
+  },
+  "g_link": {
+   "area": "gram",
+   "th": "คำเชื่อม และการเปรียบเทียบ",
+   "en": "Connectors & comparison",
+   "tip": "แยก Although + ประโยค / Despite + คำนาม / because–so–therefore และ much/far + ขั้นกว่า (ห้าม more bigger, very bigger)"
+  },
+  "g_wordform": {
+   "area": "gram",
+   "th": "ชนิดของคำ (word form) จากปัจจัย",
+   "en": "Word form",
+   "tip": "เชื่อมกับ 🧩 Root Words Decoder: ดูตำแหน่งในประโยคแล้วเลือกปัจจัย (-ful/-ial/-ive = adj, -ly = adv, -tion/-ment = n)"
+  },
+  "r_sign": {
+   "area": "read",
+   "th": "ป้ายประกาศ และข้อความสั้น",
+   "en": "Signs & notices",
+   "tip": "ฝึกอ่านป้ายจริง (STAFF ONLY, closed for cleaning, free of charge) แล้วถอดความเป็นประโยคธรรมดา"
+  },
+  "r_main": {
+   "area": "read",
+   "th": "ใจความสำคัญ และรายละเอียด",
+   "en": "Main idea & detail",
+   "tip": "ฝึกถามตัวเองหลังอ่านแต่ละย่อหน้า 'ย่อหน้านี้พูดเรื่องอะไร' และ scan หาตัวเลข/คำสำคัญจากคำถาม"
+  },
+  "r_infer": {
+   "area": "read",
+   "th": "อนุมาน และความเห็นของผู้เขียน",
+   "en": "Inference & writer's view",
+   "tip": "ฝึกคำถาม 'ข้อความไม่ได้บอกตรง ๆ แต่สรุปได้ว่า…' และตัดตัวเลือกที่เกินจากข้อความ"
+  },
+  "r_word": {
+   "area": "read",
+   "th": "ความหมายคำจากบริบท และคำอ้างอิง (it/they)",
+   "en": "Vocabulary in context & reference",
+   "tip": "ฝึกเดาความหมายจากประโยครอบข้าง (ใช้ 🧩 ช่วยถอดรากศัพท์) และย้อนหาคำนามที่ it/they แทน"
+  },
+  "r_org": {
+   "area": "read",
+   "th": "เรียงประโยคเป็นย่อหน้า",
+   "en": "Paragraph organization",
+   "tip": "หาประโยคเปิด (ไม่มีคำเชื่อม/คำแทน) แล้วตามคำเชื่อม First–Then–After that–Finally, However, For this reason"
+  },
+  "r_data": {
+   "area": "read",
+   "th": "อ่านตาราง/แผนภูมิ และคำนวณจากข้อมูล",
+   "en": "Charts, tables & data",
+   "tip": "ฝึกอ่านหัวตารางและหน่วยก่อน แล้วคิดเปอร์เซ็นต์ง่าย ๆ (35% ของ 400) และคำเปรียบเทียบ more/fewer/the same"
+  }
+ },
+ "tiers": {
+  "1": {
+   "th": "คำพื้นฐานใช้บ่อย (2,000 คำแรก)",
+   "en": "High-frequency"
+  },
+  "2": {
+   "th": "คำขั้นกลาง + คำปรากฏร่วม (2,001–3,000)",
+   "en": "Mid-frequency & collocations"
+  },
+  "3": {
+   "th": "คำวิชาการ AWL",
+   "en": "Academic (AWL)"
+  },
+  "4": {
+   "th": "สำนวนบทสนทนา",
+   "en": "Conversation expressions"
+  }
+ },
+ "ctx": {
+  "lc1": {
+   "kind": "dialogue",
+   "title": "A clean-up day at Lam Pao Dam",
+   "lines": [
+    [
+     "Nok",
+     "Hi, Ben. Are you free this Saturday? Our class is organizing a clean-up day at Lam Pao Dam."
+    ],
+    [
+     "Ben",
+     "(11) ______ What time does it start?"
+    ],
+    [
+     "Nok",
+     "At 7 a.m. We'll meet in front of the school, and the school bus will take us there."
+    ],
+    [
+     "Ben",
+     "That's early! (12) ______"
+    ],
+    [
+     "Nok",
+     "Just a hat, a water bottle and a pair of gloves. We'll provide the rubbish bags."
+    ],
+    [
+     "Ben",
+     "OK. By the way, can I bring my younger brother? He's in Grade 9."
+    ],
+    [
+     "Nok",
+     "(13) ______ The more people we have, the faster we'll finish."
+    ],
+    [
+     "Ben",
+     "Great. What happens after we finish?"
+    ],
+    [
+     "Nok",
+     "The village head has invited everyone to lunch, and we'll be back at school by 2 p.m."
+    ],
+    [
+     "Ben",
+     "(14) ______ See you on Saturday, then."
+    ]
+   ]
+  },
+  "tc1": {
+   "kind": "text",
+   "title": "Kalasin's Dinosaur Museum",
+   "paras": [
+    "Kalasin is home to one of the most important dinosaur sites in Thailand. Many years ago, a monk at a temple on Phu Kum Khao noticed some strange rocks on the hill. Scientists later discovered that they were dinosaur bones, and hundreds of bones (15) ______ at the site since then.",
+    "The Sirindhorn Museum, (16) ______ was built near the site, shows visitors how dinosaurs lived. Each of its exhibition rooms (17) ______ a different period of Earth's history, and the building is (18) ______ than many visitors expect. Visitors can also enjoy (19) ______ scientists at work in the laboratory.",
+    "(20) ______ the museum is far from the city, it attracts thousands of visitors every year. The discovery has been very (21) ______ for the local economy. If you (22) ______ Kalasin, don't miss this amazing place."
+   ]
+  },
+  "rc_sign": {
+   "kind": "sign",
+   "lines": [
+    "STAFF ONLY",
+    "No entry beyond this point without permission"
+   ]
+  },
+  "rc_pool": {
+   "kind": "notice",
+   "title": "SWIMMING POOL NOTICE",
+   "lines": [
+    "The pool will be closed for cleaning from 1 to 3 December.",
+    "Members may use the fitness room free of charge during this period."
+   ]
+  },
+  "rc_msg": {
+   "kind": "message",
+   "title": "Message from Fah",
+   "lines": [
+    "Hi Aom, the 3:30 bus to Khon Kaen is fully booked. I've got us seats on the next one, so we'll get there an hour later than planned. Can you let your aunt know? – Fah"
+   ]
+  },
+  "rc_art": {
+   "kind": "text",
+   "title": "Why Teenagers Need More Sleep",
+   "paras": [
+    "Many teenagers find it hard to fall asleep before midnight and then struggle to wake up for school. Parents often think their children are simply lazy, but scientists say the real reason is biological. During the teenage years, the body releases melatonin, the hormone that makes us feel sleepy, about two hours later than it does in children or adults. As a result, a sixteen-year-old's 'body clock' naturally tells them to go to bed later.",
+    "The problem is that most schools start early in the morning. Experts recommend that teenagers get eight to ten hours of sleep a night, yet surveys in many countries show that most get fewer than seven. Lack of sleep does more than make students tired. It affects their memory, their mood and even their safety on the road.",
+    "Mobile phones make the situation worse. The blue light from screens tells the brain that it is still daytime, which delays sleep even further. Some schools in the United States have moved their start time to 8:30 a.m. or later, and they have reported better attendance and higher grades.",
+    "So, what can teenagers do? Doctors suggest putting phones away at least an hour before bed and keeping the same sleep schedule, even at weekends."
+   ]
+  },
+  "po1": {
+   "kind": "list",
+   "title": "How to make Thai iced tea",
+   "lines": [
+    "a) First, boil water and add the tea leaves.",
+    "b) Finally, pour the tea over ice and add milk.",
+    "c) Then, let it brew for about five minutes.",
+    "d) After that, strain the tea and stir in some sugar."
+   ]
+  },
+  "po2": {
+   "kind": "list",
+   "title": "Plastic waste",
+   "lines": [
+    "a) However, only a small part of it is actually recycled.",
+    "b) Every year, the world produces millions of tons of plastic.",
+    "c) The rest ends up in landfills or in the ocean, where it harms sea animals.",
+    "d) For this reason, many countries are now banning single-use plastic bags."
+   ]
+  },
+  "ig1": {
+   "kind": "table",
+   "title": "How Grade 10 students get to school (survey of 400 students)",
+   "head": [
+    "Way of travelling",
+    "Students (%)"
+   ],
+   "rows": [
+    [
+     "Motorbike",
+     "35%"
+    ],
+    [
+     "School bus",
+     "25%"
+    ],
+    [
+     "Bicycle",
+     "15%"
+    ],
+    [
+     "Car",
+     "15%"
+    ],
+    [
+     "On foot",
+     "10%"
+    ]
+   ]
+  }
+ },
+ "items": [
+  {
+   "n": 1,
+   "id": "p01",
+   "sk": "QR",
+   "sub": "c_func",
+   "lv": "A2",
+   "q": "“Would you like some more rice?”",
+   "o": [
+    "Yes, I'd love to go.",
+    "No, thanks. I've had enough.",
+    "I'm sorry, I can't cook.",
+    "It's on the table."
+   ],
+   "a": 1,
+   "why": "ปฏิเสธคำเสนออาหารอย่างสุภาพ · ตัวลวง 'I'd love to go' ใช้ตอบคำชวนไปที่ไหนสักแห่ง"
+  },
+  {
+   "n": 2,
+   "id": "p02",
+   "sk": "QR",
+   "sub": "c_func",
+   "lv": "B1",
+   "q": "“Do you mind if I open the window?”",
+   "o": [
+    "Yes, please open it.",
+    "No, I don't open it.",
+    "Not at all. Go ahead.",
+    "I'm fine, thank you."
+   ],
+   "a": 2,
+   "why": "Do you mind…? = 'คุณรังเกียจไหม' ตอบ Not at all = ไม่รังเกียจ (อนุญาต) · กับดัก: Yes = รังเกียจ แต่ดันบอกให้เปิด"
+  },
+  {
+   "n": 3,
+   "id": "p03",
+   "sk": "QR",
+   "sub": "c_func",
+   "lv": "A2",
+   "q": "“Why don't we take a taxi? It's going to rain.”",
+   "o": [
+    "Because the taxi is yellow.",
+    "Good idea. I'll call one now.",
+    "We didn't take it.",
+    "It rained a lot last year."
+   ],
+   "a": 1,
+   "why": "Why don't we…? เป็นคำชวน ไม่ใช่คำถามหาเหตุผล · กับดัก: ตอบด้วย Because"
+  },
+  {
+   "n": 4,
+   "id": "p04",
+   "sk": "QR",
+   "sub": "c_idiom",
+   "lv": "EX",
+   "q": "“I can't believe how expensive the concert tickets are this year.”",
+   "o": [
+    "I believe you can buy them tomorrow.",
+    "Yes, they're very cheap, aren't they?",
+    "The concert starts at seven.",
+    "Tell me about it. I paid almost twice as much as last time."
+   ],
+   "a": 3,
+   "why": "Tell me about it = 'ใช่เลย เห็นด้วย' (ไม่ได้แปลว่า เล่าให้ฟังหน่อย) · ตัวลวงใช้คำซ้ำ believe / ตรงข้าม cheap"
+  },
+  {
+   "n": 5,
+   "id": "p05",
+   "sk": "QR",
+   "sub": "c_func",
+   "lv": "EX",
+   "q": "“Are you coming to Mina's farewell party on Friday?”",
+   "o": [
+    "I wouldn't miss it for the world.",
+    "She is leaving for Japan next month.",
+    "Yes, I came last Friday.",
+    "I'd rather not to go."
+   ],
+   "a": 0,
+   "why": "I wouldn't miss it for the world = ไปแน่นอน · ตัวลวง: พูดเรื่องเดียวกันแต่ไม่ตอบคำถาม / Tense ผิด / would rather + V1 (ไม่มี to)"
+  },
+  {
+   "n": 6,
+   "id": "p06",
+   "sk": "SC",
+   "sub": "c_situ",
+   "lv": "A2",
+   "q": "A: Excuse me, how much is this T-shirt?\nB: It's 250 baht. ______\nA: Medium, please.",
+   "o": [
+    "What colour is it?",
+    "What size do you need?",
+    "How many do you want?",
+    "Can I help you?"
+   ],
+   "a": 1,
+   "why": "คำใบ้อยู่บรรทัดถัดไป 'Medium' = ไซซ์"
+  },
+  {
+   "n": 7,
+   "id": "p07",
+   "sk": "SC",
+   "sub": "c_situ",
+   "lv": "A2",
+   "q": "A: Excuse me. Is there a post office near here?\nB: ______ Go straight, and it's next to the bank.",
+   "o": [
+    "Yes, there's one on this street.",
+    "No, I'm not from here.",
+    "Yes, I posted a letter.",
+    "It closes at five."
+   ],
+   "a": 0,
+   "why": "B ให้ทางต่อ จึงต้องตอบว่ามี · 'I'm not from here' ขัดกับการบอกทาง"
+  },
+  {
+   "n": 8,
+   "id": "p08",
+   "sk": "SC",
+   "sub": "c_situ",
+   "lv": "B1",
+   "q": "A: You look pale. What's wrong?\nB: I've had a terrible headache since this morning.\nA: ______",
+   "o": [
+    "That's great news!",
+    "I had a headache last week.",
+    "You'd better take some medicine and lie down.",
+    "You should go to the party tonight."
+   ],
+   "a": 2,
+   "why": "ให้คำแนะนำเมื่อเพื่อนป่วย (had better + V1)"
+  },
+  {
+   "n": 9,
+   "id": "p09",
+   "sk": "SC",
+   "sub": "c_flow",
+   "lv": "B1",
+   "q": "A: Have you finished the science project yet?\nB: ______ I'm still waiting for Ploy to send me her part.",
+   "o": [
+    "Yes, I finished it last night.",
+    "Already. It was easy.",
+    "I've never done a project.",
+    "Not yet."
+   ],
+   "a": 3,
+   "why": "'still waiting' บอกว่ายังไม่เสร็จ → Not yet"
+  },
+  {
+   "n": 10,
+   "id": "p10",
+   "sk": "SC",
+   "sub": "c_situ",
+   "lv": "EX",
+   "q": "A: I'm afraid there's a problem with my order. I asked for a large pizza, but this is a medium.\nB: ______ I'll change it for you right away.",
+   "o": [
+    "Enjoy your meal.",
+    "I do apologize for the mistake.",
+    "That's not my problem.",
+    "Would you like to order something else?"
+   ],
+   "a": 1,
+   "why": "พนักงานรับผิดและขอโทษก่อนเปลี่ยนให้ · ตัวลวง 'order something else' ดูเกี่ยวข้องแต่ไม่ตอบปัญหา"
+  },
+  {
+   "n": 11,
+   "id": "p11",
+   "sk": "LC",
+   "sub": "c_idiom",
+   "lv": "A2",
+   "q": "Choose the best answer for (11).",
+   "o": [
+    "Sorry, I've already been there.",
+    "I'm busy, so I'll join you.",
+    "Sounds great! Count me in.",
+    "No, I don't like this Saturday."
+   ],
+   "a": 2,
+   "why": "Count me in = นับฉันด้วย (ไปด้วย) · และถามเวลาเริ่มต่อ แปลว่าจะไป",
+   "ctx": "lc1"
+  },
+  {
+   "n": 12,
+   "id": "p12",
+   "sk": "LC",
+   "sub": "c_flow",
+   "lv": "B1",
+   "q": "Choose the best answer for (12).",
+   "o": [
+    "How long have you lived there?",
+    "Do I need to bring anything?",
+    "Did you take the bus yesterday?",
+    "Where is the school?"
+   ],
+   "a": 1,
+   "why": "Nok ตอบรายการของที่ต้องเอาไป จึงต้องเป็นคำถามเรื่องของที่ต้องเตรียม",
+   "ctx": "lc1"
+  },
+  {
+   "n": 13,
+   "id": "p13",
+   "sk": "LC",
+   "sub": "c_func",
+   "lv": "B1",
+   "q": "Choose the best answer for (13).",
+   "o": [
+    "I'm afraid not. It's only for adults.",
+    "He doesn't have to study.",
+    "No problem, but he can't come.",
+    "Of course. He's more than welcome."
+   ],
+   "a": 3,
+   "why": "ประโยคหลัง 'คนยิ่งมากยิ่งเสร็จเร็ว' แสดงว่ายินดีให้มา · ตัวลวงขัดกับเนื้อเรื่อง",
+   "ctx": "lc1"
+  },
+  {
+   "n": 14,
+   "id": "p14",
+   "sk": "LC",
+   "sub": "c_flow",
+   "lv": "EX",
+   "q": "Choose the best answer for (14).",
+   "o": [
+    "That's too late. My class starts at one.",
+    "That works for me. I have a tutorial class at four.",
+    "I'm afraid I can't make it.",
+    "What a pity! I'll miss lunch."
+   ],
+   "a": 1,
+   "why": "กลับถึง 14.00 น. และ Ben บอก 'See you on Saturday' จึงต้องสะดวก · ต้องเทียบเวลา 2 p.m. กับ four",
+   "ctx": "lc1"
+  },
+  {
+   "n": 15,
+   "id": "p15",
+   "sk": "TC",
+   "sub": "g_passive",
+   "lv": "B1",
+   "q": "Choose the best answer for (15).",
+   "o": [
+    "have found",
+    "have been found",
+    "were finding",
+    "are finding"
+   ],
+   "a": 1,
+   "why": "กระดูก 'ถูกค้นพบ' → passive + since then → Present perfect: have been found",
+   "ctx": "tc1"
+  },
+  {
+   "n": 16,
+   "id": "p16",
+   "sk": "TC",
+   "sub": "g_relative",
+   "lv": "B1",
+   "q": "Choose the best answer for (16).",
+   "o": [
+    "who",
+    "where",
+    "which",
+    "what"
+   ],
+   "a": 2,
+   "why": "แทนสิ่งของ (museum) ที่เป็นประธานของ was built → which · where ต้องตามด้วยประโยคที่มีประธาน",
+   "ctx": "tc1"
+  },
+  {
+   "n": 17,
+   "id": "p17",
+   "sk": "TC",
+   "sub": "g_sva",
+   "lv": "EX",
+   "q": "Choose the best answer for (17).",
+   "o": [
+    "present",
+    "are presenting",
+    "presents",
+    "have presented"
+   ],
+   "a": 2,
+   "why": "Each of + นามพหูพจน์ → กริยาเอกพจน์ (presents)",
+   "ctx": "tc1"
+  },
+  {
+   "n": 18,
+   "id": "p18",
+   "sk": "TC",
+   "sub": "g_link",
+   "lv": "A2",
+   "q": "Choose the best answer for (18).",
+   "o": [
+    "more big",
+    "much bigger",
+    "the biggest",
+    "very bigger"
+   ],
+   "a": 1,
+   "why": "มี than → ขั้นกว่า · ขยายขั้นกว่าด้วย much ไม่ใช่ very",
+   "ctx": "tc1"
+  },
+  {
+   "n": 19,
+   "id": "p19",
+   "sk": "TC",
+   "sub": "g_verbform",
+   "lv": "B1",
+   "q": "Choose the best answer for (19).",
+   "o": [
+    "watch",
+    "to watch",
+    "watching",
+    "watched"
+   ],
+   "a": 2,
+   "why": "enjoy + V-ing",
+   "ctx": "tc1"
+  },
+  {
+   "n": 20,
+   "id": "p20",
+   "sk": "TC",
+   "sub": "g_link",
+   "lv": "EX",
+   "q": "Choose the best answer for (20).",
+   "o": [
+    "Despite",
+    "Although",
+    "Because",
+    "Therefore"
+   ],
+   "a": 1,
+   "why": "ใจความขัดแย้ง (ไกลแต่คนมาเยอะ) + ตามด้วยประโยค → Although · Despite ต้องตามด้วยคำนาม",
+   "ctx": "tc1"
+  },
+  {
+   "n": 21,
+   "id": "p21",
+   "sk": "TC",
+   "sub": "g_wordform",
+   "lv": "B1",
+   "q": "Choose the best answer for (21).",
+   "o": [
+    "benefit",
+    "beneficial",
+    "beneficially",
+    "benefited"
+   ],
+   "a": 1,
+   "why": "หลัง very และ be ต้องเป็นคุณศัพท์ → beneficial (-ial = adj)",
+   "ctx": "tc1"
+  },
+  {
+   "n": 22,
+   "id": "p22",
+   "sk": "TC",
+   "sub": "g_tense",
+   "lv": "A2",
+   "q": "Choose the best answer for (22).",
+   "o": [
+    "visit",
+    "will visit",
+    "visited",
+    "would visit"
+   ],
+   "a": 0,
+   "why": "If ประโยคแบบที่ 1: If + Present simple (ไม่ใช้ will หลัง If)",
+   "ctx": "tc1"
+  },
+  {
+   "n": 23,
+   "id": "p23",
+   "sk": "ED",
+   "sub": "g_sva",
+   "lv": "A2",
+   "q": "My sister and her best friend {0} {1} {2} {3}.",
+   "o": [
+    "goes",
+    "to the market",
+    "every Sunday",
+    "morning"
+   ],
+   "a": 0,
+   "why": "ประธาน 2 คน (A and B) → go",
+   "fixed": true
+  },
+  {
+   "n": 24,
+   "id": "p24",
+   "sk": "ED",
+   "sub": "g_tense",
+   "lv": "B1",
+   "q": "When I {0} at the station, the train {1}, so I {2} {3}.",
+   "o": [
+    "arrived",
+    "already left",
+    "had to wait",
+    "for the next one"
+   ],
+   "a": 1,
+   "why": "รถไฟออกไปก่อนฉันถึง → Past perfect: had already left",
+   "fixed": true
+  },
+  {
+   "n": 25,
+   "id": "p25",
+   "sk": "ED",
+   "sub": "g_sva",
+   "lv": "B1",
+   "q": "There {0} {1} about the new rules {2}, so students are {3}.",
+   "o": [
+    "isn't",
+    "many information",
+    "on the school website",
+    "confused"
+   ],
+   "a": 1,
+   "why": "information นับไม่ได้ → much information",
+   "fixed": true
+  },
+  {
+   "n": 26,
+   "id": "p26",
+   "sk": "ED",
+   "sub": "g_relative",
+   "lv": "EX",
+   "q": "The teacher {0} helped me with my project {1} at this school {2} and is loved by {3}.",
+   "o": [
+    "whom",
+    "has been working",
+    "for over twenty years",
+    "everyone"
+   ],
+   "a": 0,
+   "why": "ตำแหน่งประธานของ helped → who (whom ใช้ตำแหน่งกรรม)",
+   "fixed": true
+  },
+  {
+   "n": 27,
+   "id": "p27",
+   "sk": "ED",
+   "sub": "g_verbform",
+   "lv": "EX",
+   "q": "She enjoys {0} novels, {1} music, and {2} {3}.",
+   "o": [
+    "reading",
+    "to listen to",
+    "going for long walks",
+    "in the evening"
+   ],
+   "a": 1,
+   "why": "enjoy + V-ing และต้องขนานกับ reading, going → listening to",
+   "fixed": true
+  },
+  {
+   "n": 28,
+   "id": "p28",
+   "sk": "ED",
+   "sub": "g_passive",
+   "lv": "EX",
+   "q": "The new library, which {0} last month, {1} by many students who {2} {3} quietly.",
+   "o": [
+    "was opened",
+    "is used",
+    "are wanted",
+    "to study"
+   ],
+   "a": 2,
+   "why": "นักเรียนเป็นผู้ต้องการเอง → want (active) · ส่วน was opened / is used เป็น passive ที่ถูก",
+   "fixed": true
+  },
+  {
+   "n": 29,
+   "id": "p29",
+   "sk": "RC",
+   "sub": "r_sign",
+   "lv": "A2",
+   "q": "What does this sign mean?",
+   "o": [
+    "Customers may not go past this point unless they are allowed to.",
+    "Staff are not allowed to enter this area.",
+    "Everyone can enter this area at any time.",
+    "You must show your ticket to the staff here."
+   ],
+   "a": 0,
+   "why": "STAFF ONLY = เฉพาะเจ้าหน้าที่ คนอื่นเข้าได้เมื่อได้รับอนุญาต",
+   "ctx": "rc_sign"
+  },
+  {
+   "n": 30,
+   "id": "p30",
+   "sk": "RC",
+   "sub": "r_sign",
+   "lv": "B1",
+   "q": "Which statement is true?",
+   "o": [
+    "The pool is cleaned every month.",
+    "Members must pay to use the pool in December.",
+    "Members can use the fitness room without paying while the pool is closed.",
+    "The fitness room is closed from 1 to 3 December."
+   ],
+   "a": 2,
+   "why": "free of charge = ไม่เสียเงิน · during this period = ช่วงที่สระปิด",
+   "ctx": "rc_pool"
+  },
+  {
+   "n": 31,
+   "id": "p31",
+   "sk": "RC",
+   "sub": "r_infer",
+   "lv": "EX",
+   "q": "What can we infer from the message?",
+   "o": [
+    "Fah forgot to book the bus tickets.",
+    "They have decided to travel by car.",
+    "The 3:30 bus has been cancelled.",
+    "Aom's aunt is probably expecting them at a certain time."
+   ],
+   "a": 3,
+   "why": "ขอให้บอกป้าเพราะถึงช้ากว่าที่นัด → ป้ารออยู่ · fully booked = ที่นั่งเต็ม ไม่ใช่ยกเลิก",
+   "ctx": "rc_msg"
+  },
+  {
+   "n": 32,
+   "id": "p32",
+   "sk": "RC",
+   "sub": "r_main",
+   "lv": "B1",
+   "q": "What is the passage mainly about?",
+   "o": [
+    "How to choose a good mobile phone",
+    "Why teenagers often sleep late and why it matters",
+    "Why schools in the United States have higher grades",
+    "How the body produces melatonin"
+   ],
+   "a": 1,
+   "why": "ทั้งเรื่องพูดถึงสาเหตุที่วัยรุ่นนอนดึกและผลกระทบ · ตัวลวงเป็นรายละเอียดย่อย",
+   "ctx": "rc_art"
+  },
+  {
+   "n": 33,
+   "id": "p33",
+   "sk": "RC",
+   "sub": "r_main",
+   "lv": "A2",
+   "q": "According to the passage, how much sleep do experts recommend for teenagers?",
+   "o": [
+    "fewer than seven hours",
+    "about two hours more than adults",
+    "eight to ten hours a night",
+    "at least twelve hours"
+   ],
+   "a": 2,
+   "why": "ย่อหน้า 2: eight to ten hours · 'fewer than seven' คือที่ส่วนใหญ่ได้จริง",
+   "ctx": "rc_art"
+  },
+  {
+   "n": 34,
+   "id": "p34",
+   "sk": "RC",
+   "sub": "r_word",
+   "lv": "B1",
+   "q": "The word “releases” in paragraph 1 is closest in meaning to ______.",
+   "o": [
+    "stops",
+    "stores",
+    "produces and lets out",
+    "destroys"
+   ],
+   "a": 2,
+   "why": "ร่างกาย 'หลั่ง' ฮอร์โมนออกมา",
+   "ctx": "rc_art"
+  },
+  {
+   "n": 35,
+   "id": "p35",
+   "sk": "RC",
+   "sub": "r_word",
+   "lv": "B1",
+   "q": "In paragraph 3, the word “they” in “they have reported better attendance” refers to ______.",
+   "o": [
+    "teenagers",
+    "mobile phones",
+    "doctors",
+    "some schools in the United States"
+   ],
+   "a": 3,
+   "why": "ย้อนหาคำนามพหูพจน์ที่ทำกริยา moved / reported → โรงเรียน",
+   "ctx": "rc_art"
+  },
+  {
+   "n": 36,
+   "id": "p36",
+   "sk": "RC",
+   "sub": "r_infer",
+   "lv": "EX",
+   "q": "Which statement would the writer most likely agree with?",
+   "o": [
+    "Teenagers who sleep late are usually lazy.",
+    "Starting school later could help students learn better.",
+    "Mobile phones help teenagers fall asleep.",
+    "Adults need more sleep than teenagers."
+   ],
+   "a": 1,
+   "why": "ผู้เขียนยกตัวอย่างโรงเรียนที่เลื่อนเวลาแล้วเกรดดีขึ้น · 'lazy' คือความเชื่อของพ่อแม่ที่ผู้เขียนแย้ง",
+   "ctx": "rc_art"
+  },
+  {
+   "n": 37,
+   "id": "p37",
+   "sk": "PO",
+   "sub": "r_org",
+   "lv": "A2",
+   "q": "Choose the best order of sentences a–d.",
+   "o": [
+    "a – c – d – b",
+    "a – d – c – b",
+    "c – a – d – b",
+    "a – c – b – d"
+   ],
+   "a": 0,
+   "why": "ตามคำบอกลำดับ First → Then → After that → Finally",
+   "ctx": "po1"
+  },
+  {
+   "n": 38,
+   "id": "p38",
+   "sk": "PO",
+   "sub": "r_org",
+   "lv": "EX",
+   "q": "Choose the best order of sentences a–d.",
+   "o": [
+    "b – c – a – d",
+    "b – a – c – d",
+    "d – b – a – c",
+    "b – a – d – c"
+   ],
+   "a": 1,
+   "why": "b เปิดเรื่อง (ไม่มีคำแทน) → a However…it → c The rest → d For this reason สรุป",
+   "ctx": "po2"
+  },
+  {
+   "n": 39,
+   "id": "p39",
+   "sk": "IG",
+   "sub": "r_data",
+   "lv": "B1",
+   "q": "Which statement is true according to the table?",
+   "o": [
+    "Half of the students come by school bus.",
+    "More students cycle to school than walk.",
+    "The same number of students walk and come by car.",
+    "Fewer students come by car than by bicycle."
+   ],
+   "a": 1,
+   "why": "Bicycle 15% > On foot 10% · Car = Bicycle (15%) จึงไม่ใช่ fewer",
+   "ctx": "ig1"
+  },
+  {
+   "n": 40,
+   "id": "p40",
+   "sk": "IG",
+   "sub": "r_data",
+   "lv": "EX",
+   "q": "About how many students come to school by motorbike?",
+   "o": [
+    "35",
+    "100",
+    "140",
+    "175"
+   ],
+   "a": 2,
+   "why": "35% ของ 400 = 140 · ตัวลวง 35 คือเปอร์เซ็นต์ ไม่ใช่จำนวนคน",
+   "ctx": "ig1"
+  }
+ ],
+ "vocab": [
+  {
+   "n": 1,
+   "id": "v01",
+   "t": 1,
+   "q": "We need to **borrow** some chairs from the next room.",
+   "o": [
+    "ยืม",
+    "ให้ยืม",
+    "ซื้อ",
+    "ย้าย"
+   ],
+   "a": 0
+  },
+  {
+   "n": 2,
+   "id": "v02",
+   "t": 1,
+   "q": "I can't **decide** which shirt to buy.",
+   "o": [
+    "อธิบาย",
+    "ตัดสินใจ",
+    "แบ่ง",
+    "ค้นหา"
+   ],
+   "a": 1
+  },
+  {
+   "n": 3,
+   "id": "v03",
+   "t": 1,
+   "q": "Could you **explain** the rules again, please?",
+   "o": [
+    "ทบทวน",
+    "ยกเว้น",
+    "อธิบาย",
+    "ขยาย"
+   ],
+   "a": 2
+  },
+  {
+   "n": 4,
+   "id": "v04",
+   "t": 1,
+   "q": "This bag is **cheap**, but it looks nice.",
+   "o": [
+    "ราคาแพง",
+    "น่าเบื่อ",
+    "ชำรุด",
+    "ราคาถูก"
+   ],
+   "a": 3
+  },
+  {
+   "n": 5,
+   "id": "v05",
+   "t": 1,
+   "q": "My little brother is **afraid** of the dark.",
+   "o": [
+    "กลัว",
+    "ภูมิใจ",
+    "เบื่อ",
+    "แปลกใจ"
+   ],
+   "a": 0
+  },
+  {
+   "n": 6,
+   "id": "v06",
+   "t": 2,
+   "q": "Students must **submit** their homework by Friday.",
+   "o": [
+    "ทบทวน",
+    "ส่ง (งาน)",
+    "คัดลอก",
+    "ตรวจ"
+   ],
+   "a": 1
+  },
+  {
+   "n": 7,
+   "id": "v07",
+   "t": 2,
+   "q": "The flood caused serious **damage** to the village.",
+   "o": [
+    "อันตราย",
+    "ภัยแล้ง",
+    "ความเสียหาย",
+    "ความช่วยเหลือ"
+   ],
+   "a": 2
+  },
+  {
+   "n": 8,
+   "id": "v08",
+   "t": 2,
+   "q": "She **made a mistake** in the last question.",
+   "o": [
+    "ทำผิดพลาด",
+    "ตั้งใจทำ",
+    "ทำคะแนนได้ดี",
+    "ทำการบ้าน"
+   ],
+   "a": 0
+  },
+  {
+   "n": 9,
+   "id": "v09",
+   "t": 2,
+   "q": "He **took part in** the English camp last year.",
+   "o": [
+    "จัดตั้ง",
+    "ยกเลิก",
+    "แบ่งส่วน",
+    "เข้าร่วม"
+   ],
+   "a": 3
+  },
+  {
+   "n": 10,
+   "id": "v10",
+   "t": 2,
+   "q": "Our team is **confident** that we will win.",
+   "o": [
+    "กังวล",
+    "มั่นใจ",
+    "ภูมิใจ",
+    "ผิดหวัง"
+   ],
+   "a": 1
+  },
+  {
+   "n": 11,
+   "id": "v11",
+   "t": 3,
+   "q": "The scientists will **analyse** the data next week.",
+   "o": [
+    "รวบรวม",
+    "ทำลาย",
+    "วิเคราะห์",
+    "เผยแพร่"
+   ],
+   "a": 2
+  },
+  {
+   "n": 12,
+   "id": "v12",
+   "t": 3,
+   "q": "There is no **evidence** that this drink improves memory.",
+   "o": [
+    "หลักฐาน",
+    "ประสบการณ์",
+    "ประโยชน์",
+    "คำแนะนำ"
+   ],
+   "a": 0
+  },
+  {
+   "n": 13,
+   "id": "v13",
+   "t": 3,
+   "q": "The museum **requires** visitors to leave their bags at the entrance.",
+   "o": [
+    "อนุญาตให้",
+    "แนะนำให้",
+    "ห้ามไม่ให้",
+    "กำหนดให้ต้อง"
+   ],
+   "a": 3
+  },
+  {
+   "n": 14,
+   "id": "v14",
+   "t": 3,
+   "q": "There was a **significant** change in the students' scores.",
+   "o": [
+    "เล็กน้อย",
+    "มากอย่างเห็นได้ชัด",
+    "ชั่วคราว",
+    "ไม่คาดคิด"
+   ],
+   "a": 1
+  },
+  {
+   "n": 15,
+   "id": "v15",
+   "t": 3,
+   "q": "The company plans to **expand** into other countries.",
+   "o": [
+    "ย้ายออก",
+    "ลดขนาด",
+    "ร่วมมือ",
+    "ขยาย (กิจการ)"
+   ],
+   "a": 3
+  },
+  {
+   "n": 16,
+   "id": "v16",
+   "t": 4,
+   "q": "A: I failed my driving test again.\nB: **Better luck next time!**",
+   "o": [
+    "สมน้ำหน้า",
+    "ขอให้โชคดีครั้งหน้า (ให้กำลังใจ)",
+    "ยินดีด้วย",
+    "ระวังตัวด้วย"
+   ],
+   "a": 1
+  },
+  {
+   "n": 17,
+   "id": "v17",
+   "t": 4,
+   "q": "A: Shall we eat Thai or Japanese food?\nB: **It's up to you.**",
+   "o": [
+    "แล้วแต่คุณ",
+    "ถึงตาคุณแล้ว",
+    "คุณคิดผิด",
+    "ขึ้นไปข้างบน"
+   ],
+   "a": 0
+  },
+  {
+   "n": 18,
+   "id": "v18",
+   "t": 4,
+   "q": "A: Sorry, I forgot to bring your book.\nB: **Never mind.**",
+   "o": [
+    "อย่าลืมนะ",
+    "ไม่เคยคิดเลย",
+    "ไม่เป็นไร",
+    "ระวังนะ"
+   ],
+   "a": 2
+  },
+  {
+   "n": 19,
+   "id": "v19",
+   "t": 4,
+   "q": "A: Where are you? The film starts in ten minutes!\nB: **I'm on my way.**",
+   "o": [
+    "ฉันหลงทาง",
+    "ฉันขวางทางอยู่",
+    "นี่คือทางของฉัน",
+    "กำลังไปแล้ว"
+   ],
+   "a": 3
+  },
+  {
+   "n": 20,
+   "id": "v20",
+   "t": 4,
+   "q": "A: Sorry, I need a minute to find my ID card.\nB: **Take your time.**",
+   "o": [
+    "ไม่ต้องรีบ",
+    "ได้เวลาแล้ว",
+    "รีบหน่อย",
+    "เสียเวลา"
+   ],
+   "a": 0
+  }
+ ]
+}
