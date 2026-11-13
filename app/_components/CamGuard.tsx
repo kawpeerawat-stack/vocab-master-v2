@@ -19,6 +19,8 @@ import { redeemCode } from "../lib/teacherCode";
 import { liftCap, ROUND_CAP } from "../lib/rounds";
 import { serverNow, syncClock } from "../lib/sync";
 import { getCoverMs, refreshCamSettings } from "../lib/camSettings";
+import { describeCamError, shouldRetrySimple } from "../lib/camHelp";
+import { CamHelp } from "./CamHelp";
 
 // เวลาบังหน้าต่อเนื่องก่อนนับ 1 ครั้ง = getCoverMs() (ค่าเริ่มต้น 1.5 วินาที · ครูปรับ 1.0–3.0 ได้ที่หน้า /admin → app/lib/camSettings.ts) — กรองการกะพริบตา/ส่ายหน้า/ปรับท่านั่ง (8 พ.ย. ครูปรับ 0.3→0.5 · 12 พ.ย. ปรับเป็น 1.5 วินาที)
 export const UPPER_CORR_MIN = 0.3; // ความคล้ายของบริเวณตา–หน้าผากกับภาพอ้างอิง (ตอนเทียบหน้า + ภาพที่ปรับตามท่านั่ง) ต่ำกว่านี้ = มีอะไรบัง
@@ -535,12 +537,20 @@ export function useCameraGuard(onCover?: (ms: number, kind: CoverKind) => boolea
     setTips([]);
     st.current = { armed: false, missStart: 0, fired: false, lastSeen: 0, covers: 0, coverMs: 0, gotResult: false, faceOk: true, phoneHits: 0, phoneMiss: PHONE_CLEAR, phones: 0, farHits: 0, farMiss: PHONE_CLEAR, farFired: false, phonesFar: 0, phoneState: "off" };
     if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
-      setErrorDetail("เบราว์เซอร์นี้ไม่รองรับกล้อง — ถ้าเปิดจากในแอป LINE / Facebook ให้กด ⋯ แล้วเลือกเปิดด้วย Safari หรือ Chrome");
-      setStatus("error");
+      setErrorDetail("NoMediaDevices"); // กล่องแก้ปัญหากล้อง (CamHelp) แยกเบราว์เซอร์ในแอป / ไม่ใช่ https / เบราว์เซอร์เก่า
+      setStatus("denied");
       return false;
     }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 320 }, height: { ideal: 240 } }, audio: false });
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 320 }, height: { ideal: 240 } }, audio: false });
+      } catch (e1) {
+        // กล้องเพิ่งถูกใช้แล้วยังไม่คืน / ค่าที่ขอกล้องบางรุ่นไม่รับ → รอสั้น ๆ แล้วลองครั้งเดียวด้วยค่าเรียบง่าย (ไม่ลองซ้ำเมื่อถูกปฏิเสธสิทธิ์ — กันถามนักเรียนซ้ำ)
+        if (!shouldRetrySimple(e1)) throw e1;
+        await new Promise((r) => setTimeout(r, 700));
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      }
       streamRef.current = stream;
       const v = vid();
       if (!v) throw new Error("no video element");
@@ -561,7 +571,7 @@ export function useCameraGuard(onCover?: (ms: number, kind: CoverKind) => boolea
       }
     } catch (e) {
       console.error("camera denied:", e);
-      setErrorDetail(String((e as Error)?.name || e));
+      setErrorDetail(describeCamError(e));
       streamRef.current?.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
       setStatus("denied");
@@ -881,15 +891,7 @@ export function CamChooser({
           )}
           {(st === "denied" || st === "error") && !preApproved && (
             <div className="space-y-2">
-              <p className="bg-rose-50 text-rose-700 font-bold rounded-xl p-3 text-sm">
-                {st === "denied" ? "ไม่ได้รับอนุญาตให้ใช้กล้อง (กดอนุญาตกล้องในเบราว์เซอร์แล้วลองใหม่ได้)" : "เปิดตัวตรวจจับใบหน้าไม่ได้ในเครื่องนี้ (ลองเบราว์เซอร์ Chrome / Safari)"}
-                {cam.errorDetail && <span className="block text-[11px] font-bold text-rose-500 mt-1" data-cam-error="1">สาเหตุ: {cam.errorDetail}</span>}
-              </p>
-              {st === "denied" && required && (
-                <p className="text-xs font-bold text-gray-600 bg-gray-50 rounded-xl p-3 leading-relaxed">
-                  วิธีอนุญาตกล้อง: กดรูปกุญแจ 🔒 / “aA” ข้างช่องที่อยู่เว็บ → กล้อง (Camera) → อนุญาต → แล้วกด “ลองเปิดกล้องอีกครั้ง” · ถ้าเปิดจากในแอป LINE ให้กด ⋯ แล้วเลือกเปิดด้วย Safari / Chrome
-                </p>
-              )}
+              <CamHelp status={st} detail={cam.errorDetail} />
               <button type="button" onClick={() => void cam.start()} className="w-full py-3 bg-white border-2 border-[#003399] text-[#003399] font-black rounded-2xl">ลองเปิดกล้องอีกครั้ง</button>
               {required ? (
                 <div className="rounded-xl border-2 border-gray-200 p-3 space-y-2" data-nocam-code="1">
