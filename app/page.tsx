@@ -15,6 +15,8 @@ import VocabRoom, { passedSetsLocal } from "./_components/VocabRoom";
 import { CamBox, CamChooser, CamSource, useSharedCamera } from "./_components/CamGuard";
 import { HoursNote } from "./_components/HoursNote";
 import { PendingBanner } from "./_components/PendingBanner";
+import { BookletRoom } from "./_components/BookletRoom";
+import { PARTS as BOOK_PARTS, passedPartsLocal as bookPassedLocal } from "./lib/booklet";
 import { useSchoolHours } from "./lib/hours";
 import { Q_TIME_MS } from "./lib/guard";
 import { CORE_NAME } from "./lib/vocab300";
@@ -48,7 +50,7 @@ const CHECK_MSG: Record<Exclude<RosterCheck, "ok" | "unknown">, (f: Form) => str
   notfound: (f) => `ไม่พบเลขที่ ${f.no} ในรายชื่อ ม.${f.room} — ตรวจเลขที่อีกครั้ง`,
 };
 
-type Section = "HUB" | "VOCAB" | "DECODER";
+type Section = "HUB" | "VOCAB" | "DECODER" | "BOOKLET";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -108,6 +110,7 @@ export default function Home() {
 
   // ป้าย “ถึงกำหนดทวน” บนปุ่มคำศัพท์ (อ่านจากข้อมูลในเครื่องทุกครั้งที่กลับมาหน้าเมนู)
   const setsPassed = isLoggedIn && section === "HUB" && email && typeof window !== "undefined" ? passedSetsLocal(email) : 0;
+  const bookPassed = isLoggedIn && section === "HUB" && email && typeof window !== "undefined" ? bookPassedLocal(email) : 0;
 
   const unlockSpeech = () => {
     // เบราว์เซอร์มือถือจะเล่นเสียงได้ก็ต่อเมื่อผู้ใช้กดปุ่มจริงก่อน 1 ครั้ง
@@ -375,6 +378,23 @@ export default function Home() {
               </div>
             )}
 
+            {/* 13 พ.ย.: 📒 Smart Booklet M.6 (ม.6 เท่านั้น) — ไม่ใช้กล้อง จึงไม่ต้องรอผ่านด่านกล้อง · คำของแต่ละ Part สุ่มตามอีเมล */}
+            {!isM4 && (
+              <div className="text-left mb-6" data-hub-booklet>
+                <RoomCard
+                  top="Part"
+                  big="8"
+                  bottom="× 25 คำ"
+                  icon="📒"
+                  title="Smart Booklet M.6"
+                  sub="Gold Experience 6 · Unit 6–9 · 200 คำ · ปรนัย 4 ตัวเลือก ไทย↔อังกฤษ"
+                  hint="ไม่ใช้กล้อง · ถูกครบทุกข้อใน Part = ผ่าน ✓ เขียว · คำในแต่ละ Part ของแต่ละคนไม่เหมือนกัน"
+                  badge={bookPassed > 0 ? `ผ่าน ${bookPassed}/${BOOK_PARTS}` : undefined}
+                  onClick={() => setSection("BOOKLET")}
+                />
+              </div>
+            )}
+
             <button
               onClick={handleLogout}
               className="w-full py-3 bg-white text-gray-400 font-bold rounded-xl hover:text-[#003399] transition-all duration-150 text-sm uppercase"
@@ -383,6 +403,8 @@ export default function Home() {
             </button>
           </div>
         )}
+
+        {isLoggedIn && section === "BOOKLET" && !isM4 && <BookletRoom email={email} onExit={() => setSection("HUB")} />}
 
         {isLoggedIn && section === "VOCAB" && <VocabRoom email={email} name={studentName} onExit={() => setSection("HUB")} shared={shared} />}
 

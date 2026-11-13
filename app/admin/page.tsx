@@ -39,6 +39,7 @@ import { LivePanel, type LiveEntry } from "./_parts/LivePanel";
 import { CodeIssuer } from "./_parts/CodeIssuer";
 import { CamSettings } from "./_parts/CamSettings";
 import { PendingPanel } from "./_parts/PendingPanel";
+import { BookletPanel } from "./_parts/BookletPanel";
 import type { LiveDoc } from "../lib/live";
 import { PurgeEarly } from "./_parts/PurgeEarly";
 import { StudentManager } from "./_parts/StudentManager";
@@ -544,6 +545,7 @@ export default function AdminDashboard() {
         <LivePanel entries={liveEntries} />
         <CodeIssuer />
         <PendingPanel students={students} grade={grade} roomFilter={roomFilter} />
+        <BookletPanel students={students} grade={grade} roomFilter={roomFilter} />
         <CamSettings />
         <StudentManager docs={allStudents} />
         <PurgeEarly docs={allStudents} />

@@ -1,0 +1,1417 @@
+[
+{
+"no": 1,
+"en": "target",
+"pos": "noun",
+"th": "เป้าหมาย; เป้า",
+"unit": 6
+},
+{
+"no": 2,
+"en": "neutralise",
+"pos": "verb",
+"th": "ทำให้ไร้ผล; หักล้างผลกระทบ",
+"unit": 6
+},
+{
+"no": 3,
+"en": "struggle",
+"pos": "noun",
+"th": "การต่อสู้ดิ้นรน",
+"unit": 6
+},
+{
+"no": 4,
+"en": "survival strategies",
+"pos": "noun phrase",
+"th": "กลยุทธ์การเอาตัวรอด",
+"unit": 6
+},
+{
+"no": 5,
+"en": "narrative",
+"pos": "adjective",
+"th": "เกี่ยวกับการเล่าเรื่อง",
+"unit": 6
+},
+{
+"no": 6,
+"en": "miniature",
+"pos": "adjective",
+"th": "ขนาดเล็กจิ๋ว (ย่อส่วน)",
+"unit": 6
+},
+{
+"no": 7,
+"en": "sequence",
+"pos": "noun",
+"th": "ลำดับ",
+"unit": 6
+},
+{
+"no": 8,
+"en": "blur",
+"pos": "noun",
+"th": "ภาพพร่ามัว",
+"unit": 6
+},
+{
+"no": 9,
+"en": "perspective",
+"pos": "noun",
+"th": "มุมมอง",
+"unit": 6
+},
+{
+"no": 10,
+"en": "predator",
+"pos": "noun",
+"th": "สัตว์ผู้ล่า",
+"unit": 6
+},
+{
+"no": 11,
+"en": "prey",
+"pos": "noun",
+"th": "เหยื่อ (ของสัตว์ผู้ล่า)",
+"unit": 6
+},
+{
+"no": 12,
+"en": "territory",
+"pos": "noun",
+"th": "อาณาเขต",
+"unit": 6
+},
+{
+"no": 13,
+"en": "functional",
+"pos": "adjective",
+"th": "ใช้งานได้ตามหน้าที่",
+"unit": 6
+},
+{
+"no": 14,
+"en": "revolve",
+"pos": "verb",
+"th": "หมุนรอบ",
+"unit": 6
+},
+{
+"no": 15,
+"en": "project",
+"pos": "verb",
+"th": "ฉายภาพ; คาดการณ์",
+"unit": 6
+},
+{
+"no": 16,
+"en": "combination",
+"pos": "noun",
+"th": "การผสมผสาน",
+"unit": 6
+},
+{
+"no": 17,
+"en": "separate",
+"pos": "adjective",
+"th": "แยกจากกัน",
+"unit": 6
+},
+{
+"no": 18,
+"en": "expand",
+"pos": "verb",
+"th": "ขยายใหญ่ขึ้น; ขยายตัว",
+"unit": 6,
+"g": "grow"
+},
+{
+"no": 19,
+"en": "accelerate",
+"pos": "verb",
+"th": "เร่งความเร็ว",
+"unit": 6,
+"g": "fast"
+},
+{
+"no": 20,
+"en": "throughout",
+"pos": "preposition",
+"th": "ตลอด; ทั่วทั้ง",
+"unit": 6
+},
+{
+"no": 21,
+"en": "at the last minute",
+"pos": "prep. phrase",
+"th": "ในนาทีสุดท้าย",
+"unit": 6
+},
+{
+"no": 22,
+"en": "be in the middle of",
+"pos": "phrase",
+"th": "กำลังทำ...อยู่ตรงกลางพอดี",
+"unit": 6
+},
+{
+"no": 23,
+"en": "be on the point of",
+"pos": "phrase",
+"th": "กำลังจะ...อยู่แล้ว",
+"unit": 6
+},
+{
+"no": 24,
+"en": "be on time",
+"pos": "phrase",
+"th": "ตรงเวลา",
+"unit": 6
+},
+{
+"no": 25,
+"en": "be in time",
+"pos": "phrase",
+"th": "ทันเวลา",
+"unit": 6
+},
+{
+"no": 26,
+"en": "be running late",
+"pos": "phrase",
+"th": "กำลังจะไปสาย",
+"unit": 6
+},
+{
+"no": 27,
+"en": "by the time",
+"pos": "prep. phrase",
+"th": "พอถึงตอนที่...; ภายในเวลาที่",
+"unit": 6
+},
+{
+"no": 28,
+"en": "every other",
+"pos": "phrase",
+"th": "ทุก ๆ สอง (เว้นหนึ่ง)",
+"unit": 6
+},
+{
+"no": 29,
+"en": "in good time",
+"pos": "prep. phrase",
+"th": "ก่อนเวลาพอสมควร (ไม่กระชั้น)",
+"unit": 6
+},
+{
+"no": 30,
+"en": "in no time",
+"pos": "prep. phrase",
+"th": "ในเวลาอันสั้น; เดี๋ยวเดียว",
+"unit": 6
+},
+{
+"no": 31,
+"en": "sooner or later",
+"pos": "phrase",
+"th": "ไม่ช้าก็เร็ว",
+"unit": 6
+},
+{
+"no": 32,
+"en": "to begin with",
+"pos": "phrase",
+"th": "ในเบื้องต้น; ประการแรก",
+"unit": 6
+},
+{
+"no": 33,
+"en": "on a daily basis",
+"pos": "prep. phrase",
+"th": "เป็นประจำทุกวัน",
+"unit": 6
+},
+{
+"no": 34,
+"en": "keep up the momentum",
+"pos": "phrase",
+"th": "รักษาแรงส่งไว้ต่อเนื่อง",
+"unit": 6
+},
+{
+"no": 35,
+"en": "speed up",
+"pos": "phrase",
+"th": "เร่งให้เร็วขึ้น",
+"unit": 6,
+"g": "fast"
+},
+{
+"no": 36,
+"en": "stick at",
+"pos": "phrase",
+"th": "พากเพียรทำต่อไป",
+"unit": 6
+},
+{
+"no": 37,
+"en": "behavioural",
+"pos": "adjective",
+"th": "เกี่ยวกับพฤติกรรม",
+"unit": 6
+},
+{
+"no": 38,
+"en": "environmental",
+"pos": "adjective",
+"th": "เกี่ยวกับสิ่งแวดล้อม",
+"unit": 6
+},
+{
+"no": 39,
+"en": "industrial",
+"pos": "adjective",
+"th": "เกี่ยวกับอุตสาหกรรม",
+"unit": 6
+},
+{
+"no": 40,
+"en": "poisonous",
+"pos": "adjective",
+"th": "เป็นพิษ",
+"unit": 6
+},
+{
+"no": 41,
+"en": "accuracy",
+"pos": "noun",
+"th": "ความแม่นยำ; ความถูกต้อง",
+"unit": 6
+},
+{
+"no": 42,
+"en": "enthusiasm",
+"pos": "noun",
+"th": "ความกระตือรือร้น",
+"unit": 6
+},
+{
+"no": 43,
+"en": "inhabitant",
+"pos": "noun",
+"th": "ผู้อยู่อาศัย (ในพื้นที่)",
+"unit": 6
+},
+{
+"no": 44,
+"en": "shortage",
+"pos": "noun",
+"th": "การขาดแคลน",
+"unit": 6
+},
+{
+"no": 45,
+"en": "naturalist",
+"pos": "noun",
+"th": "นักธรรมชาติวิทยา",
+"unit": 6
+},
+{
+"no": 46,
+"en": "occasionally",
+"pos": "adverb",
+"th": "นาน ๆ ครั้ง; เป็นครั้งคราว",
+"unit": 6
+},
+{
+"no": 47,
+"en": "dramatically",
+"pos": "adverb",
+"th": "อย่างมากมายเห็นได้ชัด",
+"unit": 6
+},
+{
+"no": 48,
+"en": "depth",
+"pos": "noun",
+"th": "ความลึก",
+"unit": 6
+},
+{
+"no": 49,
+"en": "strengthen",
+"pos": "verb",
+"th": "ทำให้แข็งแรงขึ้น",
+"unit": 6
+},
+{
+"no": 50,
+"en": "widen",
+"pos": "verb",
+"th": "ทำให้กว้างขึ้น",
+"unit": 6,
+"g": "grow"
+},
+{
+"no": 51,
+"en": "paperback",
+"pos": "noun",
+"th": "หนังสือปกอ่อน",
+"unit": 7
+},
+{
+"no": 52,
+"en": "illustrations",
+"pos": "noun",
+"th": "ภาพประกอบ",
+"unit": 7
+},
+{
+"no": 53,
+"en": "passage",
+"pos": "noun",
+"th": "ข้อความตอนหนึ่ง (ในหนังสือ)",
+"unit": 7
+},
+{
+"no": 54,
+"en": "publisher",
+"pos": "noun",
+"th": "สำนักพิมพ์; ผู้จัดพิมพ์",
+"unit": 7
+},
+{
+"no": 55,
+"en": "series",
+"pos": "noun",
+"th": "ซีรีส์; ชุดที่ต่อเนื่องกัน",
+"unit": 7
+},
+{
+"no": 56,
+"en": "genre",
+"pos": "noun",
+"th": "ประเภท; แนว (ของหนัง หนังสือ)",
+"unit": 7
+},
+{
+"no": 57,
+"en": "script",
+"pos": "noun",
+"th": "บท (ภาพยนตร์ ละคร)",
+"unit": 7
+},
+{
+"no": 58,
+"en": "film adaptation",
+"pos": "noun phrase",
+"th": "ภาพยนตร์ที่ดัดแปลงจากหนังสือ",
+"unit": 7
+},
+{
+"no": 59,
+"en": "film maker",
+"pos": "noun",
+"th": "ผู้สร้างภาพยนตร์",
+"unit": 7
+},
+{
+"no": 60,
+"en": "A-list",
+"pos": "noun",
+"th": "(ดารา) ระดับแนวหน้า",
+"unit": 7
+},
+{
+"no": 61,
+"en": "complicated plot",
+"pos": "noun phrase",
+"th": "โครงเรื่องที่ซับซ้อน",
+"unit": 7,
+"g": "plot"
+},
+{
+"no": 62,
+"en": "final scene",
+"pos": "noun phrase",
+"th": "ฉากสุดท้าย",
+"unit": 7
+},
+{
+"no": 63,
+"en": "happy ending",
+"pos": "noun phrase",
+"th": "ตอนจบที่มีความสุข",
+"unit": 7
+},
+{
+"no": 64,
+"en": "main character",
+"pos": "noun phrase",
+"th": "ตัวละครหลัก",
+"unit": 7
+},
+{
+"no": 65,
+"en": "rave reviews",
+"pos": "noun phrase",
+"th": "คำวิจารณ์ชื่นชมอย่างมาก",
+"unit": 7
+},
+{
+"no": 66,
+"en": "special effects",
+"pos": "noun phrase",
+"th": "เทคนิคพิเศษ (เอฟเฟกต์)",
+"unit": 7
+},
+{
+"no": 67,
+"en": "unexpected twist",
+"pos": "noun phrase",
+"th": "จุดหักมุมที่คาดไม่ถึง",
+"unit": 7
+},
+{
+"no": 68,
+"en": "weak storyline",
+"pos": "noun phrase",
+"th": "เนื้อเรื่องที่อ่อน",
+"unit": 7,
+"g": "plot"
+},
+{
+"no": 69,
+"en": "laugh out loud",
+"pos": "phrase",
+"th": "หัวเราะเสียงดัง",
+"unit": 7
+},
+{
+"no": 70,
+"en": "mind goes blank",
+"pos": "phrase",
+"th": "สมองว่างเปล่า (นึกไม่ออก)",
+"unit": 7
+},
+{
+"no": 71,
+"en": "figure out",
+"pos": "phrasal verb",
+"th": "คิดออก; ไขปัญหาได้",
+"unit": 7,
+"g": "clear"
+},
+{
+"no": 72,
+"en": "cheer up",
+"pos": "phrasal verb",
+"th": "ทำให้ร่าเริงขึ้น",
+"unit": 7
+},
+{
+"no": 73,
+"en": "leave out",
+"pos": "phrasal verb",
+"th": "ละไว้; ไม่ใส่",
+"unit": 7
+},
+{
+"no": 74,
+"en": "take in",
+"pos": "phrasal verb",
+"th": "รับรู้เข้าใจ; ซึมซับ (ข้อมูล)",
+"unit": 7,
+"g": "clear"
+},
+{
+"no": 75,
+"en": "go for",
+"pos": "phrasal verb",
+"th": "เลือกเอา",
+"unit": 7
+},
+{
+"no": 76,
+"en": "fall for",
+"pos": "phrasal verb",
+"th": "หลงเชื่อ; ตกหลุมรัก",
+"unit": 7
+},
+{
+"no": 77,
+"en": "give in",
+"pos": "phrasal verb",
+"th": "ยอมแพ้",
+"unit": 7
+},
+{
+"no": 78,
+"en": "look up",
+"pos": "phrasal verb",
+"th": "ค้นหาข้อมูล (ในพจนานุกรม ฯลฯ)",
+"unit": 7
+},
+{
+"no": 79,
+"en": "be absorbed in",
+"pos": "phrase",
+"th": "จดจ่ออยู่กับ...",
+"unit": 7
+},
+{
+"no": 80,
+"en": "boast about",
+"pos": "phrase",
+"th": "คุยโอ้อวดเกี่ยวกับ...",
+"unit": 7
+},
+{
+"no": 81,
+"en": "at short notice",
+"pos": "prep. phrase",
+"th": "แจ้งล่วงหน้ากระชั้นชิด",
+"unit": 7
+},
+{
+"no": 82,
+"en": "at length",
+"pos": "prep. phrase",
+"th": "อย่างยืดยาว",
+"unit": 7
+},
+{
+"no": 83,
+"en": "by choice",
+"pos": "prep. phrase",
+"th": "โดยเลือกเอง; โดยสมัครใจ",
+"unit": 7
+},
+{
+"no": 84,
+"en": "in theory",
+"pos": "prep. phrase",
+"th": "ในทางทฤษฎี",
+"unit": 7
+},
+{
+"no": 85,
+"en": "on demand",
+"pos": "prep. phrase",
+"th": "ตามความต้องการ; เมื่อมีคนต้องการ",
+"unit": 7
+},
+{
+"no": 86,
+"en": "on second thoughts",
+"pos": "prep. phrase",
+"th": "เมื่อคิดทบทวนแล้ว (เปลี่ยนใจ)",
+"unit": 7,
+"g": "second"
+},
+{
+"no": 87,
+"en": "capable of",
+"pos": "adj. + prep.",
+"th": "มีความสามารถที่จะ...",
+"unit": 7
+},
+{
+"no": 88,
+"en": "dedicated to",
+"pos": "adj. + prep.",
+"th": "ทุ่มเทให้กับ...",
+"unit": 7
+},
+{
+"no": 89,
+"en": "horrified at",
+"pos": "adj. + prep.",
+"th": "ตกตะลึงหวาดผวากับ...",
+"unit": 7
+},
+{
+"no": 90,
+"en": "experienced in",
+"pos": "adj. + prep.",
+"th": "มีประสบการณ์ใน...",
+"unit": 7
+},
+{
+"no": 91,
+"en": "appeal",
+"pos": "noun",
+"th": "เสน่ห์; ความน่าสนใจ",
+"unit": 7
+},
+{
+"no": 92,
+"en": "cast",
+"pos": "verb",
+"th": "คัดเลือกนักแสดงให้รับบท",
+"unit": 7
+},
+{
+"no": 93,
+"en": "daydream",
+"pos": "verb",
+"th": "ฝันกลางวัน",
+"unit": 7
+},
+{
+"no": 94,
+"en": "escapism",
+"pos": "noun",
+"th": "การหลีกหนีความเป็นจริง",
+"unit": 7
+},
+{
+"no": 95,
+"en": "eye-catching",
+"pos": "adjective",
+"th": "สะดุดตา",
+"unit": 7
+},
+{
+"no": 96,
+"en": "genuinely",
+"pos": "adverb",
+"th": "อย่างจริงใจ; อย่างแท้จริง",
+"unit": 7
+},
+{
+"no": 97,
+"en": "let-down",
+"pos": "noun",
+"th": "ความผิดหวัง (สิ่งที่ทำให้ผิดหวัง)",
+"unit": 7
+},
+{
+"no": 98,
+"en": "make-believe",
+"pos": "adjective",
+"th": "ที่สมมติขึ้น; ที่จินตนาการ",
+"unit": 7
+},
+{
+"no": 99,
+"en": "memorable",
+"pos": "adjective",
+"th": "น่าจดจำ",
+"unit": 7
+},
+{
+"no": 100,
+"en": "predictable",
+"pos": "adjective",
+"th": "คาดเดาได้ง่าย",
+"unit": 7
+},
+{
+"no": 101,
+"en": "anti-social",
+"pos": "adjective",
+"th": "ไม่ชอบเข้าสังคม",
+"unit": 8
+},
+{
+"no": 102,
+"en": "arrogant",
+"pos": "adjective",
+"th": "หยิ่งยโส",
+"unit": 8
+},
+{
+"no": 103,
+"en": "cooperative",
+"pos": "adjective",
+"th": "ให้ความร่วมมือ",
+"unit": 8
+},
+{
+"no": 104,
+"en": "courageous",
+"pos": "adjective",
+"th": "กล้าหาญ",
+"unit": 8
+},
+{
+"no": 105,
+"en": "courteous",
+"pos": "adjective",
+"th": "สุภาพ; มีมารยาท",
+"unit": 8
+},
+{
+"no": 106,
+"en": "defensive",
+"pos": "adjective",
+"th": "ชอบตั้งการ์ดป้องกันตัว",
+"unit": 8
+},
+{
+"no": 107,
+"en": "demanding",
+"pos": "adjective",
+"th": "เรียกร้องมาก; เอาใจยาก",
+"unit": 8
+},
+{
+"no": 108,
+"en": "eccentric",
+"pos": "adjective",
+"th": "พิลึก (ผิดแผกจากคนทั่วไป)",
+"unit": 8
+},
+{
+"no": 109,
+"en": "flamboyant",
+"pos": "adjective",
+"th": "โฉ่งฉ่าง; ฉูดฉาดสะดุดตา",
+"unit": 8
+},
+{
+"no": 110,
+"en": "immature",
+"pos": "adjective",
+"th": "ขาดวุฒิภาวะ",
+"unit": 8
+},
+{
+"no": 111,
+"en": "irresponsible",
+"pos": "adjective",
+"th": "ไม่รับผิดชอบ",
+"unit": 8
+},
+{
+"no": 112,
+"en": "pampered",
+"pos": "adjective",
+"th": "ถูกตามใจ; ถูกเอาอกเอาใจ",
+"unit": 8
+},
+{
+"no": 113,
+"en": "possessive",
+"pos": "adjective",
+"th": "ขี้หวง; ชอบครอบครอง",
+"unit": 8
+},
+{
+"no": 114,
+"en": "stubborn",
+"pos": "adjective",
+"th": "ดื้อรั้น",
+"unit": 8
+},
+{
+"no": 115,
+"en": "talkative",
+"pos": "adjective",
+"th": "ช่างพูด",
+"unit": 8
+},
+{
+"no": 116,
+"en": "thoughtful",
+"pos": "adjective",
+"th": "ใส่ใจผู้อื่น; รอบคอบ",
+"unit": 8
+},
+{
+"no": 117,
+"en": "admiration",
+"pos": "noun",
+"th": "ความชื่นชม",
+"unit": 8
+},
+{
+"no": 118,
+"en": "discipline",
+"pos": "noun",
+"th": "ระเบียบวินัย",
+"unit": 8
+},
+{
+"no": 119,
+"en": "flexibility",
+"pos": "noun",
+"th": "ความยืดหยุ่น",
+"unit": 8
+},
+{
+"no": 120,
+"en": "willingness",
+"pos": "noun",
+"th": "ความเต็มใจ",
+"unit": 8
+},
+{
+"no": 121,
+"en": "have a lot in common with",
+"pos": "phrase",
+"th": "มีอะไรคล้ายกันมากกับ...",
+"unit": 8
+},
+{
+"no": 122,
+"en": "have a word with",
+"pos": "phrase",
+"th": "ขอคุยด้วยสั้น ๆ (เรื่องสำคัญ)",
+"unit": 8
+},
+{
+"no": 123,
+"en": "have difficulty with",
+"pos": "phrase",
+"th": "ประสบความยากลำบากกับ...",
+"unit": 8,
+"g": "issue"
+},
+{
+"no": 124,
+"en": "have nothing to do with",
+"pos": "phrase",
+"th": "ไม่เกี่ยวข้องกับ...",
+"unit": 8
+},
+{
+"no": 125,
+"en": "have serious doubts about",
+"pos": "phrase",
+"th": "สงสัยอย่างมากเกี่ยวกับ...",
+"unit": 8
+},
+{
+"no": 126,
+"en": "keep a secret",
+"pos": "phrase",
+"th": "เก็บความลับ",
+"unit": 8
+},
+{
+"no": 127,
+"en": "keep in touch",
+"pos": "phrase",
+"th": "ติดต่อกันไว้",
+"unit": 8
+},
+{
+"no": 128,
+"en": "keep waiting",
+"pos": "phrase",
+"th": "ต้องรออยู่เรื่อย ๆ",
+"unit": 8
+},
+{
+"no": 129,
+"en": "keep in mind",
+"pos": "phrase",
+"th": "จดจำไว้; คำนึงถึง",
+"unit": 8
+},
+{
+"no": 130,
+"en": "keep your mouth shut",
+"pos": "phrase",
+"th": "ปิดปากเงียบ (ไม่เปิดเผย)",
+"unit": 8
+},
+{
+"no": 131,
+"en": "carry on",
+"pos": "phrasal verb",
+"th": "ดำเนินต่อไป",
+"unit": 8
+},
+{
+"no": 132,
+"en": "clear up",
+"pos": "phrasal verb",
+"th": "ไขให้กระจ่าง; จัดให้เรียบร้อย",
+"unit": 8,
+"g": "clear"
+},
+{
+"no": 133,
+"en": "come across",
+"pos": "phrasal verb",
+"th": "บังเอิญพบ",
+"unit": 8
+},
+{
+"no": 134,
+"en": "fill in",
+"pos": "phrasal verb",
+"th": "กรอก (แบบฟอร์ม)",
+"unit": 8
+},
+{
+"no": 135,
+"en": "get over",
+"pos": "phrasal verb",
+"th": "ฟื้นจาก; ผ่านพ้น (ความเจ็บป่วย ความผิดหวัง)",
+"unit": 8
+},
+{
+"no": 136,
+"en": "hang out",
+"pos": "phrasal verb",
+"th": "ไปมาหาสู่; สังสรรค์",
+"unit": 8
+},
+{
+"no": 137,
+"en": "look up to",
+"pos": "phrasal verb",
+"th": "เคารพนับถือ",
+"unit": 8
+},
+{
+"no": 138,
+"en": "put off",
+"pos": "phrasal verb",
+"th": "เลื่อนออกไป",
+"unit": 8
+},
+{
+"no": 139,
+"en": "put up with",
+"pos": "phrasal verb",
+"th": "อดทนกับ...",
+"unit": 8
+},
+{
+"no": 140,
+"en": "stand up for",
+"pos": "phrasal verb",
+"th": "ปกป้อง; ยืนหยัดเพื่อ...",
+"unit": 8
+},
+{
+"no": 141,
+"en": "have nothing to lose",
+"pos": "phrase",
+"th": "ไม่มีอะไรจะเสีย",
+"unit": 8
+},
+{
+"no": 142,
+"en": "pay attention to",
+"pos": "phrase",
+"th": "ให้ความสนใจกับ...",
+"unit": 8
+},
+{
+"no": 143,
+"en": "set yourself a goal",
+"pos": "phrase",
+"th": "ตั้งเป้าหมายให้ตัวเอง",
+"unit": 8
+},
+{
+"no": 144,
+"en": "appreciate",
+"pos": "verb",
+"th": "ชื่นชม; ซาบซึ้ง",
+"unit": 8
+},
+{
+"no": 145,
+"en": "compulsory",
+"pos": "adjective",
+"th": "เป็นข้อบังคับ",
+"unit": 8
+},
+{
+"no": 146,
+"en": "exhilarating",
+"pos": "adjective",
+"th": "ตื่นเต้นสดชื่นสุด ๆ",
+"unit": 8
+},
+{
+"no": 147,
+"en": "make allowances",
+"pos": "phrase",
+"th": "ผ่อนปรน (ยอมให้ตามสถานการณ์)",
+"unit": 8
+},
+{
+"no": 148,
+"en": "mutter",
+"pos": "verb",
+"th": "พึมพำ",
+"unit": 8
+},
+{
+"no": 149,
+"en": "slouch",
+"pos": "verb",
+"th": "นั่ง/ยืนหลังค่อม",
+"unit": 8
+},
+{
+"no": 150,
+"en": "venue",
+"pos": "noun",
+"th": "สถานที่จัดงาน",
+"unit": 8
+},
+{
+"no": 151,
+"en": "consider",
+"pos": "verb",
+"th": "พิจารณา",
+"unit": 9
+},
+{
+"no": 152,
+"en": "consult",
+"pos": "verb",
+"th": "ปรึกษา",
+"unit": 9
+},
+{
+"no": 153,
+"en": "evaluate",
+"pos": "verb",
+"th": "ประเมินค่า",
+"unit": 9
+},
+{
+"no": 154,
+"en": "evaluation",
+"pos": "noun",
+"th": "การประเมินค่า",
+"unit": 9
+},
+{
+"no": 155,
+"en": "intend",
+"pos": "verb",
+"th": "ตั้งใจ",
+"unit": 9
+},
+{
+"no": 156,
+"en": "intention",
+"pos": "noun",
+"th": "ความตั้งใจ",
+"unit": 9
+},
+{
+"no": 157,
+"en": "judgement",
+"pos": "noun",
+"th": "การตัดสิน; วิจารณญาณ",
+"unit": 9
+},
+{
+"no": 158,
+"en": "propose",
+"pos": "verb",
+"th": "เสนอ",
+"unit": 9
+},
+{
+"no": 159,
+"en": "proposal",
+"pos": "noun",
+"th": "ข้อเสนอ",
+"unit": 9
+},
+{
+"no": 160,
+"en": "selection",
+"pos": "noun",
+"th": "การคัดเลือก",
+"unit": 9
+},
+{
+"no": 161,
+"en": "be torn between two choices",
+"pos": "phrase",
+"th": "ลังเลระหว่างสองทางเลือก",
+"unit": 9
+},
+{
+"no": 162,
+"en": "carry weight",
+"pos": "phrase",
+"th": "มีน้ำหนัก (น่าเชื่อถือ มีอิทธิพล)",
+"unit": 9
+},
+{
+"no": 163,
+"en": "have second thoughts",
+"pos": "phrase",
+"th": "เริ่มลังเลใจ",
+"unit": 9,
+"g": "second"
+},
+{
+"no": 164,
+"en": "sleep on it",
+"pos": "phrase",
+"th": "ขอนอนคิดก่อน",
+"unit": 9
+},
+{
+"no": 165,
+"en": "speak out about",
+"pos": "phrase",
+"th": "ออกมาพูดเปิดเผยเรื่อง...",
+"unit": 9
+},
+{
+"no": 166,
+"en": "weigh up the pros and cons",
+"pos": "phrase",
+"th": "ชั่งน้ำหนักข้อดีข้อเสีย",
+"unit": 9
+},
+{
+"no": 167,
+"en": "base a decision on",
+"pos": "phrase",
+"th": "ตัดสินใจโดยอิงจาก...",
+"unit": 9
+},
+{
+"no": 168,
+"en": "carry out research",
+"pos": "phrase",
+"th": "ทำการวิจัย",
+"unit": 9
+},
+{
+"no": 169,
+"en": "come to a decision",
+"pos": "phrase",
+"th": "ได้ข้อสรุปในที่สุด",
+"unit": 9,
+"g": "decide"
+},
+{
+"no": 170,
+"en": "make up your mind",
+"pos": "phrase",
+"th": "ตัดสินใจเด็ดขาด",
+"unit": 9,
+"g": "decide"
+},
+{
+"no": 171,
+"en": "follow the crowd",
+"pos": "phrase",
+"th": "ทำตามคนหมู่มาก",
+"unit": 9
+},
+{
+"no": 172,
+"en": "know your own mind",
+"pos": "phrase",
+"th": "รู้ใจตัวเองว่าต้องการอะไร",
+"unit": 9
+},
+{
+"no": 173,
+"en": "challenge a decision",
+"pos": "phrase",
+"th": "คัดค้านการตัดสินใจ",
+"unit": 9
+},
+{
+"no": 174,
+"en": "stand out in a crowd",
+"pos": "phrase",
+"th": "โดดเด่นท่ามกลางฝูงชน",
+"unit": 9
+},
+{
+"no": 175,
+"en": "pick up bargains",
+"pos": "phrase",
+"th": "ไปเจอสินค้าลดราคาถูก ๆ",
+"unit": 9
+},
+{
+"no": 176,
+"en": "put an outfit together",
+"pos": "phrase",
+"th": "จัดชุดแต่งตัว (ผสมเสื้อผ้า)",
+"unit": 9
+},
+{
+"no": 177,
+"en": "throw on clothes",
+"pos": "phrase",
+"th": "สวมเสื้อผ้าลวก ๆ แบบรีบ ๆ",
+"unit": 9
+},
+{
+"no": 178,
+"en": "experiment with new looks",
+"pos": "phrase",
+"th": "ลองแต่งตัวลุคใหม่ ๆ",
+"unit": 9
+},
+{
+"no": 179,
+"en": "feel under pressure",
+"pos": "phrase",
+"th": "รู้สึกอยู่ภายใต้ความกดดัน",
+"unit": 9
+},
+{
+"no": 180,
+"en": "have an issue with",
+"pos": "phrase",
+"th": "มีข้อติดใจกับ...",
+"unit": 9,
+"g": "issue"
+},
+{
+"no": 181,
+"en": "ambitious",
+"pos": "adjective",
+"th": "ทะเยอทะยาน",
+"unit": 9
+},
+{
+"no": 182,
+"en": "confidential",
+"pos": "adjective",
+"th": "เป็นความลับ",
+"unit": 9
+},
+{
+"no": 183,
+"en": "conventional",
+"pos": "adjective",
+"th": "ตามแบบแผน",
+"unit": 9
+},
+{
+"no": 184,
+"en": "experimental",
+"pos": "adjective",
+"th": "เชิงทดลอง",
+"unit": 9
+},
+{
+"no": 185,
+"en": "faulty",
+"pos": "adjective",
+"th": "บกพร่อง; ชำรุด",
+"unit": 9
+},
+{
+"no": 186,
+"en": "influential",
+"pos": "adjective",
+"th": "มีอิทธิพล",
+"unit": 9
+},
+{
+"no": 187,
+"en": "judgemental",
+"pos": "adjective",
+"th": "ชอบตัดสินผู้อื่น",
+"unit": 9
+},
+{
+"no": 188,
+"en": "obsessive",
+"pos": "adjective",
+"th": "หมกมุ่นจนเกินพอดี",
+"unit": 9
+},
+{
+"no": 189,
+"en": "suspicious",
+"pos": "adjective",
+"th": "ขี้สงสัย; น่าสงสัย",
+"unit": 9
+},
+{
+"no": 190,
+"en": "stylish",
+"pos": "adjective",
+"th": "ทันสมัยมีสไตล์",
+"unit": 9
+},
+{
+"no": 191,
+"en": "addictive",
+"pos": "adjective",
+"th": "ที่ทำให้ติด",
+"unit": 9
+},
+{
+"no": 192,
+"en": "casual",
+"pos": "adjective",
+"th": "ไม่เป็นทางการ; สบาย ๆ",
+"unit": 9
+},
+{
+"no": 193,
+"en": "convince",
+"pos": "verb",
+"th": "ทำให้เชื่อ; โน้มน้าว",
+"unit": 9
+},
+{
+"no": 194,
+"en": "founder",
+"pos": "noun",
+"th": "ผู้ก่อตั้ง",
+"unit": 9
+},
+{
+"no": 195,
+"en": "homesick",
+"pos": "adjective",
+"th": "คิดถึงบ้าน",
+"unit": 9
+},
+{
+"no": 196,
+"en": "moody",
+"pos": "adjective",
+"th": "อารมณ์แปรปรวน",
+"unit": 9
+},
+{
+"no": 197,
+"en": "poised",
+"pos": "adjective",
+"th": "สุขุมมั่นใจ",
+"unit": 9
+},
+{
+"no": 198,
+"en": "scruffy",
+"pos": "adjective",
+"th": "ซอมซ่อ (ไม่เรียบร้อย)",
+"unit": 9
+},
+{
+"no": 199,
+"en": "short-sighted",
+"pos": "adjective",
+"th": "สายตาสั้น; มองการณ์ไม่ไกล",
+"unit": 9
+},
+{
+"no": 200,
+"en": "split second",
+"pos": "noun",
+"th": "เสี้ยววินาที",
+"unit": 9
+}
+]
