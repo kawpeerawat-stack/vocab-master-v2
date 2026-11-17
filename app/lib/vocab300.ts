@@ -5,12 +5,14 @@
 //   ความก้าวหน้า: students/{email}.v300 = { cards, days, sets }
 //     + ฟิลด์สรุป v300Known / v300Seen / v300Sets / v300At (ไว้ให้หน้าครูและอันดับอ่านเร็ว)
 //
-// กติกา "ผ่านชุด" (ปรับ 2 พ.ย. 2569 ตามที่ครูขอ — จบในคาบเดียว ไม่ต้องรอวันอื่นมาทวน):
+// กติกา "ผ่านชุด" (ปรับ 2 พ.ย. 2569 ตามที่ครูขอ — จบในคาบเดียว ไม่ต้องรอวันอื่นมาทวน · ปรับ 17 พ.ย. 2569 ฉบับ 9.7):
 //   ① เรียนคำใหม่ของชุด 10 คำ (5 คำ × 2 รอบ) · ขั้นที่ 4 ข้อที่ผิดวนกลับมาจนถูกครบ
-//   ② รอบทบทวนทั้ง 10 คำอีก 1 รอบ · ข้อที่ผิดวนเฉพาะข้อนั้นจนถูกครบ
-//   ③ ครบแล้ว = ผ่านชุด (sets[k]) → หน้าครูขึ้น ✓ สีเขียวทันที · คำทั้ง 10 คำนับว่า "รู้แล้ว"
+//   ② รอบทบทวน (เปิดกล้อง) = คำละ CHECK_PER_WORD ข้อ (ทั้งชุด 20 ข้อ · คำเดิม คนละแบบโจทย์) · ตอบทีละข้อ ไม่มีข้อวนกลับ
+//      ผ่านเมื่อถูก ≥ CHECK_PASS (80%) ของทุกข้อ (20 ข้อ = ถูก ≥ 16) · ไม่ผ่านทำรอบใหม่ได้ (โจทย์สุ่มคนละแบบ)
+//   ③ ผ่าน = บันทึก sets[k] → หน้าครูขึ้น ✓ สีเขียวทันที · คำทั้ง 10 คำนับว่า "รู้แล้ว"
+//   ชุดแต่ละชุดเป็นอิสระต่อกัน: นักเรียนเลือกทำชุดไหนก่อนหลังก็ได้ ขอแค่ถึงวันเรียนของห้องแล้ว (ชุดที่ยังไม่ถึงวันยังล็อกตามวัน)
 //   ชุดที่เรียนครบ 10 คำด้วยแอปแบบเดิม (ก่อนมีรอบทบทวน) นับว่าผ่าน (legacy) — ตามที่ครูให้ลงผ่านคาบ ม.6/5 วันที่ 2 พ.ย.
-//   คะแนนชุด (เต็ม 10) = จำนวนคำที่ตอบถูกตั้งแต่ครั้งแรกในรอบทบทวน (ชุดแบบเดิมคิดจากขั้นที่ 4)
+//   คะแนนชุด (เต็ม 10) = ปัดจาก (ข้อที่ถูก ÷ ข้อทั้งหมดในรอบที่ผ่าน) × 10 · ck = [ถูก, ทั้งหมด] ของรอบที่ผ่าน (ชุดก่อน 9.7: คะแนน = คำที่ถูกตั้งแต่ครั้งแรก ไม่มี ck)
 // การทวนคำของชุดก่อน ๆ ตามนัด (คาบหน้า → 2 → 4 → 8 → 12 สัปดาห์) ยังมีให้ทำ แต่ไม่บังคับและไม่มีผลต่อการผ่านชุด
 // ─────────────────────────────────────────────────────────────
 
@@ -113,6 +115,7 @@ export interface VSetPass {
   gpf?: number;
   gpd?: "ready" | "slow" | "error" | "loading" | "off";
   prev?: { day: string; score: number; at: number }; // ผลเดิมที่ทำล่วงหน้า (ไม่นับ) — รอบนี้คือรอบทำใหม่พร้อมกล้อง
+  ck?: [number, number];    // ฉบับ 9.7: รอบทบทวนที่ผ่าน ถูก / ทั้งหมด (เช่น [18, 20]) · ไม่มี = ชุดก่อน 9.7 (คะแนน = คำที่ถูกตั้งแต่ครั้งแรก)
 }
 export interface VProgress { cards: Record<string, VCard>; days: Record<string, VDay>; sets?: Record<string, VSetPass> }
 
@@ -120,6 +123,10 @@ export const NEW_PER_DAY = 10;   // คำใหม่ต่อคาบ (1 ช�
 export const CATCHUP_PER_DAY = 20; // คนที่ช้ากว่าแผน (เช่น ขาดเรียน) เรียนได้ถึง 20 คำในคาบเดียว เพื่อตามให้ทัน
 export const BATCH_SIZE = 5;     // คำต่อชุดเรียน
 export const REVIEW_LIMIT = 20;  // คำทวนสูงสุดต่อรอบ
+// รอบทบทวนชุด (เปิดกล้อง · เข้าสมุดคะแนน) — ฉบับ 9.7 (17 พ.ย.): หลายข้อต่อคำ + ผ่านที่ 80%
+export const CHECK_PER_WORD = 2; // ข้อต่อคำ (ชุด 10 คำ = 20 ข้อ) — เพิ่มเป็น 3 = 30 ข้อ แก้ตัวเลขเดียว
+export const CHECK_PASS = 0.8;   // ต้องถูกอย่างน้อย 80% ของทุกข้อจึงผ่านชุด
+export const checkNeed = (total: number) => Math.max(1, Math.ceil(total * CHECK_PASS - 1e-9)); // จำนวนข้อที่ต้องถูก (20 → 16)
 // ระยะนัดทวน (วัน) — ออกแบบให้ทุกกิจกรรมจบในคาบ (เรียนในห้อง สัปดาห์ละครั้ง ไม่มีการบ้าน)
 //   ผิด → ขึ้นให้ทวนตั้งแต่ครั้งถัดไปที่เปิดแอป · ถูกครั้งแรก → คาบหน้า · จากนั้น 2 → 4 → 8 → 12 สัปดาห์
 const GAP = [1, 7, 14, 28, 56, 84];
@@ -261,6 +268,21 @@ export function setState(p: VProgress, words: VWord[], k: number): SetState {
   const n = ws.filter((w) => p.cards[w.id]).length;
   return n === 0 ? "none" : n < ws.length ? "part" : "ready";
 }
+// ชุดที่แนะนำให้ทำต่อ (กล่อง "คาบนี้ทำอะไร") — ชุดแต่ละชุดเป็นอิสระต่อกัน นักเรียนกดเลือกชุดไหนที่เปิดแล้วก็ได้
+//   ลำดับแนะนำ: ชุดที่เริ่มเรียนค้างไว้/เรียนครบรอรอบทบทวน (เลขน้อยสุด) → ชุดที่เปิดแล้วที่ยังไม่ผ่าน (เลขน้อยสุด) → ชุดที่ยังไม่ผ่านชุดแรก (ยังล็อกตามวัน)
+//   openUpTo = เลขชุดสูงสุดที่เปิดตามวันเรียนของห้อง (หรือ Infinity) · คืน 0 = ผ่านครบทุกชุด
+export function focusSet(p: VProgress, words: VWord[], nSets: number, openUpTo: number): number {
+  let firstOpen = 0, firstAny = 0;
+  for (let k = 1; k <= nSets; k++) {
+    if (setPassOf(p, k)) continue;
+    if (!firstAny) firstAny = k;
+    if (k > openUpTo) continue;
+    const st = setState(p, words, k);
+    if (st === "ready" || st === "part") return k;
+    if (!firstOpen) firstOpen = k;
+  }
+  return firstOpen || firstAny;
+}
 // คะแนนจากขั้นที่ 4 (ถูกตั้งแต่ครั้งแรก / จำนวนข้อ) ของคำในชุด — ใช้กับชุดแบบเดิม และเก็บไว้ดูประกอบ
 function learnFirstTry(p: VProgress, ws: VWord[]): [number, number] {
   let n = 0, w = 0;
@@ -273,7 +295,7 @@ function learnFirstTry(p: VProgress, ws: VWord[]): [number, number] {
   return [Math.max(0, n - w), n];
 }
 // บันทึกผ่านชุด k: ทุกคำในชุด "รู้แล้ว" · นัดทวนคาบหน้า (ไม่บังคับ)
-export function passSet(p: VProgress, words: VWord[], k: number, today: string, info: { score: number; legacy?: boolean; at?: number; prev?: VSetPass["prev"] }): VProgress {
+export function passSet(p: VProgress, words: VWord[], k: number, today: string, info: { score: number; legacy?: boolean; at?: number; prev?: VSetPass["prev"]; ck?: [number, number] }): VProgress {
   const ws = setWords(words, k);
   const at = info.at ?? Date.now();
   const cards = { ...p.cards };
@@ -287,6 +309,7 @@ export function passSet(p: VProgress, words: VWord[], k: number, today: string, 
   const rec: VSetPass = { at, day: today, score: Math.max(0, Math.min(10, Math.round(info.score))), learn: learnFirstTry(p, ws) };
   if (info.legacy) rec.legacy = 1;
   if (info.prev) rec.prev = info.prev;
+  if (info.ck) rec.ck = info.ck;
   return { ...p, cards, sets: { ...(p.sets || {}), [String(k)]: rec } };
 }
 // ชุดที่เรียนครบ 10 คำด้วยแอปแบบเดิม (ไม่มีคำไหนเรียนแบบใหม่) → นับว่าผ่าน · และทำให้คำในชุดที่ผ่านแล้วเป็น "รู้แล้ว" ครบ
