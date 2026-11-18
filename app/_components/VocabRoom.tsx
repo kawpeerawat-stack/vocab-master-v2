@@ -6,7 +6,7 @@
 //   ② เจอความหมายแบบเต็ม (เสียง ตระกูลคำ คู่คำ ประโยคที่ 2 กับดัก)
 //   ③ ทำให้คิด (ภารกิจสั้น 1 ข้อ ต้องตัดสินใจ)
 //   ④ ดึงจากความจำ (หลังเรียนครบ 5 คำ · สลับทิศ · บริบทใหม่ · ผิดแล้ววนกลับจนถูกครบ)
-//   ⑤ รอบทบทวนชุด (ครบ 10 คำแล้วทำรอบทบทวน คำละ 2 ข้อ = 20 ข้อ · เปิดกล้อง) → ถูก ≥ 80% = ผ่านชุด ✓ ส่งขึ้นระบบทันที · ไม่ผ่านทำรอบใหม่ได้
+//   ⑤ รอบทบทวนชุด (ครบ 10 คำแล้วทำรอบทบทวน 15 ข้อ · เปิดกล้อง · ข้อที่ผิดวนกลับมาทำซ้ำอีก 1 รอบ) → ถูก ≥ 80% (12/15) = ผ่านชุด ✓ ส่งขึ้นระบบทันที · ไม่ผ่านทำรอบใหม่ได้
 //   ชุดแต่ละชุดเป็นอิสระ — เลือกทำชุดที่ถึงวันเรียนแล้วก่อนหลังได้ (ฉบับ 9.7)
 //   ทวนคำของชุดก่อน ๆ ตามนัด = ไม่บังคับ (ไม่มีผลกับการผ่านชุด)
 // ─────────────────────────────────────────────────────────────
@@ -14,7 +14,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   BATCH_SIZE,
-  CHECK_PER_WORD,
+  checkCountFor,
   REVIEW_LIMIT,
   RankEntry,
   VCourse,
@@ -247,7 +247,7 @@ const ex2Blank = (w: VWord): string | null => {
   return m && m[1].toLowerCase() === w.w.toLowerCase() ? (w.ex2 || "").replace(m[0], "___") : null;
 };
 // แบบโจทย์รอบทบทวนที่ใช้กับคำนี้ได้ (เรียงตามลำดับเริ่มที่ start) · ข้ามแบบ avoid (แบบที่เพิ่งตอบผิด)
-// 17 พ.ย. (ฉบับ 9.7): รอบทบทวนมีหลายข้อต่อคำ (CHECK_PER_WORD) — ทุกข้อของคำเดียวกันเป็นโจทย์คนละแบบ · start หมุนแบบโจทย์ (รอบใหม่/คำถัดไปได้แบบต่างกัน)
+// 17 พ.ย. (ฉบับ 9.7): รอบทบทวน 15 ข้อ/ชุด (บางคำ 2 ข้อ — checkCountFor) — ทุกข้อของคำเดียวกันเป็นโจทย์คนละแบบ · start หมุนแบบโจทย์ (รอบใหม่/คำถัดไปได้แบบต่างกัน)
 //   แบบที่ใช้: def / ex2 / form (ถ้าคำนั้นมี) แล้วเติมด้วย ไทย → อังกฤษ / บริบทใหม่ / อังกฤษ → ไทย ให้ครบจำนวน
 function checkKindsFor(w: VWord, n: number, start: number): Kind[] {
   const avail = CHECK_KINDS.filter((k) => (k === "ex2" ? !!ex2Blank(w) : k === "form" ? !!w.form : !!w.def));
@@ -265,6 +265,7 @@ interface QItem {
   en: boolean;      // ตัวเลือกเป็นภาษาอังกฤษ
   why: string;
   retry: number;    // 0 = ครั้งแรก, >0 = วนกลับมาถามซ้ำ
+  of?: string;      // รอบทบทวน: ข้อซ้ำนี้คือโอกาสที่สองของข้อ (key) ไหน
 }
 function pickOthers(w: VWord, pool: VWord[], n: number, field: "th" | "w"): string[] {
   const seen = new Set([w[field]]);
@@ -353,7 +354,8 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
   const [qi, setQi] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const reviewDone = useRef<Record<string, { ok: boolean; before: string }>>({});
-  const checkFirst = useRef<Record<string, boolean>>({}); // รอบทบทวน: ข้อไหน (key) ตอบถูก — ตอบข้อละครั้ง ไม่มีข้อวนกลับ
+  const checkFirst = useRef<Record<string, boolean>>({}); // รอบทบทวน: ข้อไหน (key) ตอบถูกตั้งแต่ครั้งแรก
+  const checkRe = useRef<Record<string, boolean>>({}); // รอบทบทวน: ข้อที่ผิดแล้ววนกลับมาทำซ้ำ (key ของข้อเดิม) ตอบถูกไหม
   const checkTry = useRef<Record<number, number>>({}); // รอบทบทวนของชุดนี้ทำมากี่รอบแล้ว (หมุนแบบโจทย์ให้ต่างจากรอบก่อน)
   const checkDone = useRef(false);
   const finishRef = useRef<(() => void) | null>(null); // จบรอบทบทวนจากตัวตรวจกล้อง/จับเวลา (ข้อสุดท้ายถูกข้าม)
@@ -518,13 +520,17 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
   const cMode = camMode(sToday); // กล้อง + จับเวลา (ตั้งแต่ 9 พ.ย.)
   const curItem = queue[qi];
   const voidedRef = useRef(0);
-  // ช่วงหักคะแนน: ตรวจพบระหว่างข้อไหน → ข้ามข้อนั้นทันที นับว่าตอบผิด (ฉบับ 9.7: รอบทบทวนผ่านที่ 80% ไม่มีข้อวนกลับ) · ข้อสุดท้ายถูกข้าม = จบรอบ
+  // ช่วงหักคะแนน: ตรวจพบระหว่างข้อไหน → ข้ามข้อนั้นทันที นับว่าตอบผิด และไม่ได้ทำซ้ำ (โอกาสที่สองให้เฉพาะข้อที่ตอบผิดปกติ) · ข้อสุดท้ายถูกข้าม = จบรอบ
+  const markCheck = (it: QItem, ok: boolean) => {
+    if (it.of) checkRe.current[it.of] = ok;
+    else checkFirst.current[it.key] = ok;
+    liveStep(Object.keys(checkFirst.current).length + Object.keys(checkRe.current).length);
+  };
   const skipCheckItem = (key: string, kind: "leave" | "cam" = "cam") => {
     const it = queue[qi];
     if ((kind === "leave" ? gMode : cMode) !== "enforce" || mode !== "CHECK" || !it || it.key !== key || picked !== null) return false;
-    checkFirst.current[it.key] = false;
+    markCheck(it, false);
     voidedRef.current++;
-    liveStep(Object.keys(checkFirst.current).length);
     if (qi + 1 >= queue.length) {
       finishRef.current?.();
       return true;
@@ -634,14 +640,15 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
     scrollTop();
   };
 
-  // ── รอบทบทวนชุด k: ครบ 10 คำแล้วทำรอบทบทวน คำละ CHECK_PER_WORD ข้อ (20 ข้อ · คำเดิม คนละแบบโจทย์) · ถูก ≥ 80% = ผ่านชุด ──
-  //   ตอบข้อละครั้ง ไม่มีข้อวนกลับ · ไม่ผ่านทำรอบใหม่ได้ (โจทย์สุ่มและหมุนแบบใหม่)
+  // ── รอบทบทวนชุด k: ครบ 10 คำแล้วทำรอบทบทวน 15 ข้อ (คำเดิม คนละแบบโจทย์) · ข้อที่ผิดวนกลับมาทำซ้ำอีก 1 รอบ · ถูก ≥ 80% = ผ่านชุด ──
+  //   ไม่ผ่านทำรอบใหม่ได้ (โจทย์สุ่มและหมุนแบบใหม่)
   const startCheck = (k: number) => {
     const { ws, ready, locked } = setInfo(k);
     if (!ready || locked || (!extra && !hoursNow().open)) return;
     if (!extra && capReached(dayR)) return; // ยกเลิกรอบครบกำหนดของวันนี้ (แผงปลดล็อกแสดงอยู่ที่หน้าแรก)
     setStopMsg("");
     checkFirst.current = {};
+    checkRe.current = {};
     checkDone.current = false;
     voidedRef.current = 0;
     guard.reset();
@@ -649,7 +656,10 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
     setCheckSetNo(k);
     const tr = (checkTry.current[k] = (checkTry.current[k] ?? -1) + 1);
     const items: QItem[] = [];
-    shuffle(ws).forEach((w, i) => checkKindsFor(w, CHECK_PER_WORD, i + tr).forEach((kd) => items.push(makeItem(w, kd, ws))));
+    const sh = shuffle(ws);
+    const dbl: Record<number, boolean> = {}; // คำที่ได้ 2 ข้อ (ที่เหลือ 1 ข้อ) — สุ่มใหม่ทุกรอบ
+    shuffle(sh.map((_, i) => i)).slice(0, Math.max(0, checkCountFor(sh.length) - sh.length)).forEach((i) => (dbl[i] = true));
+    sh.forEach((w, i) => checkKindsFor(w, dbl[i] ? 2 : 1, i + tr).forEach((kd) => items.push(makeItem(w, kd, ws))));
     setQueue(noAdjacent(items));
     setQi(0);
     setPicked(null);
@@ -711,11 +721,16 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
         setQueue((q) => [...q, makeItem(w, it.kind, pool, it.retry + 1)]);
       }
     } else if (mode === "CHECK") {
-      // ช่วงหักคะแนน: ออกจากหน้าระหว่างข้อนี้ → ข้อนี้ไม่นับว่าถูก · ตอบข้อละครั้ง ไม่มีข้อวนกลับ (ผ่านที่ 80%)
+      // ช่วงหักคะแนน: ออกจากหน้าระหว่างข้อนี้ → ข้อนี้ไม่นับว่าถูก · ข้อที่ผิดปกติได้ทำซ้ำ 1 ครั้งท้ายรอบ (ผ่านที่ 80%)
       const left = gMode === "enforce" && guard.wasLeft(it.key);
       if (left && ok) voidedRef.current++;
-      checkFirst.current[it.key] = ok && !left;
-      liveStep(Object.keys(checkFirst.current).length);
+      markCheck(it, ok && !left);
+      // ผิดปกติ (ไม่ใช่ถูกข้าม/ออกจากหน้า) → วนกลับมาท้ายรอบอีก 1 ครั้งด้วยโจทย์อีกแบบ (คำเดิม) · ข้อซ้ำไม่วนซ้ำอีก
+      if (!ok && !left && !it.of) {
+        const pool = words.filter((x) => x.week === w.week);
+        const alt = checkKindsFor(w, 6, queue.findIndex((q) => q.key === it.key) + 1).filter((kd) => kd !== it.kind)[0] ?? it.kind;
+        setQueue((q) => [...q, { ...makeItem(w, alt, pool, 1), of: it.key }]);
+      }
     } else if (mode === "REVIEW") {
       if (it.retry === 0 && !reviewDone.current[it.wid]) {
         const before = statusOf(prog.cards[it.wid]);
@@ -744,8 +759,11 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
     checkDone.current = true;
     const k = checkSetNo;
     const first = checkFirst.current;
-    const total = queue.length;
-    const correct = queue.filter((q) => first[q.key]).length;
+    const re = checkRe.current;
+    const origs = queue.filter((q) => !q.of);
+    const total = origs.length;
+    const c1 = origs.filter((q) => first[q.key]).length;
+    const correct = origs.filter((q) => first[q.key] || re[q.key]).length;
     const need = checkNeed(total);
     const pass = correct >= need;
     liveEnd(correct);
@@ -756,7 +774,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
     let p = progRef.current;
     if (pass) {
       const old = earlySets[String(k)];
-      p = passSet(p, words, k, today, { score: (10 * correct) / total, ck: [correct, total], ...(old ? { prev: { day: old.day, score: old.score, at: old.at } } : {}) });
+      p = passSet(p, words, k, today, { score: (10 * correct) / total, ck: [correct, total], c1, ...(old ? { prev: { day: old.day, score: old.score, at: old.at } } : {}) });
       // แนบผลการเฝ้าดู (ออกจากหน้า / เวลาที่หายไป) ไว้กับชุดที่ผ่าน ให้ครูเห็น
       p = {
         ...p,
@@ -769,8 +787,8 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
     p = addDay(p, today, { c: correct, x: total - correct });
     setProg(p);
     const rows = setWords(words, k).map((w) => {
-      const its = queue.filter((q) => q.wid === w.id);
-      const c = its.filter((q) => first[q.key]).length;
+      const its = origs.filter((q) => q.wid === w.id);
+      const c = its.filter((q) => first[q.key] || re[q.key]).length;
       return { wid: w.id, ok: c === its.length, c, t: its.length };
     });
     setSummary({ kind: "check", set: k, rows, correct, total, cloudOk: null, pass, need });
@@ -862,7 +880,8 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
 
   const total = words.length;
   // คำอธิบายสั้นของรอบทบทวน (n = จำนวนคำของชุด)
-  const CHECK_NOTE = (n: number) => `รอบทบทวน ${n * CHECK_PER_WORD} ข้อ (คำละ ${CHECK_PER_WORD} ข้อ · คนละแบบโจทย์) · ต้องถูกอย่างน้อย ${checkNeed(n * CHECK_PER_WORD)} ข้อ (80%) จึงผ่านชุด · ไม่ผ่านทำรอบใหม่ได้`;
+  const checkTotal = queue.filter((q) => !q.of).length; // รอบทบทวน: จำนวนข้อจริง (ไม่นับข้อซ้ำ)
+  const CHECK_NOTE = (n: number) => `รอบทบทวน ${checkCountFor(n)} ข้อ (คำเดิมของชุด คนละแบบโจทย์) · ข้อที่ผิดได้ทำซ้ำอีก 1 รอบ · ต้องถูกอย่างน้อย ${checkNeed(checkCountFor(n))} ข้อ (80%) จึงผ่านชุด · ไม่ผ่านทำรอบใหม่ได้`;
 
   // ═════════════ HOME ═════════════
   if (mode === "HOME") {
@@ -976,7 +995,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
                   {earlySets[String(curSet)] && <p className="text-xs font-bold text-orange-800 bg-orange-50 rounded-xl px-3 py-2 mb-2">⏩ ชุดนี้เคยทำไว้ก่อนวันเรียน (ยังไม่ผ่านการเปิดกล้อง) — ทำรอบทบทวนใหม่พร้อมกล้อง เพื่อให้นับผ่าน</p>}
                   <HoursNote hours={hours} compact />
                   <button onClick={() => startCheck(curSet)} disabled={!hours.open} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg hover:bg-[#002266] text-lg disabled:opacity-40 disabled:cursor-not-allowed">
-                    รอบทบทวนชุดที่ {curSet} ({curWords.length * CHECK_PER_WORD} ข้อ) →
+                    รอบทบทวนชุดที่ {curSet} ({checkCountFor(curWords.length)} ข้อ) →
                   </button>
                   <p className="text-xs text-gray-500 mt-2 text-center">{CHECK_NOTE(curWords.length)}</p>
                 </>
@@ -1030,7 +1049,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
             <li><b>เจอความหมายแบบเต็ม</b> — ฟังเสียง ดูตระกูลคำ คู่คำ ตัวอย่างที่ 2 และกับดัก</li>
             <li><b>ทำให้คิด</b> — ตอบภารกิจสั้น 1 ข้อที่ต้องตัดสินใจ</li>
             <li><b>ดึงจากความจำ</b> — หลังเรียนครบ 5 คำ ตอบโดยไม่มีบัตรคำ ข้อที่ผิดจะวนกลับมาจนถูกครบ</li>
-            <li><b>รอบทบทวนชุด</b> — เรียนครบ 10 คำแล้วทำรอบทบทวน คำละ {CHECK_PER_WORD} ข้อ (คำเดิม คนละแบบโจทย์) ตอบข้อละครั้ง · ถูกอย่างน้อย <b>80%</b> → <b>ผ่านชุด ✓</b> (ครูเห็นสีเขียวทันที · จบในคาบ) · ไม่ถึงทำรอบใหม่ได้</li>
+            <li><b>รอบทบทวนชุด</b> — เรียนครบ 10 คำแล้วทำรอบทบทวน {checkCountFor(10)} ข้อ (คำเดิมของชุด คนละแบบโจทย์) · ข้อที่ผิดได้ <b>ทำซ้ำอีก 1 รอบ</b> · ถูกอย่างน้อย <b>80%</b> ({checkNeed(checkCountFor(10))}/{checkCountFor(10)}) → <b>ผ่านชุด ✓</b> (ครูเห็นสีเขียวทันที · จบในคาบ) · ไม่ถึงทำรอบใหม่ได้</li>
           </ol>
         )}
 
@@ -1172,7 +1191,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
                   return (
                     <>
                       <HoursNote hours={hours} compact />
-                      <button onClick={() => startCheck(weekNo)} disabled={!hours.open} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg text-lg disabled:opacity-40 disabled:cursor-not-allowed">รอบทบทวนชุดที่ {weekNo} ({si.ws.length * CHECK_PER_WORD} ข้อ) →</button>
+                      <button onClick={() => startCheck(weekNo)} disabled={!hours.open} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg text-lg disabled:opacity-40 disabled:cursor-not-allowed">รอบทบทวนชุดที่ {weekNo} ({checkCountFor(si.ws.length)} ข้อ) →</button>
                       <p className="text-xs text-gray-500 mt-2 text-center">{CHECK_NOTE(si.ws.length)}</p>
                     </>
                   );
@@ -1224,7 +1243,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
             <p className="text-sm font-bold text-amber-900 mt-1">
               รอบนี้ถูก {summary.correct}/{summary.total} ข้อ · ต้องถูกอย่างน้อย {summary.need} ข้อ (80%) · ขาดอีก {Math.max(0, (summary.need ?? 0) - summary.correct)} ข้อ
             </p>
-            <p className="text-xs text-amber-800 mt-1">ดูคำที่ผิดด้านล่าง แล้วทำรอบใหม่ได้เลย (โจทย์ชุดใหม่ ไม่เสียอะไร · ยังไม่บันทึกเป็นผ่าน)</p>
+            <p className="text-xs text-amber-800 mt-1">ข้อที่ผิดได้ทำซ้ำอีก 1 รอบแล้ว · ดูคำที่ผิดด้านล่าง แล้วทำรอบใหม่ได้เลย (โจทย์ชุดใหม่ ไม่เสียอะไร · ยังไม่บันทึกเป็นผ่าน · ยังไม่ขึ้นสีเขียว)</p>
           </div>
         ) : isCheck ? (
           <div className="text-center mb-4 bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-5" data-check-result="pass">
@@ -1275,7 +1294,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
         {summary.kind === "learn" && (
           <p className="text-xs text-gray-600 bg-gray-50 rounded-xl p-3 mb-4 leading-relaxed">
             {curReady
-              ? `เรียนครบ ${curWords.length} คำของชุดที่ ${curSet} แล้ว · ต่อด้วย “รอบทบทวน” ${curWords.length * CHECK_PER_WORD} ข้อ ถูกอย่างน้อย 80% = ผ่านชุด ✓`
+              ? `เรียนครบ ${curWords.length} คำของชุดที่ ${curSet} แล้ว · ต่อด้วย “รอบทบทวน” ${checkCountFor(curWords.length)} ข้อ ถูกอย่างน้อย 80% = ผ่านชุด ✓`
               : `ชุดนี้ยังเรียนไม่ครบ ${curWords.length} คำ · เรียนต่อให้ครบ แล้วทำรอบทบทวนเพื่อผ่านชุด`}
           </p>
         )}
@@ -1298,7 +1317,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
             <>
               <HoursNote hours={hours} compact />
               <button onClick={() => startCheck(retrySet)} disabled={!hours.open} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg text-lg disabled:opacity-40 disabled:cursor-not-allowed" data-retry-check="1">
-                ทำรอบทบทวนชุดที่ {retrySet} ใหม่ ({retryInfo.ws.length * CHECK_PER_WORD} ข้อ) →
+                ทำรอบทบทวนชุดที่ {retrySet} ใหม่ ({checkCountFor(retryInfo.ws.length)} ข้อ) →
               </button>
             </>
           )}
@@ -1306,7 +1325,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
             <>
               <HoursNote hours={hours} compact />
               <button onClick={() => startCheck(curSet)} disabled={!hours.open} className="w-full py-4 bg-[#003399] text-[#FFD700] font-black rounded-2xl shadow-lg text-lg disabled:opacity-40 disabled:cursor-not-allowed">
-                รอบทบทวนชุดที่ {curSet} ({curWords.length * CHECK_PER_WORD} ข้อ) →
+                รอบทบทวนชุดที่ {curSet} ({checkCountFor(curWords.length)} ข้อ) →
               </button>
             </>
           )}
@@ -1338,15 +1357,15 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
         <div className="border-4 border-[#003399] rounded-3xl p-5 mb-4">
           <div className="text-4xl text-center mb-1">📝</div>
           <h1 className="text-xl font-black text-center text-gray-900 mb-1">รอบทบทวนชุดที่ {checkSetNo}</h1>
-          <p className="text-center text-xs font-bold text-[#003399] mb-4">{queue.length} ข้อ (คำละ {CHECK_PER_WORD} ข้อ · ตอบข้อละครั้ง) · ต้องถูกอย่างน้อย {checkNeed(queue.length)} ข้อ (80%) จึงผ่านชุด · ผลที่ผ่านเข้าสมุดคะแนนของครู</p>
+          <p className="text-center text-xs font-bold text-[#003399] mb-4">{checkTotal} ข้อ · ข้อที่ผิดได้ทำซ้ำอีก 1 รอบ (ตอบถูกในรอบซ้ำนับเป็นถูก) · ต้องถูกอย่างน้อย {checkNeed(checkTotal)} ข้อ (80%) จึงผ่านชุด · ผลที่ผ่านเข้าสมุดคะแนนของครู</p>
           <ol className="text-sm text-gray-800 space-y-2 list-decimal pl-5">
             <li>เปิด <b>โหมดห้ามรบกวน</b> ก่อน (กันแจ้งเตือนเด้งทับ)</li>
             <li><b>อยู่ในหน้านี้ตลอด</b> จนจบรอบ — ห้ามสลับแอป สลับแท็บ กลับหน้าโฮม หรือเรียก Gemini / วงกลมค้นหา · คลุมหรือคัดลอกโจทย์ไม่ได้</li>
             <li>
               {extra
-                ? <>ห้องนี้ไม่ใช้กล้อง ไม่เก็บภาพ · หมดเวลาคำละ {Q_TIME_MS / 1000} วินาที — ระบบ<b className="text-rose-600">ข้ามข้อนั้นทันที นับว่าตอบผิด</b> (ไม่มีข้อวนกลับ · ต้องถูกรวม ≥ 80% จึงผ่าน){gMode === "enforce" ? <> · ออกจากหน้า หรือหน้าต่างอื่นบังนานเกิน 3 วินาที ก็ข้ามข้อเช่นกัน</> : <> · ออกจากหน้า / หน้าต่างอื่นบัง: ระบบบันทึกให้ครูเห็น</>}</>
+                ? <>ห้องนี้ไม่ใช้กล้อง ไม่เก็บภาพ · หมดเวลาคำละ {Q_TIME_MS / 1000} วินาที — ระบบ<b className="text-rose-600">ข้ามข้อนั้นทันที นับว่าตอบผิด</b> (ข้อนั้นไม่ได้ทำซ้ำ · ต้องถูกรวม ≥ 80% จึงผ่าน){gMode === "enforce" ? <> · ออกจากหน้า หรือหน้าต่างอื่นบังนานเกิน 3 วินาที ก็ข้ามข้อเช่นกัน</> : <> · ออกจากหน้า / หน้าต่างอื่นบัง: ระบบบันทึกให้ครูเห็น</>}</>
                 : cMode === "enforce"
-                ? <>มีอะไรบังใบหน้าตั้งแต่จมูกขึ้นไป · มีมือถือเครื่องอื่นในภาพ · หรือหมดเวลาคำละ {Q_TIME_MS / 1000} วินาที — ระหว่างข้อไหน <b className="text-rose-600">ระบบข้ามข้อนั้นทันที นับว่าตอบผิด</b> (ไม่มีข้อวนกลับ · ต้องถูกรวม ≥ 80% จึงผ่าน){gMode === "enforce" ? <> · ออกจากหน้า หรือหน้าต่างอื่นบังนานเกิน 3 วินาที ก็ข้ามข้อเช่นกัน</> : <> · ออกจากหน้า / หน้าต่างอื่นบัง: ถึง 15 พ.ย. บันทึกให้ครูเห็น เริ่มข้ามข้อ 16 พ.ย.</>}</>
+                ? <>มีอะไรบังใบหน้าตั้งแต่จมูกขึ้นไป · มีมือถือเครื่องอื่นในภาพ · หรือหมดเวลาคำละ {Q_TIME_MS / 1000} วินาที — ระหว่างข้อไหน <b className="text-rose-600">ระบบข้ามข้อนั้นทันที นับว่าตอบผิด</b> (ข้อนั้นไม่ได้ทำซ้ำ · ต้องถูกรวม ≥ 80% จึงผ่าน){gMode === "enforce" ? <> · ออกจากหน้า หรือหน้าต่างอื่นบังนานเกิน 3 วินาที ก็ข้ามข้อเช่นกัน</> : <> · ออกจากหน้า / หน้าต่างอื่นบัง: ถึง 15 พ.ย. บันทึกให้ครูเห็น เริ่มข้ามข้อ 16 พ.ย.</>}</>
                 : <>ช่วงทดลอง: ระบบ <b>บันทึก</b> การออกจากหน้าและการบังใบหน้าให้ครูเห็น (ยังไม่หักคะแนน)</>}
             </li>
             <li>ออกจากหน้าครบ {GUARD_FLAG_AT} ครั้ง ครูจะเห็นเครื่องหมาย 🚩</li>
@@ -1415,7 +1434,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
         )}
         {mode === "CHECK" && qi === 0 && picked === null && (
           <p className="text-xs font-bold text-[#003399] bg-[#FFD700]/20 rounded-xl px-3 py-2 mb-3">
-            รอบทบทวนชุดที่ {checkSetNo}: {queue.length} ข้อ · ตอบข้อละครั้ง ไม่มีข้อวนกลับ · ต้องถูกอย่างน้อย {checkNeed(queue.length)} ข้อ (80%) จึงผ่านชุด ✓
+            รอบทบทวนชุดที่ {checkSetNo}: {checkTotal} ข้อ · ข้อที่ผิดวนกลับมาทำซ้ำอีก 1 รอบ · ต้องถูกอย่างน้อย {checkNeed(checkTotal)} ข้อ (80%) จึงผ่านชุด ✓
           </p>
         )}
         <div className="flex items-center gap-3 mb-3">
@@ -1426,7 +1445,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
         </div>
         <div className="flex flex-wrap gap-1.5 mb-3">
           <span className="text-[11px] font-black bg-[#FFD700] text-[#003399] px-2 py-1 rounded-full">{KIND_LABEL[it.kind]}</span>
-          {it.retry > 0 && <span className="text-[11px] font-black bg-rose-100 text-rose-700 px-2 py-1 rounded-full">🔁 วนกลับมาถามอีกครั้ง</span>}
+          {it.retry > 0 && <span className="text-[11px] font-black bg-rose-100 text-rose-700 px-2 py-1 rounded-full">🔁 {mode === "CHECK" ? "โอกาสที่สอง (ข้อที่ผิด)" : "วนกลับมาถามอีกครั้ง"}</span>}
         </div>
         {mode === "CHECK" && picked === null && guard.split && <SplitShield leftMs={guard.splitLeft} />}
         {mode === "CHECK" && roundCam === "cam" && picked === null && isCovered(cam) && <CoverShield phone={cam.phone} reason={cam.faceReason} />}
@@ -1487,7 +1506,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
                 {ok
                   ? "✓ ถูกต้อง"
                   : mode === "CHECK"
-                  ? "✗ ยังไม่ถูก — ข้อนี้นับเป็นข้อผิด (ผ่านชุดต้องถูกรวม ≥ 80%) ดูเฉลยด้านล่าง แล้วทำข้อถัดไป"
+                  ? it.of ? "✗ ยังไม่ถูก — ข้อนี้ผิดอีกครั้ง นับเป็นข้อผิด (ผ่านชุดต้องถูกรวม ≥ 80%) ดูเฉลยด้านล่าง แล้วทำข้อถัดไป" : "✗ ยังไม่ถูก — ข้อนี้จะวนกลับมาให้ทำซ้ำอีก 1 ครั้งท้ายรอบ (โจทย์คนละแบบ) ดูเฉลยด้านล่างไว้ก่อน"
                   : mode === "LEARN"
                   ? "✗ ยังไม่ถูก — คำนี้จะวนกลับมาท้ายรอบจนกว่าจะถูก"
                   : mode === "REVIEW" && it.retry === 0

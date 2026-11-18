@@ -7,8 +7,8 @@
 //
 // กติกา "ผ่านชุด" (ปรับ 2 พ.ย. 2569 ตามที่ครูขอ — จบในคาบเดียว ไม่ต้องรอวันอื่นมาทวน · ปรับ 17 พ.ย. 2569 ฉบับ 9.7):
 //   ① เรียนคำใหม่ของชุด 10 คำ (5 คำ × 2 รอบ) · ขั้นที่ 4 ข้อที่ผิดวนกลับมาจนถูกครบ
-//   ② รอบทบทวน (เปิดกล้อง) = คำละ CHECK_PER_WORD ข้อ (ทั้งชุด 20 ข้อ · คำเดิม คนละแบบโจทย์) · ตอบทีละข้อ ไม่มีข้อวนกลับ
-//      ผ่านเมื่อถูก ≥ CHECK_PASS (80%) ของทุกข้อ (20 ข้อ = ถูก ≥ 16) · ไม่ผ่านทำรอบใหม่ได้ (โจทย์สุ่มคนละแบบ)
+//   ② รอบทบทวน (เปิดกล้อง) = 15 ข้อ/ชุด (CHECK_RATIO 1.5 ข้อต่อคำ · คำเดิมของชุด คนละแบบโจทย์) · ข้อที่ผิด "วนกลับมาทำซ้ำอีก 1 รอบ" (18 พ.ย. ฉบับ 9.8)
+//      ตอบถูกในรอบซ้ำนับเป็นถูก · ผ่านเมื่อถูก ≥ CHECK_PASS (80%) ของ 15 ข้อ (= 12) · ไม่ผ่านทำรอบใหม่ได้ (โจทย์สุ่มคนละแบบ)
 //   ③ ผ่าน = บันทึก sets[k] → หน้าครูขึ้น ✓ สีเขียวทันที · คำทั้ง 10 คำนับว่า "รู้แล้ว"
 //   ชุดแต่ละชุดเป็นอิสระต่อกัน: นักเรียนเลือกทำชุดไหนก่อนหลังก็ได้ ขอแค่ถึงวันเรียนของห้องแล้ว (ชุดที่ยังไม่ถึงวันยังล็อกตามวัน)
 //   ชุดที่เรียนครบ 10 คำด้วยแอปแบบเดิม (ก่อนมีรอบทบทวน) นับว่าผ่าน (legacy) — ตามที่ครูให้ลงผ่านคาบ ม.6/5 วันที่ 2 พ.ย.
@@ -115,7 +115,8 @@ export interface VSetPass {
   gpf?: number;
   gpd?: "ready" | "slow" | "error" | "loading" | "off";
   prev?: { day: string; score: number; at: number }; // ผลเดิมที่ทำล่วงหน้า (ไม่นับ) — รอบนี้คือรอบทำใหม่พร้อมกล้อง
-  ck?: [number, number];    // ฉบับ 9.7: รอบทบทวนที่ผ่าน ถูก / ทั้งหมด (เช่น [18, 20]) · ไม่มี = ชุดก่อน 9.7 (คะแนน = คำที่ถูกตั้งแต่ครั้งแรก)
+  c1?: number;              // ฉบับ 9.8: จำนวนข้อที่ถูกตั้งแต่ครั้งแรก (ก่อนรอบซ้ำ) ของรอบทบทวนที่ผ่าน
+  ck?: [number, number];    // ฉบับ 9.7: รอบทบทวนที่ผ่าน ถูก / ทั้งหมด (เช่น [13, 15] · 9.8 นับรวมข้อที่ถูกในรอบซ้ำ) · ไม่มี = ชุดก่อน 9.7 (คะแนน = คำที่ถูกตั้งแต่ครั้งแรก)
 }
 export interface VProgress { cards: Record<string, VCard>; days: Record<string, VDay>; sets?: Record<string, VSetPass> }
 
@@ -124,9 +125,10 @@ export const CATCHUP_PER_DAY = 20; // คนที่ช้ากว่าแผ
 export const BATCH_SIZE = 5;     // คำต่อชุดเรียน
 export const REVIEW_LIMIT = 20;  // คำทวนสูงสุดต่อรอบ
 // รอบทบทวนชุด (เปิดกล้อง · เข้าสมุดคะแนน) — ฉบับ 9.7 (17 พ.ย.): หลายข้อต่อคำ + ผ่านที่ 80%
-export const CHECK_PER_WORD = 2; // ข้อต่อคำ (ชุด 10 คำ = 20 ข้อ) — เพิ่มเป็น 3 = 30 ข้อ แก้ตัวเลขเดียว
+export const CHECK_RATIO = 1.5; // ข้อต่อคำ (ชุด 10 คำ = 15 ข้อ: 5 คำถาม 2 ข้อ + 5 คำถาม 1 ข้อ) — แก้ตัวเลขเดียว (2 = 20 ข้อ)
+export const checkCountFor = (nWords: number) => Math.round(nWords * CHECK_RATIO);
 export const CHECK_PASS = 0.8;   // ต้องถูกอย่างน้อย 80% ของทุกข้อจึงผ่านชุด
-export const checkNeed = (total: number) => Math.max(1, Math.ceil(total * CHECK_PASS - 1e-9)); // จำนวนข้อที่ต้องถูก (20 → 16)
+export const checkNeed = (total: number) => Math.max(1, Math.ceil(total * CHECK_PASS - 1e-9)); // จำนวนข้อที่ต้องถูก (15 → 12)
 // ระยะนัดทวน (วัน) — ออกแบบให้ทุกกิจกรรมจบในคาบ (เรียนในห้อง สัปดาห์ละครั้ง ไม่มีการบ้าน)
 //   ผิด → ขึ้นให้ทวนตั้งแต่ครั้งถัดไปที่เปิดแอป · ถูกครั้งแรก → คาบหน้า · จากนั้น 2 → 4 → 8 → 12 สัปดาห์
 const GAP = [1, 7, 14, 28, 56, 84];
@@ -295,7 +297,7 @@ function learnFirstTry(p: VProgress, ws: VWord[]): [number, number] {
   return [Math.max(0, n - w), n];
 }
 // บันทึกผ่านชุด k: ทุกคำในชุด "รู้แล้ว" · นัดทวนคาบหน้า (ไม่บังคับ)
-export function passSet(p: VProgress, words: VWord[], k: number, today: string, info: { score: number; legacy?: boolean; at?: number; prev?: VSetPass["prev"]; ck?: [number, number] }): VProgress {
+export function passSet(p: VProgress, words: VWord[], k: number, today: string, info: { score: number; legacy?: boolean; at?: number; prev?: VSetPass["prev"]; ck?: [number, number]; c1?: number }): VProgress {
   const ws = setWords(words, k);
   const at = info.at ?? Date.now();
   const cards = { ...p.cards };
@@ -310,6 +312,7 @@ export function passSet(p: VProgress, words: VWord[], k: number, today: string, 
   if (info.legacy) rec.legacy = 1;
   if (info.prev) rec.prev = info.prev;
   if (info.ck) rec.ck = info.ck;
+  if (info.c1 !== undefined) rec.c1 = info.c1;
   return { ...p, cards, sets: { ...(p.sets || {}), [String(k)]: rec } };
 }
 // ชุดที่เรียนครบ 10 คำด้วยแอปแบบเดิม (ไม่มีคำไหนเรียนแบบใหม่) → นับว่าผ่าน · และทำให้คำในชุดที่ผ่านแล้วเป็น "รู้แล้ว" ครบ
