@@ -36,9 +36,11 @@ import { CamBox, CamChooser, camSkipText, CoverShield, isCovered, loadCamChoice,
 import { capReached, readDay, ROUND_CAP, roundAbandon, roundBegin, roundEnd, roundSweep, roundsSync, type DayRounds } from "../lib/rounds";
 import { roomOf } from "../lib/names";
 import { drawRound, questionMap } from "../lib/pool";
+import ReadingQuiz from "./ReadingQuiz";
+import { loadReadingBest, readingByLesson } from "../lib/reading";
 import { liveEnd, liveEvent, liveLeaves, liveQuit, liveSplit, liveStart, liveStep } from "../lib/live";
 
-type View = "LIST" | "LESSON" | "GATE" | "QUIZ" | "RESULT";
+type View = "LIST" | "LESSON" | "GATE" | "QUIZ" | "RESULT" | "READING";
 type QuizItem = { q: CourseQuestion; order: number[] }; // order[i] = index ตัวเลือกเดิมที่แสดงในช่อง i
 // chosen = index เดิม (ก่อนสลับ) · voided = ออกจากหน้าระหว่างข้อนี้ในรอบที่เข้าสมุดคะแนน (ช่วงหักคะแนน) → ไม่นับ
 type Answer = { qid: string; chosen: number; correct: boolean; voided?: boolean; skipped?: boolean; why?: "leave" | "cover" | "split" | "face" | "time" | "phone" }; // skipped = ระบบข้ามข้อนี้ทันทีเพราะออกจากหน้า (chosen = -1)
@@ -547,6 +549,40 @@ export default function CourseRoom({
 
   if (!lesson) return null;
   const lp = progress[lesson.id];
+  // v9.9: 🔎 Reading ถอดรหัส (เฉพาะคอร์ส ม.6 · เปิดหลังทำตั๋วออกของบทนี้แล้ว · ฝึก ไม่นับคะแนน)
+  const rd = courseId === "decoder" ? readingByLesson(lesson.id)?.decode ?? null : null;
+  const rdOpen = !!rd && (!!lp?.passed || (lp?.attempts ?? 0) > 0 || !!triedNow[lesson.id]);
+  const readingCard = rd ? (
+    <div className="border-2 border-[#003399]/15 rounded-2xl p-3 mb-4" data-reading-card={lesson.id}>
+      <p className="text-sm font-black text-gray-900">🔎 Reading ถอดรหัส: <span className="font-serif">{rd.title}</span></p>
+      <p className="text-xs text-gray-500 mt-0.5">บทอ่านสั้น {rd.sents.length} ประโยค มีคำใหม่ {rd.words.filter((w) => w.kind !== "trap").length} คำที่ถอดได้ด้วยรหัสของ{L}นี้ · {rd.qs.length} ข้อ · ฝึก ไม่นับคะแนน</p>
+      {rdOpen ? (
+        <button type="button" onClick={() => { setView("READING"); scrollTop(); }} className="mt-2 w-full py-3 bg-white border-2 border-[#003399] text-[#003399] font-black rounded-xl" data-open-reading={lesson.id}>
+          {(() => { const b = loadReadingBest(email)[`d-${lesson.id}`]; return b ? `อ่านอีกครั้ง (ดีที่สุด ${b.b}/${b.t}) →` : "เปิดอ่าน →"; })()}
+        </button>
+      ) : (
+        <p className="mt-2 text-xs font-bold text-gray-600 bg-gray-50 rounded-xl px-3 py-2" data-reading-locked={lesson.id}>🔒 ทำแบบฝึกหัด (ตั๋วออก) ของ{L}นี้ก่อน แล้วบทอ่านนี้จะเปิดให้ฝึก</p>
+      )}
+    </div>
+  ) : null;
+
+  if (view === "READING" && rd) {
+    return (
+      <ReadingQuiz
+        key={`d-${lesson.id}`}
+        id={`d-${lesson.id}`}
+        email={email}
+        label={`🔎 Reading ถอดรหัส · ${L}ที่ ${lesson.hour}`}
+        title={rd.title}
+        topic={rd.topic}
+        sents={rd.sents}
+        questions={rd.qs}
+        words={rd.words}
+        onExit={() => { setView("LESSON"); scrollTop(); }}
+        exitLabel={`กลับ${L}ที่ ${lesson.hour}`}
+      />
+    );
+  }
 
   // ── LESSON: ทบทวนก่อนทำ ──
   if (view === "LESSON") {
@@ -575,6 +611,7 @@ export default function CourseRoom({
           </div>
         )}
 
+        {rdOpen && readingCard}
         <h2 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-2">ทบทวนก่อนทำแบบฝึกหัด</h2>
         <div className="space-y-2 mb-4">
           {lesson.recap.parts.map((p, i) => {
@@ -690,6 +727,7 @@ export default function CourseRoom({
             ? `ถูก ${needOf(lesson.questions.length)} ข้อขึ้นไปจึงจะผ่าน${L}นี้`
             : `ต้องตอบถูกครบ ${lesson.questions.length} ข้อจึงจะผ่าน${L}นี้`}
         </p>
+        {!rdOpen && readingCard && <div className="mt-4">{readingCard}</div>}
         {course?.gradeBy === "first" && !(progress[lesson.id]?.attempts > 0) && (
           <p className="text-center text-xs font-bold text-amber-800 bg-amber-50 rounded-xl px-3 py-2 mt-2">⭐ คะแนนรอบแรกจะเข้าสมุดคะแนนของครู — อ่านโจทย์ให้ดี ตั้งใจตั้งแต่รอบแรก</p>
         )}
@@ -930,6 +968,11 @@ export default function CourseRoom({
           </div>
         )}
 
+        {rd && (
+          <button type="button" onClick={() => { setView("READING"); scrollTop(); }} className="w-full mb-3 py-3 bg-[#FFD700] text-[#003399] font-black rounded-2xl shadow" data-open-reading={lesson.id}>
+            🔎 ฝึก Reading ถอดรหัสของ{L}นี้: {rd.title} →
+          </button>
+        )}
         <div className="space-y-2">
           {passed && nextLesson && isOpen(nextLesson) ? (
             <button

@@ -1,0 +1,3781 @@
+{
+ "version": "9.9",
+ "note": "Reading เชื่อมคำศัพท์ ม.6 · สัปดาห์ 3–13 · ฝึก ไม่นับคะแนน",
+ "weeks": [
+  {
+   "week": 3,
+   "lesson": "b03",
+   "lessonHour": 3,
+   "lessonTitle": "รหัสบอกคนและภาวะ: -er · -ee · -ist · -ance · -ship",
+   "set": 3,
+   "dateLabel": "16–20 พ.ย. 69",
+   "preview": {
+    "title": "Online Learning: Worth the Price?",
+    "topic": "การศึกษา · ค่าใช้จ่าย",
+    "sents": [
+     "Many universities now **provide** online courses for students who cannot travel to campus.",
+     "These courses usually charge a lower **fee** than classroom programs, and this **option** has become popular among working adults.",
+     "However, researchers say the **impact** of online learning depends on the learner.",
+     "**Despite** the low cost and flexible hours, students are still **required** to **maintain** a regular study routine.",
+     "Without self-discipline, many learners stop halfway.",
+     "Experts suggest a mixed **approach**: short live lessons each week combined with self-study.",
+     "A stable internet connection is also **essential**.",
+     "Students who follow this plan tend to **produce** better work and finish the course on time."
+    ],
+    "qs": [
+     {
+      "q": "The word “maintain” in sentence 4 is closest in meaning to ______.",
+      "o": [
+       "keep",
+       "change",
+       "avoid",
+       "reduce"
+      ],
+      "a": 0,
+      "why": "maintain = รักษาไว้ คงไว้ → keep a routine = รักษากิจวัตรไว้ · change/avoid/reduce ขัดกับใจความว่าต้องเรียนสม่ำเสมอ"
+     },
+     {
+      "q": "According to the passage, which statement is TRUE?",
+      "o": [
+       "Online courses usually cost more than classroom programs.",
+       "Students can succeed without a regular study routine.",
+       "Experts recommend combining live lessons with self-study.",
+       "A stable internet connection is not very important."
+      ],
+      "a": 2,
+      "why": "ประโยคที่ 6: a mixed approach: short live lessons … combined with self-study · ตัวเลือก A ขัดกับ lower fee (ประโยค 2) · B ขัดกับประโยค 4–5 · D ขัดกับ essential (ประโยค 7)"
+     },
+     {
+      "q": "In sentence 4, the word “Despite” shows ______.",
+      "o": [
+       "a contrast",
+       "a reason",
+       "a result",
+       "an example"
+      ],
+      "a": 0,
+      "why": "Despite = แม้ว่า → ขัดแย้งกัน (ค่าเรียนถูกและเวลายืดหยุ่น แต่ยังต้องเรียนสม่ำเสมอ) · despite + คำนาม (the low cost) ไม่ใช่ประโยค"
+     }
+    ],
+    "cover": [
+     {
+      "w": "approach",
+      "s": 3
+     },
+     {
+      "w": "despite",
+      "s": 3
+     },
+     {
+      "w": "essential",
+      "s": 3
+     },
+     {
+      "w": "fee",
+      "s": 3
+     },
+     {
+      "w": "impact",
+      "s": 3
+     },
+     {
+      "w": "maintain",
+      "s": 3,
+      "l": "b12"
+     },
+     {
+      "w": "option",
+      "s": 3
+     },
+     {
+      "w": "produce",
+      "s": 3,
+      "l": "b10"
+     },
+     {
+      "w": "provide",
+      "s": 3,
+      "l": "b09"
+     },
+     {
+      "w": "require",
+      "s": 3
+     },
+     {
+      "w": "suggest",
+      "s": 4
+     },
+     {
+      "w": "depend",
+      "s": 5
+     },
+     {
+      "w": "expert",
+      "s": 6
+     },
+     {
+      "w": "flexible",
+      "s": 7
+     },
+     {
+      "w": "researcher",
+      "l": "b03"
+     }
+    ],
+    "nWords": 103
+   },
+   "decode": {
+    "title": "A Small Shop in a Big Market",
+    "topic": "เศรษฐกิจ · ร้านค้า",
+    "sents": [
+     "Mrs. Somsri is the **owner** of a small coffee shop near a university.",
+     "Last year, a large chain store opened across the street, and many people thought her shop would close.",
+     "An **economist** from the university interviewed her for a research project.",
+     "“My **competitor** has more money,” she said, “but I know every customer by name.”",
+     "She hired two students as **trainees** and gave their friends a free **membership** card.",
+     "The card has no **fee**.",
+     "Thanks to this friendly service, the daily **attendance** at her shop has doubled.",
+     "Now an **investor** wants to put money into her business and start a **partnership** with her."
+    ],
+    "words": [
+     {
+      "w": "owner",
+      "code": "own + -er",
+      "th": "ผู้เป็นเจ้าของ",
+      "kind": "new"
+     },
+     {
+      "w": "economist",
+      "code": "economy + -ist",
+      "th": "ผู้เชี่ยวชาญด้านเศรษฐกิจ = นักเศรษฐศาสตร์",
+      "kind": "new"
+     },
+     {
+      "w": "competitor",
+      "code": "compete + -or",
+      "th": "ผู้แข่งขัน = คู่แข่ง",
+      "kind": "new"
+     },
+     {
+      "w": "trainee",
+      "code": "train + -ee",
+      "th": "ผู้ถูกฝึก = ผู้ฝึกงาน",
+      "kind": "recap"
+     },
+     {
+      "w": "membership",
+      "code": "member + -ship",
+      "th": "ภาวะการเป็นสมาชิก",
+      "kind": "new"
+     },
+     {
+      "w": "attendance",
+      "code": "attend + -ance",
+      "th": "การมาร่วม / จำนวนคนที่มา",
+      "kind": "new"
+     },
+     {
+      "w": "investor",
+      "code": "invest + -or",
+      "th": "ผู้ลงทุน = นักลงทุน",
+      "kind": "new"
+     },
+     {
+      "w": "partnership",
+      "code": "partner + -ship",
+      "th": "ความเป็นหุ้นส่วน",
+      "kind": "new"
+     },
+     {
+      "w": "fee",
+      "code": "ไม่ใช่ -ee",
+      "th": "ค่าธรรมเนียม (ไม่ใช่คน)",
+      "kind": "trap"
+     },
+     {
+      "w": "coffee",
+      "code": "ไม่ใช่ -ee",
+      "th": "กาแฟ (ไม่ใช่คน)",
+      "kind": "trap"
+     }
+    ],
+    "qs": [
+     {
+      "q": "Who is the “economist” in sentence 3?",
+      "o": [
+       "a person who studies money, trade and markets",
+       "a type of coffee shop",
+       "money paid to join a club",
+       "a feeling of trust"
+      ],
+      "a": 0,
+      "why": "economy + -ist (ผู้เชี่ยวชาญ) → นักเศรษฐศาสตร์ · -ist บอกว่าเป็น “คน” ตัดตัวเลือก B C D ที่ไม่ใช่คนได้ทันที"
+     },
+     {
+      "q": "In sentence 4, “my competitor” refers to ______.",
+      "o": [
+       "the chain store across the street",
+       "Mrs. Somsri’s customers",
+       "the economist",
+       "the two trainees"
+      ],
+      "a": 0,
+      "why": "compete (แข่งขัน) + -or (ผู้ทำ) = ผู้แข่งขัน · ประโยค 2 บอกว่าร้านใหญ่มาเปิดฝั่งตรงข้าม → คู่แข่งคือ the chain store"
+     },
+     {
+      "q": "Which word ending in -ee is NOT a person?",
+      "o": [
+       "trainee",
+       "employee",
+       "fee",
+       "interviewee"
+      ],
+      "a": 2,
+      "why": "กับดัก: fee (ค่าธรรมเนียม) ลงท้าย -ee แต่ไม่ใช่ “ผู้ถูกกระทำ” — เช่นเดียวกับ coffee, agree, degree · ต้องดูว่าตัดท้ายแล้วเหลือกริยาจริงไหม (train → trainee ✓ / f → fee ✗)"
+     },
+     {
+      "q": "The word “attendance” in sentence 7 most likely means ______.",
+      "o": [
+       "the number of people who come",
+       "a person who works in a shop",
+       "a kind of card",
+       "the price of coffee"
+      ],
+      "a": 0,
+      "why": "attend (มาร่วม) + -ance (การ… / ความ…) → การมาร่วม จำนวนคนที่มา · -ance เป็นคำนามนามธรรม ไม่ใช่คน จึงตัด B ได้"
+     },
+     {
+      "q": "What does the investor want to start with Mrs. Somsri?",
+      "o": [
+       "a business relationship",
+       "a cooking class",
+       "a new university",
+       "a research project"
+      ],
+      "a": 0,
+      "why": "partner + -ship (ภาวะ / ความสัมพันธ์) → partnership = ความเป็นหุ้นส่วน คือความสัมพันธ์ทางธุรกิจ"
+     }
+    ],
+    "also": [
+     {
+      "w": "interview",
+      "l": "b08"
+     },
+     {
+      "w": "project",
+      "l": "b10"
+     }
+    ]
+   }
+  },
+  {
+   "week": 4,
+   "lesson": "b04",
+   "lessonHour": 4,
+   "lessonTitle": "คุณศัพท์บอกความหมาย: -ous · -ic · -less · -ed/-ing",
+   "set": 4,
+   "dateLabel": "23–27 พ.ย. 69",
+   "preview": {
+    "title": "Learning Through Games",
+    "topic": "การเรียนรู้ · เกม",
+    "sents": [
+     "Many teachers now use games to **attract** students’ attention in class.",
+     "Studies **suggest** that a game can turn a difficult **concept** into something students actually enjoy.",
+     "For example, a history **assignment** may become a team quest with points and levels.",
+     "The biggest **advantage** is the **interaction** between classmates, who must talk and plan together.",
+     "Games also offer a **variety** of tasks, so students with different skills can all take part.",
+     "However, the **content** must still match the lesson, or the fun may **prevent** real learning.",
+     "In the end, a good game should create a **desire** to keep learning even after the bell rings."
+    ],
+    "qs": [
+     {
+      "q": "The word “concept” in sentence 2 is closest in meaning to ______.",
+      "o": [
+       "idea",
+       "price",
+       "mistake",
+       "building"
+      ],
+      "a": 0,
+      "why": "concept = แนวคิด ความคิดรวบยอด → a difficult concept = แนวคิดที่ยาก · con (ร่วม) + cept (จับ) = จับความคิดมารวมกัน (เรียนรากนี้ในบทที่ 12)"
+     },
+     {
+      "q": "According to the passage, what is the biggest advantage of games?",
+      "o": [
+       "Teachers do not need to prepare.",
+       "Classmates must talk and plan together.",
+       "Students finish homework faster.",
+       "Games are cheaper than books."
+      ],
+      "a": 1,
+      "why": "ประโยคที่ 4: The biggest advantage is the interaction between classmates, who must talk and plan together · inter (ระหว่าง) + action = การกระทำระหว่างกัน"
+     },
+     {
+      "q": "What is the passage mainly about?",
+      "o": [
+       "Why history is a difficult subject",
+       "Why students dislike homework",
+       "How to design computer games",
+       "How games can support learning in class"
+      ],
+      "a": 3,
+      "why": "ทุกประโยคพูดถึงการใช้เกมในห้องเรียน ทั้งข้อดีและข้อควรระวัง · ตัวเลือกอื่นเป็นรายละเอียดเล็ก ๆ หรือไม่ได้กล่าวถึง"
+     },
+     {
+      "q": "In sentence 6, the word “However” introduces ______.",
+      "o": [
+       "the result of a study",
+       "an example of a game",
+       "a warning about using games",
+       "a reason games are popular"
+      ],
+      "a": 2,
+      "why": "However = อย่างไรก็ตาม → บอกสิ่งที่ขัดกับข้อดีก่อนหน้า คือข้อควรระวังว่าเนื้อหาต้องตรงบทเรียน ไม่อย่างนั้นความสนุกอาจ prevent (ขัดขวาง) การเรียนจริง"
+     }
+    ],
+    "cover": [
+     {
+      "w": "advantage",
+      "s": 4
+     },
+     {
+      "w": "assignment",
+      "s": 4
+     },
+     {
+      "w": "attract",
+      "s": 4,
+      "l": "b10"
+     },
+     {
+      "w": "concept",
+      "s": 4,
+      "l": "b12"
+     },
+     {
+      "w": "content",
+      "s": 4
+     },
+     {
+      "w": "desire",
+      "s": 4
+     },
+     {
+      "w": "interaction",
+      "s": 4,
+      "l": "b08"
+     },
+     {
+      "w": "prevent",
+      "s": 4,
+      "l": "b12"
+     },
+     {
+      "w": "suggest",
+      "s": 4
+     },
+     {
+      "w": "variety",
+      "s": 4
+     }
+    ],
+    "nWords": 103
+   },
+   "decode": {
+    "title": "The Night Market Trip",
+    "topic": "ท่องเที่ยว · ตลาดนัด",
+    "sents": [
+     "Our class visited a famous night market in the old part of the city.",
+     "The walk there felt **endless**, and by the time we arrived, everyone was **exhausted**.",
+     "But the market was full of **artistic** handmade goods and **historic** wooden houses.",
+     "A **nervous** student tried a fried insect, while a **fearless** boy ate three in a row.",
+     "The loud music was a bit **annoying**, yet nobody wanted to leave.",
+     "It was a **priceless** night that we will remember for years."
+    ],
+    "words": [
+     {
+      "w": "endless",
+      "code": "end + -less",
+      "th": "ไม่มีที่สิ้นสุด",
+      "kind": "new"
+     },
+     {
+      "w": "exhausted",
+      "code": "exhaust + -ed",
+      "th": "(คน) รู้สึกเหนื่อยหมดแรง",
+      "kind": "new"
+     },
+     {
+      "w": "artistic",
+      "code": "artist + -ic",
+      "th": "เกี่ยวกับศิลปะ มีศิลปะ",
+      "kind": "new"
+     },
+     {
+      "w": "historic",
+      "code": "history + -ic",
+      "th": "สำคัญทางประวัติศาสตร์",
+      "kind": "new"
+     },
+     {
+      "w": "nervous",
+      "code": "nerve + -ous",
+      "th": "ประหม่า กังวล",
+      "kind": "new"
+     },
+     {
+      "w": "fearless",
+      "code": "fear + -less",
+      "th": "ไม่กลัว กล้าหาญ",
+      "kind": "new"
+     },
+     {
+      "w": "annoying",
+      "code": "annoy + -ing",
+      "th": "(สิ่งที่) ทำให้รำคาญ",
+      "kind": "new"
+     },
+     {
+      "w": "priceless",
+      "code": "price + -less",
+      "th": "ล้ำค่าจนประเมินราคาไม่ได้ (ไม่ใช่ ‘ไม่มีราคา’)",
+      "kind": "trap"
+     }
+    ],
+    "qs": [
+     {
+      "q": "The word “fearless” in sentence 4 describes someone who is ______.",
+      "o": [
+       "very afraid",
+       "not afraid",
+       "very tired",
+       "always hungry"
+      ],
+      "a": 1,
+      "why": "fear (ความกลัว) + -less (ไม่มี) = ไม่มีความกลัว → กล้าหาญ · ประโยคเดียวกันเทียบกับ nervous student ที่ประหม่า"
+     },
+     {
+      "q": "Why was everyone “exhausted” when they arrived?",
+      "o": [
+       "They ate too much food.",
+       "The walk to the market felt very long.",
+       "The music was too quiet.",
+       "The market was closed."
+      ],
+      "a": 1,
+      "why": "-ed = คนที่รู้สึก → exhausted = รู้สึกเหนื่อยหมดแรง · สาเหตุอยู่ต้นประโยค: The walk there felt endless (-less = ไม่มีที่สิ้นสุด)"
+     },
+     {
+      "q": "In sentence 5, the music was “annoying”. This means the music ______.",
+      "o": [
+       "was played by students",
+       "was very quiet",
+       "made people feel irritated",
+       "felt irritated"
+      ],
+      "a": 2,
+      "why": "-ing = สิ่งที่ทำให้รู้สึก → เพลงทำให้คนรำคาญ · ถ้าเป็น annoyed (-ed) จะหมายถึงคนที่รู้สึกรำคาญ"
+     },
+     {
+      "q": "In sentence 6, “priceless” means ______.",
+      "o": [
+       "very valuable",
+       "free of charge",
+       "boring",
+       "very cheap"
+      ],
+      "a": 0,
+      "why": "กับดัก: -less ปกติ = ไม่มี แต่ priceless = มีค่ามากจนตีราคาไม่ได้ ไม่ใช่ ‘ไม่มีราคา’ หรือ ‘ฟรี’ · ใช้บริบท: a night that we will remember for years"
+     }
+    ],
+    "also": []
+   }
+  },
+  {
+   "week": 5,
+   "lesson": "b05",
+   "lessonHour": 5,
+   "lessonTitle": "อุปสรรคปฏิเสธ: un- · in- · im- · il- · ir- · dis- · non-",
+   "set": 5,
+   "dateLabel": "30 พ.ย.–4 ธ.ค. 69",
+   "preview": {
+    "title": "Stress at Work",
+    "topic": "การทำงาน · ความเครียด",
+    "sents": [
+     "Many young **employees** feel **anxiety** when their bosses **demand** fast results.",
+     "Psychologists say that each **individual** reacts to pressure in a different way.",
+     "Some people **associate** long working hours with success, while others see them as a sign of poor planning.",
+     "When stress grows, small **conflicts** between co-workers can become serious arguments.",
+     "How well a team handles stress often **depends** on its leader.",
+     "A good leader is **aware** of these problems and gives **specific** instructions instead of unclear orders.",
+     "Such leaders have a strong, positive **influence** on the whole office."
+    ],
+    "qs": [
+     {
+      "q": "The word “specific” in sentence 6 is closest in meaning to ______.",
+      "o": [
+       "loud",
+       "clear and exact",
+       "secret",
+       "long and boring"
+      ],
+      "a": 1,
+      "why": "specific = เฉพาะเจาะจง · ในประโยคเทียบกับ unclear orders (คำสั่งที่ไม่ชัด) จึงต้องเป็น ‘ชัดเจนและแน่นอน’"
+     },
+     {
+      "q": "According to the passage, what can happen when stress grows?",
+      "o": [
+       "Bosses demand fewer results.",
+       "Small conflicts can turn into serious arguments.",
+       "Teams become larger.",
+       "Employees always work faster."
+      ],
+      "a": 1,
+      "why": "ประโยคที่ 4: When stress grows, small conflicts … can become serious arguments"
+     },
+     {
+      "q": "In sentence 3, the word “others” refers to other ______.",
+      "o": [
+       "offices",
+       "bosses",
+       "people",
+       "results"
+      ],
+      "a": 2,
+      "why": "Some people … while others … → others = other people (คนอื่น ๆ) · ข้อสอบชอบถามคำอ้างอิงแบบนี้ ให้ย้อนหาคำนามที่จับคู่กัน"
+     },
+     {
+      "q": "What is the main idea of the passage?",
+      "o": [
+       "Young employees should change jobs.",
+       "A good leader can reduce stress at work.",
+       "Long working hours always lead to success.",
+       "Arguments at work cannot be avoided."
+      ],
+      "a": 1,
+      "why": "ประโยคที่ 5–7 สรุปว่าผู้นำที่ดีช่วยรับมือความเครียดของทีมได้ · B C D ไม่ได้กล่าวไว้หรือกล่าวเกินจริง"
+     }
+    ],
+    "cover": [
+     {
+      "w": "anxiety",
+      "s": 5
+     },
+     {
+      "w": "associate",
+      "s": 5
+     },
+     {
+      "w": "aware",
+      "s": 5
+     },
+     {
+      "w": "conflict",
+      "s": 5,
+      "l": "b08"
+     },
+     {
+      "w": "demand",
+      "s": 5
+     },
+     {
+      "w": "depend",
+      "s": 5
+     },
+     {
+      "w": "employee",
+      "s": 5,
+      "l": "b03"
+     },
+     {
+      "w": "individual",
+      "s": 5
+     },
+     {
+      "w": "influence",
+      "s": 5
+     },
+     {
+      "w": "specific",
+      "s": 5
+     }
+    ],
+    "nWords": 90
+   },
+   "decode": {
+    "title": "A Part-Time Job Gone Wrong",
+    "topic": "งานพาร์ทไทม์",
+    "sents": [
+     "Last summer, Ploy took a part-time job at a café that promised good pay.",
+     "Soon she found that her schedule was **irregular**: some days she worked two hours, other days ten.",
+     "Her manager was **impolite** and often shouted at the staff in front of customers.",
+     "Even worse, some of her extra hours were **unpaid**.",
+     "When she asked about it, the manager gave a **dishonest** answer and said the records were **incomplete**.",
+     "Ploy decided that the job was **unhealthy** for her and quit.",
+     "Now she works in the **nonfiction** section of the city library, where the hours are fair."
+    ],
+    "words": [
+     {
+      "w": "irregular",
+      "code": "ir- + regular",
+      "th": "ไม่สม่ำเสมอ ไม่แน่นอน",
+      "kind": "new"
+     },
+     {
+      "w": "impolite",
+      "code": "im- + polite",
+      "th": "ไม่สุภาพ",
+      "kind": "new"
+     },
+     {
+      "w": "unpaid",
+      "code": "un- + paid",
+      "th": "ไม่ได้รับค่าจ้าง",
+      "kind": "new"
+     },
+     {
+      "w": "dishonest",
+      "code": "dis- + honest",
+      "th": "ไม่ซื่อสัตย์",
+      "kind": "new"
+     },
+     {
+      "w": "incomplete",
+      "code": "in- + complete",
+      "th": "ไม่ครบ ไม่สมบูรณ์",
+      "kind": "new"
+     },
+     {
+      "w": "unhealthy",
+      "code": "un- + healthy",
+      "th": "ไม่ดีต่อสุขภาพ",
+      "kind": "new"
+     },
+     {
+      "w": "nonfiction",
+      "code": "non- + fiction",
+      "th": "สารคดี (ไม่ใช่เรื่องแต่ง)",
+      "kind": "new"
+     }
+    ],
+    "qs": [
+     {
+      "q": "The word “irregular” in sentence 2 means Ploy’s schedule was ______.",
+      "o": [
+       "easy to follow",
+       "very short",
+       "not the same every day",
+       "well paid"
+      ],
+      "a": 2,
+      "why": "ir- (ก่อน r) = ไม่ + regular (สม่ำเสมอ) → ไม่สม่ำเสมอ · บริบทยืนยัน: some days two hours, other days ten"
+     },
+     {
+      "q": "Which word shows that Ploy did NOT get money for some of her work?",
+      "o": [
+       "impolite",
+       "unpaid",
+       "incomplete",
+       "nonfiction"
+      ],
+      "a": 1,
+      "why": "un- (ไม่) + paid (ได้รับเงิน) → ไม่ได้รับค่าจ้าง · คำอื่นมีอุปสรรคปฏิเสธเหมือนกัน แต่ความหมายไม่เกี่ยวกับเงิน"
+     },
+     {
+      "q": "The manager’s answer was “dishonest”, which means it was ______.",
+      "o": [
+       "too long",
+       "written down",
+       "not true",
+       "very polite"
+      ],
+      "a": 2,
+      "why": "dis- (ไม่ / ตรงข้าม) + honest (ซื่อสัตย์) → ไม่ซื่อสัตย์ คำตอบไม่ใช่ความจริง"
+     },
+     {
+      "q": "Why did Ploy quit the job?",
+      "o": [
+       "She moved to another city.",
+       "She found a better café.",
+       "The café closed down.",
+       "She felt it was bad for her health."
+      ],
+      "a": 3,
+      "why": "ประโยคที่ 6: the job was unhealthy for her → un- + healthy = ไม่ดีต่อสุขภาพ"
+     }
+    ],
+    "also": []
+   }
+  },
+  {
+   "week": 6,
+   "lesson": "b06",
+   "lessonHour": 6,
+   "lessonTitle": "อุปสรรคบอกระดับและเวลา: mis- · over- · under- · re- · pre- · post-",
+   "set": null,
+   "dateLabel": "7–11 ธ.ค. 69",
+   "preview": null,
+   "decode": {
+    "title": "A Bad Morning Before the Exam",
+    "topic": "เช้าวันสอบ",
+    "sents": [
+     "On the morning of the big exam, Tan **overslept** and woke up at 7:45.",
+     "He ran to the kitchen to **reheat** last night’s rice, but it was still **undercooked** in the middle.",
+     "In a hurry, he **misplaced** his student card and spent ten minutes looking for it.",
+     "The bus was **overcrowded**, so he had to stand all the way to school.",
+     "During the test, he **misread** the first question and had to **rewrite** his whole answer.",
+     "Luckily, his teacher had given the class a **pretest** the week before, so the questions felt familiar."
+    ],
+    "words": [
+     {
+      "w": "overslept",
+      "code": "over- + slept",
+      "th": "นอนเกินเวลา ตื่นสาย",
+      "kind": "new"
+     },
+     {
+      "w": "reheat",
+      "code": "re- + heat",
+      "th": "อุ่นอีกครั้ง",
+      "kind": "new"
+     },
+     {
+      "w": "undercooked",
+      "code": "under- + cooked",
+      "th": "สุกไม่พอ",
+      "kind": "new"
+     },
+     {
+      "w": "misplaced",
+      "code": "mis- + placed",
+      "th": "วางผิดที่ หาไม่เจอ",
+      "kind": "new"
+     },
+     {
+      "w": "overcrowded",
+      "code": "over- + crowded",
+      "th": "คนแน่นเกินไป",
+      "kind": "new"
+     },
+     {
+      "w": "misread",
+      "code": "mis- + read",
+      "th": "อ่านผิด เข้าใจผิด",
+      "kind": "new"
+     },
+     {
+      "w": "rewrite",
+      "code": "re- + write",
+      "th": "เขียนใหม่",
+      "kind": "new"
+     },
+     {
+      "w": "pretest",
+      "code": "pre- + test",
+      "th": "การทดสอบก่อนเรียน",
+      "kind": "new"
+     }
+    ],
+    "qs": [
+     {
+      "q": "“Overslept” in sentence 1 means Tan ______.",
+      "o": [
+       "slept longer than he planned",
+       "went to bed early",
+       "could not sleep at all",
+       "slept on the bus"
+      ],
+      "a": 0,
+      "why": "over- (มากเกินไป) + slept (นอน) → นอนเกินเวลา · บริบท: woke up at 7:45 ในเช้าวันสอบ"
+     },
+     {
+      "q": "What was wrong with the rice?",
+      "o": [
+       "It was too cold to eat.",
+       "It was cooked too much.",
+       "It was not cooked enough.",
+       "It belonged to someone else."
+      ],
+      "a": 2,
+      "why": "under- (น้อยเกินไป) + cooked → สุกไม่พอ · ตรงข้ามกับ overcooked"
+     },
+     {
+      "q": "Why did Tan have to rewrite his answer?",
+      "o": [
+       "The teacher asked everyone to.",
+       "He read the question wrongly.",
+       "He finished too early.",
+       "His pen stopped working."
+      ],
+      "a": 1,
+      "why": "mis- (ผิด) + read → อ่านผิด จึงต้อง re- (อีกครั้ง) + write = เขียนใหม่"
+     },
+     {
+      "q": "A “pretest” is a test that comes ______ the real exam.",
+      "o": [
+       "after",
+       "at the same time as",
+       "instead of",
+       "before"
+      ],
+      "a": 3,
+      "why": "pre- = ก่อน · ตรงข้ามกับ post- (หลัง) เช่น post-test"
+     }
+    ],
+    "also": [
+     {
+      "w": "familiar",
+      "s": 8
+     }
+    ]
+   }
+  },
+  {
+   "week": 7,
+   "lesson": "b07",
+   "lessonHour": 7,
+   "lessonTitle": "อุปสรรคบอกทิศทาง: ex- · in- · de- · pro- · re-",
+   "set": 6,
+   "dateLabel": "14–18 ธ.ค. 69",
+   "preview": {
+    "title": "Solar Power at School",
+    "topic": "พลังงาน · สิ่งแวดล้อม",
+    "sents": [
+     "Last year, our school decided to **purchase** solar panels for the roof.",
+     "**Experts** said the panels could **generate** about 40 percent of the school’s electricity.",
+     "Because the budget was **limited**, the school used a simple **method**: install panels on one building first.",
+     "The results were **significant**, as the electricity bill fell by almost a third.",
+     "Students also gained **access** to a live screen that shows how much power the panels produce.",
+     "In **response**, science teachers added lessons on energy and the **physical** properties of materials.",
+     "The project **reflects** the school’s goal of teaching students to care for the planet."
+    ],
+    "qs": [
+     {
+      "q": "The word “significant” in sentence 4 is closest in meaning to ______.",
+      "o": [
+       "large enough to notice",
+       "unclear",
+       "expensive",
+       "very small"
+      ],
+      "a": 0,
+      "why": "significant = สำคัญ มากจนเห็นได้ชัด · บริบท: ค่าไฟลดลงเกือบหนึ่งในสาม"
+     },
+     {
+      "q": "Why did the school install panels on only one building first?",
+      "o": [
+       "The other buildings were too old.",
+       "Experts told it to stop.",
+       "It did not have much money.",
+       "Students asked for it."
+      ],
+      "a": 2,
+      "why": "ประโยคที่ 3: Because the budget was limited (งบมีจำกัด)"
+     },
+     {
+      "q": "What did students get access to?",
+      "o": [
+       "The school roof",
+       "A screen that shows the panels’ power",
+       "A science competition",
+       "Free electricity at home"
+      ],
+      "a": 1,
+      "why": "ประโยคที่ 5: access to a live screen that shows how much power the panels produce"
+     },
+     {
+      "q": "The passage is mainly about ______.",
+      "o": [
+       "how a school uses solar power and what it gained",
+       "the history of solar panels",
+       "how to become an expert",
+       "why electricity bills are rising"
+      ],
+      "a": 0,
+      "why": "ทั้งบทเล่าการติดแผงโซลาร์ ผลลัพธ์ และสิ่งที่โรงเรียนได้เพิ่ม · ตัวเลือกอื่นไม่ได้เป็นใจความหลัก"
+     }
+    ],
+    "cover": [
+     {
+      "w": "access",
+      "s": 6
+     },
+     {
+      "w": "expert",
+      "s": 6
+     },
+     {
+      "w": "generate",
+      "s": 6
+     },
+     {
+      "w": "limited",
+      "s": 6
+     },
+     {
+      "w": "method",
+      "s": 6
+     },
+     {
+      "w": "physical",
+      "s": 6
+     },
+     {
+      "w": "purchase",
+      "s": 6
+     },
+     {
+      "w": "reflect",
+      "s": 6,
+      "l": "b07"
+     },
+     {
+      "w": "response",
+      "s": 6
+     },
+     {
+      "w": "significant",
+      "s": 6,
+      "l": "b11"
+     },
+     {
+      "w": "material",
+      "s": 2
+     },
+     {
+      "w": "produce",
+      "s": 3,
+      "l": "b10"
+     },
+     {
+      "w": "gain",
+      "s": 8
+     },
+     {
+      "w": "project",
+      "l": "b10"
+     }
+    ],
+    "nWords": 98
+   },
+   "decode": {
+    "title": "Inside the Science Museum",
+    "topic": "พิพิธภัณฑ์วิทยาศาสตร์",
+    "sents": [
+     "Our tour began with a **multilingual** guide who explained everything in Thai, English and Chinese.",
+     "In the first room, a machine showed how our lungs **inhale** fresh air and **exhale** used air.",
+     "Next, we watched a small robot **descend** a long staircase without falling.",
+     "A sign told visitors to **proceed** to the next hall, where an old **tricycle** was on display.",
+     "A performer rode a **unicycle** around the hall, balancing on just one wheel.",
+     "Before we left, the guide asked us to return our headphones at the exit."
+    ],
+    "words": [
+     {
+      "w": "multilingual",
+      "code": "multi- + lingual",
+      "th": "พูดได้หลายภาษา",
+      "kind": "new"
+     },
+     {
+      "w": "inhale",
+      "code": "in- + hale",
+      "th": "หายใจเข้า",
+      "kind": "new"
+     },
+     {
+      "w": "exhale",
+      "code": "ex- + hale",
+      "th": "หายใจออก",
+      "kind": "new"
+     },
+     {
+      "w": "descend",
+      "code": "de- + scend",
+      "th": "ลงมา",
+      "kind": "new"
+     },
+     {
+      "w": "proceed",
+      "code": "pro- + ceed",
+      "th": "ไปข้างหน้า ดำเนินต่อ",
+      "kind": "new"
+     },
+     {
+      "w": "tricycle",
+      "code": "tri- + cycle",
+      "th": "รถสามล้อ",
+      "kind": "new"
+     },
+     {
+      "w": "unicycle",
+      "code": "uni- + cycle",
+      "th": "รถล้อเดียว",
+      "kind": "new"
+     }
+    ],
+    "qs": [
+     {
+      "q": "A “multilingual” guide is someone who ______.",
+      "o": [
+       "works in many museums",
+       "speaks many languages",
+       "has many friends",
+       "guides many tours"
+      ],
+      "a": 1,
+      "why": "multi- (หลาย) + lingual (ภาษา) · บริบทยืนยัน: explained everything in Thai, English and Chinese"
+     },
+     {
+      "q": "When you “exhale”, air goes ______.",
+      "o": [
+       "into your body",
+       "out of your body",
+       "down to the floor",
+       "back into the machine"
+      ],
+      "a": 1,
+      "why": "ex- = ออก → หายใจออก · ตรงข้ามกับ in- (เข้า) ใน inhale"
+     },
+     {
+      "q": "The robot could “descend” the staircase, so it moved ______.",
+      "o": [
+       "across",
+       "backwards",
+       "up",
+       "down"
+      ],
+      "a": 3,
+      "why": "de- = ลง · ตรงข้ามกับ ascend (ขึ้น)"
+     },
+     {
+      "q": "How many wheels does a “tricycle” have?",
+      "o": [
+       "four",
+       "two",
+       "one",
+       "three"
+      ],
+      "a": 3,
+      "why": "tri- = สาม · uni- = หนึ่ง (unicycle) · bi- = สอง (bicycle)"
+     }
+    ],
+    "also": [
+     {
+      "w": "display",
+      "s": 10
+     }
+    ]
+   }
+  },
+  {
+   "week": 8,
+   "lesson": "b08",
+   "lessonHour": 8,
+   "lessonTitle": "อุปสรรคบอกความสัมพันธ์: con- · inter- · trans- · super-/sur- · sub- · anti-",
+   "set": 7,
+   "dateLabel": "21–25 ธ.ค. 69",
+   "preview": {
+    "title": "The School Talent Show",
+    "topic": "กิจกรรมโรงเรียน",
+    "sents": [
+     "Every year, our school holds a talent show where students **perform** songs, dances and comedy.",
+     "Teachers say the show can **boost** students’ **confidence** in front of a crowd.",
+     "This year, there was one **condition**: every act had to be shorter than five minutes.",
+     "Some students had to **deal** with stage fright, but most of them did well.",
+     "One quiet boy surprised everyone with his piano skills, which **implies** that many students have hidden **potential**.",
+     "The judges were **flexible** and gave **additional** time to a group whose music stopped suddenly.",
+     "The only thing that **disappointed** the audience was that the show ended too soon."
+    ],
+    "qs": [
+     {
+      "q": "The word “boost” in sentence 2 is closest in meaning to ______.",
+      "o": [
+       "lose",
+       "test",
+       "increase",
+       "hide"
+      ],
+      "a": 2,
+      "why": "boost = เพิ่ม กระตุ้น → boost confidence = เพิ่มความมั่นใจ"
+     },
+     {
+      "q": "What rule did every act have to follow?",
+      "o": [
+       "It had to be a song.",
+       "It had to be shorter than five minutes.",
+       "It needed a piano.",
+       "It had to include comedy."
+      ],
+      "a": 1,
+      "why": "ประโยคที่ 3: one condition (เงื่อนไข) … shorter than five minutes"
+     },
+     {
+      "q": "Why did the judges give extra time to one group?",
+      "o": [
+       "It asked politely.",
+       "Its music stopped suddenly.",
+       "It was the best act.",
+       "It arrived late."
+      ],
+      "a": 1,
+      "why": "ประโยคที่ 6: additional time to a group whose music stopped suddenly"
+     },
+     {
+      "q": "What does sentence 5 imply?",
+      "o": [
+       "The boy practiced every day.",
+       "Many students have abilities that others do not know about.",
+       "Quiet students cannot perform.",
+       "Piano is the most popular talent."
+      ],
+      "a": 1,
+      "why": "imply = บอกเป็นนัย → hidden potential = ศักยภาพที่ซ่อนอยู่ · B C D ไม่มีหลักฐานในบทอ่าน"
+     }
+    ],
+    "cover": [
+     {
+      "w": "additional",
+      "s": 7
+     },
+     {
+      "w": "boost",
+      "s": 7
+     },
+     {
+      "w": "condition",
+      "s": 7
+     },
+     {
+      "w": "confidence",
+      "s": 7,
+      "l": "b03"
+     },
+     {
+      "w": "deal",
+      "s": 7
+     },
+     {
+      "w": "disappoint",
+      "s": 7
+     },
+     {
+      "w": "flexible",
+      "s": 7
+     },
+     {
+      "w": "imply",
+      "s": 7,
+      "l": "b11"
+     },
+     {
+      "w": "perform",
+      "s": 7
+     },
+     {
+      "w": "potential",
+      "s": 7
+     },
+     {
+      "w": "audience",
+      "l": "b09"
+     }
+    ],
+    "nWords": 103
+   },
+   "decode": {
+    "title": "A Film Project with Japan",
+    "topic": "โครงการแลกเปลี่ยน",
+    "sents": [
+     "Our class joined an **interschool** project with a high school in Japan.",
+     "Each team had a Thai and a Japanese **co-leader**, and we had to **collaborate** online every week.",
+     "One Japanese member lived in Hokkaido, where winter temperatures can stay **subzero** for weeks.",
+     "Our short film about street food was posted online, and its views quickly **surpassed** ten thousand.",
+     "A famous food blogger even called our team “**superstars**” in a comment.",
+     "Some viewers worried about hygiene, so we added a scene of cooks using **antibacterial** soap."
+    ],
+    "words": [
+     {
+      "w": "interschool",
+      "code": "inter- + school",
+      "th": "ระหว่างโรงเรียน",
+      "kind": "new"
+     },
+     {
+      "w": "co-leader",
+      "code": "co- + leader",
+      "th": "ผู้นำร่วม",
+      "kind": "new"
+     },
+     {
+      "w": "collaborate",
+      "code": "col- + labor + -ate",
+      "th": "ทำงานร่วมกัน",
+      "kind": "new"
+     },
+     {
+      "w": "subzero",
+      "code": "sub- + zero",
+      "th": "ต่ำกว่าศูนย์องศา",
+      "kind": "new"
+     },
+     {
+      "w": "surpassed",
+      "code": "sur- + passed",
+      "th": "เกิน แซงหน้า",
+      "kind": "new"
+     },
+     {
+      "w": "superstars",
+      "code": "super- + stars",
+      "th": "ดาราดังสุด ๆ คนเก่งมาก",
+      "kind": "new"
+     },
+     {
+      "w": "antibacterial",
+      "code": "anti- + bacterial",
+      "th": "ต้านเชื้อแบคทีเรีย",
+      "kind": "new"
+     }
+    ],
+    "qs": [
+     {
+      "q": "An “interschool” project is a project ______.",
+      "o": [
+       "for teachers only",
+       "about the history of schools",
+       "between two or more schools",
+       "inside one classroom"
+      ],
+      "a": 2,
+      "why": "inter- = ระหว่าง → ระหว่างโรงเรียน · บริบท: โรงเรียนไทยกับโรงเรียนญี่ปุ่น"
+     },
+     {
+      "q": "The word “collaborate” in sentence 2 means ______.",
+      "o": [
+       "travel",
+       "work together",
+       "compete",
+       "argue"
+      ],
+      "a": 1,
+      "why": "col- (= con- ร่วมกัน) + labor (งาน) → ทำงานร่วมกัน · con- เปลี่ยนเป็น col- เมื่ออักษรถัดไปเป็น l"
+     },
+     {
+      "q": "If the temperature is “subzero”, it is ______.",
+      "o": [
+       "exactly zero",
+       "above zero",
+       "unknown",
+       "below zero"
+      ],
+      "a": 3,
+      "why": "sub- = ใต้ ต่ำกว่า → ต่ำกว่าศูนย์ · ตรงข้ามกับ super- (เหนือ)"
+     },
+     {
+      "q": "Why did the team add a scene with “antibacterial” soap?",
+      "o": [
+       "To make the film longer",
+       "To answer viewers’ worries about cleanliness",
+       "Because the blogger asked them to",
+       "To advertise a soap brand"
+      ],
+      "a": 1,
+      "why": "anti- (ต่อต้าน) + bacterial → ต้านเชื้อ · สาเหตุ: Some viewers worried about hygiene"
+     }
+    ],
+    "also": [
+     {
+      "w": "project",
+      "l": "b10"
+     }
+    ]
+   }
+  },
+  {
+   "week": 9,
+   "lesson": "b09",
+   "lessonHour": 9,
+   "lessonTitle": "รากศัพท์การรับรู้: spect · vis · aud · dict · scrib · voc",
+   "set": 8,
+   "dateLabel": "28 ธ.ค. 69–1 ม.ค. 70",
+   "preview": {
+    "title": "Do Energy Drinks Really Help?",
+    "topic": "สุขภาพ · งานวิจัย",
+    "sents": [
+     "Many energy drinks **claim** to improve your **concentration** before an exam.",
+     "The main **ingredient** in most of them is caffeine, a substance that is **familiar** to coffee drinkers.",
+     "To **determine** whether these drinks are **effective**, researchers asked two groups of students to take the same test.",
+     "One group had an energy drink and the other had water; then the researchers **evaluated** their scores.",
+     "The energy-drink group **gained** only a few points, and many of them could not sleep that night.",
+     "Doctors do not want to **force** teenagers to give up these drinks completely.",
+     "Instead, they advise parents to **ensure** that their children have no more than one can a day."
+    ],
+    "qs": [
+     {
+      "q": "The word “claim” in sentence 1 is closest in meaning to ______.",
+      "o": [
+       "say that something is true",
+       "prove scientifically",
+       "sell",
+       "refuse"
+      ],
+      "a": 0,
+      "why": "claim = อ้างว่า (ยังไม่แน่ว่าจริง) · ต่างจาก prove (พิสูจน์) — บทอ่านบอกต่อว่าผลจริงช่วยได้นิดเดียว"
+     },
+     {
+      "q": "How did the researchers test the drinks?",
+      "o": [
+       "They measured the caffeine in coffee.",
+       "They asked doctors for their opinions.",
+       "They compared the test scores of two groups.",
+       "They interviewed parents."
+      ],
+      "a": 2,
+      "why": "ประโยคที่ 3–4: two groups … the same test … evaluated their scores"
+     },
+     {
+      "q": "According to the passage, the energy-drink group ______.",
+      "o": [
+       "did not finish the test",
+       "scored much higher",
+       "scored only slightly higher",
+       "scored lower"
+      ],
+      "a": 2,
+      "why": "ประโยคที่ 5: gained only a few points = ได้คะแนนเพิ่มแค่ไม่กี่คะแนน"
+     },
+     {
+      "q": "What is the writer’s main point?",
+      "o": [
+       "Students should drink more water.",
+       "Energy drinks are the best way to study.",
+       "Caffeine is dangerous for everyone.",
+       "Energy drinks help only a little and have side effects."
+      ],
+      "a": 3,
+      "why": "ช่วยได้นิดเดียว (gained only a few points) + ผลข้างเคียง (could not sleep) · C และ D พูดเกินจริง"
+     }
+    ],
+    "cover": [
+     {
+      "w": "claim",
+      "s": 8
+     },
+     {
+      "w": "concentration",
+      "s": 8
+     },
+     {
+      "w": "determine",
+      "s": 8
+     },
+     {
+      "w": "effective",
+      "s": 8,
+      "l": "b01"
+     },
+     {
+      "w": "ensure",
+      "s": 8,
+      "l": "b02"
+     },
+     {
+      "w": "evaluate",
+      "s": 8
+     },
+     {
+      "w": "familiar",
+      "s": 8
+     },
+     {
+      "w": "force",
+      "s": 8
+     },
+     {
+      "w": "gain",
+      "s": 8
+     },
+     {
+      "w": "ingredient",
+      "s": 8
+     },
+     {
+      "w": "researcher",
+      "l": "b03"
+     }
+    ],
+    "nWords": 110
+   },
+   "decode": {
+    "title": "The Singing Audition",
+    "topic": "การประกวดร้องเพลง",
+    "sents": [
+     "Hundreds of teenagers came to the city **auditorium** for a TV singing **audition**.",
+     "The judges sat at a long table, and about two thousand **spectators** watched from their seats.",
+     "One judge, a famous **vocal** coach, listened carefully to every note.",
+     "A shy girl from Chiang Rai sang so softly that her voice was almost **inaudible**.",
+     "The judges’ **verdict** was clear: she had talent but needed more confidence.",
+     "Before the show ended, the host asked viewers to **subscribe** to the program’s online channel."
+    ],
+    "words": [
+     {
+      "w": "auditorium",
+      "code": "aud + -itorium",
+      "th": "หอประชุม (ที่สำหรับฟัง)",
+      "kind": "new"
+     },
+     {
+      "w": "audition",
+      "code": "aud + -ition",
+      "th": "การทดสอบความสามารถ (ร้อง แสดง)",
+      "kind": "new"
+     },
+     {
+      "w": "spectators",
+      "code": "spect + -ator",
+      "th": "ผู้ชม",
+      "kind": "new"
+     },
+     {
+      "w": "vocal",
+      "code": "voc + -al",
+      "th": "เกี่ยวกับเสียงร้อง",
+      "kind": "new"
+     },
+     {
+      "w": "inaudible",
+      "code": "in- + aud + -ible",
+      "th": "ไม่ได้ยิน",
+      "kind": "new"
+     },
+     {
+      "w": "verdict",
+      "code": "ver + dict",
+      "th": "คำตัดสิน",
+      "kind": "new"
+     },
+     {
+      "w": "subscribe",
+      "code": "sub- + scribe",
+      "th": "สมัครติดตาม (ลงชื่อไว้ข้างใต้)",
+      "kind": "new"
+     }
+    ],
+    "qs": [
+     {
+      "q": "“Spectators” in sentence 2 are people who ______.",
+      "o": [
+       "watch an event",
+       "sell tickets",
+       "judge a show",
+       "sing in a contest"
+      ],
+      "a": 0,
+      "why": "spect (มอง) + -ator (ผู้) → ผู้ชม"
+     },
+     {
+      "q": "The girl’s voice was “inaudible”, which means it was ______.",
+      "o": [
+       "very loud",
+       "very beautiful",
+       "out of tune",
+       "very hard to hear"
+      ],
+      "a": 3,
+      "why": "in- (ไม่) + aud (ได้ยิน) + -ible (ได้) → ไม่สามารถได้ยิน · บริบท: sang so softly"
+     },
+     {
+      "q": "What was the judges’ “verdict”?",
+      "o": [
+       "She was the winner.",
+       "She sang too loudly.",
+       "She should stop singing.",
+       "She had talent but needed more confidence."
+      ],
+      "a": 3,
+      "why": "ver (จริง) + dict (พูด) → คำพูดที่ตัดสินว่าอะไรจริง = คำตัดสิน · ข้อความหลัง : คือคำตัดสินนั้น"
+     },
+     {
+      "q": "When the host asked viewers to “subscribe”, he wanted them to ______.",
+      "o": [
+       "describe the show",
+       "write a song",
+       "leave the program",
+       "sign up to follow the channel"
+      ],
+      "a": 3,
+      "why": "sub (ใต้) + scribe (เขียน) → ลงชื่อไว้ข้างใต้ = สมัครเป็นสมาชิก / สมัครติดตาม"
+     }
+    ],
+    "also": [
+     {
+      "w": "carefully",
+      "l": "b01"
+     },
+     {
+      "w": "confidence",
+      "s": 7,
+      "l": "b03"
+     }
+    ]
+   }
+  },
+  {
+   "week": 10,
+   "lesson": "b10",
+   "lessonHour": 10,
+   "lessonTitle": "รากศัพท์การเคลื่อนที่: port · mit · duc · tract · ject · mot",
+   "set": 9,
+   "dateLabel": "4–8 ม.ค. 70",
+   "preview": {
+    "title": "Should Schools Ban Phones?",
+    "topic": "เทคโนโลยี · โรงเรียน",
+    "sents": [
+     "Our class held a **debate** on whether phones should be banned at school.",
+     "One team **criticized** phones because many apps **contain** games that distract students.",
+     "The other team argued that phones **enable** students to look up information quickly.",
+     "Both teams agreed that phones can **contribute** to cyberbullying, which can be very **emotional** for victims.",
+     "The teacher said that **critical** thinking was more important than winning.",
+     "It was a **challenging** discussion, and no one was **entirely** right or wrong.",
+     "In the end, everyone **except** two students voted to allow phones only during breaks."
+    ],
+    "qs": [
+     {
+      "q": "The word “enable” in sentence 3 is closest in meaning to ______.",
+      "o": [
+       "warn",
+       "force",
+       "make it possible for",
+       "stop"
+      ],
+      "a": 2,
+      "why": "en- (ทำให้) + able (สามารถ) → ทำให้สามารถ (เรียนรหัส en- ในบทที่ 2)"
+     },
+     {
+      "q": "What did both teams agree on?",
+      "o": [
+       "Phones should be banned completely.",
+       "Apps are always educational.",
+       "Phones can lead to cyberbullying.",
+       "Breaks should be longer."
+      ],
+      "a": 2,
+      "why": "ประโยคที่ 4: Both teams agreed that phones can contribute to cyberbullying"
+     },
+     {
+      "q": "According to the teacher, what was more important than winning?",
+      "o": [
+       "speaking loudly",
+       "critical thinking",
+       "voting",
+       "using phones"
+      ],
+      "a": 1,
+      "why": "ประโยคที่ 5: critical thinking was more important than winning"
+     },
+     {
+      "q": "How many students did NOT vote to allow phones during breaks?",
+      "o": [
+       "all of them",
+       "most of them",
+       "none",
+       "two"
+      ],
+      "a": 3,
+      "why": "except = ยกเว้น → ทุกคนโหวต ยกเว้น 2 คน"
+     }
+    ],
+    "cover": [
+     {
+      "w": "challenging",
+      "s": 9,
+      "l": "b04"
+     },
+     {
+      "w": "contain",
+      "s": 9
+     },
+     {
+      "w": "contribute",
+      "s": 9,
+      "l": "b08"
+     },
+     {
+      "w": "critical",
+      "s": 9,
+      "l": "b04"
+     },
+     {
+      "w": "criticize",
+      "s": 9,
+      "l": "b02"
+     },
+     {
+      "w": "debate",
+      "s": 9
+     },
+     {
+      "w": "emotional",
+      "s": 9,
+      "l": "b10"
+     },
+     {
+      "w": "enable",
+      "s": 9,
+      "l": "b02"
+     },
+     {
+      "w": "entirely",
+      "s": 9
+     },
+     {
+      "w": "except",
+      "s": 9
+     },
+     {
+      "w": "information",
+      "l": "b01"
+     }
+    ],
+    "nWords": 92
+   },
+   "decode": {
+    "title": "Smart Farming",
+    "topic": "เกษตร · เทคโนโลยี",
+    "sents": [
+     "On Mr. Chai’s rice farm, a **tractor** that drives itself pulls heavy tools across the field.",
+     "A small **portable** sensor checks the soil and **transmits** the data to his phone.",
+     "If the soil is poor, a machine can **inject** fertilizer directly into the ground.",
+     "A drone with a **motorized** camera flies over the field to find sick plants.",
+     "Mr. Chai’s main **motive** for using these tools is to save time and water.",
+     "At harvest time, another machine **extracts** the rice grains from the plants in minutes."
+    ],
+    "words": [
+     {
+      "w": "tractor",
+      "code": "tract + -or",
+      "th": "รถแทรกเตอร์ (สิ่งที่ลาก)",
+      "kind": "new"
+     },
+     {
+      "w": "portable",
+      "code": "port + -able",
+      "th": "พกพาได้",
+      "kind": "new"
+     },
+     {
+      "w": "transmits",
+      "code": "trans- + mit",
+      "th": "ส่งผ่าน ส่งต่อ",
+      "kind": "new"
+     },
+     {
+      "w": "inject",
+      "code": "in- + ject",
+      "th": "ฉีดเข้า อัดเข้า",
+      "kind": "new"
+     },
+     {
+      "w": "motorized",
+      "code": "mot + -or + -ize + -ed",
+      "th": "ที่ขับเคลื่อนด้วยมอเตอร์",
+      "kind": "new"
+     },
+     {
+      "w": "motive",
+      "code": "mot + -ive",
+      "th": "แรงจูงใจ เหตุผล",
+      "kind": "new"
+     },
+     {
+      "w": "extracts",
+      "code": "ex- + tract",
+      "th": "ดึงออก สกัด",
+      "kind": "new"
+     }
+    ],
+    "qs": [
+     {
+      "q": "A “portable” sensor is one that ______.",
+      "o": [
+       "is very expensive",
+       "is fixed to the ground",
+       "works only at night",
+       "can be carried easily"
+      ],
+      "a": 3,
+      "why": "port (ขน แบก) + -able (ได้) → พกพาได้"
+     },
+     {
+      "q": "What does the sensor do with the data?",
+      "o": [
+       "It hides it in the soil.",
+       "It prints it.",
+       "It deletes it.",
+       "It sends it to Mr. Chai’s phone."
+      ],
+      "a": 3,
+      "why": "trans (ข้าม) + mit (ส่ง) → ส่งต่อไปยังโทรศัพท์"
+     },
+     {
+      "q": "“Inject” in sentence 3 most likely means ______.",
+      "o": [
+       "pull something out",
+       "push something into",
+       "cover",
+       "throw away"
+      ],
+      "a": 1,
+      "why": "in (เข้า) + ject (โยน) → โยน / อัดเข้าไปข้างใน · ตรงข้ามกับ extract (ex ออก + tract ดึง)"
+     },
+     {
+      "q": "What is Mr. Chai’s main reason for using these tools?",
+      "o": [
+       "To fly drones for fun",
+       "To sell more phones",
+       "To save time and water",
+       "To win a prize"
+      ],
+      "a": 2,
+      "why": "mot (เคลื่อน) + -ive → สิ่งที่ผลักให้ทำ = แรงจูงใจ · ประโยคที่ 5"
+     }
+    ],
+    "also": []
+   }
+  },
+  {
+   "week": 11,
+   "lesson": "b11",
+   "lessonHour": 11,
+   "lessonTitle": "รากศัพท์ในโจทย์และบทความข้อสอบ: fer · clud · ply · sum · press · fect",
+   "set": 10,
+   "dateLabel": "11–15 ม.ค. 70",
+   "preview": {
+    "title": "Insects on the Menu",
+    "topic": "อาหาร · วิทยาศาสตร์",
+    "sents": [
+     "As the world’s population grows, scientists are **seeking** new sources of protein.",
+     "Insects are one option, and researchers have **conducted** studies on their **nutrition**.",
+     "The results show that crickets contain more protein than the same weight of beef.",
+     "Some restaurants in Bangkok now **display** insect dishes on their menus, hoping to **appeal** to curious tourists.",
+     "However, many people need time to **adjust** to the idea of eating bugs.",
+     "Food experts believe that cooking classes can **foster** a more open attitude.",
+     "If interest continues to **expand**, large insect farms may **occur** in many countries, and we may one day **owe** part of our food supply to tiny creatures."
+    ],
+    "qs": [
+     {
+      "q": "The word “seeking” in sentence 1 is closest in meaning to ______.",
+      "o": [
+       "cooking",
+       "avoiding",
+       "selling",
+       "looking for"
+      ],
+      "a": 3,
+      "why": "seek = แสวงหา ค้นหา → seeking new sources = กำลังหาแหล่งใหม่"
+     },
+     {
+      "q": "According to the passage, crickets ______.",
+      "o": [
+       "are cheaper than rice",
+       "are only eaten in Bangkok",
+       "contain more protein than the same weight of beef",
+       "are popular with all tourists"
+      ],
+      "a": 2,
+      "why": "ประโยคที่ 3 · B C D ไม่ได้กล่าวไว้"
+     },
+     {
+      "q": "Why do some restaurants show insect dishes on their menus?",
+      "o": [
+       "Because the law requires it",
+       "Because beef is not available",
+       "To attract curious tourists",
+       "To scare customers"
+      ],
+      "a": 2,
+      "why": "appeal to = ดึงดูดใจ → hoping to appeal to curious tourists"
+     },
+     {
+      "q": "“Foster a more open attitude” in sentence 6 means ______.",
+      "o": [
+       "make people more afraid",
+       "force people to eat insects",
+       "stop people from cooking",
+       "help people become more willing to try"
+      ],
+      "a": 3,
+      "why": "foster = ส่งเสริม บ่มเพาะ · open attitude = ทัศนคติที่เปิดกว้าง"
+     }
+    ],
+    "cover": [
+     {
+      "w": "adjust",
+      "s": 10
+     },
+     {
+      "w": "appeal",
+      "s": 10
+     },
+     {
+      "w": "conduct",
+      "s": 10,
+      "l": "b10"
+     },
+     {
+      "w": "display",
+      "s": 10
+     },
+     {
+      "w": "expand",
+      "s": 10,
+      "l": "b07"
+     },
+     {
+      "w": "foster",
+      "s": 10
+     },
+     {
+      "w": "nutrition",
+      "s": 10
+     },
+     {
+      "w": "occur",
+      "s": 10
+     },
+     {
+      "w": "owe",
+      "s": 10
+     },
+     {
+      "w": "seek",
+      "s": 10
+     },
+     {
+      "w": "attitude",
+      "s": 1
+     },
+     {
+      "w": "option",
+      "s": 3
+     },
+     {
+      "w": "expert",
+      "s": 6
+     },
+     {
+      "w": "contain",
+      "s": 9
+     },
+     {
+      "w": "researcher",
+      "l": "b03"
+     },
+     {
+      "w": "scientist",
+      "l": "b03"
+     }
+    ],
+    "nWords": 107
+   },
+   "decode": {
+    "title": "A Visit from a Space Scientist",
+    "topic": "อาชีพนักวิทยาศาสตร์",
+    "sents": [
+     "Last month, a famous astronomer visited our school to talk about her new **biography**.",
+     "She showed us photos taken by a powerful **telescope** in the north of Chile.",
+     "She first studied **geology**, but later moved to the study of stars and planets.",
+     "During the talk, she explained how a tiny **defect** in a mirror can ruin a space photo.",
+     "She also described **automated** cameras that take pictures all night without help.",
+     "At the end, every student lined up to get her **autograph** on an **exclusive** poster."
+    ],
+    "words": [
+     {
+      "w": "biography",
+      "code": "bio + graph + -y",
+      "th": "ชีวประวัติ",
+      "kind": "new"
+     },
+     {
+      "w": "telescope",
+      "code": "tele + scope",
+      "th": "กล้องโทรทรรศน์ (มองไกล)",
+      "kind": "new"
+     },
+     {
+      "w": "geology",
+      "code": "geo + logy",
+      "th": "ธรณีวิทยา (วิชาเรื่องโลก)",
+      "kind": "new"
+     },
+     {
+      "w": "defect",
+      "code": "de- + fect",
+      "th": "ข้อบกพร่อง จุดเสีย",
+      "kind": "new"
+     },
+     {
+      "w": "automated",
+      "code": "auto + mat + -ed",
+      "th": "ทำงานเองอัตโนมัติ",
+      "kind": "new"
+     },
+     {
+      "w": "autograph",
+      "code": "auto + graph",
+      "th": "ลายเซ็น (เขียนเอง)",
+      "kind": "new"
+     },
+     {
+      "w": "exclusive",
+      "code": "ex- + clus + -ive",
+      "th": "เฉพาะ ไม่เปิดให้ทุกคน",
+      "kind": "new"
+     }
+    ],
+    "qs": [
+     {
+      "q": "A “biography” is a book about ______.",
+      "o": [
+       "a person’s life",
+       "how to use a telescope",
+       "the history of a school",
+       "the planets"
+      ],
+      "a": 0,
+      "why": "bio (ชีวิต) + graph (เขียน) → งานเขียนเรื่องชีวิตของคน"
+     },
+     {
+      "q": "A “telescope” helps people see things that are ______.",
+      "o": [
+       "under the ground",
+       "inside the body",
+       "far away",
+       "very small and near"
+      ],
+      "a": 2,
+      "why": "tele (ไกล) + scope (มอง) → อุปกรณ์มองไกล"
+     },
+     {
+      "q": "An “automated” camera ______.",
+      "o": [
+       "works by itself",
+       "needs two people",
+       "takes only one photo",
+       "is broken"
+      ],
+      "a": 0,
+      "why": "auto (ตัวเอง) → ทำงานเอง · บริบท: take pictures all night without help"
+     },
+     {
+      "q": "An “exclusive” poster is one that ______.",
+      "o": [
+       "was printed wrongly",
+       "not everyone can get",
+       "is free for everyone",
+       "is very large"
+      ],
+      "a": 1,
+      "why": "ex (ออก) + clus (ปิด) → ปิดกั้นคนอื่นออกไป = เฉพาะบางคน · ตรงข้ามกับ include"
+     }
+    ],
+    "also": [
+     {
+      "w": "describe",
+      "l": "b09"
+     }
+    ]
+   }
+  },
+  {
+   "week": 12,
+   "lesson": "b12",
+   "lessonHour": 12,
+   "lessonTitle": "รากศัพท์ความคิดและสังคม: vent · struct · form · pos · cept · tain",
+   "set": 11,
+   "dateLabel": "18–22 ม.ค. 70",
+   "preview": {
+    "title": "The Lost Art of Letter Writing",
+    "topic": "การสื่อสาร · ครอบครัว",
+    "sents": [
+     "In the digital **era**, handwritten letters have almost **disappeared**.",
+     "People in the **previous** **generation** **relied** on letters to stay in touch with family far away.",
+     "A recent **finding** from a survey at our school shows that only one in ten students has ever sent a letter by post.",
+     "Historians **regard** letters as an important **element** of a family’s history.",
+     "The **origin** of the Thai postal service goes back to 1883.",
+     "Some teachers now ask students to write letters to their grandparents, an activity they find **suitable** for building patience and kindness."
+    ],
+    "qs": [
+     {
+      "q": "“Relied on” in sentence 2 is closest in meaning to ______.",
+      "o": [
+       "threw away",
+       "forgot",
+       "wrote about",
+       "depended on"
+      ],
+      "a": 3,
+      "why": "rely on = พึ่งพา → relied on letters = พึ่งจดหมายในการติดต่อกัน"
+     },
+     {
+      "q": "According to the passage, when did the Thai postal service begin?",
+      "o": [
+       "1983",
+       "2013",
+       "1883",
+       "1938"
+      ],
+      "a": 2,
+      "why": "ประโยคที่ 5: The origin … goes back to 1883 · origin = ต้นกำเนิด"
+     },
+     {
+      "q": "How do historians view letters?",
+      "o": [
+       "As an important part of family history",
+       "As too expensive to keep",
+       "As old-fashioned and useless",
+       "As a way to learn grammar"
+      ],
+      "a": 0,
+      "why": "regard A as B = มอง A ว่าเป็น B · element = ส่วนประกอบ"
+     },
+     {
+      "q": "What is the passage mainly about?",
+      "o": [
+       "How to start a postal service",
+       "The best way to send an email",
+       "Why teenagers dislike their grandparents",
+       "Letters are rare now but still have value."
+      ],
+      "a": 3,
+      "why": "ต้นเรื่อง: จดหมายแทบหายไป · ท้ายเรื่อง: ยังมีคุณค่าทั้งต่อประวัติครอบครัวและการฝึกนิสัย"
+     }
+    ],
+    "cover": [
+     {
+      "w": "disappear",
+      "s": 11,
+      "l": "b05"
+     },
+     {
+      "w": "element",
+      "s": 11
+     },
+     {
+      "w": "era",
+      "s": 11
+     },
+     {
+      "w": "finding",
+      "s": 11
+     },
+     {
+      "w": "generation",
+      "s": 11
+     },
+     {
+      "w": "origin",
+      "s": 11
+     },
+     {
+      "w": "previous",
+      "s": 11
+     },
+     {
+      "w": "regard",
+      "s": 11
+     },
+     {
+      "w": "rely",
+      "s": 11
+     },
+     {
+      "w": "suitable",
+      "s": 11
+     }
+    ],
+    "nWords": 90
+   },
+   "decode": {
+    "title": "Rebuilding After the Flood",
+    "topic": "ชุมชน · ภัยพิบัติ",
+    "sents": [
+     "After the big flood, the town council met at a large **venue** near the river.",
+     "Engineers explained that the water had caused serious **destruction** to roads and bridges.",
+     "They planned to **reconstruct** the main bridge with stronger steel.",
+     "Residents were asked to **deposit** a small amount of money into a community fund.",
+     "Some **tenants** worried that their rent would rise, but the council promised to **retain** the old prices.",
+     "A local band **composed** a song to raise money for families who had lost their homes."
+    ],
+    "words": [
+     {
+      "w": "venue",
+      "code": "ven + -ue",
+      "th": "สถานที่จัดงาน (ที่ที่คนมา)",
+      "kind": "new"
+     },
+     {
+      "w": "destruction",
+      "code": "de- + struct + -ion",
+      "th": "ความเสียหาย การทำลาย",
+      "kind": "new"
+     },
+     {
+      "w": "reconstruct",
+      "code": "re- + con- + struct",
+      "th": "สร้างขึ้นใหม่",
+      "kind": "new"
+     },
+     {
+      "w": "deposit",
+      "code": "de- + pos + -it",
+      "th": "ฝาก (วางลงไว้)",
+      "kind": "new"
+     },
+     {
+      "w": "tenants",
+      "code": "ten + -ant",
+      "th": "ผู้เช่า (ผู้ถือครองชั่วคราว)",
+      "kind": "new"
+     },
+     {
+      "w": "retain",
+      "code": "re- + tain",
+      "th": "คงไว้ รักษาไว้",
+      "kind": "new"
+     },
+     {
+      "w": "composed",
+      "code": "com- + pos + -ed",
+      "th": "แต่ง (เพลง)",
+      "kind": "new"
+     }
+    ],
+    "qs": [
+     {
+      "q": "A “venue” is a ______.",
+      "o": [
+       "place where people come together",
+       "kind of river",
+       "type of bridge",
+       "council member"
+      ],
+      "a": 0,
+      "why": "ven (มา) → ที่ที่คนมารวมกัน · รากเดียวกับ event, convenience"
+     },
+     {
+      "q": "“Reconstruct” in sentence 3 means ______.",
+      "o": [
+       "build again",
+       "sell",
+       "destroy",
+       "paint"
+      ],
+      "a": 0,
+      "why": "re (อีกครั้ง) + con + struct (สร้าง) → สร้างใหม่ · ตรงข้ามกับ destruction (de ลง + struct)"
+     },
+     {
+      "q": "Who were the “tenants” in sentence 5?",
+      "o": [
+       "Engineers",
+       "Bridge builders",
+       "Band members",
+       "People who rent their homes"
+      ],
+      "a": 3,
+      "why": "ten (ถือ) + -ant (ผู้) → ผู้ถือครองที่พักโดยจ่ายค่าเช่า · บริบท: worried that their rent would rise"
+     },
+     {
+      "q": "What did the council promise?",
+      "o": [
+       "To build new houses for free",
+       "To close the venue",
+       "To stop the band",
+       "To keep rent prices the same"
+      ],
+      "a": 3,
+      "why": "re (กลับ) + tain (ถือ) → ถือไว้ = คงไว้ · retain the old prices"
+     }
+    ],
+    "also": []
+   }
+  },
+  {
+   "week": 13,
+   "lesson": "b13",
+   "lessonHour": 13,
+   "lessonTitle": "ถอดรหัสคำยาวในบทอ่าน",
+   "set": 12,
+   "dateLabel": "25–29 ม.ค. 70",
+   "preview": {
+    "title": "Walking for Better Health",
+    "topic": "สุขภาพ · งานวิจัย",
+    "sents": [
+     "A study at one university **revealed** that walking every day can bring many benefits.",
+     "**Participants** who walked for three months showed fewer **symptoms** of stress.",
+     "Their blood pressure began to **decrease**, and walking helped **strengthen** their leg muscles.",
+     "One **unique** feature of the study was that participants walked in small groups and chatted.",
+     "Many said they **appreciated** the chance to make new friends.",
+     "Because the **outcome** was so positive, the researchers **propose** that schools encourage walking during lunch breaks.",
+     "Walking is already **widely** popular, so the idea may be easy to put into practice."
+    ],
+    "qs": [
+     {
+      "q": "The word “revealed” in sentence 1 is closest in meaning to ______.",
+      "o": [
+       "doubted",
+       "showed",
+       "changed",
+       "hid"
+      ],
+      "a": 1,
+      "why": "re (ย้อน) + veal (ผ้าคลุม) → ดึงผ้าคลุมออก = เปิดเผย แสดงให้เห็น"
+     },
+     {
+      "q": "What happened to the participants’ blood pressure?",
+      "o": [
+       "It went down.",
+       "It was not measured.",
+       "It stayed the same.",
+       "It went up."
+      ],
+      "a": 0,
+      "why": "de (ลง) + crease (เติบโต) → ลดลง"
+     },
+     {
+      "q": "What was unique about the study?",
+      "o": [
+       "Participants walked in small groups and talked.",
+       "Only teachers joined it.",
+       "Participants ran instead of walking.",
+       "It lasted ten years."
+      ],
+      "a": 0,
+      "why": "uni (หนึ่ง) → มีหนึ่งเดียว เป็นจุดเด่น · ประโยคที่ 4"
+     },
+     {
+      "q": "What do the researchers propose?",
+      "o": [
+       "Students should skip lunch.",
+       "Walking should be banned at school.",
+       "Everyone should join a gym.",
+       "Schools should encourage walking at lunch."
+      ],
+      "a": 3,
+      "why": "pro (ไปข้างหน้า) + pose (วาง) → เสนอ · ประโยคที่ 6"
+     }
+    ],
+    "cover": [
+     {
+      "w": "appreciate",
+      "s": 12
+     },
+     {
+      "w": "decrease",
+      "s": 12,
+      "l": "b07"
+     },
+     {
+      "w": "outcome",
+      "s": 12
+     },
+     {
+      "w": "participant",
+      "s": 12,
+      "l": "b03"
+     },
+     {
+      "w": "propose",
+      "s": 12,
+      "l": "b12"
+     },
+     {
+      "w": "reveal",
+      "s": 12,
+      "l": "b07"
+     },
+     {
+      "w": "strengthen",
+      "s": 12,
+      "l": "b02"
+     },
+     {
+      "w": "symptom",
+      "s": 12
+     },
+     {
+      "w": "unique",
+      "s": 12
+     },
+     {
+      "w": "widely",
+      "s": 12
+     },
+     {
+      "w": "encourage",
+      "l": "b02"
+     },
+     {
+      "w": "researcher",
+      "l": "b03"
+     }
+    ],
+    "nWords": 94
+   },
+   "decode": {
+    "title": "A Review of a Beach Hotel",
+    "topic": "รีวิวที่พัก",
+    "sents": [
+     "We stayed at a small hotel on Koh Samet, and the view from our room was **unforgettable**.",
+     "The staff were friendly, but the check-in desk was a bit **disorganized** on the first day.",
+     "The beds were **uncomfortably** hard, so my brother slept badly.",
+     "On the bright side, the hotel was **environmentally** friendly: it used **rechargeable** lamps and no plastic bottles.",
+     "The owner said the old trees around the hotel were **irreplaceable**, so she built the rooms around them.",
+     "Overall, it was an **unbelievably** good deal for the price."
+    ],
+    "words": [
+     {
+      "w": "unforgettable",
+      "code": "un- + forget + -able",
+      "th": "ลืมไม่ลง",
+      "kind": "new"
+     },
+     {
+      "w": "disorganized",
+      "code": "dis- + organ + -ize + -ed",
+      "th": "ไม่เป็นระเบียบ",
+      "kind": "new"
+     },
+     {
+      "w": "uncomfortably",
+      "code": "un- + comfort + -able + -ly",
+      "th": "อย่างไม่สบาย",
+      "kind": "new"
+     },
+     {
+      "w": "environmentally",
+      "code": "environ + -ment + -al + -ly",
+      "th": "ทางสิ่งแวดล้อม",
+      "kind": "recap"
+     },
+     {
+      "w": "rechargeable",
+      "code": "re- + charge + -able",
+      "th": "ชาร์จใหม่ได้",
+      "kind": "new"
+     },
+     {
+      "w": "irreplaceable",
+      "code": "ir- + re- + place + -able",
+      "th": "หาอะไรแทนไม่ได้",
+      "kind": "new"
+     },
+     {
+      "w": "unbelievably",
+      "code": "un- + believe + -able + -ly",
+      "th": "อย่างเหลือเชื่อ",
+      "kind": "new"
+     }
+    ],
+    "qs": [
+     {
+      "q": "“Unforgettable” = un- + forget + -able. It means ______.",
+      "o": [
+       "not worth remembering",
+       "forgotten quickly",
+       "easy to forget",
+       "impossible to forget"
+      ],
+      "a": 3,
+      "why": "un (ไม่) + forget (ลืม) + able (ได้) → ลืมไม่ได้ · ถอดจากชั้นนอก (un-) ก่อน แล้วค่อยใส่ความหมายกลับในประโยค"
+     },
+     {
+      "q": "The check-in desk was “disorganized”, so it was ______.",
+      "o": [
+       "closed",
+       "not well arranged",
+       "well planned",
+       "very clean"
+      ],
+      "a": 1,
+      "why": "dis (ไม่) + organize (จัดระเบียบ) + -ed → ไม่เป็นระเบียบ"
+     },
+     {
+      "q": "The old trees were “irreplaceable”. This means they ______.",
+      "o": [
+       "were planted recently",
+       "could not be replaced",
+       "were cut down",
+       "were easy to replace"
+      ],
+      "a": 1,
+      "why": "ir (ไม่) + re (อีก) + place (วาง) + able (ได้) → นำอะไรมาวางแทนไม่ได้ · ถ้าลืม ir- จะแปลกลับด้าน"
+     },
+     {
+      "q": "What is the writer’s overall opinion of the hotel?",
+      "o": [
+       "Positive, despite a few problems",
+       "Completely negative",
+       "It was too expensive.",
+       "The writer has no opinion."
+      ],
+      "a": 0,
+      "why": "Overall … an unbelievably good deal = คุ้มมาก · มีข้อเสีย (เตียงแข็ง เคาน์เตอร์วุ่นวาย) แต่สรุปเชิงบวก"
+     }
+    ],
+    "also": [
+     {
+      "w": "overall",
+      "l": "b06"
+     },
+     {
+      "w": "deal",
+      "s": 7
+     }
+    ]
+   }
+  }
+ ],
+ "bridge": {
+  "fee": {
+   "trap": "fee ลงท้าย -ee แต่ไม่ใช่คน (เหมือน coffee, agree, degree) · -ee = ผู้ถูกกระทำ ใช้เมื่อตัดออกแล้วเหลือกริยา เช่น employ → employee"
+  },
+  "impact": {
+   "parts": [
+    {
+     "c": "im-",
+     "m": "เข้าไป (= in-)",
+     "l": 7
+    }
+   ]
+  },
+  "maintain": {
+   "parts": [
+    {
+     "c": "tain",
+     "m": "ถือ, ยึดไว้",
+     "l": 12
+    }
+   ],
+   "fam": [
+    {
+     "w": "maintenance",
+     "c": "-ance",
+     "l": 3
+    }
+   ]
+  },
+  "require": {
+   "parts": [
+    {
+     "c": "re-",
+     "m": "ซ้ำ, อีก",
+     "l": 6
+    }
+   ],
+   "fam": [
+    {
+     "w": "requirement",
+     "c": "-ment",
+     "l": 1
+    },
+    {
+     "w": "required",
+     "c": "-ed",
+     "l": 4
+    }
+   ]
+  },
+  "approach": {
+   "fam": [
+    {
+     "w": "approachable",
+     "c": "-able",
+     "l": 1
+    }
+   ]
+  },
+  "essential": {
+   "fam": [
+    {
+     "w": "essence",
+     "c": "-ence",
+     "l": 3
+    },
+    {
+     "w": "essentially",
+     "c": "-ly",
+     "l": 1
+    }
+   ]
+  },
+  "option": {
+   "fam": [
+    {
+     "w": "optional",
+     "c": "-al",
+     "l": 1
+    }
+   ]
+  },
+  "produce": {
+   "parts": [
+    {
+     "c": "pro-",
+     "m": "ไปข้างหน้า",
+     "l": 7
+    },
+    {
+     "c": "duce",
+     "m": "นำ",
+     "l": 10
+    }
+   ],
+   "fam": [
+    {
+     "w": "production",
+     "c": "-tion",
+     "l": 1
+    },
+    {
+     "w": "productive",
+     "c": "-ive",
+     "l": 1
+    }
+   ]
+  },
+  "provide": {
+   "parts": [
+    {
+     "c": "pro-",
+     "m": "ล่วงหน้า",
+     "l": 7
+    },
+    {
+     "c": "vide",
+     "m": "เห็น (= vis)",
+     "l": 9
+    }
+   ],
+   "fam": [
+    {
+     "w": "provider",
+     "c": "-er",
+     "l": 3
+    }
+   ]
+  },
+  "suggest": {
+   "fam": [
+    {
+     "w": "suggestion",
+     "c": "-tion",
+     "l": 1
+    }
+   ]
+  },
+  "variety": {
+   "fam": [
+    {
+     "w": "various",
+     "c": "-ous",
+     "l": 4
+    },
+    {
+     "w": "variation",
+     "c": "-tion",
+     "l": 1
+    }
+   ]
+  },
+  "assignment": {
+   "parts": [
+    {
+     "c": "-ment",
+     "m": "คำนาม",
+     "l": 1
+    }
+   ]
+  },
+  "interaction": {
+   "parts": [
+    {
+     "c": "inter-",
+     "m": "ระหว่าง",
+     "l": 8
+    }
+   ],
+   "fam": [
+    {
+     "w": "interactive",
+     "c": "-ive",
+     "l": 1
+    }
+   ]
+  },
+  "content": {
+   "parts": [
+    {
+     "c": "con-",
+     "m": "ด้วยกัน",
+     "l": 8
+    },
+    {
+     "c": "tent",
+     "m": "ถือ, เก็บ (= ten)",
+     "l": 12
+    }
+   ],
+   "fam": [
+    {
+     "w": "contentment",
+     "c": "-ment",
+     "l": 1
+    }
+   ]
+  },
+  "desire": {
+   "fam": [
+    {
+     "w": "desirable",
+     "c": "-able",
+     "l": 1
+    }
+   ]
+  },
+  "prevent": {
+   "parts": [
+    {
+     "c": "pre-",
+     "m": "ก่อน",
+     "l": 6
+    },
+    {
+     "c": "vent",
+     "m": "มา",
+     "l": 12
+    }
+   ],
+   "fam": [
+    {
+     "w": "prevention",
+     "c": "-tion",
+     "l": 1
+    },
+    {
+     "w": "preventive",
+     "c": "-ive",
+     "l": 1
+    }
+   ]
+  },
+  "advantage": {
+   "fam": [
+    {
+     "w": "advantageous",
+     "c": "-ous",
+     "l": 4
+    }
+   ]
+  },
+  "attract": {
+   "parts": [
+    {
+     "c": "tract",
+     "m": "ดึง",
+     "l": 10
+    }
+   ],
+   "fam": [
+    {
+     "w": "attraction",
+     "c": "-tion",
+     "l": 1
+    },
+    {
+     "w": "attractive",
+     "c": "-ive",
+     "l": 1
+    }
+   ]
+  },
+  "concept": {
+   "parts": [
+    {
+     "c": "con-",
+     "m": "ด้วยกัน",
+     "l": 8
+    },
+    {
+     "c": "cept",
+     "m": "จับ, รับ",
+     "l": 12
+    }
+   ],
+   "fam": [
+    {
+     "w": "conceptual",
+     "c": "-al",
+     "l": 1
+    }
+   ]
+  },
+  "demand": {
+   "parts": [
+    {
+     "c": "de-",
+     "m": "ลงไป, อย่างเต็มที่",
+     "l": 7
+    }
+   ],
+   "fam": [
+    {
+     "w": "demanding",
+     "c": "-ing",
+     "l": 4
+    }
+   ]
+  },
+  "employee": {
+   "parts": [
+    {
+     "c": "-ee",
+     "m": "ผู้ถูกกระทำ",
+     "l": 3
+    }
+   ],
+   "fam": [
+    {
+     "w": "employer",
+     "c": "-er",
+     "l": 3
+    },
+    {
+     "w": "employment",
+     "c": "-ment",
+     "l": 1
+    }
+   ]
+  },
+  "individual": {
+   "parts": [
+    {
+     "c": "in-",
+     "m": "ไม่",
+     "l": 5
+    }
+   ],
+   "fam": [
+    {
+     "w": "individually",
+     "c": "-ly",
+     "l": 1
+    },
+    {
+     "w": "individuality",
+     "c": "-ity",
+     "l": 1
+    }
+   ]
+  },
+  "influence": {
+   "parts": [
+    {
+     "c": "in-",
+     "m": "เข้าไป",
+     "l": 7
+    },
+    {
+     "c": "-ence",
+     "m": "คำนาม",
+     "l": 3
+    }
+   ],
+   "fam": [
+    {
+     "w": "influential",
+     "c": "-al",
+     "l": 1
+    },
+    {
+     "w": "influencer",
+     "c": "-er",
+     "l": 3
+    }
+   ]
+  },
+  "specific": {
+   "parts": [
+    {
+     "c": "fic",
+     "m": "ทำ",
+     "l": 11
+    }
+   ],
+   "fam": [
+    {
+     "w": "specifically",
+     "c": "-ly",
+     "l": 1
+    },
+    {
+     "w": "specify",
+     "c": "-ify",
+     "l": 2
+    }
+   ]
+  },
+  "anxiety": {
+   "fam": [
+    {
+     "w": "anxious",
+     "c": "-ous",
+     "l": 4
+    }
+   ]
+  },
+  "associate": {
+   "fam": [
+    {
+     "w": "association",
+     "c": "-tion",
+     "l": 1
+    },
+    {
+     "w": "associated",
+     "c": "-ed",
+     "l": 4
+    }
+   ]
+  },
+  "aware": {
+   "fam": [
+    {
+     "w": "awareness",
+     "c": "-ness",
+     "l": 1
+    }
+   ]
+  },
+  "conflict": {
+   "parts": [
+    {
+     "c": "con-",
+     "m": "ด้วยกัน",
+     "l": 8
+    }
+   ],
+   "fam": [
+    {
+     "w": "conflicting",
+     "c": "-ing",
+     "l": 4
+    }
+   ]
+  },
+  "depend": {
+   "parts": [
+    {
+     "c": "de-",
+     "m": "ลง",
+     "l": 7
+    }
+   ],
+   "fam": [
+    {
+     "w": "dependent",
+     "c": "-ent",
+     "l": 3
+    }
+   ]
+  },
+  "expert": {
+   "parts": [
+    {
+     "c": "ex-",
+     "m": "ออก",
+     "l": 7
+    }
+   ]
+  },
+  "generate": {
+   "fam": [
+    {
+     "w": "generation",
+     "c": "-tion",
+     "l": 1
+    },
+    {
+     "w": "generator",
+     "c": "-or",
+     "l": 3
+    }
+   ]
+  },
+  "limited": {
+   "parts": [
+    {
+     "c": "-ed",
+     "m": "คุณศัพท์",
+     "l": 4
+    }
+   ],
+   "fam": [
+    {
+     "w": "limitation",
+     "c": "-tion",
+     "l": 1
+    }
+   ]
+  },
+  "method": {
+   "fam": [
+    {
+     "w": "methodical",
+     "c": "-ical",
+     "l": 4
+    }
+   ]
+  },
+  "physical": {
+   "parts": [
+    {
+     "c": "-al",
+     "m": "คุณศัพท์",
+     "l": 1
+    }
+   ],
+   "fam": [
+    {
+     "w": "physically",
+     "c": "-ly",
+     "l": 1
+    }
+   ]
+  },
+  "purchase": {
+   "fam": [
+    {
+     "w": "purchaser",
+     "c": "-er",
+     "l": 3
+    }
+   ]
+  },
+  "reflect": {
+   "parts": [
+    {
+     "c": "re-",
+     "m": "กลับ",
+     "l": 7
+    }
+   ],
+   "fam": [
+    {
+     "w": "reflection",
+     "c": "-tion",
+     "l": 1
+    }
+   ]
+  },
+  "response": {
+   "parts": [
+    {
+     "c": "re-",
+     "m": "กลับ",
+     "l": 7
+    }
+   ],
+   "fam": [
+    {
+     "w": "responsive",
+     "c": "-ive",
+     "l": 1
+    }
+   ]
+  },
+  "significant": {
+   "parts": [
+    {
+     "c": "fic",
+     "m": "ทำ",
+     "l": 11
+    },
+    {
+     "c": "-ant",
+     "m": "มีลักษณะ",
+     "l": 3
+    }
+   ],
+   "fam": [
+    {
+     "w": "significance",
+     "c": "-ance",
+     "l": 3
+    },
+    {
+     "w": "significantly",
+     "c": "-ly",
+     "l": 1
+    }
+   ]
+  },
+  "access": {
+   "fam": [
+    {
+     "w": "accessible",
+     "c": "-ible",
+     "l": 1
+    }
+   ]
+  },
+  "imply": {
+   "parts": [
+    {
+     "c": "im-",
+     "m": "เข้าไป (= in-)",
+     "l": 7
+    },
+    {
+     "c": "ply",
+     "m": "พับ, ซ้อน",
+     "l": 11
+    }
+   ]
+  },
+  "additional": {
+   "parts": [
+    {
+     "c": "-al",
+     "m": "คุณศัพท์",
+     "l": 1
+    }
+   ],
+   "fam": [
+    {
+     "w": "addition",
+     "c": "-tion",
+     "l": 1
+    },
+    {
+     "w": "additionally",
+     "c": "-ly",
+     "l": 1
+    }
+   ]
+  },
+  "condition": {
+   "parts": [
+    {
+     "c": "con-",
+     "m": "ด้วยกัน",
+     "l": 8
+    }
+   ],
+   "fam": [
+    {
+     "w": "conditional",
+     "c": "-al",
+     "l": 1
+    }
+   ]
+  },
+  "confidence": {
+   "parts": [
+    {
+     "c": "con-",
+     "m": "อย่างเต็มที่",
+     "l": 8
+    },
+    {
+     "c": "-ence",
+     "m": "คำนาม",
+     "l": 3
+    }
+   ],
+   "fam": [
+    {
+     "w": "confident",
+     "c": "-ent",
+     "l": 3
+    },
+    {
+     "w": "confidential",
+     "c": "-al",
+     "l": 1
+    }
+   ]
+  },
+  "deal": {
+   "fam": [
+    {
+     "w": "dealer",
+     "c": "-er",
+     "l": 3
+    }
+   ]
+  },
+  "disappoint": {
+   "parts": [
+    {
+     "c": "dis-",
+     "m": "ไม่, ตรงข้าม",
+     "l": 5
+    }
+   ],
+   "fam": [
+    {
+     "w": "disappointed",
+     "c": "-ed",
+     "l": 4
+    },
+    {
+     "w": "disappointing",
+     "c": "-ing",
+     "l": 4
+    },
+    {
+     "w": "disappointment",
+     "c": "-ment",
+     "l": 1
+    }
+   ]
+  },
+  "flexible": {
+   "parts": [
+    {
+     "c": "-ible",
+     "m": "ได้",
+     "l": 1
+    }
+   ],
+   "fam": [
+    {
+     "w": "flexibility",
+     "c": "-ity",
+     "l": 1
+    }
+   ]
+  },
+  "perform": {
+   "parts": [
+    {
+     "c": "form",
+     "m": "รูปร่าง",
+     "l": 12
+    }
+   ],
+   "fam": [
+    {
+     "w": "performance",
+     "c": "-ance",
+     "l": 3
+    },
+    {
+     "w": "performer",
+     "c": "-er",
+     "l": 3
+    }
+   ]
+  },
+  "potential": {
+   "fam": [
+    {
+     "w": "potentially",
+     "c": "-ly",
+     "l": 1
+    }
+   ]
+  },
+  "boost": {
+   "fam": [
+    {
+     "w": "booster",
+     "c": "-er",
+     "l": 3
+    }
+   ]
+  },
+  "concentration": {
+   "parts": [
+    {
+     "c": "con-",
+     "m": "ด้วยกัน",
+     "l": 8
+    }
+   ],
+   "fam": [
+    {
+     "w": "concentrated",
+     "c": "-ed",
+     "l": 4
+    }
+   ]
+  },
+  "determine": {
+   "parts": [
+    {
+     "c": "de-",
+     "m": "อย่างเต็มที่",
+     "l": 7
+    }
+   ],
+   "fam": [
+    {
+     "w": "determined",
+     "c": "-ed",
+     "l": 4
+    },
+    {
+     "w": "determination",
+     "c": "-tion",
+     "l": 1
+    }
+   ]
+  },
+  "effective": {
+   "parts": [
+    {
+     "c": "ef-",
+     "m": "ออก (= ex-)",
+     "l": 7
+    },
+    {
+     "c": "fect",
+     "m": "ทำ",
+     "l": 11
+    },
+    {
+     "c": "-ive",
+     "m": "คุณศัพท์",
+     "l": 1
+    }
+   ],
+   "fam": [
+    {
+     "w": "effectively",
+     "c": "-ly",
+     "l": 1
+    }
+   ]
+  },
+  "ensure": {
+   "parts": [
+    {
+     "c": "en-",
+     "m": "ทำให้",
+     "l": 2
+    }
+   ]
+  },
+  "evaluate": {
+   "fam": [
+    {
+     "w": "evaluation",
+     "c": "-tion",
+     "l": 1
+    }
+   ]
+  },
+  "familiar": {
+   "fam": [
+    {
+     "w": "familiarity",
+     "c": "-ity",
+     "l": 1
+    }
+   ]
+  },
+  "force": {
+   "fam": [
+    {
+     "w": "forceful",
+     "c": "-ful",
+     "l": 1
+    }
+   ]
+  },
+  "ingredient": {
+   "parts": [
+    {
+     "c": "in-",
+     "m": "เข้าไป",
+     "l": 7
+    },
+    {
+     "c": "-ent",
+     "m": "คำนาม",
+     "l": 3
+    }
+   ]
+  },
+  "challenging": {
+   "parts": [
+    {
+     "c": "-ing",
+     "m": "คุณศัพท์ (ทำให้รู้สึก)",
+     "l": 4
+    }
+   ]
+  },
+  "contain": {
+   "parts": [
+    {
+     "c": "con-",
+     "m": "ด้วยกัน",
+     "l": 8
+    },
+    {
+     "c": "tain",
+     "m": "ถือ",
+     "l": 12
+    }
+   ],
+   "fam": [
+    {
+     "w": "container",
+     "c": "-er",
+     "l": 3
+    }
+   ]
+  },
+  "contribute": {
+   "parts": [
+    {
+     "c": "con-",
+     "m": "ด้วยกัน",
+     "l": 8
+    }
+   ],
+   "fam": [
+    {
+     "w": "contribution",
+     "c": "-tion",
+     "l": 1
+    },
+    {
+     "w": "contributor",
+     "c": "-or",
+     "l": 3
+    }
+   ]
+  },
+  "critical": {
+   "parts": [
+    {
+     "c": "-ical",
+     "m": "คุณศัพท์",
+     "l": 4
+    }
+   ],
+   "fam": [
+    {
+     "w": "criticize",
+     "c": "-ize",
+     "l": 2
+    }
+   ]
+  },
+  "criticize": {
+   "parts": [
+    {
+     "c": "-ize",
+     "m": "ทำให้ (กริยา)",
+     "l": 2
+    }
+   ]
+  },
+  "debate": {
+   "parts": [
+    {
+     "c": "de-",
+     "m": "ลง, อย่างเต็มที่",
+     "l": 7
+    }
+   ],
+   "fam": [
+    {
+     "w": "debatable",
+     "c": "-able",
+     "l": 1
+    }
+   ]
+  },
+  "emotional": {
+   "parts": [
+    {
+     "c": "mot",
+     "m": "เคลื่อน",
+     "l": 10
+    },
+    {
+     "c": "-al",
+     "m": "คุณศัพท์",
+     "l": 1
+    }
+   ],
+   "fam": [
+    {
+     "w": "emotion",
+     "c": "-tion",
+     "l": 1
+    },
+    {
+     "w": "emotionally",
+     "c": "-ly",
+     "l": 1
+    }
+   ]
+  },
+  "enable": {
+   "parts": [
+    {
+     "c": "en-",
+     "m": "ทำให้",
+     "l": 2
+    }
+   ]
+  },
+  "entirely": {
+   "parts": [
+    {
+     "c": "-ly",
+     "m": "กริยาวิเศษณ์",
+     "l": 1
+    }
+   ]
+  },
+  "except": {
+   "parts": [
+    {
+     "c": "ex-",
+     "m": "ออก",
+     "l": 7
+    },
+    {
+     "c": "cept",
+     "m": "เอา, จับ",
+     "l": 12
+    }
+   ],
+   "fam": [
+    {
+     "w": "exception",
+     "c": "-tion",
+     "l": 1
+    }
+   ]
+  },
+  "display": {
+   "parts": [
+    {
+     "c": "dis-",
+     "m": "แยกออก",
+     "l": 5
+    }
+   ]
+  },
+  "expand": {
+   "parts": [
+    {
+     "c": "ex-",
+     "m": "ออก",
+     "l": 7
+    }
+   ],
+   "fam": [
+    {
+     "w": "expansion",
+     "c": "-sion",
+     "l": 1
+    }
+   ]
+  },
+  "nutrition": {
+   "parts": [
+    {
+     "c": "-tion",
+     "m": "คำนาม",
+     "l": 1
+    }
+   ],
+   "fam": [
+    {
+     "w": "nutritious",
+     "c": "-ous",
+     "l": 4
+    },
+    {
+     "w": "nutrient",
+     "c": "-ent",
+     "l": 3
+    }
+   ]
+  },
+  "occur": {
+   "fam": [
+    {
+     "w": "occurrence",
+     "c": "-ence",
+     "l": 3
+    }
+   ]
+  },
+  "adjust": {
+   "fam": [
+    {
+     "w": "adjustment",
+     "c": "-ment",
+     "l": 1
+    },
+    {
+     "w": "adjustable",
+     "c": "-able",
+     "l": 1
+    }
+   ]
+  },
+  "appeal": {
+   "fam": [
+    {
+     "w": "appealing",
+     "c": "-ing",
+     "l": 4
+    }
+   ]
+  },
+  "conduct": {
+   "parts": [
+    {
+     "c": "con-",
+     "m": "ด้วยกัน",
+     "l": 8
+    },
+    {
+     "c": "duct",
+     "m": "นำ",
+     "l": 10
+    }
+   ],
+   "fam": [
+    {
+     "w": "conductor",
+     "c": "-or",
+     "l": 3
+    }
+   ]
+  },
+  "disappear": {
+   "parts": [
+    {
+     "c": "dis-",
+     "m": "ไม่, ตรงข้าม",
+     "l": 5
+    }
+   ],
+   "fam": [
+    {
+     "w": "disappearance",
+     "c": "-ance",
+     "l": 3
+    }
+   ]
+  },
+  "generation": {
+   "fam": [
+    {
+     "w": "generational",
+     "c": "-al",
+     "l": 1
+    }
+   ]
+  },
+  "origin": {
+   "fam": [
+    {
+     "w": "original",
+     "c": "-al",
+     "l": 1
+    },
+    {
+     "w": "originally",
+     "c": "-ly",
+     "l": 1
+    }
+   ]
+  },
+  "previous": {
+   "parts": [
+    {
+     "c": "pre-",
+     "m": "ก่อน",
+     "l": 6
+    },
+    {
+     "c": "-ous",
+     "m": "คุณศัพท์",
+     "l": 4
+    }
+   ],
+   "fam": [
+    {
+     "w": "previously",
+     "c": "-ly",
+     "l": 1
+    }
+   ]
+  },
+  "rely": {
+   "parts": [
+    {
+     "c": "re-",
+     "m": "กลับ, อย่างเต็มที่",
+     "l": 7
+    }
+   ],
+   "fam": [
+    {
+     "w": "reliable",
+     "c": "-able",
+     "l": 1
+    },
+    {
+     "w": "reliance",
+     "c": "-ance",
+     "l": 3
+    }
+   ]
+  },
+  "suitable": {
+   "parts": [
+    {
+     "c": "-able",
+     "m": "ได้",
+     "l": 1
+    }
+   ]
+  },
+  "unique": {
+   "parts": [
+    {
+     "c": "uni-",
+     "m": "หนึ่ง",
+     "l": 7
+    }
+   ],
+   "fam": [
+    {
+     "w": "uniquely",
+     "c": "-ly",
+     "l": 1
+    },
+    {
+     "w": "uniqueness",
+     "c": "-ness",
+     "l": 1
+    }
+   ]
+  },
+  "widely": {
+   "parts": [
+    {
+     "c": "-ly",
+     "m": "กริยาวิเศษณ์",
+     "l": 1
+    }
+   ],
+   "fam": [
+    {
+     "w": "widen",
+     "c": "-en",
+     "l": 2
+    }
+   ]
+  },
+  "appreciate": {
+   "fam": [
+    {
+     "w": "appreciation",
+     "c": "-tion",
+     "l": 1
+    },
+    {
+     "w": "appreciative",
+     "c": "-ive",
+     "l": 1
+    }
+   ]
+  },
+  "decrease": {
+   "parts": [
+    {
+     "c": "de-",
+     "m": "ลง",
+     "l": 7
+    }
+   ]
+  },
+  "strengthen": {
+   "parts": [
+    {
+     "c": "-en",
+     "m": "ทำให้ (กริยา)",
+     "l": 2
+    }
+   ]
+  },
+  "reveal": {
+   "parts": [
+    {
+     "c": "re-",
+     "m": "ย้อน, ตรงข้าม",
+     "l": 7
+    }
+   ],
+   "fam": [
+    {
+     "w": "revelation",
+     "c": "-tion",
+     "l": 1
+    }
+   ]
+  },
+  "participant": {
+   "parts": [
+    {
+     "c": "-ant",
+     "m": "ผู้ที่",
+     "l": 3
+    }
+   ],
+   "fam": [
+    {
+     "w": "participation",
+     "c": "-tion",
+     "l": 1
+    }
+   ]
+  },
+  "propose": {
+   "parts": [
+    {
+     "c": "pro-",
+     "m": "ไปข้างหน้า",
+     "l": 7
+    },
+    {
+     "c": "pose",
+     "m": "วาง",
+     "l": 12
+    }
+   ],
+   "fam": [
+    {
+     "w": "proposal",
+     "c": "-al",
+     "l": 1
+    }
+   ]
+  }
+ }
+}

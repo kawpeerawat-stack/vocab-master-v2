@@ -58,6 +58,9 @@ import { camMode, GUARD_FLAG_AT, guardMode, noCopyProps, noticeText, Q_TIME_MS, 
 import { CamBox, CamChooser, CoverShield, isCovered, loadCamChoice, RoundCapPanel, saveCamChoice, SplitShield, TimerBar, useRoomCamera, type SharedCam } from "./CamGuard";
 import { capReached, readDay, ROUND_CAP, roundAbandon, roundBegin, roundEnd, roundSweep, roundsSync, type DayRounds } from "../lib/rounds";
 import { liveEnd, liveEvent, liveLeaves, liveQuit, liveSplit, liveStart, liveStep } from "../lib/live";
+import { bridgeOf, coverOf, groupExams, loadReadingBest, readingBySet } from "../lib/reading";
+import { loadLocalCourseProgress } from "../lib/courses";
+import ReadingQuiz from "./ReadingQuiz";
 
 // ───────── ตัวช่วยแสดงผล ─────────
 function Rich({ text, className = "" }: { text: string; className?: string }) {
@@ -150,6 +153,7 @@ function WordCard({ w, guessed }: { w: VWord; guessed?: { text: string; ok: bool
       <span className="text-[11px] font-black bg-[#003399]/10 text-[#003399] px-2 py-1 rounded-full">📝 ออกสอบจริง {w.papers} ฉบับ</span>
       <span className="text-[11px] font-black bg-gray-100 text-gray-600 px-2 py-1 rounded-full">ระดับ {w.level}</span>
     </div>
+    {w.exams?.length > 0 && <p className="text-[11px] text-gray-500 -mt-1" data-exams={w.w}>เคยออก: {groupExams(w.exams)}</p>}
     {guessed && (
       <div className={`rounded-xl p-3 text-sm font-bold ${guessed.ok ? "bg-emerald-50 text-emerald-800" : "bg-gray-50 text-gray-700"}`}>
         คุณเดาว่า “{guessed.text}” {guessed.ok ? "✓ ตรงเลย" : "— ความหมายจริงอยู่ด้านล่าง"}
@@ -185,8 +189,37 @@ function WordCard({ w, guessed }: { w: VWord; guessed?: { text: string; ok: bool
         ⚠️ <b>กับดัก:</b> {w.trap}
       </div>
     )}
+    <BridgeBox w={w.w} />
   </div>
 );
+}
+
+// ── v9.9: กล่องเชื่อมรหัส — คำนี้ใช้รหัสจากบทถอดรหัสบทไหน (คาบ 1) ──
+function BridgeBox({ w }: { w: string }) {
+  const b = bridgeOf(w);
+  if (!b) return null;
+  return (
+    <div className="bg-emerald-50/60 border-l-4 border-emerald-400 rounded-xl p-3 text-sm text-gray-800 space-y-1" data-bridge={w}>
+      <p className="text-xs font-black text-emerald-800">🔗 เชื่อมกับบทถอดรหัส (คาบ 1)</p>
+      {b.parts && b.parts.length > 0 && (
+        <p className="flex flex-wrap gap-1 items-center">
+          <span className="text-xs text-gray-500 font-bold">รหัสในคำนี้:</span>
+          {b.parts.map((p, i) => (
+            <span key={i} className="text-xs bg-white border border-emerald-200 rounded-lg px-2 py-0.5"><b className="font-serif">{p.c}</b> {p.m} · บท {p.l}</span>
+          ))}
+        </p>
+      )}
+      {b.fam && b.fam.length > 0 && (
+        <p className="flex flex-wrap gap-1 items-center">
+          <span className="text-xs text-gray-500 font-bold">เติมรหัสแล้วได้:</span>
+          {b.fam.map((f, i) => (
+            <span key={i} className="text-xs bg-white border border-emerald-200 rounded-lg px-2 py-0.5"><b className="font-serif">{f.w}</b> ({f.c} · บท {f.l})</span>
+          ))}
+        </p>
+      )}
+      {b.trap && <p className="text-xs text-rose-700 font-bold">⚠️ {b.trap}</p>}
+    </div>
+  );
 }
 
 // ── แถบหัวระหว่างเรียน ──
@@ -314,7 +347,7 @@ function noAdjacent(items: QItem[]): QItem[] {
 
 // ───────── สถานะการเรียน 1 ชุด ─────────
 interface WordRun { g: number; p: number; pc: number; firstTry: boolean; asked: number; wrong: number }
-type Mode = "HOME" | "WEEK" | "LEARN" | "CHECK" | "REVIEW" | "PRACTICE" | "SUMMARY";
+type Mode = "HOME" | "WEEK" | "LEARN" | "CHECK" | "REVIEW" | "PRACTICE" | "SUMMARY" | "READING";
 type LearnPhase = "predict" | "meet" | "proc" | "retrieve";
 interface Summary {
   kind: "learn" | "check" | "review" | "practice";
@@ -338,6 +371,8 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
   }, [rawProg]);
   const [mode, setMode] = useState<Mode>("HOME");
   const [weekNo, setWeekNo] = useState(1);
+  const [readSet, setReadSet] = useState(0); // v9.9: ชุดที่กำลังฝึก Reading พรีวิว
+  const [readFrom, setReadFrom] = useState<Mode>("WEEK");
   const [openWord, setOpenWord] = useState<string | null>(null);
   const [today, setToday] = useState(todayStr());
 
@@ -1150,6 +1185,68 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
   }
 
   // ═════════════ WEEK ═════════════
+  // ═════════════ v9.9: Reading พรีวิว (ฝึก ไม่นับคะแนน) ═════════════
+  const knownCore = (setNo: number, w: string) => {
+    if (setPassOf(prog, setNo)) return true;
+    const x = words.find((y) => y.w === w);
+    return !!x && statusOf(prog.cards[x.id]) === "known";
+  };
+  const openReading = (k: number, from: Mode) => {
+    setReadSet(k);
+    setReadFrom(from);
+    setMode("READING");
+    scrollTop();
+  };
+  // การ์ด Reading ของชุด k (หน้าชุด) — เปิดได้เมื่อผ่านรอบทบทวนชุดนั้นแล้ว
+  const readingCard = (k: number) => {
+    const r = readingBySet(k);
+    if (!r?.preview) return null;
+    const passed = !!setPassOf(prog, k);
+    const best = loadReadingBest(email)[`p${k}`];
+    return (
+      <div className="border-2 border-[#003399]/15 rounded-2xl p-3 mb-4" data-reading-card={k}>
+        <p className="text-sm font-black text-gray-900">📰 Reading ชุดที่ {k}: <span className="font-serif">{r.preview.title}</span></p>
+        <p className="text-xs text-gray-500 mt-0.5">บทอ่านสั้น {r.preview.sents.length} ประโยค ใช้ครบ 10 คำของชุดนี้ · คำถามแบบข้อสอบ {r.preview.qs.length} ข้อ · ฝึก ไม่นับคะแนน</p>
+        {passed ? (
+          <button type="button" onClick={() => openReading(k, mode)} className="mt-2 w-full py-3 bg-white border-2 border-[#003399] text-[#003399] font-black rounded-xl" data-open-reading={k}>
+            {best ? `อ่านอีกครั้ง (ดีที่สุด ${best.b}/${best.t}) →` : "เปิดอ่าน →"}
+          </button>
+        ) : (
+          <p className="mt-2 text-xs font-bold text-gray-600 bg-gray-50 rounded-xl px-3 py-2" data-reading-locked={k}>🔒 ผ่านรอบทบทวนชุดที่ {k} ก่อน แล้วบทอ่านนี้จะเปิดให้ฝึก</p>
+        )}
+      </div>
+    );
+  };
+  if (mode === "READING") {
+    const r = readingBySet(readSet);
+    if (!r?.preview) {
+      return (
+        <div className="mt-4 text-center">
+          <button type="button" onClick={() => setMode("HOME")} className="text-sm font-bold text-[#003399] hover:underline">← หน้าหลักคำศัพท์</button>
+        </div>
+      );
+    }
+    // บทถอดรหัส ม.6 ที่ทำตั๋วออกแล้ว (อ่านจากเครื่อง) → นับคำหลักของบทนั้นว่า “รู้แล้ว”
+    const decoderProg = !extra ? loadLocalCourseProgress("decoder", email) : {};
+    const lessonDone = (lid: string) => !!(decoderProg[lid]?.attempts > 0 || decoderProg[lid]?.passed);
+    const back = readFrom === "SUMMARY" && summary ? "SUMMARY" : "WEEK";
+    return (
+      <ReadingQuiz
+        key={`p${readSet}`}
+        id={`p${readSet}`}
+        email={email}
+        label={`📰 Reading ชุดที่ ${readSet}`}
+        title={r.preview.title}
+        topic={r.preview.topic}
+        sents={r.preview.sents}
+        questions={r.preview.qs}
+        cover={coverOf(r.preview, knownCore, lessonDone)}
+        onExit={() => { setWeekNo(readSet); setMode(back); scrollTop(); }}
+        exitLabel={back === "SUMMARY" ? "กลับหน้าสรุป" : `กลับหน้าชุดที่ ${readSet}`}
+      />
+    );
+  }
+
   if (mode === "WEEK") {
     const wk = course.weeks.find((x) => x.no === weekNo)!;
     const ws = words.filter((w) => w.week === weekNo);
@@ -1200,6 +1297,7 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
                 return <p className="text-sm font-bold text-gray-600 bg-gray-50 rounded-xl px-3 py-2">✓ คาบนี้เรียนคำใหม่ครบแล้ว · เรียนต่อคาบหน้า</p>;
               })()}
             </div>
+            {readingCard(weekNo)}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {ws.map((w) => {
                 const c = prog.cards[w.id];
@@ -1312,6 +1410,11 @@ export default function VocabRoom({ email, name, onExit, shared, extra = false }
             </p>
           );
         })()}
+        {isCheck && !failed && summary.set && readingBySet(summary.set)?.preview && setPassOf(prog, summary.set) && (
+          <button type="button" onClick={() => openReading(summary.set!, "SUMMARY")} className="w-full mb-3 py-3 bg-[#FFD700] text-[#003399] font-black rounded-2xl shadow" data-open-reading={summary.set}>
+            📰 ต่อด้วย Reading ชุดที่ {summary.set}: {readingBySet(summary.set)!.preview!.title} →
+          </button>
+        )}
         <div className="space-y-2">
           {retryInfo && !retryInfo.locked && (
             <>
