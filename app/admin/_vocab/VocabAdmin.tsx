@@ -417,7 +417,11 @@ export default function VocabAdmin({
                               <span className="inline-flex w-8 h-6 rounded-md bg-emerald-500 text-white font-black items-center justify-center text-[11px] tabular-nums">
                                 {x.rec.score}{x.rec.legacy ? "*" : ""}
                               </span>
-                            ) : x.early ? (
+                            ) : null}
+                            {x.rec?.cr && x.rec.ck ? (
+                              <span className="block text-[9px] leading-tight font-bold text-gray-500 tabular-nums whitespace-nowrap" data-split={`${x.rec.ck[0] - x.rec.cr[0]}/${x.rec.ck[1] - x.rec.cr[1]}|${x.rec.cr[0]}/${x.rec.cr[1]}`}>ศ{x.rec.ck[0] - x.rec.cr[0]}·อ{x.rec.cr[0]}</span>
+                            ) : null}
+                            {x.rec ? null : x.early ? (
                               <span className="inline-flex w-8 h-6 rounded-md bg-orange-100 text-orange-700 font-black items-center justify-center text-[11px] ring-1 ring-orange-300">⏩</span>
                             ) : (
                               <span className="inline-flex w-8 h-6 rounded-md bg-gray-50 text-gray-300 items-center justify-center text-xs">·</span>
@@ -434,7 +438,7 @@ export default function VocabAdmin({
             </table>
           </div>
           <p className="text-[11px] text-gray-500 px-4 py-3 leading-relaxed">
-            คะแนนชุด (เต็ม 10) = ปัดจากสัดส่วนข้อที่ตอบถูกในรอบทบทวนที่ผ่าน (รอบทบทวน 15 ข้อ ข้อที่ผิดทำซ้ำได้ 1 รอบ · ผ่านเมื่อถูก ≥ 80% = 12/15 → 8 · 13→9 · 14→9 · 15→10 · ชุดที่ผ่านด้วย 20 ข้อ (v9.7) ยังแสดงตามเดิม) · ชุดที่ผ่านก่อน 9.7 = จำนวนคำที่ถูกตั้งแต่ครั้งแรก · ช่องเขียว = ผ่านชุดแล้ว · <b>*</b> = ผ่านจากแอปแบบเดิมก่อนมีรอบทบทวน (คะแนนคิดจากสัดส่วนที่ตอบถูกตั้งแต่ครั้งแรกในขั้นที่ 4) ·
+            คะแนนชุด (เต็ม 10) = ปัดจากสัดส่วนข้อที่ตอบถูกในรอบทบทวนที่ผ่าน (รอบทบทวน 15 ข้อ = ศัพท์ 10 + บทอ่าน 5 (ฉบับ 10.0) · ข้อศัพท์ที่ผิดทำซ้ำได้ 1 รอบ · ผ่านเมื่อถูก ≥ 80% = 12/15 → 8 · 13→9 · 14→9 · 15→10 · ใต้คะแนน “ศ·อ” = ศัพท์ที่ถูก (เต็ม 10) · บทอ่านที่ถูก (เต็ม 5) · ชุดที่ผ่านก่อน 10.0 ไม่มีตัวเลขนี้) · ชุดที่ผ่านก่อน 9.7 = จำนวนคำที่ถูกตั้งแต่ครั้งแรก · ช่องเขียว = ผ่านชุดแล้ว · <b>*</b> = ผ่านจากแอปแบบเดิมก่อนมีรอบทบทวน (คะแนนคิดจากสัดส่วนที่ตอบถูกตั้งแต่ครั้งแรกในขั้นที่ 4) ·
             รวม = ผลรวมคะแนนทุกชุด (เต็ม {course.weeks.length * 10}) · กด “⬇ สมุดคะแนน CSV” เพื่อนำไปลงคะแนน
           </p>
         </div>
@@ -614,7 +618,7 @@ function PlanCell({ plan, behind }: { plan: number | null; behind: number }) {
 function setTip(x: SetInfo): string {
   if (x.rec) {
     const when = new Date(x.rec.at).toLocaleString("th-TH", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-    return `ชุด ${x.no}:${x.grace ? " (อนุโลม · ทำล่วงหน้าก่อนวันเรียน สัปดาห์ 1–2 นับผ่าน)" : ""} ✓ ผ่านเมื่อ ${when} · คะแนน ${x.rec.score}/10${x.rec.legacy ? " (แอปแบบเดิม คิดจากขั้นที่ 4)" : x.rec.ck ? ` (รอบทบทวนถูก ${x.rec.ck[0]}/${x.rec.ck[1]} ข้อ = ${Math.round((100 * x.rec.ck[0]) / x.rec.ck[1])}%${x.rec.c1 !== undefined ? ` · ถูกตั้งแต่ครั้งแรก ${x.rec.c1}` : ""} · ผ่านที่ ≥ 80%)` : " (รอบทบทวน ถูกตั้งแต่ครั้งแรก · ก่อน 9.7)"}${guardTip(x.rec)}`;
+    return `ชุด ${x.no}:${x.grace ? " (อนุโลม · ทำล่วงหน้าก่อนวันเรียน สัปดาห์ 1–2 นับผ่าน)" : ""} ✓ ผ่านเมื่อ ${when} · คะแนน ${x.rec.score}/10${x.rec.legacy ? " (แอปแบบเดิม คิดจากขั้นที่ 4)" : x.rec.ck ? ` (รอบทบทวนถูก ${x.rec.ck[0]}/${x.rec.ck[1]} ข้อ = ${Math.round((100 * x.rec.ck[0]) / x.rec.ck[1])}%${x.rec.c1 !== undefined ? ` · ถูกตั้งแต่ครั้งแรก ${x.rec.c1}` : ""}${x.rec.cr ? ` · ศัพท์ ${x.rec.ck[0] - x.rec.cr[0]}/${x.rec.ck[1] - x.rec.cr[1]} · บทอ่าน ${x.rec.cr[0]}/${x.rec.cr[1]}` : ""} · ผ่านที่ ≥ 80%)` : " (รอบทบทวน ถูกตั้งแต่ครั้งแรก · ก่อน 9.7)"}${guardTip(x.rec)}`;
   }
   if (x.early) return `ชุด ${x.no}: ⏩ ทำล่วงหน้า (ผ่านเมื่อ ${x.early.day} ก่อนวันเรียนของห้อง · คะแนน ${x.early.score}/10) — ไม่นับ ต้องทำรอบทบทวนใหม่พร้อมกล้อง`;
   if (x.state === "ready") return `ชุด ${x.no}: เรียนครบ ${x.n} คำแล้ว — ยังไม่ได้ทำรอบทบทวน`;

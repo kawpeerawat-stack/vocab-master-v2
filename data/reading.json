@@ -1,6 +1,6 @@
 {
- "version": "9.9",
- "note": "Reading เชื่อมคำศัพท์ ม.6 · สัปดาห์ 3–13 · ฝึก ไม่นับคะแนน",
+ "version": "10.0",
+ "note": "Reading เชื่อมคำศัพท์ ม.6 · สัปดาห์ 3–13 (หนังสือเสริม/ถอดรหัส) · บทอ่านรอบทบทวนชุด 1–12",
  "weeks": [
   {
    "week": 3,
@@ -3774,6 +3774,1435 @@
      "w": "proposal",
      "c": "-al",
      "l": 1
+    }
+   ]
+  }
+ },
+ "review": {
+  "1": {
+   "title": "What the Article Didn’t Say",
+   "topic": "การอ่านอย่างมีวิจารณญาณ · สุขภาพ",
+   "sents": [
+    "Our teacher gave us a short article about sugary drinks and asked us to find its **purpose**.",
+    "The writer **mentions** that many teenagers **consume** about two cans of soda a day.",
+    "She also **refers** to a school in Chiang Mai that removed its soda machines to **reduce** sugar intake.",
+    "Her **tone** is calm, but her **attitude** toward soda companies is clearly critical.",
+    "She never says “Stop drinking soda,” yet readers can **infer** that she wants them to drink less.",
+    "Our teacher asked us to **consider** all the evidence before we **conclude** that soda is the only cause of weight gain."
+   ],
+   "pool": [
+    {
+     "q": "The word “consume” in sentence 2 is closest in meaning to ______.",
+     "o": [
+      "avoid",
+      "eat or drink",
+      "sell",
+      "produce"
+     ],
+     "a": 1,
+     "why": "consume = บริโภค → consume two cans of soda = ดื่ม",
+     "t": "V",
+     "id": "r1-1"
+    },
+    {
+     "q": "In sentence 6, “conclude” means ______.",
+     "o": [
+      "ask",
+      "forget",
+      "decide after thinking",
+      "begin"
+     ],
+     "a": 2,
+     "why": "conclude = สรุป (ตัดสินใจหลังพิจารณาหลักฐาน)",
+     "t": "V",
+     "id": "r1-2"
+    },
+    {
+     "q": "According to the passage, what did the school in Chiang Mai do?",
+     "o": [
+      "It banned all drinks.",
+      "It wrote an article.",
+      "It sold more soda.",
+      "It removed its soda machines."
+     ],
+     "a": 3,
+     "why": "ประโยคที่ 3: a school … that removed its soda machines",
+     "t": "D",
+     "id": "r1-3"
+    },
+    {
+     "q": "How much soda do many teenagers drink, according to the writer?",
+     "o": [
+      "About two cans a day",
+      "None at all",
+      "About five cans a day",
+      "About one can a week"
+     ],
+     "a": 0,
+     "why": "ประโยคที่ 2: consume about two cans of soda a day",
+     "t": "D",
+     "id": "r1-4"
+    },
+    {
+     "q": "What is the passage mainly about?",
+     "o": [
+      "The history of soda companies",
+      "A school trip to Chiang Mai",
+      "How to make healthy drinks",
+      "Reading an article carefully to understand the writer"
+     ],
+     "a": 3,
+     "why": "ทั้งบทเล่าการอ่านบทความ: หาจุดประสงค์ น้ำเสียง ทัศนคติ การอนุมาน และการสรุปอย่างรอบคอบ",
+     "t": "M",
+     "id": "r1-5"
+    },
+    {
+     "q": "In sentence 3, “She” refers to ______.",
+     "o": [
+      "the writer of the article",
+      "the school director",
+      "a student",
+      "our teacher"
+     ],
+     "a": 0,
+     "why": "ประโยคก่อนหน้าพูดถึง The writer → She = ผู้เขียนบทความ (ครูของเราเป็นคนให้บทความ ไม่ใช่คนเขียน)",
+     "t": "I",
+     "id": "r1-6"
+    },
+    {
+     "q": "What can be inferred about the writer of the article?",
+     "o": [
+      "She drinks soda every day.",
+      "She thinks people should drink less soda.",
+      "She has never visited Chiang Mai.",
+      "She works for a soda company."
+     ],
+     "a": 1,
+     "why": "ประโยคที่ 5: readers can infer that she wants them to drink less",
+     "t": "I",
+     "id": "r1-7"
+    },
+    {
+     "q": "In sentence 5, the word “yet” shows ______.",
+     "o": [
+      "a reason",
+      "an example",
+      "a time order",
+      "a contrast"
+     ],
+     "a": 3,
+     "why": "yet = แต่ → ไม่ได้พูดตรง ๆ แต่ผู้อ่านอนุมานได้ = ขัดกัน",
+     "t": "C",
+     "id": "r1-8"
+    }
+   ]
+  },
+  "2": {
+   "title": "A Fair That Turned Trash into Art",
+   "topic": "สิ่งแวดล้อม · กิจกรรมโรงเรียน",
+   "sents": [
+    "Last month, our student council **organized** a recycling fair to **promote** less waste at school.",
+    "Many students had **expressed** **concern** about the plastic bags thrown away in the canteen every day.",
+    "At the fair, local artists showed how old **materials** such as bottles and cans can become lamps and bags.",
+    "One artist said that the fashion **industry** wastes huge amounts of cloth each year.",
+    "Free workshops were **available** for anyone who wanted to try, but you had to be **patient** because some projects took hours.",
+    "**Certain** students sold their creations, and the money went to a local animal shelter.",
+    "For many of us, the fair was an **opportunity** to see trash in a new way."
+   ],
+   "pool": [
+    {
+     "q": "The word “available” in sentence 5 is closest in meaning to ______.",
+     "o": [
+      "ready to be used",
+      "too expensive",
+      "hidden",
+      "finished"
+     ],
+     "a": 0,
+     "why": "available = มีให้ใช้ หาได้ → workshops were available = มีเวิร์กช็อปให้เข้าร่วม",
+     "t": "V",
+     "id": "r2-1"
+    },
+    {
+     "q": "In sentence 5, “patient” means ______.",
+     "o": [
+      "very fast",
+      "sick in hospital",
+      "able to wait calmly",
+      "angry"
+     ],
+     "a": 2,
+     "why": "patient (adj.) = อดทน · กับดัก: patient (n.) = ผู้ป่วย · บริบท: some projects took hours",
+     "t": "V",
+     "id": "r2-2"
+    },
+    {
+     "q": "What had many students worried about?",
+     "o": [
+      "Plastic bags thrown away in the canteen",
+      "The animal shelter closing",
+      "The price of the fair",
+      "A lack of artists"
+     ],
+     "a": 0,
+     "why": "ประโยคที่ 2: expressed concern about the plastic bags thrown away in the canteen",
+     "t": "D",
+     "id": "r2-3"
+    },
+    {
+     "q": "Where did the money from the students’ creations go?",
+     "o": [
+      "To the artists",
+      "To a local animal shelter",
+      "To the canteen",
+      "To the student council"
+     ],
+     "a": 1,
+     "why": "ประโยคที่ 6: the money went to a local animal shelter",
+     "t": "D",
+     "id": "r2-4"
+    },
+    {
+     "q": "Which is the best title for the passage?",
+     "o": [
+      "Learning to See Waste Differently",
+      "How to Open a Canteen",
+      "Why Animals Need Shelters",
+      "The History of Fashion"
+     ],
+     "a": 0,
+     "why": "ประโยคสุดท้ายสรุปว่างานนี้ทำให้มองขยะแบบใหม่ · ตัวเลือกอื่นเป็นรายละเอียดหรือไม่ได้กล่าวถึง",
+     "t": "M",
+     "id": "r2-5"
+    },
+    {
+     "q": "In sentence 4, “One artist” is one of ______.",
+     "o": [
+      "the students who sold bags",
+      "the local artists at the fair",
+      "the student council members",
+      "the canteen staff"
+     ],
+     "a": 1,
+     "why": "ประโยคที่ 3 พูดถึง local artists → One artist = ศิลปินคนหนึ่งในกลุ่มนั้น",
+     "t": "I",
+     "id": "r2-6"
+    },
+    {
+     "q": "What can be inferred from sentence 5?",
+     "o": [
+      "The workshops cost a lot of money.",
+      "Nobody joined the workshops.",
+      "The workshops were only for artists.",
+      "Some projects were not quick to finish."
+     ],
+     "a": 3,
+     "why": "you had to be patient because some projects took hours → บางงานใช้เวลานาน · B ขัดกับ Free",
+     "t": "I",
+     "id": "r2-7"
+    },
+    {
+     "q": "In sentence 3, “such as” introduces ______.",
+     "o": [
+      "a contrast",
+      "a result",
+      "a reason",
+      "examples"
+     ],
+     "a": 3,
+     "why": "such as = เช่น → bottles and cans เป็นตัวอย่างของ old materials",
+     "t": "C",
+     "id": "r2-8"
+    }
+   ]
+  },
+  "3": {
+   "title": "Online Learning: Worth the Price?",
+   "topic": "การศึกษา · ค่าใช้จ่าย",
+   "sents": [
+    "Many universities now **provide** online courses for students who cannot travel to campus.",
+    "These courses usually charge a lower **fee** than classroom programs, and this **option** has become popular among working adults.",
+    "However, researchers say the **impact** of online learning depends on the learner.",
+    "**Despite** the low cost and flexible hours, students are still **required** to **maintain** a regular study routine.",
+    "Without self-discipline, many learners stop halfway.",
+    "Experts suggest a mixed **approach**: short live lessons each week combined with self-study.",
+    "A stable internet connection is also **essential**.",
+    "Students who follow this plan tend to **produce** better work and finish the course on time."
+   ],
+   "pool": [
+    {
+     "q": "The word “essential” in sentence 7 is closest in meaning to ______.",
+     "o": [
+      "optional",
+      "necessary",
+      "expensive",
+      "slow"
+     ],
+     "a": 1,
+     "why": "essential = จำเป็นอย่างยิ่ง · ตรงข้ามกับ optional",
+     "t": "V",
+     "id": "r3-1"
+    },
+    {
+     "q": "The word “option” in sentence 2 is closest in meaning to ______.",
+     "o": [
+      "choice",
+      "price",
+      "problem",
+      "rule"
+     ],
+     "a": 0,
+     "why": "option = ทางเลือก → this option = การเลือกเรียนออนไลน์",
+     "t": "V",
+     "id": "r3-2"
+    },
+    {
+     "q": "According to sentence 2, who finds online courses popular?",
+     "o": [
+      "University teachers",
+      "Young children",
+      "Researchers",
+      "Working adults"
+     ],
+     "a": 3,
+     "why": "ประโยคที่ 2: popular among working adults",
+     "t": "D",
+     "id": "r3-3"
+    },
+    {
+     "q": "What happens to many learners without self-discipline?",
+     "o": [
+      "They pay a higher fee.",
+      "They become experts.",
+      "They finish early.",
+      "They stop halfway."
+     ],
+     "a": 3,
+     "why": "ประโยคที่ 5: Without self-discipline, many learners stop halfway",
+     "t": "D",
+     "id": "r3-4"
+    },
+    {
+     "q": "Which is the best title for the passage?",
+     "o": [
+      "The Fastest Internet in Thailand",
+      "How to Build a University",
+      "Why Classroom Programs Are Free",
+      "Online Courses: Cheap but Not Easy"
+     ],
+     "a": 3,
+     "why": "บทอ่านพูดว่าค่าเรียนถูก แต่ต้องมีวินัยและวิธีเรียนที่ดี",
+     "t": "M",
+     "id": "r3-5"
+    },
+    {
+     "q": "In sentence 2, “this option” refers to ______.",
+     "o": [
+      "paying a higher fee",
+      "taking online courses",
+      "travelling to campus",
+      "working full time"
+     ],
+     "a": 1,
+     "why": "this option ย้อนไปที่ online courses ที่ค่าเรียนถูกกว่า",
+     "t": "I",
+     "id": "r3-6"
+    },
+    {
+     "q": "What does the writer imply about online learning?",
+     "o": [
+      "It is only for teenagers.",
+      "It does not need an internet connection.",
+      "Its success depends on the learner’s own effort.",
+      "It is always better than classroom learning."
+     ],
+     "a": 2,
+     "why": "ประโยคที่ 3–5: impact depends on the learner · ต้อง maintain a regular routine",
+     "t": "I",
+     "id": "r3-7"
+    },
+    {
+     "q": "In sentence 3, “However” introduces ______.",
+     "o": [
+      "a list of fees",
+      "the reason courses are cheap",
+      "a point that limits the good news before it",
+      "an example of a course"
+     ],
+     "a": 2,
+     "why": "ก่อนหน้าเป็นข้อดี (ถูก นิยม) → However = แต่ ผลขึ้นอยู่กับผู้เรียน",
+     "t": "C",
+     "id": "r3-8"
+    }
+   ]
+  },
+  "4": {
+   "title": "Learning Through Games",
+   "topic": "การเรียนรู้ · เกม",
+   "sents": [
+    "Many teachers now use games to **attract** students’ attention in class.",
+    "Studies **suggest** that a game can turn a difficult **concept** into something students actually enjoy.",
+    "For example, a history **assignment** may become a team quest with points and levels.",
+    "The biggest **advantage** is the **interaction** between classmates, who must talk and plan together.",
+    "Games also offer a **variety** of tasks, so students with different skills can all take part.",
+    "However, the **content** must still match the lesson, or the fun may **prevent** real learning.",
+    "In the end, a good game should create a **desire** to keep learning even after the bell rings."
+   ],
+   "pool": [
+    {
+     "q": "The word “attract” in sentence 1 is closest in meaning to ______.",
+     "o": [
+      "test",
+      "punish",
+      "draw",
+      "lose"
+     ],
+     "a": 2,
+     "why": "attract attention = ดึงดูดความสนใจ (draw attention)",
+     "t": "V",
+     "id": "r4-1"
+    },
+    {
+     "q": "The word “variety” in sentence 5 is closest in meaning to ______.",
+     "o": [
+      "a single type",
+      "a range of different kinds",
+      "a difficult level",
+      "a small amount"
+     ],
+     "a": 1,
+     "why": "a variety of tasks = งานหลากหลายแบบ",
+     "t": "V",
+     "id": "r4-2"
+    },
+    {
+     "q": "In sentence 3, what can a history assignment become?",
+     "o": [
+      "A film",
+      "A written test",
+      "A team quest with points and levels",
+      "A field trip"
+     ],
+     "a": 2,
+     "why": "ประโยคที่ 3: may become a team quest with points and levels",
+     "t": "D",
+     "id": "r4-3"
+    },
+    {
+     "q": "Why can students with different skills all take part?",
+     "o": [
+      "Games offer many kinds of tasks.",
+      "Games are very short.",
+      "Teachers help every student.",
+      "Games have no rules."
+     ],
+     "a": 0,
+     "why": "ประโยคที่ 5: a variety of tasks, so students with different skills can all take part",
+     "t": "D",
+     "id": "r4-4"
+    },
+    {
+     "q": "What is the writer’s main purpose?",
+     "o": [
+      "To explain how games can help learning and what to be careful about",
+      "To describe a school trip",
+      "To complain about history lessons",
+      "To sell a new game"
+     ],
+     "a": 0,
+     "why": "บทอ่านมีทั้งข้อดีของเกม และข้อควรระวัง (However … ประโยคที่ 6)",
+     "t": "M",
+     "id": "r4-5"
+    },
+    {
+     "q": "In sentence 4, “who” refers to ______.",
+     "o": [
+      "lessons",
+      "teachers",
+      "games",
+      "classmates"
+     ],
+     "a": 3,
+     "why": "classmates, who must talk and plan together → who = classmates",
+     "t": "I",
+     "id": "r4-6"
+    },
+    {
+     "q": "What can be inferred from sentence 7?",
+     "o": [
+      "Teachers do not like games.",
+      "Good games make students want to keep learning on their own.",
+      "Students should play games instead of studying.",
+      "The school bell is too loud."
+     ],
+     "a": 1,
+     "why": "a desire to keep learning even after the bell rings = อยากเรียนต่อเองแม้หมดคาบ",
+     "t": "I",
+     "id": "r4-7"
+    },
+    {
+     "q": "“Interaction” (sentence 4) = inter- + action. What does inter- mean?",
+     "o": [
+      "not",
+      "again",
+      "between",
+      "before"
+     ],
+     "a": 2,
+     "why": "inter- = ระหว่าง → การกระทำระหว่างกัน (บทถอดรหัสที่ 8)",
+     "t": "C",
+     "id": "r4-8"
+    }
+   ]
+  },
+  "5": {
+   "title": "Stress at Work",
+   "topic": "การทำงาน · ความเครียด",
+   "sents": [
+    "Many young **employees** feel **anxiety** when their bosses **demand** fast results.",
+    "Psychologists say that each **individual** reacts to pressure in a different way.",
+    "Some people **associate** long working hours with success, while others see them as a sign of poor planning.",
+    "When stress grows, small **conflicts** between co-workers can become serious arguments.",
+    "How well a team handles stress often **depends** on its leader.",
+    "A good leader is **aware** of these problems and gives **specific** instructions instead of unclear orders.",
+    "Such leaders have a strong, positive **influence** on the whole office."
+   ],
+   "pool": [
+    {
+     "q": "The word “demand” in sentence 1 is closest in meaning to ______.",
+     "o": [
+      "refuse",
+      "pay for",
+      "forget",
+      "ask for strongly"
+     ],
+     "a": 3,
+     "why": "demand = เรียกร้อง → bosses demand fast results",
+     "t": "V",
+     "id": "r5-1"
+    },
+    {
+     "q": "The word “aware” in sentence 6 is closest in meaning to ______.",
+     "o": [
+      "knowing about",
+      "tired of",
+      "angry with",
+      "afraid of"
+     ],
+     "a": 0,
+     "why": "be aware of = รับรู้ ตระหนักถึง",
+     "t": "V",
+     "id": "r5-2"
+    },
+    {
+     "q": "According to sentence 1, when do young employees feel anxiety?",
+     "o": [
+      "When they get a pay rise",
+      "When they take a holiday",
+      "When their bosses demand fast results",
+      "When they work alone"
+     ],
+     "a": 2,
+     "why": "ประโยคที่ 1: feel anxiety when their bosses demand fast results",
+     "t": "D",
+     "id": "r5-3"
+    },
+    {
+     "q": "What kind of instructions does a good leader give?",
+     "o": [
+      "Specific ones",
+      "Unclear ones",
+      "No instructions",
+      "Very long ones"
+     ],
+     "a": 0,
+     "why": "ประโยคที่ 6: gives specific instructions instead of unclear orders",
+     "t": "D",
+     "id": "r5-4"
+    },
+    {
+     "q": "Which is the best title for the passage?",
+     "o": [
+      "Why Offices Are Noisy",
+      "The Life of a Psychologist",
+      "How to Get a Job",
+      "Leaders and Stress at Work"
+     ],
+     "a": 3,
+     "why": "บทอ่านพูดเรื่องความเครียดในที่ทำงานและบทบาทของผู้นำ",
+     "t": "M",
+     "id": "r5-5"
+    },
+    {
+     "q": "In sentence 7, “Such leaders” are leaders who ______.",
+     "o": [
+      "notice problems and give clear instructions",
+      "avoid their teams",
+      "shout at their employees",
+      "work very long hours"
+     ],
+     "a": 0,
+     "why": "Such ย้อนไปที่ประโยคที่ 6: aware of these problems … specific instructions",
+     "t": "I",
+     "id": "r5-6"
+    },
+    {
+     "q": "Which statement would the writer most likely agree with?",
+     "o": [
+      "Conflicts at work are always serious.",
+      "Long hours always bring success.",
+      "A team’s stress can change depending on its leader.",
+      "Stress affects everyone in the same way."
+     ],
+     "a": 2,
+     "why": "ประโยคที่ 5: depends on its leader · B ขัดกับประโยคที่ 2",
+     "t": "I",
+     "id": "r5-7"
+    },
+    {
+     "q": "In sentence 3, the word “while” shows ______.",
+     "o": [
+      "a contrast between two groups",
+      "a time order",
+      "a result",
+      "a reason"
+     ],
+     "a": 0,
+     "why": "Some people … while others … = บางคนคิดแบบหนึ่ง แต่อีกกลุ่มคิดตรงข้าม",
+     "t": "C",
+     "id": "r5-8"
+    }
+   ]
+  },
+  "6": {
+   "title": "Solar Power at School",
+   "topic": "พลังงาน · สิ่งแวดล้อม",
+   "sents": [
+    "Last year, our school decided to **purchase** solar panels for the roof.",
+    "**Experts** said the panels could **generate** about 40 percent of the school’s electricity.",
+    "Because the budget was **limited**, the school used a simple **method**: install panels on one building first.",
+    "The results were **significant**, as the electricity bill fell by almost a third.",
+    "Students also gained **access** to a live screen that shows how much power the panels produce.",
+    "In **response**, science teachers added lessons on energy and the **physical** properties of materials.",
+    "The project **reflects** the school’s goal of teaching students to care for the planet."
+   ],
+   "pool": [
+    {
+     "q": "The word “purchase” in sentence 1 is closest in meaning to ______.",
+     "o": [
+      "repair",
+      "borrow",
+      "build",
+      "buy"
+     ],
+     "a": 3,
+     "why": "purchase = ซื้อ",
+     "t": "V",
+     "id": "r6-1"
+    },
+    {
+     "q": "The word “generate” in sentence 2 is closest in meaning to ______.",
+     "o": [
+      "store",
+      "measure",
+      "produce",
+      "waste"
+     ],
+     "a": 2,
+     "why": "generate electricity = ผลิตไฟฟ้า",
+     "t": "V",
+     "id": "r6-2"
+    },
+    {
+     "q": "According to experts, how much of the school’s electricity could the panels generate?",
+     "o": [
+      "About 10 percent",
+      "All of it",
+      "About 40 percent",
+      "About a third"
+     ],
+     "a": 2,
+     "why": "ประโยคที่ 2: about 40 percent · a third คือส่วนที่ค่าไฟลดลง (ตัวลวง)",
+     "t": "D",
+     "id": "r6-3"
+    },
+    {
+     "q": "What did science teachers add in response?",
+     "o": [
+      "Lessons on energy and materials",
+      "A bigger budget",
+      "A live screen",
+      "New solar panels"
+     ],
+     "a": 0,
+     "why": "ประโยคที่ 6: added lessons on energy and the physical properties of materials",
+     "t": "D",
+     "id": "r6-4"
+    },
+    {
+     "q": "What is the main purpose of the passage?",
+     "o": [
+      "To describe a school project and its results",
+      "To advertise solar panels",
+      "To teach how to install panels",
+      "To complain about electricity bills"
+     ],
+     "a": 0,
+     "why": "เล่าโครงการโซลาร์ของโรงเรียน ผลลัพธ์ และสิ่งที่ได้ต่อยอด",
+     "t": "M",
+     "id": "r6-5"
+    },
+    {
+     "q": "In sentence 5, “the panels” are the ones ______.",
+     "o": [
+      "at students’ homes",
+      "in the science lab",
+      "sold in shops",
+      "on the school roof"
+     ],
+     "a": 3,
+     "why": "ประโยคที่ 1: solar panels for the roof",
+     "t": "I",
+     "id": "r6-6"
+    },
+    {
+     "q": "What can be inferred about the school?",
+     "o": [
+      "It has an unlimited budget.",
+      "It may add panels to more buildings later.",
+      "Students installed the panels themselves.",
+      "It stopped using electricity."
+     ],
+     "a": 1,
+     "why": "install panels on one building first → แปลว่าอาจติดเพิ่มภายหลัง · C ขัดกับ limited budget",
+     "t": "I",
+     "id": "r6-7"
+    },
+    {
+     "q": "In sentence 3, “Because” introduces ______.",
+     "o": [
+      "a contrast",
+      "the reason for the simple method",
+      "the result of the project",
+      "an example of a panel"
+     ],
+     "a": 1,
+     "why": "Because the budget was limited → เหตุผลที่เลือกวิธีติดตั้งทีละอาคาร",
+     "t": "C",
+     "id": "r6-8"
+    }
+   ]
+  },
+  "7": {
+   "title": "The School Talent Show",
+   "topic": "กิจกรรมโรงเรียน",
+   "sents": [
+    "Every year, our school holds a talent show where students **perform** songs, dances and comedy.",
+    "Teachers say the show can **boost** students’ **confidence** in front of a crowd.",
+    "This year, there was one **condition**: every act had to be shorter than five minutes.",
+    "Some students had to **deal** with stage fright, but most of them did well.",
+    "One quiet boy surprised everyone with his piano skills, which **implies** that many students have hidden **potential**.",
+    "The judges were **flexible** and gave **additional** time to a group whose music stopped suddenly.",
+    "The only thing that **disappointed** the audience was that the show ended too soon."
+   ],
+   "pool": [
+    {
+     "q": "The word “perform” in sentence 1 is closest in meaning to ______.",
+     "o": [
+      "present to an audience",
+      "write",
+      "judge",
+      "watch"
+     ],
+     "a": 0,
+     "why": "perform songs = แสดง ร้องให้ผู้ชมดู",
+     "t": "V",
+     "id": "r7-1"
+    },
+    {
+     "q": "The word “flexible” in sentence 6 is closest in meaning to ______.",
+     "o": [
+      "willing to change plans",
+      "strict",
+      "unfair",
+      "tired"
+     ],
+     "a": 0,
+     "why": "flexible = ยืดหยุ่น → ยอมให้เวลาเพิ่มเมื่อเกิดปัญหา",
+     "t": "V",
+     "id": "r7-2"
+    },
+    {
+     "q": "What kinds of acts did students perform?",
+     "o": [
+      "Plays and poems",
+      "Sports",
+      "Only songs",
+      "Songs, dances and comedy"
+     ],
+     "a": 3,
+     "why": "ประโยคที่ 1: perform songs, dances and comedy",
+     "t": "D",
+     "id": "r7-3"
+    },
+    {
+     "q": "What surprised everyone at the show?",
+     "o": [
+      "A quiet boy’s piano skills",
+      "The judges’ scores",
+      "The length of the show",
+      "A group’s dance"
+     ],
+     "a": 0,
+     "why": "ประโยคที่ 5: One quiet boy surprised everyone with his piano skills",
+     "t": "D",
+     "id": "r7-4"
+    },
+    {
+     "q": "What is the passage mainly about?",
+     "o": [
+      "Why shows should be longer",
+      "A school talent show and what it showed about students",
+      "How to play the piano",
+      "How judges score a show"
+     ],
+     "a": 1,
+     "why": "ทั้งบทเล่างานแสดงความสามารถ และสิ่งที่ได้เห็น (ความมั่นใจ ศักยภาพที่ซ่อนอยู่)",
+     "t": "M",
+     "id": "r7-5"
+    },
+    {
+     "q": "In sentence 6, “whose” refers to ______.",
+     "o": [
+      "the judges",
+      "the group",
+      "the boy",
+      "the audience"
+     ],
+     "a": 1,
+     "why": "a group whose music stopped → เพลงของกลุ่มนั้นหยุด",
+     "t": "I",
+     "id": "r7-6"
+    },
+    {
+     "q": "How did the audience probably feel about the show?",
+     "o": [
+      "They wanted it to be shorter.",
+      "They were angry at the judges.",
+      "They enjoyed it and wanted more.",
+      "They were bored."
+     ],
+     "a": 2,
+     "why": "ประโยคที่ 7: เสียดายอย่างเดียวคือจบเร็วเกินไป → ชอบและอยากดูต่อ",
+     "t": "I",
+     "id": "r7-7"
+    },
+    {
+     "q": "In sentence 7, “disappointed” ends in -ed. This shows that ______.",
+     "o": [
+      "the show had the feeling",
+      "it is a noun",
+      "the audience caused the feeling",
+      "the audience had the feeling"
+     ],
+     "a": 3,
+     "why": "-ed = คนที่รู้สึก (บทถอดรหัสที่ 4) · ถ้าเป็น disappointing จะหมายถึงสิ่งที่ทำให้รู้สึก",
+     "t": "C",
+     "id": "r7-8"
+    }
+   ]
+  },
+  "8": {
+   "title": "Do Energy Drinks Really Help?",
+   "topic": "สุขภาพ · งานวิจัย",
+   "sents": [
+    "Many energy drinks **claim** to improve your **concentration** before an exam.",
+    "The main **ingredient** in most of them is caffeine, a substance that is **familiar** to coffee drinkers.",
+    "To **determine** whether these drinks are **effective**, researchers asked two groups of students to take the same test.",
+    "One group had an energy drink and the other had water; then the researchers **evaluated** their scores.",
+    "The energy-drink group **gained** only a few points, and many of them could not sleep that night.",
+    "Doctors do not want to **force** teenagers to give up these drinks completely.",
+    "Instead, they advise parents to **ensure** that their children have no more than one can a day."
+   ],
+   "pool": [
+    {
+     "q": "The word “ingredient” in sentence 2 is closest in meaning to ______.",
+     "o": [
+      "one part of a mixture",
+      "the taste",
+      "the bottle",
+      "the price"
+     ],
+     "a": 0,
+     "why": "ingredient = ส่วนผสม → main ingredient = ส่วนผสมหลัก",
+     "t": "V",
+     "id": "r8-1"
+    },
+    {
+     "q": "The word “ensure” in sentence 7 is closest in meaning to ______.",
+     "o": [
+      "guess",
+      "doubt",
+      "make sure",
+      "forget"
+     ],
+     "a": 2,
+     "why": "ensure = ทำให้แน่ใจ (en- = ทำให้ + sure)",
+     "t": "V",
+     "id": "r8-2"
+    },
+    {
+     "q": "What is the main ingredient in most energy drinks?",
+     "o": [
+      "Vitamins",
+      "Sugar",
+      "Caffeine",
+      "Water"
+     ],
+     "a": 2,
+     "why": "ประโยคที่ 2: The main ingredient … is caffeine",
+     "t": "D",
+     "id": "r8-3"
+    },
+    {
+     "q": "What did the other group of students drink?",
+     "o": [
+      "Energy drinks",
+      "Water",
+      "Milk",
+      "Coffee"
+     ],
+     "a": 1,
+     "why": "ประโยคที่ 4: the other had water",
+     "t": "D",
+     "id": "r8-4"
+    },
+    {
+     "q": "Which is the best title for the passage?",
+     "o": [
+      "Why Water Is Boring",
+      "How to Make Coffee",
+      "Energy Drinks: Small Gain, Big Cost",
+      "The History of Exams"
+     ],
+     "a": 2,
+     "why": "คะแนนเพิ่มนิดเดียว (small gain) แต่นอนไม่หลับ (cost)",
+     "t": "M",
+     "id": "r8-5"
+    },
+    {
+     "q": "In sentence 4, “their scores” are the scores of ______.",
+     "o": [
+      "the researchers",
+      "the doctors",
+      "both groups of students",
+      "the parents"
+     ],
+     "a": 2,
+     "why": "researchers evaluated their scores → คะแนนของนักเรียนทั้งสองกลุ่ม",
+     "t": "I",
+     "id": "r8-6"
+    },
+    {
+     "q": "What do doctors seem to think about energy drinks?",
+     "o": [
+      "They improve sleep.",
+      "They must be banned by law.",
+      "Teenagers should limit them.",
+      "They are completely safe."
+     ],
+     "a": 2,
+     "why": "ประโยคที่ 6–7: ไม่บังคับเลิก แต่ให้ดื่มไม่เกินวันละ 1 กระป๋อง = จำกัด",
+     "t": "I",
+     "id": "r8-7"
+    },
+    {
+     "q": "In sentence 7, “Instead” introduces ______.",
+     "o": [
+      "an example of an ingredient",
+      "an alternative to the idea in sentence 6",
+      "a time order",
+      "a result of the test"
+     ],
+     "a": 1,
+     "why": "ไม่บังคับเลิก (ประโยคที่ 6) → Instead = แทนที่จะทำแบบนั้น ให้ทำอีกแบบ",
+     "t": "C",
+     "id": "r8-8"
+    }
+   ]
+  },
+  "9": {
+   "title": "Should Schools Ban Phones?",
+   "topic": "เทคโนโลยี · โรงเรียน",
+   "sents": [
+    "Our class held a **debate** on whether phones should be banned at school.",
+    "One team **criticized** phones because many apps **contain** games that distract students.",
+    "The other team argued that phones **enable** students to look up information quickly.",
+    "Both teams agreed that phones can **contribute** to cyberbullying, which can be very **emotional** for victims.",
+    "The teacher said that **critical** thinking was more important than winning.",
+    "It was a **challenging** discussion, and no one was **entirely** right or wrong.",
+    "In the end, everyone **except** two students voted to allow phones only during breaks."
+   ],
+   "pool": [
+    {
+     "q": "The word “criticized” in sentence 2 is closest in meaning to ______.",
+     "o": [
+      "praised",
+      "repaired",
+      "said bad things about",
+      "bought"
+     ],
+     "a": 2,
+     "why": "criticize = วิจารณ์ ติ",
+     "t": "V",
+     "id": "r9-1"
+    },
+    {
+     "q": "The word “entirely” in sentence 6 is closest in meaning to ______.",
+     "o": [
+      "partly",
+      "never",
+      "quickly",
+      "completely"
+     ],
+     "a": 3,
+     "why": "entirely = ทั้งหมด โดยสิ้นเชิง → no one was entirely right = ไม่มีใครถูกทั้งหมด",
+     "t": "V",
+     "id": "r9-2"
+    },
+    {
+     "q": "According to one team, why are phones a problem?",
+     "o": [
+      "Many apps contain games that distract students.",
+      "Phones break easily.",
+      "Phones are too expensive.",
+      "Teachers cannot use them."
+     ],
+     "a": 0,
+     "why": "ประโยคที่ 2: many apps contain games that distract students",
+     "t": "D",
+     "id": "r9-3"
+    },
+    {
+     "q": "When will phones be allowed?",
+     "o": [
+      "Only during exams",
+      "Only during breaks",
+      "All day",
+      "Never"
+     ],
+     "a": 1,
+     "why": "ประโยคที่ 7: allow phones only during breaks",
+     "t": "D",
+     "id": "r9-4"
+    },
+    {
+     "q": "What is the passage mainly about?",
+     "o": [
+      "How to make apps",
+      "A teacher who won a debate",
+      "A class debate about phones at school and its result",
+      "The history of cyberbullying"
+     ],
+     "a": 2,
+     "why": "ทั้งบทเล่าการโต้วาที ข้อโต้แย้งสองฝ่าย และผลโหวต",
+     "t": "M",
+     "id": "r9-5"
+    },
+    {
+     "q": "In sentence 2, “that” refers to ______.",
+     "o": [
+      "games",
+      "apps",
+      "phones",
+      "students"
+     ],
+     "a": 0,
+     "why": "games that distract students → that = games",
+     "t": "I",
+     "id": "r9-6"
+    },
+    {
+     "q": "What can be inferred about the class’s final decision?",
+     "o": [
+      "The teacher decided alone.",
+      "It was a compromise between the two teams.",
+      "Phones were banned for everyone.",
+      "One team won completely."
+     ],
+     "a": 1,
+     "why": "ใช้ได้เฉพาะช่วงพัก = อยู่ตรงกลางระหว่างห้ามทั้งหมดกับใช้ได้ทั้งหมด",
+     "t": "I",
+     "id": "r9-7"
+    },
+    {
+     "q": "“Emotional” = emotion + -al. The suffix -al makes the word ______.",
+     "o": [
+      "an adverb",
+      "an adjective",
+      "a noun",
+      "a verb"
+     ],
+     "a": 1,
+     "why": "-al = คุณศัพท์ (บทถอดรหัสที่ 1) → very emotional",
+     "t": "C",
+     "id": "r9-8"
+    }
+   ]
+  },
+  "10": {
+   "title": "Insects on the Menu",
+   "topic": "อาหาร · วิทยาศาสตร์",
+   "sents": [
+    "As the world’s population grows, scientists are **seeking** new sources of protein.",
+    "Insects are one option, and researchers have **conducted** studies on their **nutrition**.",
+    "The results show that crickets contain more protein than the same weight of beef.",
+    "Some restaurants in Bangkok now **display** insect dishes on their menus, hoping to **appeal** to curious tourists.",
+    "However, many people need time to **adjust** to the idea of eating bugs.",
+    "Food experts believe that cooking classes can **foster** a more open attitude.",
+    "If interest continues to **expand**, large insect farms may **occur** in many countries, and we may one day **owe** part of our food supply to tiny creatures."
+   ],
+   "pool": [
+    {
+     "q": "The word “conducted” in sentence 2 is closest in meaning to ______.",
+     "o": [
+      "carried out",
+      "cancelled",
+      "avoided",
+      "copied"
+     ],
+     "a": 0,
+     "why": "conduct a study = ทำการศึกษา",
+     "t": "V",
+     "id": "r10-1"
+    },
+    {
+     "q": "The word “adjust” in sentence 5 is closest in meaning to ______.",
+     "o": [
+      "forget",
+      "get used to",
+      "laugh at",
+      "refuse"
+     ],
+     "a": 1,
+     "why": "adjust to = ปรับตัวให้เข้ากับ",
+     "t": "V",
+     "id": "r10-2"
+    },
+    {
+     "q": "Why are scientists looking for new sources of protein?",
+     "o": [
+      "Insects are expensive.",
+      "Beef is banned.",
+      "The world’s population is growing.",
+      "Tourists asked for them."
+     ],
+     "a": 2,
+     "why": "ประโยคที่ 1: As the world’s population grows",
+     "t": "D",
+     "id": "r10-3"
+    },
+    {
+     "q": "Where do some restaurants display insect dishes?",
+     "o": [
+      "At the airport",
+      "In schools",
+      "On insect farms",
+      "On their menus in Bangkok"
+     ],
+     "a": 3,
+     "why": "ประโยคที่ 4: Some restaurants in Bangkok now display insect dishes on their menus",
+     "t": "D",
+     "id": "r10-4"
+    },
+    {
+     "q": "Which is the best title for the passage?",
+     "o": [
+      "Could Insects Feed the Future?",
+      "How Crickets Sing",
+      "Tourists in Bangkok",
+      "Cooking Beef at Home"
+     ],
+     "a": 0,
+     "why": "บทอ่านพูดถึงแมลงเป็นแหล่งโปรตีนในอนาคต",
+     "t": "M",
+     "id": "r10-5"
+    },
+    {
+     "q": "In sentence 2, “their” refers to ______.",
+     "o": [
+      "researchers",
+      "insects",
+      "scientists",
+      "tourists"
+     ],
+     "a": 1,
+     "why": "studies on their nutrition → คุณค่าทางอาหารของแมลง",
+     "t": "I",
+     "id": "r10-6"
+    },
+    {
+     "q": "What can be inferred from sentence 5?",
+     "o": [
+      "Many people find eating insects strange at first.",
+      "Bugs are dangerous to eat.",
+      "Restaurants will stop selling insects.",
+      "Everyone loves insect dishes."
+     ],
+     "a": 0,
+     "why": "need time to adjust to the idea = ยังไม่คุ้น ต้องใช้เวลา",
+     "t": "I",
+     "id": "r10-7"
+    },
+    {
+     "q": "In sentence 7, “If” introduces ______.",
+     "o": [
+      "an example",
+      "a contrast",
+      "a reason",
+      "a condition"
+     ],
+     "a": 3,
+     "why": "If interest continues to expand = เงื่อนไข ถ้า… ก็อาจ…",
+     "t": "C",
+     "id": "r10-8"
+    }
+   ]
+  },
+  "11": {
+   "title": "The Lost Art of Letter Writing",
+   "topic": "การสื่อสาร · ครอบครัว",
+   "sents": [
+    "In the digital **era**, handwritten letters have almost **disappeared**.",
+    "People in the **previous** **generation** **relied** on letters to stay in touch with family far away.",
+    "A recent **finding** from a survey at our school shows that only one in ten students has ever sent a letter by post.",
+    "Historians **regard** letters as an important **element** of a family’s history.",
+    "The **origin** of the Thai postal service goes back to 1883.",
+    "Some teachers now ask students to write letters to their grandparents, an activity they find **suitable** for building patience and kindness."
+   ],
+   "pool": [
+    {
+     "q": "The word “previous” in sentence 2 is closest in meaning to ______.",
+     "o": [
+      "younger",
+      "next",
+      "earlier",
+      "future"
+     ],
+     "a": 2,
+     "why": "previous generation = คนรุ่นก่อน",
+     "t": "V",
+     "id": "r11-1"
+    },
+    {
+     "q": "The word “suitable” in sentence 6 is closest in meaning to ______.",
+     "o": [
+      "harmful to",
+      "bored with",
+      "far from",
+      "right for"
+     ],
+     "a": 3,
+     "why": "suitable for = เหมาะสำหรับ",
+     "t": "V",
+     "id": "r11-2"
+    },
+    {
+     "q": "According to the survey, how many students have ever sent a letter by post?",
+     "o": [
+      "None",
+      "One in ten",
+      "Nine in ten",
+      "Half"
+     ],
+     "a": 1,
+     "why": "ประโยคที่ 3: only one in ten students",
+     "t": "D",
+     "id": "r11-3"
+    },
+    {
+     "q": "Who do some teachers ask students to write letters to?",
+     "o": [
+      "Friends abroad",
+      "The post office",
+      "Their grandparents",
+      "Their teachers"
+     ],
+     "a": 2,
+     "why": "ประโยคที่ 6: write letters to their grandparents",
+     "t": "D",
+     "id": "r11-4"
+    },
+    {
+     "q": "What is the main purpose of the passage?",
+     "o": [
+      "To describe a historian’s life",
+      "To show that letter writing is rare but still valuable",
+      "To sell stamps",
+      "To explain how email works"
+     ],
+     "a": 1,
+     "why": "ต้นเรื่อง: จดหมายแทบหายไป · ท้ายเรื่อง: ยังมีคุณค่า",
+     "t": "M",
+     "id": "r11-5"
+    },
+    {
+     "q": "In sentence 6, “they” refers to ______.",
+     "o": [
+      "the teachers",
+      "the letters",
+      "the students",
+      "the grandparents"
+     ],
+     "a": 0,
+     "why": "an activity they find suitable → ครูเป็นผู้มองว่ากิจกรรมนี้เหมาะ",
+     "t": "I",
+     "id": "r11-6"
+    },
+    {
+     "q": "What can be inferred about handwritten letters today?",
+     "o": [
+      "They are not allowed at school.",
+      "Most young people rarely write them.",
+      "Only historians send them.",
+      "They are more popular than email."
+     ],
+     "a": 1,
+     "why": "ประโยคที่ 1 และ 3: แทบหายไป มีนักเรียนเคยส่งเพียง 1 ใน 10",
+     "t": "I",
+     "id": "r11-7"
+    },
+    {
+     "q": "“Disappeared” = dis- + appear + -ed. What does dis- add to “appear”?",
+     "o": [
+      "the meaning ‘too much’",
+      "the meaning ‘again’",
+      "the meaning ‘before’",
+      "the opposite meaning"
+     ],
+     "a": 3,
+     "why": "dis- = ไม่ / ตรงข้าม (บทถอดรหัสที่ 5) → appear (ปรากฏ) → disappear (หายไป)",
+     "t": "C",
+     "id": "r11-8"
+    }
+   ]
+  },
+  "12": {
+   "title": "Walking for Better Health",
+   "topic": "สุขภาพ · งานวิจัย",
+   "sents": [
+    "A study at one university **revealed** that walking every day can bring many benefits.",
+    "**Participants** who walked for three months showed fewer **symptoms** of stress.",
+    "Their blood pressure began to **decrease**, and walking helped **strengthen** their leg muscles.",
+    "One **unique** feature of the study was that participants walked in small groups and chatted.",
+    "Many said they **appreciated** the chance to make new friends.",
+    "Because the **outcome** was so positive, the researchers **propose** that schools encourage walking during lunch breaks.",
+    "Walking is already **widely** popular, so the idea may be easy to put into practice."
+   ],
+   "pool": [
+    {
+     "q": "The word “symptoms” in sentence 2 is closest in meaning to ______.",
+     "o": [
+      "signs",
+      "causes",
+      "costs",
+      "cures"
+     ],
+     "a": 0,
+     "why": "symptoms of stress = อาการ / สัญญาณของความเครียด",
+     "t": "V",
+     "id": "r12-1"
+    },
+    {
+     "q": "The word “appreciated” in sentence 5 is closest in meaning to ______.",
+     "o": [
+      "refused",
+      "valued",
+      "disliked",
+      "forgot"
+     ],
+     "a": 1,
+     "why": "appreciate = เห็นคุณค่า ซาบซึ้ง",
+     "t": "V",
+     "id": "r12-2"
+    },
+    {
+     "q": "How long did the participants walk?",
+     "o": [
+      "For three months",
+      "For one day",
+      "For a year",
+      "For one week"
+     ],
+     "a": 0,
+     "why": "ประโยคที่ 2: walked for three months",
+     "t": "D",
+     "id": "r12-3"
+    },
+    {
+     "q": "What did walking help strengthen?",
+     "o": [
+      "Teeth",
+      "Memory",
+      "Eyes",
+      "Leg muscles"
+     ],
+     "a": 3,
+     "why": "ประโยคที่ 3: helped strengthen their leg muscles",
+     "t": "D",
+     "id": "r12-4"
+    },
+    {
+     "q": "Which is the best title for the passage?",
+     "o": [
+      "How to Run a Marathon",
+      "The Danger of Blood Pressure",
+      "Why Schools Need Gyms",
+      "Walking Together for Better Health"
+     ],
+     "a": 3,
+     "why": "เดินเป็นกลุ่ม → สุขภาพดีขึ้นทั้งกายและใจ",
+     "t": "M",
+     "id": "r12-5"
+    },
+    {
+     "q": "In sentence 3, “Their” refers to ______.",
+     "o": [
+      "the participants",
+      "the researchers",
+      "the students",
+      "the doctors"
+     ],
+     "a": 0,
+     "why": "ประโยคก่อนหน้า: Participants … → Their blood pressure",
+     "t": "I",
+     "id": "r12-6"
+    },
+    {
+     "q": "What can be inferred about walking in groups?",
+     "o": [
+      "It is only for students.",
+      "It is more tiring than walking alone.",
+      "It raises blood pressure.",
+      "It may help people feel less stressed and more social."
+     ],
+     "a": 3,
+     "why": "fewer symptoms of stress + make new friends",
+     "t": "I",
+     "id": "r12-7"
+    },
+    {
+     "q": "In sentence 6, “Because” introduces ______.",
+     "o": [
+      "a time order",
+      "a contrast",
+      "the reason for the researchers’ proposal",
+      "an example"
+     ],
+     "a": 2,
+     "why": "Because the outcome was so positive → เหตุผลที่เสนอ",
+     "t": "C",
+     "id": "r12-8"
     }
    ]
   }

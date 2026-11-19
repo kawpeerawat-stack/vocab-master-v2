@@ -16,7 +16,10 @@ export interface RDecodeWord { w: string; code: string; th: string; kind: "new" 
 export interface RDecode { title: string; topic: string; sents: string[]; words: RDecodeWord[]; qs: RQuestion[]; also: RCover[] }
 export interface RWeek { week: number; lesson: string; lessonHour: number; lessonTitle: string; set: number | null; dateLabel: string; preview: RPreview | null; decode: RDecode }
 export interface RBridge { parts?: { c: string; m: string; l: number }[]; fam?: { w: string; c: string; l: number }[]; trap?: string }
-interface RData { version: string; weeks: RWeek[]; bridge: Record<string, RBridge> }
+export type RSkill = "V" | "D" | "M" | "I" | "C";
+export interface RReviewQ extends RQuestion { t: RSkill; id: string }
+export interface RReview { title: string; topic: string; sents: string[]; pool: RReviewQ[] }
+interface RData { version: string; weeks: RWeek[]; bridge: Record<string, RBridge>; review: Record<string, RReview> }
 
 const DATA = RAW as unknown as RData;
 
@@ -24,6 +27,23 @@ export const READING_WEEKS: RWeek[] = DATA.weeks;
 export const readingBySet = (k: number): RWeek | undefined => DATA.weeks.find((w) => w.set === k && !!w.preview);
 export const readingByLesson = (lessonId: string): RWeek | undefined => DATA.weeks.find((w) => w.lesson === lessonId);
 export const bridgeOf = (word: string): RBridge | undefined => DATA.bridge[word];
+
+// ── v10.0: บทอ่านในรอบทบทวนชุดคำศัพท์แกน (ชุด 1–12) ──
+//   คลังบทละ 8 ข้อ (V2 D2 M1 I2 C1) → สุ่มทักษะละ 1 ข้อ = 5 ข้อ · ลำดับ: รายละเอียด → ความหมายในบริบท → อ้างอิง/อนุมาน → คำเชื่อม/รหัส → ใจความหลัก
+export const SKILL_LABEL: Record<RSkill, string> = { V: "ความหมายในบริบท", D: "รายละเอียด", M: "ใจความหลัก", I: "อ้างอิง / อนุมาน", C: "คำเชื่อม / รหัสคำ" };
+const SKILL_ORDER: RSkill[] = ["D", "V", "I", "C", "M"];
+export const reviewOf = (k: number): RReview | undefined => DATA.review?.[String(k)];
+export function drawReview(k: number): RReviewQ[] {
+  const r = reviewOf(k);
+  if (!r) return [];
+  return SKILL_ORDER.map((t) => {
+    const c = r.pool.filter((q) => q.t === t);
+    return c[Math.floor(Math.random() * c.length)];
+  }).filter(Boolean);
+}
+// เวลาต่อข้อของคำถามบทอ่าน: ข้อแรกรวมเวลาอ่านบท
+export const READ_FIRST_MS = 120000;
+export const READ_Q_MS = 60000;
 
 // ── แถบ "คุณรู้แล้ว X%" ──
 export interface CoverResult { known: number; total: number; pct: number; rows: { w: string; known: boolean; where: string }[] }

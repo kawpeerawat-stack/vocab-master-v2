@@ -388,7 +388,7 @@ export default function Home() {
                   icon="📚"
                   title={CORE_NAME}
                   sub="TGAT · A-Level · 12 ชุด ชุดละ 10 คำ · เรียนแบบ 5 ขั้น"
-                  hint="เรียนชุดละ 10 คำ (เลือกชุดไหนก่อนก็ได้) → รอบทบทวนถูก ≥ 80% = ผ่าน ✓"
+                  hint="เรียนชุดละ 10 คำ (เลือกชุดไหนก่อนก็ได้) → รอบทบทวน (ศัพท์ 10 + บทอ่าน 5) ถูก ≥ 80% = ผ่าน ✓"
                   badge={setsPassed > 0 ? `ผ่าน ${setsPassed} ชุด` : undefined}
                   onClick={() => setSection("VOCAB")}
                 />
